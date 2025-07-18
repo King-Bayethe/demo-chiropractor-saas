@@ -54,7 +54,7 @@ export function CRMSidebar() {
       "transition-all duration-200 hover:bg-white/10",
       isActive(path) 
         ? "bg-white/15 text-white border-r-2 border-medical-teal" 
-        : "text-sidebar-text/80 hover:text-white"
+        : "text-white/90 hover:text-white"
     );
   };
 

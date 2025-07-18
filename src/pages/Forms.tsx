@@ -41,6 +41,13 @@ const formTypes = [
     color: "bg-success/10 text-success"
   },
   {
+    id: "intake-lead",
+    title: "Intake Lead Form",
+    description: "GoHighLevel intake lead form integration",
+    icon: ClipboardList,
+    color: "bg-purple-500/10 text-purple-700"
+  },
+  {
     id: "pain-assessment",
     title: "Pain Assessment",
     description: "Detailed pain evaluation form",
@@ -154,7 +161,7 @@ export default function Forms() {
             </div>
 
             <div>
-              <Label htmlFor="referringAttorney">Referring Attorney *</Label>
+              <Label htmlFor="referringAttorney">Attorney Referral *</Label>
               <Select required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select referring attorney" />
@@ -246,6 +253,29 @@ export default function Forms() {
               </Button>
             </div>
           </form>
+        );
+
+      case "intake-lead":
+        return (
+          <div className="w-full h-[800px]">
+            <iframe
+              src="https://api.leadconnectorhq.com/widget/form/a54gsPXSCoG54enqSqJU"
+              style={{width: '100%', height: '100%', border: 'none', borderRadius: '3px'}}
+              id="inline-a54gsPXSCoG54enqSqJU" 
+              data-layout="{'id':'INLINE'}"
+              data-trigger-type="alwaysShow"
+              data-trigger-value=""
+              data-activation-type="alwaysActivated"
+              data-activation-value=""
+              data-deactivation-type="neverDeactivate"
+              data-deactivation-value=""
+              data-form-name="Intake Lead form"
+              data-height="774"
+              data-layout-iframe-id="inline-a54gsPXSCoG54enqSqJU"
+              data-form-id="a54gsPXSCoG54enqSqJU"
+              title="Intake Lead form"
+            />
+          </div>
         );
 
       default:
