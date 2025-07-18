@@ -54,14 +54,14 @@ export function CRMSidebar() {
               <img 
                 src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
                 alt="Dr. Silverman Chiropractic and Rehabilitation"
-                className="h-16 object-contain"
+                className="h-32 object-contain"
               />
             )}
             {collapsed && (
               <img 
                 src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
                 alt="Dr. Silverman Logo"
-                className="w-10 h-10 object-contain"
+                className="w-20 h-20 object-contain"
               />
             )}
           </div>
