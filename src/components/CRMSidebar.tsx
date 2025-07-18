@@ -59,7 +59,7 @@ export function CRMSidebar() {
             )}
             {collapsed && (
               <img 
-                src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
+                src="/lovable-uploads/9e0aa9c7-2269-40d3-b093-f00769ff07c2.png" 
                 alt="Dr. Silverman Logo"
                 className="w-20 h-20 object-contain"
               />
