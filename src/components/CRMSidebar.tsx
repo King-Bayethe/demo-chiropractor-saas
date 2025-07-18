@@ -50,18 +50,14 @@ export function CRMSidebar() {
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <img 
-              src={silvermanMainLogo} 
-              alt="Silverman Chiropractic"
-              className="h-8 w-auto max-w-[180px]"
-            />
+            <div className="text-xl font-bold text-white">
+              Silvermancare
+            </div>
           )}
           {collapsed && (
-            <img 
-              src={silvermanMainLogo} 
-              alt="Silverman Logo"
-              className="w-8 h-8 object-contain mx-auto"
-            />
+            <div className="text-lg font-bold text-white text-center">
+              SC
+            </div>
           )}
           <Button
             variant="ghost"
