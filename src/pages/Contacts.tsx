@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Filter, 
@@ -12,7 +17,8 @@ import {
   Mail, 
   MoreHorizontal,
   UserPlus,
-  Download
+  Download,
+  X
 } from "lucide-react";
 
 const mockContacts = [
@@ -74,6 +80,42 @@ const mockContacts = [
 ];
 
 export default function Contacts() {
+  const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    language: "",
+    referredBy: "",
+    tags: ""
+  });
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would integrate with GoHighLevel API
+    console.log("New contact data:", formData);
+    
+    // Close modal and show success message
+    setIsAddContactOpen(false);
+    toast({
+      title: "Contact Added Successfully",
+      description: `${formData.firstName} ${formData.lastName} has been added to your contacts.`,
+    });
+    
+    // Reset form
+    setFormData({
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+      language: "",
+      referredBy: "",
+      tags: ""
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Active": return "bg-success/10 text-success";
@@ -106,7 +148,7 @@ export default function Contacts() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setIsAddContactOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Contact
             </Button>
@@ -245,6 +287,126 @@ export default function Contacts() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Add Contact Modal */}
+        <Dialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                Add New Contact
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsAddContactOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    placeholder="Enter first name"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    placeholder="Enter last name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="(786) 123-4567"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="contact@example.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="language">Language</Label>
+                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, language: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="spanish">Spanish</SelectItem>
+                    <SelectItem value="portuguese">Portuguese</SelectItem>
+                    <SelectItem value="french">French</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="referredBy">Attorney Referral</Label>
+                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, referredBy: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select referring attorney" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="johnson-associates">Johnson & Associates</SelectItem>
+                    <SelectItem value="miller-law">Miller Law Firm</SelectItem>
+                    <SelectItem value="davis-legal">Davis Legal Group</SelectItem>
+                    <SelectItem value="rodriguez-partners">Rodriguez & Partners</SelectItem>
+                    <SelectItem value="smith-law">Smith Law Office</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="tags">Tags (comma-separated)</Label>
+                <Input
+                  id="tags"
+                  value={formData.tags}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                  placeholder="PIP Patient, New Lead, etc."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddContactOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Add Contact
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
