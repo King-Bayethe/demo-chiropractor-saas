@@ -43,7 +43,7 @@ export function CRMSidebar() {
 
   return (
     <div className={cn(
-      "h-screen bg-background text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
+      "h-screen bg-black text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
       collapsed ? "w-16" : "w-64"
     )}>
       {/* Header */}
