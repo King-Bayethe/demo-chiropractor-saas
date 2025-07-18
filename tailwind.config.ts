@@ -51,8 +51,17 @@ export default {
 				medical: {
 					blue: 'hsl(var(--medical-blue))',
 					'blue-light': 'hsl(var(--medical-blue-light))',
+					'blue-dark': 'hsl(var(--medical-blue-dark))',
 					teal: 'hsl(var(--medical-teal))'
 				},
+				'medical-blue': 'hsl(var(--medical-blue))',
+				'medical-blue-light': 'hsl(var(--medical-blue-light))',
+				'medical-blue-dark': 'hsl(var(--medical-blue-dark))',
+				'medical-teal': 'hsl(var(--medical-teal))',
+				'sidebar-bg': 'hsl(var(--sidebar-bg))',
+				'sidebar-text': 'hsl(var(--sidebar-text))',
+				'sidebar-hover': 'hsl(var(--sidebar-hover))',
+				'sidebar-active': 'hsl(var(--sidebar-active))',
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'

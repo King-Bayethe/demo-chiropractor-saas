@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 210 12% 16%;
 
     --card: 0 0% 100%;
@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 210 12% 16%;
 
-    --primary: 210 100% 45%;
+    --primary: 210 100% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 20% 96%;
@@ -32,11 +32,14 @@ All colors MUST be HSL.
     --success: 145 85% 47%;
     --success-foreground: 0 0% 100%;
 
-    --medical-blue: 210 100% 45%;
-    --medical-blue-light: 210 100% 95%;
+    --medical-blue: 210 100% 50%;
+    --medical-blue-light: 210 100% 96%;
+    --medical-blue-dark: 210 100% 35%;
     --medical-teal: 180 65% 50%;
-    --sidebar-bg: 210 24% 16%;
-    --sidebar-text: 210 20% 98%;
+    --sidebar-bg: 210 100% 40%;
+    --sidebar-text: 0 0% 100%;
+    --sidebar-hover: 210 100% 45%;
+    --sidebar-active: 210 100% 55%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -65,26 +68,38 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 210 30% 8%;
+    --foreground: 210 20% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 210 30% 12%;
+    --card-foreground: 210 20% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 210 30% 12%;
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 210 100% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 30% 18%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 30% 18%;
+    --muted-foreground: 210 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 180 65% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 145 85% 55%;
+    --success-foreground: 0 0% 100%;
+
+    --medical-blue: 210 100% 60%;
+    --medical-blue-light: 210 100% 25%;
+    --medical-blue-dark: 210 100% 40%;
+    --medical-teal: 180 65% 60%;
+    --sidebar-bg: 210 100% 25%;
+    --sidebar-text: 0 0% 100%;
+    --sidebar-hover: 210 100% 35%;
+    --sidebar-active: 210 100% 50%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;

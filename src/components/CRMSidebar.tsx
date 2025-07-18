@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
+  Activity,
   Users,
   MessageSquare,
-  FileText,
-  BarChart3,
-  CreditCard,
+  ClipboardList,
+  FolderOpen,
   Settings,
   ChevronLeft,
   ChevronRight,
-  Calendar,
-  Target,
-  Activity
+  Stethoscope
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,15 +28,11 @@ import { cn } from "@/lib/utils";
 import drSilvermanLogo from "@/assets/dr-silverman-logo.png";
 
 const navigationItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Pipelines", url: "/pipelines", icon: Target },
-  { title: "Contacts", url: "/contacts", icon: Users },
+  { title: "Dashboard", url: "/", icon: Activity },
   { title: "Conversations", url: "/conversations", icon: MessageSquare },
-  { title: "Calendar", url: "/calendar", icon: Calendar },
-  { title: "Forms", url: "/forms", icon: FileText },
-  { title: "Analytics", url: "/analytics", icon: Activity },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
-  { title: "Billing", url: "/billing", icon: CreditCard },
+  { title: "Contacts", url: "/contacts", icon: Users },
+  { title: "Forms", url: "/forms", icon: ClipboardList },
+  { title: "Documents", url: "/documents", icon: FolderOpen },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -77,25 +70,24 @@ export function CRMSidebar() {
       }}
       collapsible="icon"
     >
-      <SidebarHeader className="p-4 border-b border-white/10">
+      <SidebarHeader className="p-6 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div className={cn("flex items-center space-x-3", collapsed && "justify-center")}>
-            <img 
-              src={drSilvermanLogo} 
-              alt="Dr. Silverman Logo" 
-              className={cn(
-                "transition-all duration-300",
-                collapsed ? "w-8 h-8" : "w-12 h-12"
-              )}
-            />
-            {!collapsed && (
-              <div className="flex flex-col">
-                <span className="text-white font-semibold text-sm leading-tight">
-                  Dr. Silverman
-                </span>
-                <span className="text-white/70 text-xs">
-                  Chiropractic & Rehab
-                </span>
+            {!collapsed ? (
+              <div className="flex flex-col items-center space-y-3 w-full">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <Stethoscope className="w-8 h-8 text-medical-blue" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-xl font-bold text-white tracking-wide">SILVERMAN</h2>
+                  <p className="text-xs text-white/80 leading-tight">
+                    Chiropractic & Rehabilitation Center
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <Stethoscope className="w-5 h-5 text-medical-blue" />
               </div>
             )}
           </div>
@@ -103,7 +95,7 @@ export function CRMSidebar() {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+            className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 absolute top-4 right-4"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
