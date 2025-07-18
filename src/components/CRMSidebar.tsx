@@ -9,7 +9,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Stethoscope
+  Stethoscope,
+  Mail
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,7 +26,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import drSilvermanLogo from "@/assets/dr-silverman-logo.png";
+import silvermanLogoHorizontal from "@/assets/silverman-logo-horizontal.png";
+import silvermanLogoCircle from "@/assets/silverman-logo-circle.png";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Activity },
@@ -33,6 +35,7 @@ const navigationItems = [
   { title: "Contacts", url: "/contacts", icon: Users },
   { title: "Forms", url: "/forms", icon: ClipboardList },
   { title: "Documents", url: "/documents", icon: FolderOpen },
+  { title: "Emails", url: "/emails", icon: Mail },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -75,20 +78,18 @@ export function CRMSidebar() {
           <div className={cn("flex items-center space-x-3", collapsed && "justify-center")}>
             {!collapsed ? (
               <div className="flex flex-col items-center space-y-3 w-full">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
-                  <Stethoscope className="w-8 h-8 text-medical-blue" />
-                </div>
-                <div className="text-center">
-                  <h2 className="text-xl font-bold text-white tracking-wide">SILVERMAN</h2>
-                  <p className="text-xs text-white/80 leading-tight">
-                    Chiropractic & Rehabilitation Center
-                  </p>
-                </div>
+                <img 
+                  src={silvermanLogoHorizontal} 
+                  alt="Silverman Chiropractic and Rehabilitation Center"
+                  className="w-full max-w-[180px] h-auto"
+                />
               </div>
             ) : (
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <Stethoscope className="w-5 h-5 text-medical-blue" />
-              </div>
+              <img 
+                src={silvermanLogoCircle} 
+                alt="Silverman Logo"
+                className="w-10 h-10 rounded-full"
+              />
             )}
           </div>
           <Button
