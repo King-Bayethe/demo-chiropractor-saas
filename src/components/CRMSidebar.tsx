@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import silvermanMainLogo from "@/assets/silverman-main-logo.png";
+import silvermancareLogo from "@/assets/silvermancare-logo.png";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Activity },
@@ -50,14 +50,23 @@ export function CRMSidebar() {
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <div className="text-xl font-bold text-white">
-              Silvermancare
+            <div className="flex items-center space-x-3">
+              <img 
+                src={silvermancareLogo} 
+                alt="Silvermancare Logo"
+                className="h-8 w-8 object-contain"
+              />
+              <div className="text-xl font-bold text-white">
+                Silvermancare
+              </div>
             </div>
           )}
           {collapsed && (
-            <div className="text-lg font-bold text-white text-center">
-              SC
-            </div>
+            <img 
+              src={silvermancareLogo} 
+              alt="Silvermancare Logo"
+              className="w-8 h-8 object-contain mx-auto"
+            />
           )}
           <Button
             variant="ghost"
