@@ -187,12 +187,9 @@ export default function Settings() {
       </div>
 
       <div>
-        <Label htmlFor="logo-upload">Logo Upload</Label>
-        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-[#4DA8FF] transition-colors cursor-pointer">
-          <Upload className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-          <p className="text-sm text-muted-foreground">
-            Drag and drop your logo here, or click to browse
-          </p>
+        <Label htmlFor="logo-text">Logo Text</Label>
+        <div className="p-4 border rounded-lg bg-muted/20">
+          <p className="text-lg font-semibold text-[#007BFF]">Silvermancare</p>
         </div>
       </div>
 
