@@ -111,7 +111,7 @@ export default function Documents() {
       doc.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.id.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = !selectedDocumentType || doc.type === selectedDocumentType;
+    const matchesType = selectedDocumentType === "all" || !selectedDocumentType || doc.type === selectedDocumentType;
     
     return matchesSearch && matchesType;
   });
@@ -262,7 +262,7 @@ export default function Documents() {
                     <SelectValue placeholder="Filter by type..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     {documentTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
