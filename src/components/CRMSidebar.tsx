@@ -48,26 +48,28 @@ export function CRMSidebar() {
     )}>
       {/* Header */}
       <div className="p-4 border-b border-white/10">
-        <div className="flex items-center justify-between">
-          {!collapsed && (
-            <img 
-              src="/lovable-uploads/ee181645-ac8b-424c-a14e-56ccb8d5840c.png" 
-              alt="Silverman Chiropractic and Rehabilitation Center"
-              className="h-10 object-contain"
-            />
-          )}
-          {collapsed && (
-            <img 
-              src="/lovable-uploads/ee181645-ac8b-424c-a14e-56ccb8d5840c.png" 
-              alt="Silverman Logo"
-              className="w-8 h-8 object-contain mx-auto"
-            />
-          )}
+        <div className="flex items-center justify-between w-full">
+          <div className="flex-1 flex justify-center">
+            {!collapsed && (
+              <img 
+                src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
+                alt="Dr. Silverman Chiropractic and Rehabilitation"
+                className="h-16 object-contain"
+              />
+            )}
+            {collapsed && (
+              <img 
+                src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
+                alt="Dr. Silverman Logo"
+                className="w-10 h-10 object-contain"
+              />
+            )}
+          </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
           >
             {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </Button>
