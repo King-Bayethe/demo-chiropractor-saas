@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Activity,
@@ -7,25 +6,13 @@ import {
   ClipboardList,
   FolderOpen,
   Settings,
-  ChevronLeft,
-  ChevronRight,
-  Stethoscope,
-  Mail
+  Mail,
+  Menu,
+  X
 } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import silvermanLogoHorizontal from "@/assets/silverman-logo-horizontal.png";
 import silvermanLogoCircle from "@/assets/silverman-logo-circle.png";
 
@@ -40,10 +27,9 @@ const navigationItems = [
 ];
 
 export function CRMSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname;
-  const collapsed = state === "collapsed";
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -52,89 +38,84 @@ export function CRMSidebar() {
     return currentPath.startsWith(path);
   };
 
-  const getNavClassName = (path: string) => {
-    return cn(
-      "transition-all duration-200 hover:bg-white/10",
-      isActive(path) 
-        ? "bg-white/15 text-white border-r-2 border-medical-teal" 
-        : "text-white/90 hover:text-white"
-    );
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
   };
 
   return (
-    <Sidebar
-      className={cn(
-        "transition-all duration-300 border-r border-border/20",
-        collapsed ? "w-16" : "w-64"
-      )}
-      style={{ 
-        backgroundColor: "hsl(var(--sidebar-bg))",
-        color: "hsl(var(--sidebar-text))"
-      }}
-      collapsible="icon"
-    >
-      <SidebarHeader className="p-6 border-b border-white/10">
+    <div className={cn(
+      "h-screen bg-gradient-to-b from-[#007BFF] to-[#0056CC] text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
+      collapsed ? "w-16" : "w-64"
+    )}>
+      {/* Header */}
+      <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between">
-          <div className={cn("flex items-center space-x-3", collapsed && "justify-center")}>
-            {!collapsed ? (
-              <div className="flex flex-col items-center space-y-3 w-full">
-                <img 
-                  src={silvermanLogoHorizontal} 
-                  alt="Silverman Chiropractic and Rehabilitation Center"
-                  className="w-full max-w-[180px] h-auto"
-                />
-              </div>
-            ) : (
-              <img 
-                src={silvermanLogoCircle} 
-                alt="Silverman Logo"
-                className="w-10 h-10 rounded-full"
-              />
-            )}
-          </div>
+          {!collapsed && (
+            <img 
+              src={silvermanLogoHorizontal} 
+              alt="Silverman Chiropractic"
+              className="h-8 w-auto max-w-[180px]"
+            />
+          )}
+          {collapsed && (
+            <img 
+              src={silvermanLogoCircle} 
+              alt="Silverman Logo"
+              className="w-8 h-8 rounded-full mx-auto"
+            />
+          )}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 absolute top-4 right-4"
+            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </Button>
         </div>
-      </SidebarHeader>
+      </div>
 
-      <SidebarContent className="px-2 py-4">
-        <SidebarGroup>
-          <SidebarGroupLabel className={cn(
-            "text-white/60 text-xs uppercase tracking-wider mb-2",
-            collapsed && "sr-only"
-          )}>
-            Navigation
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="h-10">
-                    <NavLink
-                      to={item.url}
-                      className={getNavClassName(item.url)}
-                    >
-                      <item.icon className={cn(
-                        "transition-all duration-200",
-                        collapsed ? "h-5 w-5 mx-auto" : "h-5 w-5 mr-3"
-                      )} />
-                      {!collapsed && (
-                        <span className="font-medium text-sm">{item.title}</span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-6">
+        <div className="space-y-2">
+          {navigationItems.map((item) => {
+            const active = isActive(item.url);
+            return (
+              <NavLink
+                key={item.title}
+                to={item.url}
+                className={cn(
+                  "flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                  active
+                    ? "bg-white/15 text-white shadow-lg border-r-4 border-[#4DA8FF]"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                )}
+              >
+                <item.icon className={cn(
+                  "h-5 w-5 transition-colors",
+                  collapsed ? "mx-auto" : "mr-3",
+                  active ? "text-white" : "text-white/70 group-hover:text-white"
+                )} />
+                {!collapsed && (
+                  <span className="truncate">{item.title}</span>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-white/10">
+        {!collapsed ? (
+          <div className="text-center">
+            <p className="text-xs text-white/60">Dr. Silverman CRM</p>
+            <p className="text-xs text-white/40">v2.0</p>
+          </div>
+        ) : (
+          <div className="h-2"></div>
+        )}
+      </div>
+    </div>
   );
 }
