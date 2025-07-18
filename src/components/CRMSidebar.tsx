@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import silvermancareLogo from "@/assets/silvermancare-logo.png";
+// Using direct path to uploaded logo
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Activity },
@@ -50,21 +50,16 @@ export function CRMSidebar() {
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <div className="flex items-center space-x-3">
-              <img 
-                src={silvermancareLogo} 
-                alt="Silvermancare Logo"
-                className="h-8 w-8 object-contain"
-              />
-              <div className="text-xl font-bold text-white">
-                Silvermancare
-              </div>
-            </div>
+            <img 
+              src="/lovable-uploads/ee181645-ac8b-424c-a14e-56ccb8d5840c.png" 
+              alt="Silverman Chiropractic and Rehabilitation Center"
+              className="h-10 object-contain"
+            />
           )}
           {collapsed && (
             <img 
-              src={silvermancareLogo} 
-              alt="Silvermancare Logo"
+              src="/lovable-uploads/ee181645-ac8b-424c-a14e-56ccb8d5840c.png" 
+              alt="Silverman Logo"
               className="w-8 h-8 object-contain mx-auto"
             />
           )}
