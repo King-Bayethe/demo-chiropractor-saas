@@ -48,7 +48,25 @@ const handler = async (req: Request): Promise<Response> => {
         headers,
       });
 
-      const data = await response.json();
+      console.log('GHL API Response status:', response.status);
+      console.log('GHL API Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL API Error:', response.status, errorText);
+        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('GHL API Response text:', responseText);
+
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError, 'Response text:', responseText);
+        throw new Error(`Invalid JSON response from GoHighLevel API: ${responseText}`);
+      }
       
       return new Response(JSON.stringify(data), {
         status: response.status,
@@ -79,7 +97,22 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify(ghlContact),
       });
 
-      const data = await response.json();
+      console.log('Create Contact Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL Create Contact Error:', response.status, errorText);
+        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
+      }
+
+      const responseText = await response.text();
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
 
       return new Response(JSON.stringify(data), {
         status: response.status,
@@ -97,7 +130,20 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify(contactData),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL Update Contact Error:', response.status, errorText);
+        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
+      }
+
+      const responseText = await response.text();
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
 
       return new Response(JSON.stringify(data), {
         status: response.status,
