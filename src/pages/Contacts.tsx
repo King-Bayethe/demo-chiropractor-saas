@@ -22,63 +22,6 @@ import {
   X
 } from "lucide-react";
 
-const mockContacts = [
-  {
-    id: 1,
-    name: "Vito Silveiro",
-    phone: "(786) 806-9212",
-    email: "designerprintingusa@gmail.com",
-    type: "PIP Patient",
-    status: "Active",
-    lastActivity: "1 day ago",
-    avatar: "VS",
-    attorney: "Johnson & Associates"
-  },
-  {
-    id: 2,
-    name: "Islen Martinez",
-    phone: "(786) 726-5877",
-    email: "",
-    type: "General Patient",
-    status: "Active",
-    lastActivity: "1 day ago",
-    avatar: "IM",
-    attorney: ""
-  },
-  {
-    id: 3,
-    name: "Bayethe Rowell",
-    phone: "(330) 722-7379",
-    email: "bayethe.rowell@gmail.com",
-    type: "PIP Patient",
-    status: "Active",
-    lastActivity: "2 weeks ago",
-    avatar: "BR",
-    attorney: "Miller Law Firm"
-  },
-  {
-    id: 4,
-    name: "Arturo Mata",
-    phone: "(786) 487-6893",
-    email: "",
-    type: "Lead",
-    status: "New",
-    lastActivity: "3 weeks ago",
-    avatar: "AM",
-    attorney: "Davis Legal Group"
-  },
-  {
-    id: 5,
-    name: "Rafael Valiente",
-    phone: "(754) 715-2321",
-    email: "",
-    type: "General Patient",
-    status: "Inactive",
-    lastActivity: "3 weeks ago",
-    avatar: "RV",
-    attorney: ""
-  }
-];
 
 export default function Contacts() {
   const [contacts, setContacts] = useState([]);
@@ -109,11 +52,10 @@ export default function Contacts() {
       console.error('Failed to load contacts:', error);
       toast({
         title: "Error",
-        description: "Failed to load contacts. Using demo data.",
+        description: "Failed to load contacts from GoHighLevel API.",
         variant: "destructive",
       });
-      // Fallback to mock data
-      setContacts(mockContacts);
+      setContacts([]);
     } finally {
       setLoading(false);
     }
