@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useGHLApi } from "@/hooks/useGHLApi";
 import { 
   Search, 
   Filter, 
@@ -80,6 +81,8 @@ const mockContacts = [
 ];
 
 export default function Contacts() {
+  const [contacts, setContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -91,29 +94,77 @@ export default function Contacts() {
     tags: ""
   });
   const { toast } = useToast();
+  const ghlApi = useGHLApi();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadContacts();
+  }, []);
+
+  const loadContacts = async () => {
+    try {
+      setLoading(true);
+      const data = await ghlApi.contacts.getAll();
+      setContacts(data.contacts || []);
+    } catch (error) {
+      console.error('Failed to load contacts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load contacts. Using demo data.",
+        variant: "destructive",
+      });
+      // Fallback to mock data
+      setContacts(mockContacts);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would integrate with GoHighLevel API
-    console.log("New contact data:", formData);
     
-    // Close modal and show success message
-    setIsAddContactOpen(false);
-    toast({
-      title: "Contact Added Successfully",
-      description: `${formData.firstName} ${formData.lastName} has been added to your contacts.`,
-    });
-    
-    // Reset form
-    setFormData({
-      firstName: "",
-      lastName: "",
-      phone: "",
-      email: "",
-      language: "",
-      referredBy: "",
-      tags: ""
-    });
+    try {
+      const contactData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        customFields: [
+          { key: 'language', field_value: formData.language },
+          { key: 'referred_by', field_value: formData.referredBy },
+        ].filter(field => field.field_value),
+      };
+
+      await ghlApi.contacts.create(contactData);
+      
+      // Close modal and show success message
+      setIsAddContactOpen(false);
+      toast({
+        title: "Contact Added Successfully",
+        description: `${formData.firstName} ${formData.lastName} has been added to your contacts.`,
+      });
+      
+      // Reset form
+      setFormData({
+        firstName: "",
+        lastName: "",
+        phone: "",
+        email: "",
+        language: "",
+        referredBy: "",
+        tags: ""
+      });
+      
+      // Reload contacts
+      loadContacts();
+    } catch (error) {
+      console.error('Failed to add contact:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add contact. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -171,9 +222,9 @@ export default function Contacts() {
                 Filters
               </Button>
               <div className="flex items-center space-x-2">
-                <Badge variant="secondary">Total: {mockContacts.length}</Badge>
+                <Badge variant="secondary">Total: {contacts.length}</Badge>
                 <Badge variant="outline" className="bg-success/10 text-success">
-                  Active: {mockContacts.filter(c => c.status === "Active").length}
+                  Active: {contacts.length}
                 </Badge>
               </div>
             </div>
@@ -201,66 +252,84 @@ export default function Contacts() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {mockContacts.map((contact) => (
-                    <tr key={contact.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
-                              {contact.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm">{contact.name}</p>
-                            <p className="text-xs text-muted-foreground">ID: #{contact.id.toString().padStart(4, '0')}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{contact.phone}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {contact.email ? (
-                          <div className="flex items-center space-x-2">
-                            <Mail className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm text-medical-blue hover:underline cursor-pointer">
-                              {contact.email}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">No email</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="secondary" className={getTypeColor(contact.type)}>
-                          {contact.type}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="secondary" className={getStatusColor(contact.status)}>
-                          {contact.status}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        {contact.attorney ? (
-                          <span className="text-sm">{contact.attorney}</span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <span className="text-sm text-muted-foreground">{contact.lastActivity}</span>
-                      </td>
-                      <td className="p-4">
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                        Loading contacts...
                       </td>
                     </tr>
-                  ))}
+                  ) : contacts.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                        No contacts found
+                      </td>
+                    </tr>
+                  ) : (
+                    contacts.map((contact: any) => (
+                      <tr key={contact.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
+                                {`${contact.firstName?.[0] || ''}${contact.lastName?.[0] || ''}` || contact.name?.[0] || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-sm">
+                                {contact.firstName && contact.lastName 
+                                  ? `${contact.firstName} ${contact.lastName}`
+                                  : contact.name || 'Unknown'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">ID: {contact.id}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center space-x-2">
+                            <Phone className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm">{contact.phone || '-'}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          {contact.email ? (
+                            <div className="flex items-center space-x-2">
+                              <Mail className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm text-medical-blue hover:underline cursor-pointer">
+                                {contact.email}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No email</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="secondary" className="bg-primary/10 text-primary">
+                            {contact.tags?.[0] || 'Contact'}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="secondary" className="bg-success/10 text-success">
+                            Active
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-sm">
+                            {contact.customFields?.find((f: any) => f.key === 'referred_by')?.field_value || '-'}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(contact.dateAdded || contact.createdAt || Date.now()).toLocaleDateString()}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -282,7 +351,7 @@ export default function Contacts() {
                 </Button>
               </div>
               <div className="text-sm text-muted-foreground">
-                Showing {mockContacts.length} of {mockContacts.length} contacts
+                Showing {contacts.length} of {contacts.length} contacts
               </div>
             </div>
           </CardContent>
