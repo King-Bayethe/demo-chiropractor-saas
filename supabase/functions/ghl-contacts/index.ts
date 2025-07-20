@@ -59,7 +59,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('API key found, length:', GHL_API_KEY.length);
-    console.log('API key first 20 chars:', GHL_API_KEY.substring(0, 20) + '...');
+    console.log('API key first 30 chars:', GHL_API_KEY.substring(0, 30) + '...');
+    console.log('API key ends with:', '...' + GHL_API_KEY.substring(GHL_API_KEY.length - 10));
 
     const headers = {
       'Authorization': `Bearer ${GHL_API_KEY}`,
