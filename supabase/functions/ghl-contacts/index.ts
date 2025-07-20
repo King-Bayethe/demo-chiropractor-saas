@@ -11,7 +11,7 @@ const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 const GHL_API_KEY = Deno.env.get('GOHIGHLEVEL_API_KEY');
 const GHL_LOCATION_ID = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
 
-// Main request handler for the Deno function
+// Main request handler for the Deno function - v2
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
