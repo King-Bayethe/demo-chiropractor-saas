@@ -43,78 +43,117 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error('GOHIGHLEVEL_API_KEY environment variable is not set');
       }
 
-      // Fetch contacts or single contact
-      const endpoint = contactId && contactId !== 'ghl-contacts' 
-        ? `${GHL_API_BASE}/contacts/${contactId}`
-        : `${GHL_API_BASE}/contacts/`;
+      if (contactId && contactId !== 'ghl-contacts') {
+        // Fetch single contact by ID
+        const endpoint = `${GHL_API_BASE}/contacts/${contactId}`;
+        
+        console.log('Making request to:', endpoint);
+        
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers,
+        });
 
-      console.log('Making request to:', endpoint);
-      console.log('Using API key (first 10 chars):', GHL_API_KEY.substring(0, 10) + '...');
+        console.log('GHL API Response status:', response.status);
 
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers,
-      });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('GHL API Error:', response.status, errorText);
+          return new Response(
+            JSON.stringify({ 
+              error: `GoHighLevel API error: ${response.status}`, 
+              details: errorText 
+            }),
+            {
+              status: response.status,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          );
+        }
 
-      console.log('GHL API Response status:', response.status);
-      console.log('GHL API Response headers:', Object.fromEntries(response.headers.entries()));
+        const responseText = await response.text();
+        const data = responseText ? JSON.parse(responseText) : {};
+        
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      } else {
+        // Search for all contacts using the new Search API
+        const endpoint = `${GHL_API_BASE}/contacts/search`;
+        
+        console.log('Making request to:', endpoint);
+        
+        const searchBody = {
+          // Empty search returns all contacts with pagination
+          limit: 100,
+          startAt: 0
+        };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('GHL API Error:', response.status, errorText);
-        return new Response(
-          JSON.stringify({ 
-            error: `GoHighLevel API error: ${response.status}`, 
-            details: errorText,
-            endpoint: endpoint 
-          }),
-          {
-            status: response.status,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(searchBody),
+        });
+
+        console.log('GHL API Response status:', response.status);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('GHL API Error:', response.status, errorText);
+          return new Response(
+            JSON.stringify({ 
+              error: `GoHighLevel API error: ${response.status}`, 
+              details: errorText,
+              endpoint: endpoint 
+            }),
+            {
+              status: response.status,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          );
+        }
+
+        const responseText = await response.text();
+        console.log('GHL API Response text length:', responseText.length);
+
+        if (!responseText || responseText.trim() === '') {
+          console.error('Empty response from GHL API');
+          return new Response(
+            JSON.stringify({ 
+              error: 'Empty response from GoHighLevel API',
+              endpoint: endpoint 
+            }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          );
+        }
+
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError, 'Response text:', responseText);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Invalid JSON response from GoHighLevel API',
+              details: parseError.message,
+              responseText: responseText.substring(0, 500) 
+            }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          );
+        }
+        
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
       }
-
-      const responseText = await response.text();
-      console.log('GHL API Response text length:', responseText.length);
-      console.log('GHL API Response text (first 200 chars):', responseText.substring(0, 200));
-
-      if (!responseText || responseText.trim() === '') {
-        console.error('Empty response from GHL API');
-        return new Response(
-          JSON.stringify({ 
-            error: 'Empty response from GoHighLevel API',
-            endpoint: endpoint 
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError, 'Response text:', responseText);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Invalid JSON response from GoHighLevel API',
-            details: parseError.message,
-            responseText: responseText.substring(0, 500) 
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
-      }
-      
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
     }
 
     if (method === 'POST') {
