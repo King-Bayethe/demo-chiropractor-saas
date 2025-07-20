@@ -46,6 +46,21 @@ const handler = async (req: Request): Promise<Response> => {
     const { method = 'GET', action, contactId, data } = requestData;
     console.log('Processing request:', { method, action, contactId });
 
+    // Check if API key is configured
+    if (!GHL_API_KEY) {
+      console.error('GOHIGHLEVEL_API_KEY environment variable is not set');
+      return new Response(
+        JSON.stringify({ error: 'GOHIGHLEVEL_API_KEY not configured' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    console.log('API key found, length:', GHL_API_KEY.length);
+    console.log('API key first 20 chars:', GHL_API_KEY.substring(0, 20) + '...');
+
     const headers = {
       'Authorization': `Bearer ${GHL_API_KEY}`,
       'Content-Type': 'application/json',
