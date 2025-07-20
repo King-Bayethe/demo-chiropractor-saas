@@ -1,66 +1,45 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
+// Standard CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// GHL API Configuration
 const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 const GHL_API_KEY = Deno.env.get('GOHIGHLEVEL_API_KEY');
+const GHL_LOCATION_ID = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
 
-interface ContactData {
-  firstName?: string;
-  lastName?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  tags?: string[];
-  customFields?: Array<{
-    key: string;
-    field_value: string;
-  }>;
-}
-
+// Main request handler for the Deno function
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // All Supabase function invocations come as POST, so we parse the body to get the intended action
-    let requestData;
+    // Safely parse the request body. Default to an empty object if body is empty or invalid.
+    let requestData = {};
     try {
-      const body = await req.text();
-      requestData = body ? JSON.parse(body) : {};
-    } catch (parseError) {
-      console.error('Failed to parse request body:', parseError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid request body' }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
+      const text = await req.text();
+      if (text) {
+        requestData = JSON.parse(text);
+      }
+    } catch (e) {
+      // Ignore parsing errors for empty bodies, but log for debugging if needed
+      console.warn("Could not parse request body, proceeding with empty data.", e.message);
     }
 
-    const { method = 'GET', action, contactId, data } = requestData;
-    console.log('Processing request:', { method, action, contactId });
+    const { action = 'getAll', contactId, data, filters, sort } = requestData;
 
-    // Check if API key is configured
-    if (!GHL_API_KEY) {
-      console.error('GOHIGHLEVEL_API_KEY environment variable is not set');
-      return new Response(
-        JSON.stringify({ error: 'GOHIGHLEVEL_API_KEY not configured' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
+    if (!GHL_API_KEY || !GHL_LOCATION_ID) {
+      const missingVar = !GHL_API_KEY ? 'GOHIGHLEVEL_API_KEY' : 'GOHIGHLEVEL_LOCATION_ID';
+      console.error(`${missingVar} environment variable is not set`);
+      return new Response(JSON.stringify({ error: `${missingVar} not configured` }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
-
-    console.log('API key found, length:', GHL_API_KEY.length);
-    console.log('API key first 30 chars:', GHL_API_KEY.substring(0, 30) + '...');
-    console.log('API key ends with:', '...' + GHL_API_KEY.substring(GHL_API_KEY.length - 10));
 
     const headers = {
       'Authorization': `Bearer ${GHL_API_KEY}`,
@@ -68,221 +47,111 @@ const handler = async (req: Request): Promise<Response> => {
       'Version': '2021-07-28',
     };
 
-    if (method === 'GET' && (action === 'getById' || contactId)) {
-      // Check if API key is configured
-      if (!GHL_API_KEY) {
-        throw new Error('GOHIGHLEVEL_API_KEY environment variable is not set');
+    // --- ACTION: Get All Contacts ---
+    if (action === 'getAll') {
+      const allContacts = [];
+      let searchAfter: (string | number)[] | undefined = undefined;
+      let total = 0;
+
+      console.log(`Starting contact fetch with filters:`, filters);
+
+      while (true) {
+        const endpoint = `${GHL_API_BASE}/contacts/search`;
+        const searchBody = {
+          locationId: GHL_LOCATION_ID,
+          pageLimit: 100,
+          searchAfter: searchAfter,
+          filters: filters || [],
+          sort: sort || [{ field: "dateAdded", direction: "desc" }]
+        };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(searchBody),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
+        }
+
+        const pageData = await response.json();
+        
+        if (pageData.contacts && pageData.contacts.length > 0) {
+          allContacts.push(...pageData.contacts);
+        }
+        total = pageData.total || allContacts.length;
+
+        if (pageData.searchAfter && pageData.contacts.length > 0) {
+          searchAfter = pageData.searchAfter;
+        } else {
+          break;
+        }
       }
-
-      // Fetch single contact by ID
-      const endpoint = `${GHL_API_BASE}/contacts/${contactId}`;
       
-      console.log('Making request to:', endpoint);
+      console.log(`Total contacts fetched: ${allContacts.length}`);
       
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers,
-      });
-
-      console.log('GHL API Response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('GHL API Error:', response.status, errorText);
-        return new Response(
-          JSON.stringify({ 
-            error: `GoHighLevel API error: ${response.status}`, 
-            details: errorText 
-          }),
-          {
-            status: response.status,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
-      }
-
-      const responseText = await response.text();
-      const data = responseText ? JSON.parse(responseText) : {};
-      
-      return new Response(JSON.stringify(data), {
+      return new Response(JSON.stringify({ contacts: allContacts, total: total }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
 
-    if (method === 'GET' && (action === 'getAll' || !action)) {
-      // Check if API key is configured
-      if (!GHL_API_KEY) {
-        throw new Error('GOHIGHLEVEL_API_KEY environment variable is not set');
-      }
-
-      // Search for all contacts using the new Search API
-      const endpoint = `${GHL_API_BASE}/contacts/search`;
-      
-      console.log('Making request to:', endpoint);
-      
-      const searchBody = {
-        // Empty search returns all contacts with pagination
-        limit: 100,
-        startAt: 0
-      };
-
+    // --- ACTION: Create a new Contact ---
+    if (action === 'create' && data) {
+      const endpoint = `${GHL_API_BASE}/contacts/`;
+      const body = { ...data, locationId: GHL_LOCATION_ID };
       const response = await fetch(endpoint, {
         method: 'POST',
         headers,
-        body: JSON.stringify(searchBody),
+        body: JSON.stringify(body),
       });
-
-      console.log('GHL API Response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('GHL API Error:', response.status, errorText);
-        return new Response(
-          JSON.stringify({ 
-            error: `GoHighLevel API error: ${response.status}`, 
-            details: errorText,
-            endpoint: endpoint 
-          }),
-          {
-            status: response.status,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
-      }
-
-      const responseText = await response.text();
-      console.log('GHL API Response text length:', responseText.length);
-
-      if (!responseText || responseText.trim() === '') {
-        console.error('Empty response from GHL API');
-        return new Response(
-          JSON.stringify({ 
-            error: 'Empty response from GoHighLevel API',
-            endpoint: endpoint 
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError, 'Response text:', responseText);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Invalid JSON response from GoHighLevel API',
-            details: parseError.message,
-            responseText: responseText.substring(0, 500) 
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        );
+        throw new Error(`GHL Create Contact Error: ${response.status} - ${errorText}`);
       }
       
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
-    }
-
-    if (method === 'POST' && action === 'create') {
-      // Create new contact
-      const contactData: ContactData = data;
-
-      // Format data for GHL API
-      const ghlContact = {
-        firstName: contactData.firstName || contactData.name?.split(' ')[0] || '',
-        lastName: contactData.lastName || contactData.name?.split(' ').slice(1).join(' ') || '',
-        email: contactData.email,
-        phone: contactData.phone,
-        tags: contactData.tags || [],
-        customFields: [
-          ...(contactData.customFields || []),
-          // Add language and referral source as custom fields
-        ],
-      };
-
-      const response = await fetch(`${GHL_API_BASE}/contacts/`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(ghlContact),
-      });
-
-      console.log('Create Contact Response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('GHL Create Contact Error:', response.status, errorText);
-        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
-      }
-
-      const responseText = await response.text();
-      let data;
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        throw new Error(`Invalid JSON response: ${responseText}`);
-      }
-
-      return new Response(JSON.stringify(data), {
+      const responseData = await response.json();
+      return new Response(JSON.stringify(responseData), {
         status: response.status,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
 
-    if ((method === 'PATCH' || method === 'PUT') && action === 'update') {
-      // Update existing contact
-      const contactData: ContactData = data;
+    // --- ACTION: Update an existing Contact ---
+    if (action === 'update' && contactId && data) {
+        const endpoint = `${GHL_API_BASE}/contacts/${contactId}`;
+        const response = await fetch(endpoint, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(data),
+        });
 
-      const response = await fetch(`${GHL_API_BASE}/contacts/${contactId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(contactData),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('GHL Update Contact Error:', response.status, errorText);
-        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
-      }
-
-      const responseText = await response.text();
-      let data;
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        throw new Error(`Invalid JSON response: ${responseText}`);
-      }
-
-      return new Response(JSON.stringify(data), {
-        status: response.status,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`GHL Update Contact Error: ${response.status} - ${errorText}`);
+        }
+        
+        const responseData = await response.json();
+        return new Response(JSON.stringify(responseData), {
+            status: response.status,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
     }
 
-    return new Response('Method not allowed', { 
-      status: 405,
-      headers: corsHeaders 
+    return new Response(JSON.stringify({ error: 'Invalid action specified' }), { 
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
 
   } catch (error: any) {
     console.error('Error in ghl-contacts function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 
