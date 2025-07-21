@@ -149,7 +149,7 @@ export default function Contacts() {
     <Layout>
       <div className="h-full flex flex-col">
         {/* Fixed Header Section */}
-        <div className="flex-shrink-0 p-6 space-y-6 bg-background">
+        <div className="flex-shrink-0 p-6 space-y-6 bg-background border-b border-border/50">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -195,7 +195,7 @@ export default function Contacts() {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-auto px-6 pb-6 space-y-6">
+        <div className="flex-1 overflow-auto p-6 space-y-6">
 
         {/* Contacts Table */}
         <Card className="border border-border/50 shadow-sm">
