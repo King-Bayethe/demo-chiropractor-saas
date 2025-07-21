@@ -1,9 +1,11 @@
 import { ReactNode, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CRMSidebar } from "./CRMSidebar";
 import { Bell, Search, User, LogOut, Settings as SettingsIcon, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +13,71 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const navigate = useNavigate();
+  const { profile, loading } = useProfile();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleProfileClick = () => {
+    navigate('/settings');
+  };
+
+  const getDisplayName = () => {
+    if (!profile) return "Loading...";
+    if (profile.first_name || profile.last_name) {
+      return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+    }
+    return profile.email;
+  };
+
+  const getInitials = () => {
+    if (!profile) return "U";
+    if (profile.first_name && profile.last_name) {
+      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+    }
+    if (profile.first_name) {
+      return profile.first_name[0].toUpperCase();
+    }
+    return profile.email[0].toUpperCase();
+  };
+
+  const getRoleDisplay = () => {
+    if (!profile) return "Staff Member";
+    return profile.role === 'admin' ? 'Administrator' : 
+           profile.role === 'doctor' ? 'Doctor' : 
+           profile.role === 'nurse' ? 'Nurse' : 
+           'Staff Member';
+  };
+
   return (
     <div className="h-screen flex w-full bg-background">
       <CRMSidebar />
@@ -42,29 +103,43 @@ export function Layout({ children }: LayoutProps) {
               </Badge>
             </Button>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <div className="text-right">
-                <p className="text-sm font-medium">Front Desk</p>
-                <p className="text-xs text-muted-foreground">Staff Member</p>
+                <p className="text-sm font-medium">{getDisplayName()}</p>
+                <p className="text-xs text-muted-foreground">{getRoleDisplay()}</p>
               </div>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 bg-[#007BFF]/10 hover:bg-[#007BFF]/20">
-                    <User className="w-5 h-5 text-[#007BFF]" />
+                  <Button variant="ghost" className="rounded-full h-10 w-10 p-0 hover:bg-muted">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile?.avatar_url} alt={getDisplayName()} />
+                      <AvatarFallback className="bg-medical-blue text-white">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-card border border-border/50 shadow-lg">
-                  <DropdownMenuItem className="cursor-pointer hover:bg-muted">
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-muted"
+                    onClick={handleProfileClick}
+                  >
                     <UserCircle className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>My Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer hover:bg-muted">
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-muted"
+                    onClick={() => navigate('/settings')}
+                  >
                     <SettingsIcon className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer hover:bg-muted text-red-600">
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-muted text-red-600"
+                    onClick={handleLogout}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Logout</span>
                   </DropdownMenuItem>
