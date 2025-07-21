@@ -20,17 +20,17 @@ export const useGHLApi = () => {
   };
 
   const contacts = {
-    getAll: () => callGHLFunction('ghl-contacts', {
-      body: JSON.stringify({ method: 'GET', action: 'getAll' }),
+    getAll: () => callGHLFunction('ghl-api', {
+      body: JSON.stringify({ action: 'getAll' }),
     }),
-    getById: (id: string) => callGHLFunction('ghl-contacts', {
-      body: JSON.stringify({ method: 'GET', action: 'getById', contactId: id }),
+    getById: (id: string) => callGHLFunction('ghl-api', {
+      body: JSON.stringify({ action: 'getById', contactId: id }),
     }),
-    create: (contactData: any) => callGHLFunction('ghl-contacts', {
-      body: JSON.stringify({ method: 'POST', action: 'create', data: contactData }),
+    create: (contactData: any) => callGHLFunction('ghl-api', {
+      body: JSON.stringify({ action: 'create', data: contactData }),
     }),
-    update: (id: string, contactData: any) => callGHLFunction('ghl-contacts', {
-      body: JSON.stringify({ method: 'PATCH', action: 'update', contactId: id, data: contactData }),
+    update: (id: string, contactData: any) => callGHLFunction('ghl-api', {
+      body: JSON.stringify({ action: 'update', contactId: id, data: contactData }),
     }),
   };
 
