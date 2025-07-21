@@ -380,8 +380,8 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img 
-              src={silvermanLogo} 
-              alt="Dr. Silverman Chiropractic" 
+              src="/lovable-uploads/982410a0-1583-4990-a81a-f3a94a4c4c51.png" 
+              alt="Dr. Silverman Chiropractic and Rehabilitation" 
               className="h-16 w-auto object-contain"
             />
           </div>
