@@ -19,11 +19,13 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTheme } from "@/components/ThemeProvider";
 
 export const MyProfileSection = () => {
   const { profile, loading, updateProfile, changePassword, uploadAvatar } = useProfile();
   const { toast } = useToast();
   const { setLanguage } = useLanguage();
+  const { setTheme } = useTheme();
   
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || '',
@@ -55,6 +57,11 @@ export const MyProfileSection = () => {
     // Immediately apply language changes globally
     if (field === 'language_preference') {
       setLanguage(value);
+    }
+    
+    // Immediately apply theme changes globally
+    if (field === 'dark_mode') {
+      setTheme(value ? 'dark' : 'light');
     }
   };
 

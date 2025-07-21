@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { User, Session } from '@supabase/supabase-js';
+import { OTPPage } from "@/components/OTPPage";
+import { AuthThemeToggle } from "@/components/AuthThemeToggle";
 import silvermanLogo from "@/assets/silverman-main-logo.png";
 
 export default function Auth() {
@@ -15,11 +17,12 @@ export default function Auth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState<'login' | 'forgot' | 'reset'>('login');
+  const [mode, setMode] = useState<'login' | 'forgot' | 'reset' | 'otp'>('login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -370,7 +373,8 @@ export default function Auth() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue/5 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-medical-blue/5 via-background to-medical-blue/10 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4 relative">
+      <AuthThemeToggle />
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -391,6 +395,16 @@ export default function Auth() {
         {mode === 'login' && renderLoginForm()}
         {mode === 'forgot' && renderForgotPasswordForm()}
         {mode === 'reset' && renderResetPasswordForm()}
+        {mode === 'otp' && (
+          <OTPPage
+            email={email}
+            onBack={() => setMode('login')}
+            onSuccess={() => {
+              setNeedsEmailConfirmation(false);
+              navigate('/');
+            }}
+          />
+        )}
 
         {/* Footer */}
         <div className="text-center mt-8 space-y-2">
