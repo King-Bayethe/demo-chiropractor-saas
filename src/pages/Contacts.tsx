@@ -21,12 +21,22 @@ import {
   Download,
   X
 } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 
 export default function Contacts() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -38,6 +48,13 @@ export default function Contacts() {
   });
   const { toast } = useToast();
   const ghlApi = useGHLApi();
+
+  // Pagination constants and calculations
+  const CONTACTS_PER_PAGE = 50;
+  const totalPages = Math.ceil(contacts.length / CONTACTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * CONTACTS_PER_PAGE;
+  const endIndex = startIndex + CONTACTS_PER_PAGE;
+  const currentContacts = contacts.slice(startIndex, endIndex);
 
   useEffect(() => {
     loadContacts();
@@ -97,7 +114,8 @@ export default function Contacts() {
         tags: ""
       });
       
-      // Reload contacts
+      // Reload contacts and reset to first page
+      setCurrentPage(1);
       loadContacts();
     } catch (error) {
       console.error('Failed to add contact:', error);
@@ -200,14 +218,14 @@ export default function Contacts() {
                         Loading contacts...
                       </td>
                     </tr>
-                  ) : contacts.length === 0 ? (
+                   ) : contacts.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="text-center py-8 text-muted-foreground">
                         No contacts found
                       </td>
                     </tr>
                   ) : (
-                    contacts.map((contact: any) => (
+                    currentContacts.map((contact: any) => (
                       <tr key={contact.id} className="hover:bg-muted/20 transition-colors">
                         <td className="p-4">
                           <div className="flex items-center space-x-3">
@@ -293,11 +311,75 @@ export default function Contacts() {
                 </Button>
               </div>
               <div className="text-sm text-muted-foreground">
-                Showing {contacts.length} of {contacts.length} contacts
+                Showing {startIndex + 1}-{Math.min(endIndex, contacts.length)} of {contacts.length} contacts
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(currentPage - 1);
+                    }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(page);
+                          }}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  } else if (
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  ) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return null;
+                })}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
         {/* Add Contact Modal */}
         <Dialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen}>
