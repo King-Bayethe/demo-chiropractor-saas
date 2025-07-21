@@ -18,12 +18,12 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="h-screen flex w-full bg-background">
       <CRMSidebar />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Top Header */}
-        <header className="h-16 border-b border-border/50 bg-card px-6 flex items-center justify-between shadow-sm">
+        <header className="h-16 border-b border-border/50 bg-card px-6 flex items-center justify-between shadow-sm flex-shrink-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -75,7 +75,7 @@ export function Layout({ children }: LayoutProps) {
         </header>
         
         {/* Main Content */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 min-h-0">
           {children}
         </main>
       </div>

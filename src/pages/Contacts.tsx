@@ -195,7 +195,8 @@ export default function Contacts() {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-auto p-6 space-y-6">
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-auto px-6 py-6 space-y-6">
 
         {/* Contacts Table */}
         <Card className="border border-border/50 shadow-sm">
@@ -386,6 +387,7 @@ export default function Contacts() {
             </Pagination>
           </div>
         )}
+          </div>
         </div>
 
         {/* Add Contact Modal */}
