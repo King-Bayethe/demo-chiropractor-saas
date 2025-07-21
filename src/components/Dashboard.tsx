@@ -58,9 +58,16 @@ export function Dashboard() {
     <div className="min-h-screen bg-background p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, Dr. Silverman's team</p>
+        <div className="flex items-center space-x-4">
+          <img 
+            src="/lovable-uploads/de6e5dc8-8913-4a4f-ab62-e776625182b4.png" 
+            alt="Dr. Silverman Chiropractic and Rehabilitation" 
+            className="h-12 w-auto object-contain"
+          />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back, Dr. Silverman's team</p>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue">
