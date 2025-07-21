@@ -147,49 +147,55 @@ export default function Contacts() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Contacts</h1>
-            <p className="text-muted-foreground">Manage patients, leads, and attorney contacts</p>
+      <div className="h-full flex flex-col">
+        {/* Fixed Header Section */}
+        <div className="flex-shrink-0 p-6 space-y-6 bg-background">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Contacts</h1>
+              <p className="text-muted-foreground">Manage patients, leads, and attorney contacts</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+              <Button size="sm" onClick={() => setIsAddContactOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Contact
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button size="sm" onClick={() => setIsAddContactOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Contact
-            </Button>
-          </div>
+
+          {/* Search and Filters */}
+          <Card className="border border-border/50 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input 
+                    placeholder="Search by name, phone, email..." 
+                    className="pl-10"
+                  />
+                </div>
+                <Button variant="outline" size="sm">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filters
+                </Button>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary">Total: {contacts.length}</Badge>
+                  <Badge variant="outline" className="bg-success/10 text-success">
+                    Active: {contacts.length}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="border border-border/50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input 
-                  placeholder="Search by name, phone, email..." 
-                  className="pl-10"
-                />
-              </div>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary">Total: {contacts.length}</Badge>
-                <Badge variant="outline" className="bg-success/10 text-success">
-                  Active: {contacts.length}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-auto px-6 pb-6 space-y-6">
 
         {/* Contacts Table */}
         <Card className="border border-border/50 shadow-sm">
@@ -380,6 +386,7 @@ export default function Contacts() {
             </Pagination>
           </div>
         )}
+        </div>
 
         {/* Add Contact Modal */}
         <Dialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen}>
@@ -500,7 +507,7 @@ export default function Contacts() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        </div>
     </Layout>
   );
 }
