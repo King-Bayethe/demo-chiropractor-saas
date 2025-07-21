@@ -14,7 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean | null
+          last_name: string | null
+          role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      team_chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          is_admin: boolean | null
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          is_admin?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          is_admin?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_chat_participants_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "team_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_chats: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          last_message_at: string | null
+          name: string | null
+          type: Database["public"]["Enums"]["chat_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          type?: Database["public"]["Enums"]["chat_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          type?: Database["public"]["Enums"]["chat_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          reply_to_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          reply_to_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          reply_to_id?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "team_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "team_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +180,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      chat_type: "direct" | "group"
+      message_type: "text" | "image" | "file" | "system"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +308,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      chat_type: ["direct", "group"],
+      message_type: ["text", "image", "file", "system"],
+    },
   },
 } as const
