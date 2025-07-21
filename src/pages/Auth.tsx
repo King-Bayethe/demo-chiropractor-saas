@@ -382,12 +382,9 @@ export default function Auth() {
             <img 
               src="/lovable-uploads/982410a0-1583-4990-a81a-f3a94a4c4c51.png" 
               alt="Dr. Silverman Chiropractic and Rehabilitation" 
-              className="h-16 w-auto object-contain"
+              className="h-48 w-auto object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold text-medical-blue mb-1">
-            Staff Access Only
-          </h1>
           <p className="text-sm text-muted-foreground">Chiropractic CRM System</p>
         </div>
 
