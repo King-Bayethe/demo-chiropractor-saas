@@ -52,38 +52,42 @@ const settingsSections = [
 
 export const SettingsLayout = ({ children, activeSection, onSectionChange }: SettingsLayoutProps) => {
   return (
-    <div className="grid grid-cols-12 gap-6">
-      {/* Sidebar */}
-      <div className="col-span-3">
-        <Card className="border border-border/50 shadow-sm">
-          <div className="p-6">
-            <h2 className="font-semibold text-lg mb-4">Settings</h2>
-            <nav className="space-y-2">
-              {settingsSections.map((section) => {
-                const Icon = section.icon;
-                return (
-                  <Button
-                    key={section.id}
-                    variant={activeSection === section.id ? "default" : "ghost"}
-                    className={cn(
-                      "w-full justify-start",
-                      activeSection === section.id && "bg-medical-blue text-white"
-                    )}
-                    onClick={() => onSectionChange(section.id)}
-                  >
-                    <Icon className="w-4 h-4 mr-3" />
-                    {section.label}
-                  </Button>
-                );
-              })}
-            </nav>
-          </div>
-        </Card>
-      </div>
+    <div className="h-full flex flex-col">
+      <div className="grid grid-cols-12 gap-6 h-full min-h-0">
+        {/* Sidebar */}
+        <div className="col-span-3 h-full">
+          <Card className="border border-border/50 shadow-sm h-full">
+            <div className="p-6 h-full flex flex-col">
+              <h2 className="font-semibold text-lg mb-4 flex-shrink-0">Settings</h2>
+              <nav className="space-y-2 flex-1 overflow-y-auto">
+                {settingsSections.map((section) => {
+                  const Icon = section.icon;
+                  return (
+                    <Button
+                      key={section.id}
+                      variant={activeSection === section.id ? "default" : "ghost"}
+                      className={cn(
+                        "w-full justify-start",
+                        activeSection === section.id && "bg-medical-blue text-white"
+                      )}
+                      onClick={() => onSectionChange(section.id)}
+                    >
+                      <Icon className="w-4 h-4 mr-3" />
+                      {section.label}
+                    </Button>
+                  );
+                })}
+              </nav>
+            </div>
+          </Card>
+        </div>
 
-      {/* Main Content */}
-      <div className="col-span-9">
-        {children}
+        {/* Main Content */}
+        <div className="col-span-9 h-full min-h-0">
+          <div className="h-full overflow-y-auto">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

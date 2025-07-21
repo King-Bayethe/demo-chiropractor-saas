@@ -73,13 +73,15 @@ export default function Settings() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
-        <SettingsLayout 
-          activeSection={activeSection} 
-          onSectionChange={setActiveSection}
-        >
-          {renderContent()}
-        </SettingsLayout>
+      <div className="h-full overflow-hidden">
+        <div className="h-full p-6">
+          <SettingsLayout 
+            activeSection={activeSection} 
+            onSectionChange={setActiveSection}
+          >
+            {renderContent()}
+          </SettingsLayout>
+        </div>
       </div>
     </Layout>
   );
