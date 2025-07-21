@@ -1,4 +1,6 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
