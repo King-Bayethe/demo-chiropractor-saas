@@ -72,37 +72,60 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (action === 'getAll') {
       const endpoint = `${GHL_API_BASE}/contacts/search`;
-      const searchBody = {
-        locationId: locationId,
-        pageLimit: 100,
-        filters: [],
-        sort: [{ field: "dateAdded", direction: "desc" }]
-      };
+      let allContacts: any[] = [];
+      let searchAfter: any = undefined;
+      let totalCount = 0;
 
-      console.log('Endpoint:', endpoint);
-      console.log('Search body:', JSON.stringify(searchBody, null, 2));
+      // Fetch all contacts by paginating through the API
+      do {
+        const searchBody = {
+          locationId: locationId,
+          pageLimit: 100,
+          filters: [],
+          sort: [{ field: "dateAdded", direction: "desc" }],
+          ...(searchAfter && { searchAfter })
+        };
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(searchBody),
-      });
+        console.log('Endpoint:', endpoint);
+        console.log('Search body:', JSON.stringify(searchBody, null, 2));
 
-      console.log('GHL Response status:', response.status);
-      console.log('GHL Response headers:', Object.fromEntries(response.headers.entries()));
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(searchBody),
+        });
 
-      const responseText = await response.text();
-      console.log('GHL Response body:', responseText);
+        console.log('GHL Response status:', response.status);
+        console.log('GHL Response headers:', Object.fromEntries(response.headers.entries()));
 
-      if (!response.ok) {
-        throw new Error(`GHL API error: ${response.status} - ${responseText}`);
-      }
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+          throw new Error(`GHL API error: ${response.status} - ${responseText}`);
+        }
 
-      const responseData = JSON.parse(responseText);
+        const responseData = JSON.parse(responseText);
+        const contacts = responseData.contacts || [];
+        
+        allContacts = allContacts.concat(contacts);
+        totalCount = responseData.total || 0;
+        
+        // Check if there are more contacts to fetch
+        if (contacts.length > 0 && contacts[contacts.length - 1].searchAfter) {
+          searchAfter = contacts[contacts.length - 1].searchAfter;
+        } else {
+          searchAfter = undefined;
+        }
+        
+        console.log(`Fetched ${contacts.length} contacts, total so far: ${allContacts.length}`);
+        
+      } while (searchAfter && allContacts.length < totalCount);
+
+      console.log(`Final result: ${allContacts.length} contacts out of ${totalCount} total`);
       
       return new Response(JSON.stringify({
-        contacts: responseData.contacts || [],
-        total: responseData.total || 0
+        contacts: allContacts,
+        total: totalCount
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
