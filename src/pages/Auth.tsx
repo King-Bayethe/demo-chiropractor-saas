@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { User, Session } from '@supabase/supabase-js';
+import silvermanLogo from "@/assets/silverman-main-logo.png";
 
 export default function Auth() {
   const [user, setUser] = useState<User | null>(null);
@@ -373,10 +374,17 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-medical-blue mb-2">
-            Dr. Silverman
+          <div className="flex justify-center mb-4">
+            <img 
+              src={silvermanLogo} 
+              alt="Dr. Silverman Chiropractic" 
+              className="h-16 w-auto object-contain"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-medical-blue mb-1">
+            Staff Access Only
           </h1>
-          <p className="text-sm text-muted-foreground">Chiropractic CRM</p>
+          <p className="text-sm text-muted-foreground">Chiropractic CRM System</p>
         </div>
 
         {/* Forms */}
