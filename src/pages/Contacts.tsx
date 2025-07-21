@@ -213,13 +213,13 @@ export default function Contacts() {
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-10 w-10">
                               <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
-                                {`${contact.firstName?.[0] || ''}${contact.lastName?.[0] || ''}` || contact.name?.[0] || 'U'}
+                                {`${contact.firstNameLowerCase?.[0]?.toUpperCase() || ''}${contact.lastNameLowerCase?.[0]?.toUpperCase() || ''}` || contact.name?.[0] || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-medium text-sm">
-                                {contact.firstName && contact.lastName 
-                                  ? `${contact.firstName} ${contact.lastName}`
+                                {contact.firstNameLowerCase && contact.lastNameLowerCase 
+                                  ? `${contact.firstNameLowerCase.charAt(0).toUpperCase() + contact.firstNameLowerCase.slice(1)} ${contact.lastNameLowerCase.charAt(0).toUpperCase() + contact.lastNameLowerCase.slice(1)}`
                                   : contact.name || 'Unknown'}
                               </p>
                               <p className="text-xs text-muted-foreground">ID: {contact.id}</p>
