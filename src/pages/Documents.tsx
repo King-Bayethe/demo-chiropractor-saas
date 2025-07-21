@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -151,8 +152,9 @@ export default function Documents() {
   };
 
   return (
-    <Layout>
-      <div className="p-6 space-y-6">
+    <AuthGuard>
+      <Layout>
+        <div className="p-6 space-y-6">
         {/* Header Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -369,6 +371,7 @@ export default function Documents() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+      </Layout>
+    </AuthGuard>
   );
 }

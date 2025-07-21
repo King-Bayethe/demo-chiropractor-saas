@@ -1,4 +1,5 @@
 import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -66,8 +67,9 @@ const Emails = () => {
   };
 
   return (
-    <Layout>
-      <div className="p-6">
+    <AuthGuard>
+      <Layout>
+        <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Emails</h1>
@@ -211,7 +213,8 @@ const Emails = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+      </Layout>
+    </AuthGuard>
   );
 };
 

@@ -1,4 +1,5 @@
 import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,8 +287,9 @@ export default function Forms() {
   if (selectedForm) {
     const form = formTypes.find(f => f.id === selectedForm);
     return (
-      <Layout>
-        <div className="p-6 max-w-4xl mx-auto">
+      <AuthGuard>
+        <Layout>
+          <div className="p-6 max-w-4xl mx-auto">
           <div className="mb-6">
             <Button 
               variant="outline" 
@@ -309,13 +311,15 @@ export default function Forms() {
             </CardContent>
           </Card>
         </div>
-      </Layout>
+        </Layout>
+      </AuthGuard>
     );
   }
 
   return (
-    <Layout>
-      <div className="p-6 space-y-6">
+    <AuthGuard>
+      <Layout>
+        <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -386,6 +390,7 @@ export default function Forms() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+      </Layout>
+    </AuthGuard>
   );
 }

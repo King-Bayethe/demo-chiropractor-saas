@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,8 +147,9 @@ export default function Contacts() {
   };
 
   return (
-    <Layout>
-      <div className="h-full flex flex-col">
+    <AuthGuard>
+      <Layout>
+        <div className="h-full flex flex-col">
         {/* Fixed Header Section */}
         <div className="flex-shrink-0 p-6 space-y-6 bg-background border-b border-border/50">
           {/* Header */}
@@ -510,6 +512,7 @@ export default function Contacts() {
           </DialogContent>
         </Dialog>
         </div>
-    </Layout>
+      </Layout>
+    </AuthGuard>
   );
 }

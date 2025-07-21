@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { MyProfileSection } from "@/components/MyProfileSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,17 +73,19 @@ export default function Settings() {
   };
 
   return (
-    <Layout>
-      <div className="h-full overflow-hidden">
-        <div className="h-full p-6">
-          <SettingsLayout 
-            activeSection={activeSection} 
-            onSectionChange={setActiveSection}
-          >
-            {renderContent()}
-          </SettingsLayout>
+    <AuthGuard>
+      <Layout>
+        <div className="h-full overflow-hidden">
+          <div className="h-full p-6">
+            <SettingsLayout 
+              activeSection={activeSection} 
+              onSectionChange={setActiveSection}
+            >
+              {renderContent()}
+            </SettingsLayout>
+          </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </AuthGuard>
   );
 }
