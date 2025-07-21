@@ -220,7 +220,7 @@ export default function Contacts() {
                               <p className="font-medium text-sm">
                                 {contact.firstNameLowerCase && contact.lastNameLowerCase 
                                   ? `${contact.firstNameLowerCase.charAt(0).toUpperCase() + contact.firstNameLowerCase.slice(1)} ${contact.lastNameLowerCase.charAt(0).toUpperCase() + contact.lastNameLowerCase.slice(1)}`
-                                  : contact.name || 'Unknown'}
+                                  : contact.name || "No Name"}
                               </p>
                               <p className="text-xs text-muted-foreground">ID: {contact.id}</p>
                             </div>
