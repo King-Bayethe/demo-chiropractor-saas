@@ -16,6 +16,7 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,6 +26,7 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const { profile, loading } = useProfile();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     try {
@@ -126,14 +128,14 @@ export function Layout({ children }: LayoutProps) {
                     onClick={handleProfileClick}
                   >
                     <UserCircle className="mr-2 h-4 w-4" />
-                    <span>My Profile</span>
+                    <span>{t('my_profile')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer hover:bg-muted"
                     onClick={() => navigate('/settings')}
                   >
                     <SettingsIcon className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    <span>{t('settings')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
@@ -141,7 +143,7 @@ export function Layout({ children }: LayoutProps) {
                     onClick={handleLogout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
+                    <span>{t('logout')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

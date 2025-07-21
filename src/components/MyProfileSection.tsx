@@ -18,10 +18,12 @@ import {
 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const MyProfileSection = () => {
   const { profile, loading, updateProfile, changePassword, uploadAvatar } = useProfile();
   const { toast } = useToast();
+  const { setLanguage } = useLanguage();
   
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || '',
@@ -49,6 +51,11 @@ export const MyProfileSection = () => {
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Immediately apply language changes globally
+    if (field === 'language_preference') {
+      setLanguage(value);
+    }
   };
 
   const handleSaveProfile = async () => {
