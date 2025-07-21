@@ -186,7 +186,7 @@ export default function Auth() {
     <Card className="w-full max-w-md mx-auto shadow-lg border-border/50">
       <CardHeader className="text-center pb-6">
         <CardTitle className="text-2xl font-bold text-medical-blue">
-          Staff Access Only
+          Dr. Silverman CRM Login
         </CardTitle>
         <CardDescription className="text-muted-foreground">
           Dr. Silverman's Chiropractic CRM
