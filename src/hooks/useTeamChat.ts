@@ -62,23 +62,38 @@ export const useTeamChat = () => {
           created_by,
           participants:team_chat_participants (
             user_id,
-            is_admin,
-            profiles!team_chat_participants_user_id_fkey (
-              first_name,
-              last_name,
-              email,
-              role
-            )
+            name,
+            is_admin
           )
         `)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
       
+      // Get all unique participant IDs to fetch profiles in bulk
+      const participantIds = new Set<string>();
+      chatsData?.forEach(chat => {
+        chat.participants?.forEach((p: any) => {
+          if (p.user_id) participantIds.add(p.user_id);
+        });
+      });
+      
+      // Fetch all profiles in a single query
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, email, role')
+        .in('user_id', Array.from(participantIds));
+      
+      // Create a map for quick profile lookup
+      const profilesMap: Record<string, any> = {};
+      profilesData?.forEach(profile => {
+        profilesMap[profile.user_id] = profile;
+      });
+      
       const formattedChats = (chatsData || []).map((chat: any) => ({
         ...chat,
         participants: chat.participants.map((p: any) => {
-          const profile = p.profiles;
+          const profile = profilesMap[p.user_id];
           const firstName = profile?.first_name?.trim() || '';
           const lastName = profile?.last_name?.trim() || '';
           
@@ -88,7 +103,7 @@ export const useTeamChat = () => {
           } else if (firstName || lastName) {
             displayName = firstName || lastName;
           } else {
-            displayName = profile?.email || 'Unknown User';
+            displayName = profile?.email || p.name || 'Unknown User';
           }
           
           return {
