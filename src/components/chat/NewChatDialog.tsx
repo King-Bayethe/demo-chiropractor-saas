@@ -34,25 +34,29 @@ interface NewChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   profiles: Profile[];
+  currentUserId: string | null;
   onCreateChat: (memberIds: string[], groupName?: string) => void;
+  loading: boolean;
   onRefreshProfiles: () => void;
-  loading?: boolean;
 }
 
 export const NewChatDialog: React.FC<NewChatDialogProps> = ({
   open,
   onOpenChange,
   profiles,
+  currentUserId,
   onCreateChat,
-  onRefreshProfiles,
-  loading = false
+  loading,
+  onRefreshProfiles
 }) => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [groupName, setGroupName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [chatType, setChatType] = useState<'direct' | 'group'>('direct');
 
-  const availableProfiles = profiles.filter(profile => profile.is_active);
+  const availableProfiles = profiles.filter(profile => 
+    profile.user_id !== currentUserId && profile.is_active
+  );
 
   const filteredProfiles = availableProfiles.filter(profile => {
     const searchString = `${profile.first_name || ''} ${profile.last_name || ''} ${profile.email || ''}`.toLowerCase();
@@ -81,7 +85,7 @@ export const NewChatDialog: React.FC<NewChatDialogProps> = ({
     
     onCreateChat(
       selectedMembers, 
-      chatType === 'group' ? (groupName || 'New Team Group') : undefined
+      chatType === 'group' ? (groupName || 'New Medical Team Group') : undefined
     );
     
     // Reset state
@@ -93,44 +97,19 @@ export const NewChatDialog: React.FC<NewChatDialogProps> = ({
   };
 
   const getMemberDisplayName = (profile: Profile): string => {
-    const firstName = profile.first_name?.trim() || '';
-    const lastName = profile.last_name?.trim() || '';
-    
-    if (firstName && lastName) {
-      return `${firstName} ${lastName}`;
-    }
-    
-    if (firstName || lastName) {
-      return firstName || lastName;
-    }
-    
-    return profile.email;
+    const firstName = profile.first_name || '';
+    const lastName = profile.last_name || '';
+    const role = profile.role === 'admin' ? '(Admin)' : 
+                 profile.role === 'doctor' ? '(Dr.)' : 
+                 profile.role === 'nurse' ? '(RN)' : '';
+    const fullName = `${firstName} ${lastName} ${role}`.trim();
+    return fullName || profile.email;
   };
 
   const getMemberAvatar = (profile: Profile): string => {
-    const firstName = profile.first_name?.trim() || '';
-    const lastName = profile.last_name?.trim() || '';
-    
-    if (firstName && lastName) {
-      return `${firstName[0]}${lastName[0]}`.toUpperCase();
-    }
-    
-    if (firstName || lastName) {
-      const name = firstName || lastName;
-      return name.slice(0, 2).toUpperCase();
-    }
-    
-    return profile.email.slice(0, 2).toUpperCase();
-  };
-
-  const getRoleDisplay = (role?: string): string => {
-    switch (role) {
-      case 'admin': return '(Admin)';
-      case 'doctor': return '(Dr.)';
-      case 'nurse': return '(RN)';
-      case 'staff': return '(Staff)';
-      default: return '';
-    }
+    const firstName = profile.first_name || '';
+    const lastName = profile.last_name || '';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || profile.email[0]?.toUpperCase() || 'U';
   };
 
   return (
@@ -245,7 +224,7 @@ export const NewChatDialog: React.FC<NewChatDialogProps> = ({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {getMemberDisplayName(profile)} {getRoleDisplay(profile.role)}
+                            {getMemberDisplayName(profile)}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {profile.email}

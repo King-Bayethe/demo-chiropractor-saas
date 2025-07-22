@@ -11,21 +11,28 @@ import {
   Users, 
   MessageCircle,
   MoreVertical,
-  Trash2,
-  RefreshCw
+  Trash2
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { TeamChat } from '@/hooks/useTeamChat';
-import { useAuth } from '@/contexts/AuthContext';
+
+interface Chat {
+  id: string;
+  name?: string;
+  type: 'direct' | 'group';
+  participants: any[];
+  last_message_at?: string;
+  created_by: string;
+  unreadCount?: number;
+}
 
 interface ChatSidebarProps {
-  chats: TeamChat[];
-  selectedChat: TeamChat | null;
-  onSelectChat: (chat: TeamChat) => void;
+  chats: Chat[];
+  selectedChat: Chat | null;
+  onSelectChat: (chat: Chat) => void;
   onCreateChat: () => void;
   onDeleteChat: (chatId: string) => void;
-  onRefresh: () => void;
+  currentUserId: string | null;
   loading: boolean;
   collapsed: boolean;
 }
@@ -36,32 +43,84 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSelectChat,
   onCreateChat,
   onDeleteChat,
-  onRefresh,
+  currentUserId,
   loading,
   collapsed
 }) => {
-  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getChatDisplayName = (chat: TeamChat): string => {
-    if (chat.type === 'group') return chat.name || 'Team Group';
+  const getChatDisplayName = (chat: Chat): string => {
+    if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
-    const otherParticipant = chat.participants?.find(p => p.id !== user?.id);
-    return otherParticipant?.name || 'Unknown User';
-  };
-
-  const getChatAvatar = (chat: TeamChat): string => {
-    if (chat.type === 'group') return 'TG';
+    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     
-    const otherParticipant = chat.participants?.find(p => p.id !== user?.id);
-    if (otherParticipant?.name) {
-      const nameParts = otherParticipant.name.split(' ');
-      return nameParts.map(part => part[0]).join('').toUpperCase().slice(0, 2);
+    if (otherParticipant) {
+      const firstName = otherParticipant.first_name?.trim() || '';
+      const lastName = otherParticipant.last_name?.trim() || '';
+      const email = otherParticipant.email?.trim() || '';
+      
+      // Priority 1: Full Name with role
+      if (firstName && lastName) {
+        const role = otherParticipant.role === 'admin' ? ' (Admin)' : 
+                     otherParticipant.role === 'doctor' ? ' (Dr.)' : 
+                     otherParticipant.role === 'staff' ? ' (Staff)' : 
+                     otherParticipant.role === 'overlord' ? ' (Admin)' : '';
+        
+        return `${firstName} ${lastName}${role}`;
+      }
+      
+      // Priority 2: Individual name with role
+      if (firstName || lastName) {
+        const name = firstName || lastName;
+        const role = otherParticipant.role === 'admin' ? ' (Admin)' : 
+                     otherParticipant.role === 'doctor' ? ' (Dr.)' : 
+                     otherParticipant.role === 'staff' ? ' (Staff)' : 
+                     otherParticipant.role === 'overlord' ? ' (Admin)' : '';
+        
+        return `${name}${role}`;
+      }
+      
+      // Priority 3: Email address as fallback
+      if (email) {
+        return email;
+      }
     }
-    return 'U';
+    
+    return 'Loading...';
   };
 
-  const getLastMessageTime = (chat: TeamChat): string => {
+  const getChatAvatar = (chat: Chat): string => {
+    if (chat.type === 'group') {
+      return 'GT';
+    }
+    
+    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
+    if (otherParticipant) {
+      const firstName = otherParticipant.first_name || '';
+      const lastName = otherParticipant.last_name || '';
+      const email = otherParticipant.email || '';
+      
+      // Try to get initials from first and last name
+      if (firstName && lastName) {
+        return `${firstName[0]}${lastName[0]}`.toUpperCase();
+      }
+      
+      // Try single name
+      if (firstName || lastName) {
+        const name = firstName || lastName;
+        return `${name[0]}${name[1] || ''}`.toUpperCase();
+      }
+      
+      // Fallback to email initials
+      if (email) {
+        const emailParts = email.split('@')[0];
+        return `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
+      }
+    }
+    return 'TM';
+  };
+
+  const getLastMessageTime = (chat: Chat): string => {
     if (!chat.last_message_at) return '';
     return formatDistanceToNow(new Date(chat.last_message_at), { addSuffix: true });
   };
@@ -78,24 +137,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-foreground">Team Chat</h2>
-          <div className="flex items-center space-x-1">
-            <Button
-              onClick={onRefresh}
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              disabled={loading}
-            >
-              <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
-            </Button>
-            <Button
-              onClick={onCreateChat}
-              size="sm"
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            onClick={onCreateChat}
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
         </div>
         
         <div className="relative">
@@ -126,9 +174,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         ) : filteredChats.length === 0 ? (
           <div className="p-8 text-center">
             <MessageCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground text-sm">
-              {searchQuery ? 'No conversations found' : 'No conversations yet'}
-            </p>
+            <p className="text-muted-foreground text-sm">No conversations found</p>
             <Button
               onClick={onCreateChat}
               variant="outline"
