@@ -80,6 +80,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_team_chat_participants_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "team_chat_participants_chat_id_fkey"
             columns: ["chat_id"]
             isOneToOne: false
@@ -156,6 +163,13 @@ export type Database = {
           sender_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_team_messages_profiles"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "team_messages_chat_id_fkey"
             columns: ["chat_id"]

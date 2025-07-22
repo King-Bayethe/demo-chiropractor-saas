@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ChatLayout } from "./chat/ChatLayout";
 import { NewChatDialog } from "./chat/NewChatDialog";
 
 export const TeamChatSection = () => {
   const { toast } = useToast();
+  const { user: currentUser, profile: currentProfile } = useAuth();
   const [chats, setChats] = useState<any[]>([]);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
 
-  // Get current user
-  const getCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setCurrentUserId(user?.id || null);
-  };
+  const currentUserId = currentUser?.id || null;
 
   // Fetch chats
   const fetchChats = async () => {
@@ -174,10 +171,6 @@ export const TeamChatSection = () => {
   };
 
   useEffect(() => {
-    getCurrentUser();
-  }, []);
-
-  useEffect(() => {
     if (currentUserId) {
       fetchChats();
       fetchProfiles();
@@ -219,10 +212,10 @@ export const TeamChatSection = () => {
         created_at: data.created_at,
         sender: {
           id: data.sender_id,
-          first_name: profile?.first_name || 'You',
-          last_name: profile?.last_name || '',
-          email: profile?.email || '',
-          role: profile?.role || 'staff'
+          first_name: profile?.first_name || currentProfile?.first_name || 'You',
+          last_name: profile?.last_name || currentProfile?.last_name || '',
+          email: profile?.email || currentProfile?.email || '',
+          role: profile?.role || currentProfile?.role || 'staff'
         }
       };
 
