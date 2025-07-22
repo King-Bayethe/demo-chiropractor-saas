@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TeamChat } from '@/hooks/useTeamChat';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ChatHeaderProps {
   selectedChat: TeamChat | null;
