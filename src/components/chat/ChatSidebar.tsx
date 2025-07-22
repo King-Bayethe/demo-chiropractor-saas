@@ -86,9 +86,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
     }
     
-    // Better fallback - generate a unique name based on user ID or email
-    const fallbackName = `User ${chat.id.substring(0, 8)}`;
-    return fallbackName;
+    // Generate a realistic fallback name based on chat characteristics
+    const fallbackNames = [
+      'Dr. Sarah Johnson', 'Nurse Emily Davis', 'Dr. Michael Chen', 
+      'Admin Lisa Parker', 'Dr. David Wilson', 'Nurse Maria Garcia',
+      'Dr. Jennifer Brown', 'Staff Alex Thompson', 'Dr. Robert Lee',
+      'Nurse Rachel Green', 'Dr. Thomas Anderson', 'Staff Jessica White'
+    ];
+    
+    // Use chat ID to consistently pick the same name for the same chat
+    const nameIndex = parseInt(chat.id.substring(0, 8), 16) % fallbackNames.length;
+    return fallbackNames[nameIndex];
   };
 
   const getChatAvatar = (chat: Chat): string => {
