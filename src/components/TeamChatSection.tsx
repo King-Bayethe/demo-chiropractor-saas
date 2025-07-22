@@ -64,12 +64,18 @@ export const TeamChatSection = () => {
 
   const getChatDisplayName = (chat: TeamChat) => {
     if (chat.type === 'group') {
-      return chat.name || 'Group Chat';
+      return chat.name || 'Medical Team Chat';
     }
     
-    // For direct chats, show the other participant's name
+    // For direct chats, show the other participant's name with their role
     const otherParticipant = chat.participants?.find(p => p.user_id !== chat.created_by);
-    return otherParticipant ? `${otherParticipant.first_name} ${otherParticipant.last_name}` : 'Direct Chat';
+    if (otherParticipant) {
+      const role = otherParticipant.role === 'admin' ? '(Admin)' : 
+                   otherParticipant.role === 'doctor' ? '(Dr.)' : 
+                   otherParticipant.role === 'nurse' ? '(RN)' : '';
+      return `${otherParticipant.first_name} ${otherParticipant.last_name} ${role}`.trim();
+    }
+    return 'Clinical Consultation';
   };
 
   const getChatAvatar = (chat: TeamChat) => {
