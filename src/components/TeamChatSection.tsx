@@ -41,85 +41,45 @@ export const TeamChatSection = () => {
 
       if (chatsError) throw chatsError;
 
-      // Fetch participants and last message sender for each chat
+      // Fetch participants with profiles for each chat
       const chatsWithData = await Promise.all(
         (chatsData || []).map(async (chat) => {
-          // Get participants
+          // Get participants with their profiles in one query
           const { data: participants, error: participantsError } = await supabase
             .from('team_chat_participants')
-            .select('user_id, is_admin')
+            .select(`
+              user_id,
+              is_admin,
+              profiles!inner(
+                first_name,
+                last_name,
+                email,
+                role
+              )
+            `)
             .eq('chat_id', chat.id);
 
-          if (participantsError) throw participantsError;
-
-          // Get the last message sender profile
-          const { data: lastMessage, error: lastMessageError } = await supabase
-            .from('team_messages')
-            .select(`
-              sender_id,
-              created_at,
-              content
-            `)
-            .eq('chat_id', chat.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          let lastSenderProfile = null;
-          if (lastMessage && !lastMessageError) {
-            const { data: senderProfile, error: senderProfileError } = await supabase
-              .from('profiles')
-              .select('first_name, last_name, email, role')
-              .eq('user_id', lastMessage.sender_id)
-              .maybeSingle();
-
-            if (!senderProfileError && senderProfile) {
-              lastSenderProfile = {
-                id: lastMessage.sender_id,
-                first_name: senderProfile.first_name,
-                last_name: senderProfile.last_name,
-                email: senderProfile.email,
-                role: senderProfile.role,
-                is_admin: false
-              };
-            }
+          if (participantsError) {
+            console.warn('Error fetching participants for chat:', chat.id, participantsError);
+            return {
+              ...chat,
+              participants: []
+            };
           }
 
-          // Fetch profile info for participants (fallback)
-          const participantsWithProfiles = await Promise.all(
-            (participants || []).map(async (participant) => {
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('first_name, last_name, email, role')
-                .eq('user_id', participant.user_id)
-                .maybeSingle();
-
-              if (profileError) {
-                console.warn('Profile not found for user:', participant.user_id);
-                return {
-                  id: participant.user_id,
-                  first_name: '',
-                  last_name: '',
-                  email: '',
-                  role: 'staff',
-                  is_admin: participant.is_admin
-                };
-              }
-
-              return {
-                id: participant.user_id,
-                first_name: profile.first_name,
-                last_name: profile.last_name,
-                email: profile.email,
-                role: profile.role,
-                is_admin: participant.is_admin
-              };
-            })
-          );
+          // Transform participants data
+          const participantsWithProfiles = (participants || []).map((participant: any) => ({
+            id: participant.user_id,
+            first_name: participant.profiles?.first_name || '',
+            last_name: participant.profiles?.last_name || '',
+            email: participant.profiles?.email || '',
+            role: participant.profiles?.role || 'staff',
+            is_admin: participant.is_admin
+          }));
 
           return {
             ...chat,
-            participants: lastSenderProfile ? [lastSenderProfile, ...participantsWithProfiles.filter(p => p.id !== lastMessage?.sender_id)] : participantsWithProfiles
+            participants: participantsWithProfiles
           };
         })
       );

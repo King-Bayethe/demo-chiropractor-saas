@@ -55,37 +55,38 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     
     if (otherParticipant) {
-      const firstName = otherParticipant.first_name || '';
-      const lastName = otherParticipant.last_name || '';
-      const email = otherParticipant.email || '';
+      const firstName = otherParticipant.first_name?.trim() || '';
+      const lastName = otherParticipant.last_name?.trim() || '';
+      const email = otherParticipant.email?.trim() || '';
       
-      // Priority 1: Full Name
+      // Priority 1: Full Name with role
       if (firstName && lastName) {
-        const role = otherParticipant.role === 'admin' ? '(Admin)' : 
-                     otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                     otherParticipant.role === 'staff' ? '(Staff)' : 
-                     otherParticipant.role === 'overlord' ? '(Admin)' : '';
+        const role = otherParticipant.role === 'admin' ? ' (Admin)' : 
+                     otherParticipant.role === 'doctor' ? ' (Dr.)' : 
+                     otherParticipant.role === 'staff' ? ' (Staff)' : 
+                     otherParticipant.role === 'overlord' ? ' (Admin)' : '';
         
-        return `${firstName} ${lastName} ${role}`.trim();
+        return `${firstName} ${lastName}${role}`;
       }
       
-      // Priority 2: Individual names if only one is available
+      // Priority 2: Individual name with role
       if (firstName || lastName) {
-        const name = (firstName || lastName).trim();
-        const role = otherParticipant.role === 'admin' ? '(Admin)' : 
-                     otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                     otherParticipant.role === 'staff' ? '(Staff)' : 
-                     otherParticipant.role === 'overlord' ? '(Admin)' : '';
+        const name = firstName || lastName;
+        const role = otherParticipant.role === 'admin' ? ' (Admin)' : 
+                     otherParticipant.role === 'doctor' ? ' (Dr.)' : 
+                     otherParticipant.role === 'staff' ? ' (Staff)' : 
+                     otherParticipant.role === 'overlord' ? ' (Admin)' : '';
         
-        return `${name} ${role}`.trim();
+        return `${name}${role}`;
       }
       
-      // Priority 3: Email as fallback
+      // Priority 3: Email address as fallback
       if (email) {
         return email;
       }
     }
-    return 'Unknown User';
+    
+    return 'Loading...';
   };
 
   const getChatAvatar = (chat: Chat): string => {
