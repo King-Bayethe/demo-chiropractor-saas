@@ -3,12 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 export const useGHLApi = () => {
   const callGHLFunction = async (functionName: string, options: RequestInit = {}) => {
     try {
+      console.log(`Calling ${functionName} with:`, options);
+      
       const response = await supabase.functions.invoke(functionName, {
         body: options.body,
         headers: options.headers as Record<string, string>,
       });
 
+      console.log(`${functionName} response:`, response);
+
       if (response.error) {
+        console.error(`${functionName} function error:`, response.error);
         throw new Error(response.error.message);
       }
 
