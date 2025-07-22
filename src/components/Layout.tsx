@@ -56,10 +56,10 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const getDisplayName = () => {
+    if (!profile) return "Loading...";
     if (profile.first_name || profile.last_name) {
       return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
     }
-    if (!profile) return "Loading...";
     return profile.email;
   };
 
