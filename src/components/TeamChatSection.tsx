@@ -182,8 +182,9 @@ export const TeamChatSection = () => {
   };
 
   const getMemberDisplayName = (member: any): string => {
-    const firstName = member.first_name || '';
-    const lastName = member.last_name || '';
+    // GHL API returns firstName/lastName, not first_name/last_name
+    const firstName = member.firstName || member.first_name || '';
+    const lastName = member.lastName || member.last_name || '';
     const role = member.role === 'admin' ? '(Admin)' : 
                  member.role === 'doctor' ? '(Dr.)' : 
                  member.role === 'nurse' ? '(RN)' : '';
