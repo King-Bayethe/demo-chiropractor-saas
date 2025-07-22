@@ -304,29 +304,32 @@ export const TeamChatSection = () => {
     }
   };
 
-  const deleteChat = async (chatId: string) => {
+  const archiveChat = async (chatId: string) => {
     try {
-      // Delete all messages in the chat
+      // Archive all messages in the chat
       const { error: messagesError } = await supabase
         .from('team_messages')
-        .delete()
-        .eq('chat_id', chatId);
+        .update({ archived_at: new Date().toISOString() })
+        .eq('chat_id', chatId)
+        .is('archived_at', null);
 
       if (messagesError) throw messagesError;
 
-      // Delete all participants
+      // Archive all participants
       const { error: participantsError } = await supabase
         .from('team_chat_participants')
-        .delete()
-        .eq('chat_id', chatId);
+        .update({ archived_at: new Date().toISOString() })
+        .eq('chat_id', chatId)
+        .is('archived_at', null);
 
       if (participantsError) throw participantsError;
 
-      // Delete the chat
+      // Archive the chat
       const { error: chatError } = await supabase
         .from('team_chats')
-        .delete()
-        .eq('id', chatId);
+        .update({ archived_at: new Date().toISOString() })
+        .eq('id', chatId)
+        .is('archived_at', null);
 
       if (chatError) throw chatError;
 
@@ -340,14 +343,14 @@ export const TeamChatSection = () => {
 
       toast({
         title: "Success",
-        description: "Conversation deleted successfully"
+        description: "Conversation archived successfully"
       });
 
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      console.error('Error archiving chat:', error);
       toast({
         title: "Error",
-        description: "Failed to delete conversation",
+        description: "Failed to archive conversation",
         variant: "destructive"
       });
     }
@@ -374,7 +377,7 @@ export const TeamChatSection = () => {
         onSelectChat={setSelectedChat}
         onSendMessage={handleSendMessage}
         onCreateChat={() => setIsNewChatOpen(true)}
-        onDeleteChat={deleteChat}
+        onDeleteChat={archiveChat}
         onRefresh={handleRefresh}
         loading={loading}
       />

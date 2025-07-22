@@ -256,7 +256,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             className="text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Chat
+                            Archive Chat
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
