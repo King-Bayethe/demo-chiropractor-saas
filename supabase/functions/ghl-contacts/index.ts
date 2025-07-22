@@ -73,7 +73,8 @@ const handler = async (req: Request): Promise<Response> => {
       let searchAfter: (string | number)[] | undefined = undefined;
       let total = 0;
 
-      while (true) {
+      // Fetch all contacts with pagination
+      do {
         const endpoint = `${GHL_API_BASE}/contacts/search`;
         const searchBody = {
           locationId: GHL_LOCATION_ID,
@@ -105,21 +106,26 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('Page data received:', {
           contactsCount: pageData.contacts?.length || 0,
           total: pageData.total,
-          searchAfter: pageData.searchAfter
+          searchAfter: pageData.searchAfter,
+          totalFetchedSoFar: allContacts.length
         });
         
         if (pageData.contacts && pageData.contacts.length > 0) {
           allContacts.push(...pageData.contacts);
+          console.log(`Added ${pageData.contacts.length} contacts. Total so far: ${allContacts.length}`);
         }
         
         total = pageData.total || allContacts.length;
 
-        if (pageData.searchAfter && pageData.contacts.length > 0) {
+        // Continue pagination if there's a searchAfter token and we got contacts
+        if (pageData.searchAfter && pageData.contacts && pageData.contacts.length > 0) {
           searchAfter = pageData.searchAfter;
+          console.log('Continuing pagination with searchAfter:', searchAfter);
         } else {
-          break;
+          console.log('Pagination complete - no more searchAfter or no more contacts');
+          searchAfter = undefined; // Exit condition
         }
-      }
+      } while (searchAfter);
       
       console.log(`Total contacts fetched: ${allContacts.length}`);
       
