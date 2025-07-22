@@ -245,11 +245,13 @@ export const TeamChatSection = () => {
                             : 'bg-muted'
                         }`}
                       >
-                        {selectedChat.type === 'group' && message.sender_id !== selectedChat.created_by && (
-                          <p className="text-xs font-medium mb-1">
-                            {message.sender?.first_name} {message.sender?.last_name}
-                          </p>
-                        )}
+                        {/* Show sender name for all messages */}
+                        <p className="text-xs font-medium mb-1">
+                          {message.sender?.first_name} {message.sender?.last_name}
+                          {message.sender?.role === 'admin' && ' (Admin)'}
+                          {message.sender?.role === 'doctor' && ' (Dr.)'}
+                          {message.sender?.role === 'nurse' && ' (RN)'}
+                        </p>
                         <p className="text-sm">{message.content}</p>
                         <p className={`text-xs mt-1 ${
                           message.sender_id === selectedChat.created_by ? 'text-white/70' : 'text-muted-foreground'
