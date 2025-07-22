@@ -1,223 +1,51 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { createClient } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { 
+  MessageCircle, 
+  Users, 
+  Plus, 
+  Search, 
+  Send,
+  Phone,
+  Video,
+  MoreVertical
+} from "lucide-react";
+import { useTeamChats } from "@/hooks/useTeamChats";
+import { supabase } from "@/integrations/supabase/client";
 
-// --- Types (assuming these are defined in your project) ---
-// You would typically import these from a types file.
-export type Profile = {
-  id: string;
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-};
-
-export type Message = {
-  id: string;
-  chat_id: string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-  sender?: Profile; // Enriched data
-};
-
-export type TeamChat = {
-  id: string;
-  type: 'direct' | 'group';
-  name?: string;
-  description?: string;
-  created_by: string;
-  created_at: string;
-  last_message_at: string;
-  participants?: Profile[]; // Enriched data
-  last_message?: { content: string }; // Enriched data
-  unread_count: number; // Enriched data
-};
-
-
-// --- Supabase Client Setup ---
-// In a real app, you would initialize this once and export it from a dedicated file.
-// Replace with your actual Supabase URL and Anon Key.
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-
-// --- Live `useTeamChats` Hook ---
-// This hook now interacts directly with your Supabase database.
-const useTeamChats = (currentUserId: string) => {
-    const [loading, setLoading] = useState(true);
-    const [profiles, setProfiles] = useState<Profile[]>([]);
-    const [chats, setChats] = useState<TeamChat[]>([]);
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [selectedChat, setSelectedChat] = useState<TeamChat | null>(null);
-
-    // Fetch initial data (profiles, chats, participants)
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            setLoading(true);
-            try {
-                // 1. Fetch all user profiles
-                const { data: profilesData, error: profilesError } = await supabase.from('profiles').select('*');
-                if (profilesError) throw profilesError;
-                setProfiles(profilesData || []);
-
-                // 2. Fetch chats the current user is a part of
-                const { data: userChatsData, error: userChatsError } = await supabase
-                    .from('chat_participants')
-                    .select('chat_id')
-                    .eq('user_id', currentUserId);
-                if (userChatsError) throw userChatsError;
-                
-                const chatIds = userChatsData.map(c => c.chat_id);
-
-                // 3. Fetch full chat details for those chats
-                const { data: chatsData, error: chatsError } = await supabase
-                    .from('team_chats')
-                    .select(`*, participants:chat_participants(profile:profiles(*))`)
-                    .in('id', chatIds);
-                if (chatsError) throw chatsError;
-                
-                // 4. Enrich chat data with last message and unread counts (complex query, simplified here)
-                const enrichedChats = chatsData.map(chat => ({
-                    ...chat,
-                    participants: chat.participants.map(p => p.profile),
-                    // In a real app, you'd fetch last_message and unread_count separately
-                    last_message: { content: 'Fetching...' }, 
-                    unread_count: 0,
-                }));
-
-                setChats(enrichedChats);
-                if (enrichedChats.length > 0) {
-                    setSelectedChat(enrichedChats[0]);
-                }
-
-            } catch (error) {
-                console.error("Error fetching initial chat data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (currentUserId) {
-            fetchInitialData();
-        }
-    }, [currentUserId]);
-
-    // Fetch messages for the selected chat
-    useEffect(() => {
-        if (!selectedChat) return;
-
-        const fetchMessages = async () => {
-            const { data, error } = await supabase
-                .from('messages')
-                .select('*, sender:profiles(id, user_id, first_name, last_name, role)')
-                .eq('chat_id', selectedChat.id)
-                .order('created_at', { ascending: true });
-
-            if (error) {
-                console.error("Error fetching messages:", error);
-            } else {
-                setMessages(data || []);
-            }
-        };
-
-        fetchMessages();
-
-        // Subscribe to new messages in the selected chat
-        const subscription = supabase.channel(`messages:${selectedChat.id}`)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${selectedChat.id}` }, 
-            async (payload) => {
-                // Fetch the full new message with sender profile
-                const { data: newMessage, error } = await supabase
-                    .from('messages')
-                    .select('*, sender:profiles(id, user_id, first_name, last_name, role)')
-                    .eq('id', payload.new.id)
-                    .single();
-                
-                if (!error && newMessage) {
-                    setMessages(currentMessages => [...currentMessages, newMessage]);
-                }
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(subscription);
-        };
-    }, [selectedChat]);
-
-    const sendMessage = async (content: string) => {
-        if (!selectedChat || !currentUserId) return;
-
-        const { error } = await supabase
-            .from('messages')
-            .insert({
-                content,
-                chat_id: selectedChat.id,
-                sender_id: currentUserId
-            });
-
-        if (error) {
-            console.error("Error sending message:", error);
-        }
-    };
-    
-    const createDirectChat = async (otherUserId: string) => {
-        // Check if a chat already exists
-        const { data: existingChat, error: findError } = await supabase.rpc('find_direct_chat', {
-            user_id_1: currentUserId,
-            user_id_2: otherUserId
-        });
-
-        if (findError) console.error("Error finding chat:", findError);
-
-        if (existingChat && existingChat.length > 0) {
-            const fullChat = chats.find(c => c.id === existingChat[0].id);
-            if(fullChat) setSelectedChat(fullChat);
-            return;
-        }
-
-        // Create new chat and add participants
-        const { data: newChatData, error: createChatError } = await supabase
-            .from('team_chats')
-            .insert({ type: 'direct', created_by: currentUserId })
-            .select()
-            .single();
-
-        if (createChatError || !newChatData) {
-            console.error("Error creating chat:", createChatError);
-            return;
-        }
-
-        const { error: participantsError } = await supabase
-            .from('chat_participants')
-            .insert([
-                { chat_id: newChatData.id, user_id: currentUserId },
-                { chat_id: newChatData.id, user_id: otherUserId },
-            ]);
-        
-        if (participantsError) {
-            console.error("Error adding participants:", participantsError);
-        } else {
-            // Refetch chats to include the new one
-            // In a real app, you might just add it to the local state
-            const { data: newFullChat } = await supabase.from('team_chats').select(`*, participants:chat_participants(profile:profiles(*))`).eq('id', newChatData.id).single();
-            const enrichedChat = { ...newFullChat, participants: newFullChat.participants.map(p => p.profile), unread_count: 0 };
-            setChats(prev => [enrichedChat, ...prev]);
-            setSelectedChat(enrichedChat);
-        }
-    };
-
-    return { chats, selectedChat, setSelectedChat, messages, profiles, loading, createDirectChat, sendMessage };
-};
-
-
-// --- The Main Team Chat Component ---
 export const TeamChatSection = () => {
-  // In a real application, this ID would come from your authentication provider (e.g., Supabase Auth)
-  const CURRENT_USER_ID = 'user_id_of_logged_in_user'; // IMPORTANT: Replace with actual logged-in user's ID
+  // Get current user ID from Supabase auth
+  const [currentUserId, setCurrentUserId] = useState<string>("");
 
-  const { chats, selectedChat, setSelectedChat, messages, profiles, loading, createDirectChat, sendMessage } = useTeamChats(CURRENT_USER_ID);
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
+
+  const { 
+    chats, 
+    selectedChat, 
+    setSelectedChat, 
+    messages, 
+    profiles, 
+    loading, 
+    createDirectChat, 
+    sendMessage 
+  } = useTeamChats();
+
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
@@ -229,35 +57,316 @@ export const TeamChatSection = () => {
 
   useEffect(() => {
     if (messages.length) {
-        scrollToBottom();
+      scrollToBottom();
     }
   }, [messages]);
 
-  const getChatDisplayName = (chat: TeamChat | null): string => {
+  const getChatDisplayName = (chat: any): string => {
     if (!chat) return '';
-    if (chat.type === 'group') return chat.name || 'Group Chat';
+    if (chat.type === 'group') return chat.name || 'Medical Team Chat';
     
-    const otherParticipant = chat.participants?.find(p => p.user_id !== CURRENT_USER_ID); 
+    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId); 
     
     if (otherParticipant) {
-      const role = otherParticipant.role === 'admin' ? '(Admin)' : otherParticipant.role === 'doctor' ? '(Dr.)' : '';
+      const role = otherParticipant.role === 'admin' ? '(Admin)' : 
+                   otherParticipant.role === 'doctor' ? '(Dr.)' : 
+                   otherParticipant.role === 'nurse' ? '(RN)' : '';
       return `${otherParticipant.first_name} ${otherParticipant.last_name} ${role}`.trim();
     }
-    return 'Direct Message';
+    return 'Clinical Consultation';
   };
-  
-  // ... (rest of the component is the same as the mock version, it will now use the live data)
 
-  // NOTE: The rest of the JSX from the previous version remains unchanged.
-  // It is omitted here for brevity but is included in the runnable component.
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedChat) return;
+    
+    await sendMessage(newMessage.trim());
+    setNewMessage("");
+  };
+
+  const handleStartDirectChat = async (participantId: string) => {
+    await createDirectChat(participantId);
+    setIsNewChatOpen(false);
+  };
+
+  const getSenderDisplayName = (sender: any): string => {
+    if (!sender) return 'Unknown';
+    const role = sender.role === 'admin' ? '(Admin)' : 
+                 sender.role === 'doctor' ? '(Dr.)' : 
+                 sender.role === 'nurse' ? '(RN)' : '';
+    return `${sender.first_name} ${sender.last_name} ${role}`.trim();
+  };
+
+  const filteredChats = chats.filter(chat =>
+    getChatDisplayName(chat).toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const availableUsers = profiles.filter(profile => 
+    profile.user_id !== currentUserId &&
+    !chats.some(chat => 
+      chat.type === 'direct' && 
+      chat.participants?.some((p: any) => p.user_id === profile.user_id)
+    )
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading team chat...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-        {/* The full JSX from the previous step goes here. */}
-        <p>Chat UI placeholder. The full UI is in the complete code.</p>
+    <div className="flex h-[600px] border rounded-lg overflow-hidden bg-background">
+      {/* Chat List Sidebar */}
+      <div className="w-80 border-r bg-muted/30">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Team Chat
+            </h3>
+            <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Start New Chat</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {availableUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent cursor-pointer"
+                      onClick={() => handleStartDirectChat(user.user_id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.avatar_url || ""} />
+                          <AvatarFallback>
+                            {user.first_name?.slice(0, 1)}{user.last_name?.slice(0, 1)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">
+                            {user.first_name} {user.last_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {user.role}
+                          </p>
+                        </div>
+                      </div>
+                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-1">
+            {filteredChats.map((chat) => (
+              <div
+                key={chat.id}
+                className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                  selectedChat?.id === chat.id
+                    ? 'bg-primary/10 border border-primary/20'
+                    : 'hover:bg-accent'
+                }`}
+                onClick={() => setSelectedChat(chat)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative">
+                    {chat.type === 'group' ? (
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                    ) : (
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={chat.participants?.[0]?.avatar_url || ""} />
+                        <AvatarFallback>
+                          {chat.participants?.[0]?.first_name?.slice(0, 1)}
+                          {chat.participants?.[0]?.last_name?.slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    {chat.unread_count > 0 && (
+                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                        {chat.unread_count}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium truncate">
+                        {getChatDisplayName(chat)}
+                      </h4>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(chat.last_message_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {chat.last_message?.content || 'No messages yet'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Chat Messages Area */}
+      <div className="flex-1 flex flex-col">
+        {selectedChat ? (
+          <>
+            {/* Chat Header */}
+            <div className="p-4 border-b bg-background">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {selectedChat.type === 'group' ? (
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                  ) : (
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={selectedChat.participants?.[0]?.avatar_url || ""} />
+                      <AvatarFallback>
+                        {selectedChat.participants?.[0]?.first_name?.slice(0, 1)}
+                        {selectedChat.participants?.[0]?.last_name?.slice(0, 1)}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div>
+                    <h3 className="font-semibold">{getChatDisplayName(selectedChat)}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedChat.type === 'group' 
+                        ? `${selectedChat.participants?.length || 0} members`
+                        : selectedChat.participants?.[0]?.role === 'doctor' ? 'Available for consultation' : 'Online'
+                      }
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm">
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <Video className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {messages.map((message) => {
+                  const isOwnMessage = message.sender_id === currentUserId;
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex gap-3 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                    >
+                      {!isOwnMessage && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={message.sender?.avatar_url || ""} />
+                          <AvatarFallback>
+                            {message.sender?.first_name?.slice(0, 1)}
+                            {message.sender?.last_name?.slice(0, 1)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      
+                      <div className={`max-w-[70%] ${isOwnMessage ? 'text-right' : ''}`}>
+                        {!isOwnMessage && (
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {getSenderDisplayName(message.sender)}
+                          </p>
+                        )}
+                        <div
+                          className={`px-4 py-2 rounded-2xl ${
+                            isOwnMessage
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      
+                      {isOwnMessage && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={message.sender?.avatar_url || ""} />
+                          <AvatarFallback>
+                            {message.sender?.first_name?.slice(0, 1)}
+                            {message.sender?.last_name?.slice(0, 1)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Message Input */}
+            <div className="p-4 border-t bg-background">
+              <form onSubmit={handleSendMessage} className="flex gap-2">
+                <Input
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={!newMessage.trim()}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-center">
+            <div>
+              <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Select a conversation</h3>
+              <p className="text-muted-foreground">
+                Choose a chat from the sidebar to start messaging
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default function App() {
-    return <TeamChatSection />
-}
+export default TeamChatSection;
