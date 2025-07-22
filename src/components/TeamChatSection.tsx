@@ -289,9 +289,9 @@ export const TeamChatSection = () => {
     const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     
     if (otherParticipant) {
-      // Handle both GHL API format (firstName/lastName) and mock data format (first_name/last_name)
-      const firstName = otherParticipant.firstName || otherParticipant.first_name || '';
-      const lastName = otherParticipant.lastName || otherParticipant.last_name || '';
+      // Use the profile data format (first_name/last_name)
+      const firstName = otherParticipant.first_name || '';
+      const lastName = otherParticipant.last_name || '';
       const role = otherParticipant.role === 'admin' ? '(Admin)' : 
                    otherParticipant.role === 'doctor' ? '(Dr.)' : 
                    otherParticipant.role === 'nurse' ? '(RN)' : '';
@@ -299,7 +299,7 @@ export const TeamChatSection = () => {
       const fullName = `${firstName} ${lastName} ${role}`.trim();
       return fullName || otherParticipant.email || 'Team Member';
     }
-    return 'Direct Chat';
+    return 'Team Member';
   };
 
   const getSenderDisplayName = (sender: any): string => {
