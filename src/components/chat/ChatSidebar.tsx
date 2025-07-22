@@ -63,7 +63,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       if (firstName && lastName) {
         const role = otherParticipant.role === 'admin' ? '(Admin)' : 
                      otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                     otherParticipant.role === 'nurse' ? '(RN)' : 
+                     otherParticipant.role === 'staff' ? '(Staff)' : 
                      otherParticipant.role === 'overlord' ? '(Admin)' : '';
         
         return `${firstName} ${lastName} ${role}`.trim();
@@ -74,7 +74,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         const name = (firstName || lastName).trim();
         const role = otherParticipant.role === 'admin' ? '(Admin)' : 
                      otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                     otherParticipant.role === 'nurse' ? '(RN)' : 
+                     otherParticipant.role === 'staff' ? '(Staff)' : 
                      otherParticipant.role === 'overlord' ? '(Admin)' : '';
         
         return `${name} ${role}`.trim();
