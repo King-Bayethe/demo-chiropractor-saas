@@ -74,7 +74,7 @@ export const useTeamChat = () => {
         ...chat,
         participants: chat.participants.map((p: any) => ({ 
           id: p.user_id, 
-          name: p.name, 
+          name: p.name || 'Unknown User',
           is_admin: p.is_admin 
         }))
       }));
