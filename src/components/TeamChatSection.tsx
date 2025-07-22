@@ -1,89 +1,76 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { ChatLayout } from "./chat/ChatLayout";
 import { NewChatDialog } from "./chat/NewChatDialog";
 
 export const TeamChatSection = () => {
   const { toast } = useToast();
-  const { user: currentUser, profile: currentProfile } = useAuth();
   const [chats, setChats] = useState<any[]>([]);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
 
-  const currentUserId = currentUser?.id || null;
+  // Get current user
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUserId(user?.id || null);
+  };
 
+  // Fetch chats
   // Fetch chats
   const fetchChats = async () => {
     if (!currentUserId) return;
-    
+
     try {
-      const { data: chatsData, error: chatsError } = await supabase
-        .from('team_chats')
+      // This single query fetches all necessary data at once.
+      // 1. It finds all chats the current user is a participant in.
+      // 2. For each of those chats, it fetches all details about the chat itself.
+      // 3. It also fetches a complete list of participants for each chat, including their full profiles.
+      const { data: chatParticipants, error: chatsError } = await supabase
+        .from('team_chat_participants')
         .select(`
-          id,
-          name,
-          type,
-          created_at,
-          last_message_at,
-          created_by
-        `)
-        .order('last_message_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
-
-      if (chatsError) throw chatsError;
-
-      // Fetch participants with profiles for each chat
-      const chatsWithData = await Promise.all(
-        (chatsData || []).map(async (chat) => {
-          // Get participants with their profiles in one query
-          const { data: participants, error: participantsError } = await supabase
-            .from('team_chat_participants')
-            .select(`
+          team_chats (
+            id,
+            name,
+            type,
+            created_at,
+            last_message_at,
+            created_by,
+            participants:team_chat_participants (
               user_id,
               is_admin,
-              profiles!inner(
+              profiles (
                 first_name,
                 last_name,
                 email,
                 role
               )
-            `)
-            .eq('chat_id', chat.id);
+            )
+          )
+        `)
+        .eq('user_id', currentUserId)
+        .order('last_message_at', { referencedTable: 'team_chats', ascending: false, nullsFirst: false });
 
-          if (participantsError) {
-            console.warn('Error fetching participants for chat:', chat.id, participantsError);
-            return {
-              ...chat,
-              participants: []
-            };
-          }
+      if (chatsError) throw chatsError;
 
-          // Transform participants data
-          const participantsWithProfiles = (participants || []).map((participant: any) => ({
+      // The query returns a structured list that's easy to work with.
+      const formattedChats = (chatParticipants || []).map((p: any) => ({
+        ...p.team_chats,
+        participants: p.team_chats.participants.map((participant: any) => ({
             id: participant.user_id,
-            first_name: participant.profiles?.first_name || '',
-            last_name: participant.profiles?.last_name || '',
-            email: participant.profiles?.email || '',
-            role: participant.profiles?.role || 'staff',
+            ...participant.profiles,
             is_admin: participant.is_admin
-          }));
-
-          return {
-            ...chat,
-            participants: participantsWithProfiles
-          };
-        })
-      );
-
-      setChats(chatsWithData);
-      if (chatsWithData.length > 0 && !selectedChat) {
-        setSelectedChat(chatsWithData[0]);
+        }))
+      }));
+      
+      setChats(formattedChats);
+      if (formattedChats.length > 0 && !selectedChat) {
+        setSelectedChat(formattedChats[0]);
       }
     } catch (error) {
       console.error('Error fetching chats:', error);
@@ -171,6 +158,10 @@ export const TeamChatSection = () => {
   };
 
   useEffect(() => {
+    getCurrentUser();
+  }, []);
+
+  useEffect(() => {
     if (currentUserId) {
       fetchChats();
       fetchProfiles();
@@ -212,10 +203,10 @@ export const TeamChatSection = () => {
         created_at: data.created_at,
         sender: {
           id: data.sender_id,
-          first_name: profile?.first_name || currentProfile?.first_name || 'You',
-          last_name: profile?.last_name || currentProfile?.last_name || '',
-          email: profile?.email || currentProfile?.email || '',
-          role: profile?.role || currentProfile?.role || 'staff'
+          first_name: profile?.first_name || 'You',
+          last_name: profile?.last_name || '',
+          email: profile?.email || '',
+          role: profile?.role || 'staff'
         }
       };
 
