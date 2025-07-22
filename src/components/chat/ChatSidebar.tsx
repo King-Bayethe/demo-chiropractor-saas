@@ -86,7 +86,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
     }
     
-    return 'Loading...';
+    // Better fallback - generate a unique name based on user ID or email
+    const fallbackName = `User ${chat.id.substring(0, 8)}`;
+    return fallbackName;
   };
 
   const getChatAvatar = (chat: Chat): string => {

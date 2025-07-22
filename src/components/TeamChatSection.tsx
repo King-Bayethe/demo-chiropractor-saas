@@ -64,9 +64,10 @@ export const TeamChatSection = () => {
             };
           }
 
-          // Transform participants data
+          // Transform participants data to match ChatSidebar expectations
           const participantsWithProfiles = (participants || []).map((participant: any) => ({
             id: participant.user_id,
+            user_id: participant.user_id,
             first_name: participant.profiles?.first_name || '',
             last_name: participant.profiles?.last_name || '',
             email: participant.profiles?.email || '',
