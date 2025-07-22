@@ -62,8 +62,13 @@ export const useTeamChat = () => {
           created_by,
           participants:team_chat_participants (
             user_id,
-            name,
-            is_admin
+            is_admin,
+            profiles!team_chat_participants_user_id_fkey (
+              first_name,
+              last_name,
+              email,
+              role
+            )
           )
         `)
         .order('last_message_at', { ascending: false, nullsFirst: false });
@@ -72,11 +77,28 @@ export const useTeamChat = () => {
       
       const formattedChats = (chatsData || []).map((chat: any) => ({
         ...chat,
-        participants: chat.participants.map((p: any) => ({ 
-          id: p.user_id, 
-          name: p.name || 'Unknown User',
-          is_admin: p.is_admin 
-        }))
+        participants: chat.participants.map((p: any) => {
+          const profile = p.profiles;
+          const firstName = profile?.first_name?.trim() || '';
+          const lastName = profile?.last_name?.trim() || '';
+          
+          let displayName = '';
+          if (firstName && lastName) {
+            displayName = `${firstName} ${lastName}`;
+          } else if (firstName || lastName) {
+            displayName = firstName || lastName;
+          } else {
+            displayName = profile?.email || 'Unknown User';
+          }
+          
+          return {
+            id: p.user_id,
+            name: displayName,
+            email: profile?.email,
+            role: profile?.role,
+            is_admin: p.is_admin
+          };
+        })
       }));
 
       setChats(formattedChats);
