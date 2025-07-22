@@ -6,6 +6,7 @@ import { ChatLayout } from "./chat/ChatLayout";
 import { NewChatDialog } from "./chat/NewChatDialog";
 
 export const TeamChatSection = () => {
+  console.log('TeamChatSection component loaded');
   const { toast } = useToast();
   const { user: currentUser, profile: currentProfile } = useAuth();
   const [chats, setChats] = useState<any[]>([]);
@@ -305,6 +306,7 @@ export const TeamChatSection = () => {
   };
 
   const archiveChat = async (chatId: string) => {
+    console.log('archiveChat function called with chatId:', chatId);
     try {
       // Archive all messages in the chat
       const { error: messagesError } = await supabase
