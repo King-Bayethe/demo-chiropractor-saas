@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Send, Users, MessageSquare, RefreshCw } from "lucide-react";
 import { useGHLUsers } from "@/hooks/useGHLUsers";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data for demonstration
 const mockChats = [
@@ -83,7 +84,18 @@ export const TeamChatSection = () => {
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [groupChatName, setGroupChatName] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Get current user email
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserEmail(user?.email || null);
+    });
+  }, []);
+
+  // Filter out current user from available team members
+  const availableUsers = ghlUsers.filter(user => user.email !== currentUserEmail);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -238,12 +250,12 @@ export const TeamChatSection = () => {
                           <div className="text-center text-muted-foreground py-4">
                             Loading team members...
                           </div>
-                        ) : ghlUsers.length === 0 ? (
+                        ) : availableUsers.length === 0 ? (
                           <div className="text-center text-muted-foreground py-4">
-                            No team members found
+                            No other team members found
                           </div>
                         ) : (
-                          ghlUsers.map((member) => (
+                          availableUsers.map((member) => (
                             <div key={member.id} className="flex items-center space-x-2">
                               <Checkbox
                                 id={member.id}
