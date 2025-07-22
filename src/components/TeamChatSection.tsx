@@ -243,12 +243,25 @@ export const TeamChatSection = () => {
     try {
       const isGroupChat = memberIds.length > 1;
       
+      // For direct chats, get the recipient's name
+      let chatName = null;
+      if (!isGroupChat && memberIds.length === 1) {
+        const recipientProfile = profiles.find(p => p.user_id === memberIds[0]);
+        if (recipientProfile) {
+          const firstName = recipientProfile.first_name || '';
+          const lastName = recipientProfile.last_name || '';
+          chatName = `${firstName} ${lastName}`.trim() || recipientProfile.email;
+        }
+      } else if (isGroupChat) {
+        chatName = groupName || 'New Medical Team Group';
+      }
+      
       // Create chat
       const { data: chatData, error: chatError } = await supabase
         .from('team_chats')
         .insert({
           type: isGroupChat ? 'group' : 'direct',
-          name: isGroupChat ? (groupName || 'New Medical Team Group') : null,
+          name: chatName,
           created_by: currentUserId
         })
         .select()
