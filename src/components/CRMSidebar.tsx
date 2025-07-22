@@ -25,7 +25,11 @@ const navigationItems = [
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
-export function CRMSidebar() {
+interface CRMSidebarProps {
+  onCollapseChange?: (collapsed: boolean) => void;
+}
+
+export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname;
@@ -38,7 +42,9 @@ export function CRMSidebar() {
   };
 
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
+    const newCollapsed = !collapsed;
+    setCollapsed(newCollapsed);
+    onCollapseChange?.(newCollapsed);
   };
 
   return (

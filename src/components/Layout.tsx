@@ -28,6 +28,7 @@ export function Layout({ children }: LayoutProps) {
   const { profile, loading } = useProfile();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -83,9 +84,11 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen flex w-full bg-background">
-      <CRMSidebar />
+      <div className="fixed left-0 top-0 h-screen z-40">
+        <CRMSidebar onCollapseChange={setSidebarCollapsed} />
+      </div>
       
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
         {/* Top Header */}
         <header className="h-16 border-b border-border/50 bg-card px-6 flex items-center justify-between shadow-sm flex-shrink-0">
           <div className="flex items-center space-x-4">
