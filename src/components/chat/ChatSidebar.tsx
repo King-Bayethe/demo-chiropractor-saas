@@ -52,7 +52,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const getChatDisplayName = (chat: Chat): string => {
     if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
-    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
+    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
     
     if (otherParticipant) {
       const firstName = otherParticipant.first_name?.trim() || '';
@@ -104,7 +104,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       return 'GT';
     }
     
-    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
+    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
     if (otherParticipant) {
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';
