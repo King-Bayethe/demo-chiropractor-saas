@@ -285,8 +285,14 @@ export const TeamChatSection = () => {
     if (!chat) return '';
     if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
+    console.log('Chat:', chat);
+    console.log('Current User ID:', currentUserId);
+    console.log('Participants:', chat.participants);
+    
     // For direct chats, find the other participant (not the current user)
     const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
+    
+    console.log('Other participant:', otherParticipant);
     
     if (otherParticipant) {
       // Use the profile data format (first_name/last_name)
