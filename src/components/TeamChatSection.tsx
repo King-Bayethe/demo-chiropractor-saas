@@ -123,17 +123,21 @@ export const TeamChatSection = () => {
     if (!chat) return '';
     if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
-    const otherParticipant = chat.participants?.find((p: any) => p.id !== "2"); // Assuming current user id is "2"
+    // For direct chats, find the other participant (not the current user)
+    const otherParticipant = chat.participants?.find((p: any) => p.email !== currentUserEmail);
     
     if (otherParticipant) {
-      const firstName = otherParticipant.first_name || '';
-      const lastName = otherParticipant.last_name || '';
+      // Handle both GHL API format (firstName/lastName) and mock data format (first_name/last_name)
+      const firstName = otherParticipant.firstName || otherParticipant.first_name || '';
+      const lastName = otherParticipant.lastName || otherParticipant.last_name || '';
       const role = otherParticipant.role === 'admin' ? '(Admin)' : 
                    otherParticipant.role === 'doctor' ? '(Dr.)' : 
                    otherParticipant.role === 'nurse' ? '(RN)' : '';
-      return `${firstName} ${lastName} ${role}`.trim() || 'Clinical Consultation';
+      
+      const fullName = `${firstName} ${lastName} ${role}`.trim();
+      return fullName || otherParticipant.email || 'Team Member';
     }
-    return 'Clinical Consultation';
+    return 'Direct Chat';
   };
 
   const getSenderDisplayName = (sender: any): string => {
