@@ -64,25 +64,46 @@ export const TeamChatSection = () => {
         (chatsData || []).map(async (chat) => {
           const { data: participants, error: participantsError } = await supabase
             .from('team_chat_participants')
-            .select(`
-              user_id,
-              is_admin,
-              profiles(first_name, last_name, email, role)
-            `)
+            .select('user_id, is_admin')
             .eq('chat_id', chat.id);
 
           if (participantsError) throw participantsError;
 
+          // Fetch profile info for each participant
+          const participantsWithProfiles = await Promise.all(
+            (participants || []).map(async (participant) => {
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('first_name, last_name, email, role')
+                .eq('user_id', participant.user_id)
+                .single();
+
+              if (profileError) {
+                console.warn('Profile not found for user:', participant.user_id);
+                return {
+                  id: participant.user_id,
+                  first_name: 'Unknown',
+                  last_name: 'User',
+                  email: '',
+                  role: 'staff',
+                  is_admin: participant.is_admin
+                };
+              }
+
+              return {
+                id: participant.user_id,
+                first_name: profile.first_name,
+                last_name: profile.last_name,
+                email: profile.email,
+                role: profile.role,
+                is_admin: participant.is_admin
+              };
+            })
+          );
+
           return {
             ...chat,
-            participants: participants?.map(p => ({
-              id: p.user_id,
-              first_name: p.profiles?.first_name,
-              last_name: p.profiles?.last_name,
-              email: p.profiles?.email,
-              role: p.profiles?.role,
-              is_admin: p.is_admin
-            })) || []
+            participants: participantsWithProfiles
           };
         })
       );
@@ -108,33 +129,42 @@ export const TeamChatSection = () => {
     try {
       const { data: messagesData, error: messagesError } = await supabase
         .from('team_messages')
-        .select(`
-          id,
-          content,
-          created_at,
-          sender_id,
-          profiles(first_name, last_name, email, role)
-        `)
+        .select('id, content, created_at, sender_id')
         .eq('chat_id', chatId)
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
-      const formattedMessages = messagesData?.map(msg => ({
-        id: msg.id,
-        content: msg.content,
-        created_at: msg.created_at,
-        sender: {
-          id: msg.sender_id,
-          first_name: msg.profiles?.first_name,
-          last_name: msg.profiles?.last_name,
-          email: msg.profiles?.email,
-          role: msg.profiles?.role
-        }
-      })) || [];
+      // Fetch sender profiles for each message
+      const messagesWithProfiles = await Promise.all(
+        (messagesData || []).map(async (msg) => {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email, role')
+            .eq('user_id', msg.sender_id)
+            .single();
 
-      setMessages(formattedMessages);
+          if (profileError) {
+            console.warn('Profile not found for sender:', msg.sender_id);
+          }
+
+          return {
+            id: msg.id,
+            content: msg.content,
+            created_at: msg.created_at,
+            sender: {
+              id: msg.sender_id,
+              first_name: profile?.first_name || 'Unknown',
+              last_name: profile?.last_name || 'User',
+              email: profile?.email || '',
+              role: profile?.role || 'staff'
+            }
+          };
+        })
+      );
+
+      setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -180,16 +210,17 @@ export const TeamChatSection = () => {
           content: newMessage.trim(),
           sender_id: currentUserId
         })
-        .select(`
-          id,
-          content,
-          created_at,
-          sender_id,
-          profiles(first_name, last_name, email, role)
-        `)
+        .select('id, content, created_at, sender_id')
         .single();
 
       if (error) throw error;
+
+      // Fetch sender profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email, role')
+        .eq('user_id', data.sender_id)
+        .single();
 
       const newMsg = {
         id: data.id,
@@ -197,10 +228,10 @@ export const TeamChatSection = () => {
         created_at: data.created_at,
         sender: {
           id: data.sender_id,
-          first_name: data.profiles?.first_name,
-          last_name: data.profiles?.last_name,
-          email: data.profiles?.email,
-          role: data.profiles?.role
+          first_name: profile?.first_name || 'You',
+          last_name: profile?.last_name || '',
+          email: profile?.email || '',
+          role: profile?.role || 'staff'
         }
       };
 
