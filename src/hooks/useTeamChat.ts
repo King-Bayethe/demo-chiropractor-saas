@@ -36,7 +36,7 @@ export interface ChatMessage {
 }
 
 export const useTeamChat = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   
   const [chats, setChats] = useState<TeamChat[]>([]);
@@ -149,11 +149,31 @@ export const useTeamChat = () => {
       // Fetch sender profiles
       const messagesWithProfiles = await Promise.all(
         (messagesData || []).map(async (msg) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email, role')
-            .eq('user_id', msg.sender_id)
-            .maybeSingle();
+          let senderProfile;
+          
+          // If it's the current user, use their profile from auth context
+          if (msg.sender_id === user?.id && profile) {
+            senderProfile = {
+              first_name: profile.first_name || '',
+              last_name: profile.last_name || '',
+              email: profile.email || '',
+              role: profile.role || 'staff'
+            };
+          } else {
+            // Fetch other users' profiles
+            const { data: fetchedProfile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email, role')
+              .eq('user_id', msg.sender_id)
+              .maybeSingle();
+            
+            senderProfile = fetchedProfile || {
+              first_name: '',
+              last_name: '',
+              email: '',
+              role: 'staff'
+            };
+          }
 
           return {
             id: msg.id,
@@ -161,10 +181,10 @@ export const useTeamChat = () => {
             created_at: msg.created_at,
             sender: {
               id: msg.sender_id,
-              first_name: profile?.first_name || '',
-              last_name: profile?.last_name || '',
-              email: profile?.email || '',
-              role: profile?.role || 'staff'
+              first_name: senderProfile.first_name,
+              last_name: senderProfile.last_name,
+              email: senderProfile.email,
+              role: senderProfile.role
             }
           };
         })
@@ -181,7 +201,7 @@ export const useTeamChat = () => {
     } finally {
       setMessagesLoading(false);
     }
-  }, [toast]);
+  }, [user, profile, toast]);
 
   const fetchProfiles = useCallback(async () => {
     try {
@@ -218,13 +238,7 @@ export const useTeamChat = () => {
 
       if (error) throw error;
 
-      // Fetch sender profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, email, role')
-        .eq('user_id', data.sender_id)
-        .maybeSingle();
-
+      // Use current user's profile from auth context
       const newMessage: ChatMessage = {
         id: data.id,
         content: data.content,
@@ -254,7 +268,7 @@ export const useTeamChat = () => {
         variant: "destructive"
       });
     }
-  }, [selectedChat, user?.id, toast]);
+  }, [selectedChat, user?.id, profile, toast]);
 
   const createChat = useCallback(async (memberIds: string[], groupName?: string) => {
     if (memberIds.length === 0 || !user?.id) return;
