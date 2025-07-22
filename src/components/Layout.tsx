@@ -56,10 +56,10 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const getDisplayName = () => {
-    if (!profile) return "Loading...";
     if (profile.first_name || profile.last_name) {
       return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
     }
+    if (!profile) return "Loading...";
     return profile.email;
   };
 
@@ -78,8 +78,7 @@ export function Layout({ children }: LayoutProps) {
     if (!profile) return "Staff Member";
     return profile.role === 'admin' ? 'Administrator' : 
            profile.role === 'doctor' ? 'Doctor' : 
-           profile.role === 'staff' ? 'Staff' : 
-           profile.role === 'overlord' ? 'Overlord' : 
+           profile.role === 'nurse' ? 'Nurse' : 
            'Staff Member';
   };
 
