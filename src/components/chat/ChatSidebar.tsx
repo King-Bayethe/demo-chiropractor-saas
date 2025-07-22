@@ -52,7 +52,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const getChatDisplayName = (chat: Chat): string => {
     if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
-    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
+    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     
     if (otherParticipant) {
       const firstName = otherParticipant.first_name?.trim() || '';
@@ -86,9 +86,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
     }
     
-    // If no other participant found, this means we need to get actual user data
-    // For now, return a placeholder that indicates missing participant data
-    return 'Direct Message';
+    // Better fallback - generate a unique name based on user ID or email
+    const fallbackName = `User ${chat.id.substring(0, 8)}`;
+    return fallbackName;
   };
 
   const getChatAvatar = (chat: Chat): string => {
@@ -96,7 +96,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       return 'GT';
     }
     
-    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
+    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     if (otherParticipant) {
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';

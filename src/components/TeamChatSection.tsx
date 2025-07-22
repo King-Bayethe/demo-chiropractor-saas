@@ -75,32 +75,9 @@ export const TeamChatSection = () => {
             is_admin: participant.is_admin
           }));
 
-          // If no participants found, use actual profiles as fallbacks
-          let finalParticipants = participantsWithProfiles;
-          if (participantsWithProfiles.length === 0 && profiles.length > 0) {
-            const availableProfiles = profiles.filter(p => p.user_id !== currentUserId);
-            const numberOfParticipants = chat.type === 'group' ? Math.min(3, availableProfiles.length) : 1;
-            const chatHash = parseInt(chat.id.substring(0, 8), 16);
-            const startIndex = chatHash % Math.max(1, availableProfiles.length);
-            
-            finalParticipants = availableProfiles
-              .slice(startIndex, startIndex + numberOfParticipants)
-              .concat(availableProfiles.slice(0, Math.max(0, numberOfParticipants - (availableProfiles.length - startIndex))))
-              .slice(0, numberOfParticipants)
-              .map(profile => ({
-                id: profile.user_id,
-                user_id: profile.user_id,
-                first_name: profile.first_name || '',
-                last_name: profile.last_name || '',
-                email: profile.email || '',
-                role: profile.role || 'staff',
-                is_admin: false
-              }));
-          }
-
           return {
             ...chat,
-            participants: finalParticipants
+            participants: participantsWithProfiles
           };
         })
       );
