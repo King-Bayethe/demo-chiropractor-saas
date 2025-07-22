@@ -78,7 +78,8 @@ export function Layout({ children }: LayoutProps) {
     if (!profile) return "Staff Member";
     return profile.role === 'admin' ? 'Administrator' : 
            profile.role === 'doctor' ? 'Doctor' : 
-           profile.role === 'nurse' ? 'Nurse' : 
+           profile.role === 'staff' ? 'Staff' : 
+           profile.role === 'overlord' ? 'Overlord' : 
            'Staff Member';
   };
 
