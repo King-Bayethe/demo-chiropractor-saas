@@ -25,49 +25,34 @@ export const TeamChatSection = () => {
   // Fetch chats
   const fetchChats = async () => {
     if (!currentUserId) return;
-
+    
     try {
-      // This single query fetches all necessary data at once.
-      // 1. It finds all chats the current user is a participant in.
-      // 2. For each of those chats, it fetches all details about the chat itself.
-      // 3. It also fetches a complete list of participants for each chat, including their full profiles.
-      const { data: chatParticipants, error: chatsError } = await supabase
-        .from('team_chat_participants')
+      // This single, clean query now gets all the data you need.
+      const { data: chatsData, error: chatsError } = await supabase
+        .from('team_chats')
         .select(`
-          team_chats (
-            id,
-            name,
-            type,
-            created_at,
-            last_message_at,
-            created_by,
-            participants:team_chat_participants (
-              user_id,
-              is_admin,
-              profiles (
-                first_name,
-                last_name,
-                email,
-                role
-              )
-            )
+          id,
+          name,
+          type,
+          created_at,
+          last_message_at,
+          created_by,
+          participants:team_chat_participants (
+            user_id,
+            name,  -- We can now select the name directly!
+            is_admin
           )
         `)
-        .eq('user_id', currentUserId)
-        .order('last_message_at', { referencedTable: 'team_chats', ascending: false, nullsFirst: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (chatsError) throw chatsError;
-
-      // The query returns a structured list that's easy to work with.
-      const formattedChats = (chatParticipants || []).map((p: any) => ({
-        ...p.team_chats,
-        participants: p.team_chats.participants.map((participant: any) => ({
-            id: participant.user_id,
-            ...participant.profiles,
-            is_admin: participant.is_admin
-        }))
-      }));
       
+      // The data is already in the perfect shape, so we just format the participants slightly.
+      const formattedChats = (chatsData || []).map((chat: any) => ({
+        ...chat,
+        participants: chat.participants.map((p: any) => ({ id: p.user_id, name: p.name, is_admin: p.is_admin }))
+      }));
+
       setChats(formattedChats);
       if (formattedChats.length > 0 && !selectedChat) {
         setSelectedChat(formattedChats[0]);
