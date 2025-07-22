@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -55,27 +97,33 @@ export type Database = {
       }
       team_chat_participants: {
         Row: {
+          archived_at: string | null
           chat_id: string
           id: string
           is_admin: boolean | null
           joined_at: string
           last_read_at: string | null
+          name: string | null
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           chat_id: string
           id?: string
           is_admin?: boolean | null
           joined_at?: string
           last_read_at?: string | null
+          name?: string | null
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           chat_id?: string
           id?: string
           is_admin?: boolean | null
           joined_at?: string
           last_read_at?: string | null
+          name?: string | null
           user_id?: string
         }
         Relationships: [
@@ -97,6 +145,7 @@ export type Database = {
       }
       team_chats: {
         Row: {
+          archived_at: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -107,6 +156,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -117,6 +167,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -130,6 +181,7 @@ export type Database = {
       }
       team_messages: {
         Row: {
+          archived_at: string | null
           chat_id: string
           content: string
           created_at: string
@@ -141,6 +193,7 @@ export type Database = {
           sender_id: string
         }
         Insert: {
+          archived_at?: string | null
           chat_id: string
           content: string
           created_at?: string
@@ -152,6 +205,7 @@ export type Database = {
           sender_id: string
         }
         Update: {
+          archived_at?: string | null
           chat_id?: string
           content?: string
           created_at?: string
@@ -191,7 +245,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_chat_admin: {
+        Args: { chat_id_to_check: string; user_id_to_check: string }
+        Returns: boolean
+      }
     }
     Enums: {
       chat_type: "direct" | "group"

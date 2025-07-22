@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotificationHelpers } from "@/hooks/useNotificationHelpers";
 import { ChatLayout } from "./chat/ChatLayout";
 import { NewChatDialog } from "./chat/NewChatDialog";
 
 export const TeamChatSection = () => {
   const { toast } = useToast();
   const { user: currentUser, profile: currentProfile } = useAuth();
+  const { notifyNewMessage, notifyNewChat } = useNotificationHelpers();
   const [chats, setChats] = useState<any[]>([]);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -228,6 +230,23 @@ export const TeamChatSection = () => {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', selectedChat.id);
 
+      // Notify other participants about the new message
+      const participants = selectedChat.participants || [];
+      const senderName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.email || 'Someone';
+      const messagePreview = message.trim().length > 50 ? `${message.trim().substring(0, 50)}...` : message.trim();
+      
+      for (const participant of participants) {
+        if (participant.user_id !== currentUserId) {
+          await notifyNewMessage(
+            participant.user_id,
+            senderName,
+            selectedChat.name || 'Chat',
+            selectedChat.id,
+            messagePreview
+          );
+        }
+      }
+
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -288,6 +307,18 @@ export const TeamChatSection = () => {
 
       // Refresh chats
       await fetchChats();
+
+      // Notify participants about the new chat
+      const creatorName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.email || 'Someone';
+      
+      for (const memberId of memberIds) {
+        await notifyNewChat(
+          memberId,
+          creatorName,
+          chatName || 'New Chat',
+          chatData.id
+        );
+      }
 
       toast({
         title: "Success",

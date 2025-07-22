@@ -3,6 +3,7 @@ import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { MyProfileSection } from "@/components/MyProfileSection";
+import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Settings() {
@@ -24,16 +25,7 @@ export default function Settings() {
           </Card>
         );
       case "notifications":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Notification settings coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <NotificationSettings />;
       case "language":
         return (
           <Card>
