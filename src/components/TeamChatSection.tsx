@@ -41,9 +41,10 @@ export const TeamChatSection = () => {
 
       if (chatsError) throw chatsError;
 
-      // Fetch participants for each chat
-      const chatsWithParticipants = await Promise.all(
+      // Fetch participants and last message sender for each chat
+      const chatsWithData = await Promise.all(
         (chatsData || []).map(async (chat) => {
+          // Get participants
           const { data: participants, error: participantsError } = await supabase
             .from('team_chat_participants')
             .select('user_id, is_admin')
@@ -51,7 +52,40 @@ export const TeamChatSection = () => {
 
           if (participantsError) throw participantsError;
 
-          // Fetch profile info for each participant
+          // Get the last message sender profile
+          const { data: lastMessage, error: lastMessageError } = await supabase
+            .from('team_messages')
+            .select(`
+              sender_id,
+              created_at,
+              content
+            `)
+            .eq('chat_id', chat.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          let lastSenderProfile = null;
+          if (lastMessage && !lastMessageError) {
+            const { data: senderProfile, error: senderProfileError } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email, role')
+              .eq('user_id', lastMessage.sender_id)
+              .maybeSingle();
+
+            if (!senderProfileError && senderProfile) {
+              lastSenderProfile = {
+                id: lastMessage.sender_id,
+                first_name: senderProfile.first_name,
+                last_name: senderProfile.last_name,
+                email: senderProfile.email,
+                role: senderProfile.role,
+                is_admin: false
+              };
+            }
+          }
+
+          // Fetch profile info for participants (fallback)
           const participantsWithProfiles = await Promise.all(
             (participants || []).map(async (participant) => {
               const { data: profile, error: profileError } = await supabase
@@ -85,14 +119,14 @@ export const TeamChatSection = () => {
 
           return {
             ...chat,
-            participants: participantsWithProfiles
+            participants: lastSenderProfile ? [lastSenderProfile] : participantsWithProfiles
           };
         })
       );
 
-      setChats(chatsWithParticipants);
-      if (chatsWithParticipants.length > 0 && !selectedChat) {
-        setSelectedChat(chatsWithParticipants[0]);
+      setChats(chatsWithData);
+      if (chatsWithData.length > 0 && !selectedChat) {
+        setSelectedChat(chatsWithData[0]);
       }
     } catch (error) {
       console.error('Error fetching chats:', error);
