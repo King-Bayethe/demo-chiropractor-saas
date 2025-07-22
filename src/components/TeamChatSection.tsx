@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Send, Users, MessageSquare } from "lucide-react";
 
 // Mock data for demonstration
@@ -70,11 +72,23 @@ const mockMessages = [
   }
 ];
 
+// Mock team members available for new chats
+const mockTeamMembers = [
+  { id: "1", first_name: "John", last_name: "Smith", role: "doctor", email: "john.smith@hospital.com" },
+  { id: "3", first_name: "Mary", last_name: "Johnson", role: "nurse", email: "mary.johnson@hospital.com" },
+  { id: "4", first_name: "Sarah", last_name: "Wilson", role: "nurse", email: "sarah.wilson@hospital.com" },
+  { id: "5", first_name: "David", last_name: "Brown", role: "admin", email: "david.brown@hospital.com" },
+  { id: "6", first_name: "Lisa", last_name: "Davis", role: "doctor", email: "lisa.davis@hospital.com" }
+];
+
 export const TeamChatSection = () => {
-  const [chats] = useState(mockChats);
+  const [chats, setChats] = useState(mockChats);
   const [selectedChat, setSelectedChat] = useState(mockChats[0]);
   const [messages, setMessages] = useState(mockMessages);
   const [newMessage, setNewMessage] = useState("");
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [groupChatName, setGroupChatName] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -126,6 +140,62 @@ export const TeamChatSection = () => {
     return `${firstName} ${lastName} ${role}`.trim() || 'Medical Staff';
   };
 
+  const handleMemberToggle = (memberId: string) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId) 
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  const createNewChat = () => {
+    if (selectedMembers.length === 0) return;
+
+    const isGroupChat = selectedMembers.length > 1;
+    const newChatId = (chats.length + 1).toString();
+
+    // Get selected member details
+    const chatParticipants = mockTeamMembers
+      .filter(member => selectedMembers.includes(member.id))
+      .map(member => ({
+        id: member.id,
+        first_name: member.first_name,
+        last_name: member.last_name,
+        role: member.role
+      }));
+
+    // Add current user
+    chatParticipants.push({ id: "2", first_name: "You", last_name: "", role: "nurse" });
+
+    const newChat = {
+      id: newChatId,
+      type: isGroupChat ? "group" as const : "direct" as const,
+      name: isGroupChat ? (groupChatName || "New Medical Team Group") : null,
+      participants: chatParticipants,
+      last_message: null,
+      unread_count: 0,
+      created_at: new Date().toISOString()
+    };
+
+    setChats(prev => [newChat, ...prev]);
+    setSelectedChat(newChat);
+    setMessages([]); // Clear messages for new chat
+    
+    // Reset form
+    setSelectedMembers([]);
+    setGroupChatName("");
+    setIsNewChatOpen(false);
+  };
+
+  const getMemberDisplayName = (member: any): string => {
+    const firstName = member.first_name || '';
+    const lastName = member.last_name || '';
+    const role = member.role === 'admin' ? '(Admin)' : 
+                 member.role === 'doctor' ? '(Dr.)' : 
+                 member.role === 'nurse' ? '(RN)' : '';
+    return `${firstName} ${lastName} ${role}`.trim();
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
       {/* Chat List */}
@@ -133,10 +203,78 @@ export const TeamChatSection = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Medical Team Chats</CardTitle>
-            <Button size="sm" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              New Chat
-            </Button>
+            <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Chat
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Start New Conversation</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Select Team Members
+                    </label>
+                    <ScrollArea className="h-48 border rounded-md p-3">
+                      <div className="space-y-2">
+                        {mockTeamMembers.map((member) => (
+                          <div key={member.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={member.id}
+                              checked={selectedMembers.includes(member.id)}
+                              onCheckedChange={() => handleMemberToggle(member.id)}
+                            />
+                            <div className="flex items-center space-x-2 flex-1">
+                              <Avatar className="w-6 h-6">
+                                <AvatarFallback className="text-xs">
+                                  {member.first_name[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <label htmlFor={member.id} className="text-sm cursor-pointer">
+                                {getMemberDisplayName(member)}
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                  
+                  {selectedMembers.length > 1 && (
+                    <div>
+                      <label htmlFor="groupName" className="text-sm font-medium mb-2 block">
+                        Group Chat Name (Optional)
+                      </label>
+                      <Input
+                        id="groupName"
+                        value={groupChatName}
+                        onChange={(e) => setGroupChatName(e.target.value)}
+                        placeholder="Enter group name..."
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="flex space-x-2 justify-end">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsNewChatOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={createNewChat}
+                      disabled={selectedMembers.length === 0}
+                    >
+                      {selectedMembers.length > 1 ? 'Create Group' : 'Start Chat'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent className="p-0">
