@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useProfile } from "@/hooks/useProfile";
 
 interface Participant {
   id: string;
@@ -45,37 +46,28 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onDeleteChat,
   onRefresh
 }) => {
-  const getChatDisplayName = (chat: Chat): string => {
-    if (chat.type === 'group') return chat.name || 'Medical Team Group';
+  const { profile } = useProfile();
+
+  const getCurrentUserDisplayName = (): string => {
+    if (!profile) return 'User';
     
-    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
+    const firstName = profile.first_name || '';
+    const lastName = profile.last_name || '';
+    const role = profile.role === 'admin' ? '(Admin)' : 
+                 profile.role === 'doctor' ? '(Dr.)' : 
+                 profile.role === 'nurse' ? '(RN)' : 
+                 profile.role === 'overlord' ? '(Admin)' : '';
     
-    if (otherParticipant) {
-      const firstName = otherParticipant.first_name || '';
-      const lastName = otherParticipant.last_name || '';
-      const role = otherParticipant.role === 'admin' ? '(Admin)' : 
-                   otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                   otherParticipant.role === 'nurse' ? '(RN)' : 
-                   otherParticipant.role === 'overlord' ? '(Admin)' : '';
-      
-      const fullName = `${firstName} ${lastName} ${role}`.trim();
-      return fullName || otherParticipant.email || 'Team Member';
-    }
-    return 'Team Member';
+    const fullName = `${firstName} ${lastName} ${role}`.trim();
+    return fullName || profile.email || 'User';
   };
 
-  const getChatAvatar = (chat: Chat): string => {
-    if (chat.type === 'group') {
-      return chat.name?.substring(0, 2).toUpperCase() || 'GT';
-    }
+  const getCurrentUserAvatar = (): string => {
+    if (!profile) return 'U';
     
-    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
-    if (otherParticipant) {
-      const firstName = otherParticipant.first_name || '';
-      const lastName = otherParticipant.last_name || '';
-      return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'TM';
-    }
-    return 'TM';
+    const firstName = profile.first_name || '';
+    const lastName = profile.last_name || '';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || profile.email?.[0]?.toUpperCase() || 'U';
   };
 
   if (!selectedChat) {
@@ -107,34 +99,23 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <div className="relative">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                {getChatAvatar(selectedChat)}
+                {getCurrentUserAvatar()}
               </AvatarFallback>
             </Avatar>
-            {selectedChat.type === 'direct' && (
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-            )}
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
           </div>
 
           <div>
             <h2 className="font-semibold text-foreground">
-              {getChatDisplayName(selectedChat)}
+              {getCurrentUserDisplayName()}
             </h2>
             <div className="flex items-center space-x-2">
-              {selectedChat.type === 'group' ? (
-                <div className="flex items-center space-x-1">
-                  <Users className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {selectedChat.participants?.length || 0} members
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-xs text-muted-foreground capitalize">
-                    online
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-xs text-muted-foreground capitalize">
+                  online
+                </span>
+              </div>
             </div>
           </div>
         </div>
