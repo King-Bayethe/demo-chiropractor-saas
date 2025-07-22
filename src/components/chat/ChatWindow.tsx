@@ -6,47 +6,29 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Send,
-  Paperclip,
-  Smile,
-  MessageCircle
+  MessageCircle,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Message {
-  id: string;
-  content: string;
-  created_at: string;
-  sender: {
-    id: string;
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-    role?: string;
-  };
-}
-
-interface Chat {
-  id: string;
-  name?: string;
-  type: 'direct' | 'group';
-  participants: any[];
-}
+import { TeamChat, ChatMessage } from '@/hooks/useTeamChat';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ChatWindowProps {
-  chat: Chat | null;
-  messages: Message[];
+  chat: TeamChat | null;
+  messages: ChatMessage[];
   onSendMessage: (message: string) => void;
-  currentUserId: string | null;
+  loading?: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   chat,
   messages,
   onSendMessage,
-  currentUserId
+  loading = false
 }) => {
+  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,34 +40,61 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || sending) return;
     
-    onSendMessage(newMessage.trim());
-    setNewMessage('');
-    inputRef.current?.focus();
+    setSending(true);
+    try {
+      await onSendMessage(newMessage.trim());
+      setNewMessage('');
+      inputRef.current?.focus();
+    } finally {
+      setSending(false);
+    }
   };
 
-  const getSenderDisplayName = (sender: any): string => {
+  const getSenderDisplayName = (sender: ChatMessage['sender']): string => {
     if (!sender) return 'Unknown';
-    const firstName = sender.first_name || '';
-    const lastName = sender.last_name || '';
-    const role = sender.role === 'admin' ? '(Admin)' : 
-                 sender.role === 'doctor' ? '(Dr.)' : 
-                 sender.role === 'nurse' ? '(RN)' : '';
-    return `${firstName} ${lastName} ${role}`.trim() || 'Medical Staff';
+    
+    const firstName = sender.first_name?.trim() || '';
+    const lastName = sender.last_name?.trim() || '';
+    
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+    
+    if (firstName || lastName) {
+      return firstName || lastName;
+    }
+    
+    return sender.email || 'Unknown User';
   };
 
-  const getSenderAvatar = (sender: any): string => {
+  const getSenderAvatar = (sender: ChatMessage['sender']): string => {
     if (!sender) return 'U';
-    const firstName = sender.first_name || '';
-    const lastName = sender.last_name || '';
-    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U';
+    
+    const firstName = sender.first_name?.trim() || '';
+    const lastName = sender.last_name?.trim() || '';
+    
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    
+    if (firstName || lastName) {
+      const name = firstName || lastName;
+      return name.slice(0, 2).toUpperCase();
+    }
+    
+    if (sender.email) {
+      return sender.email.slice(0, 2).toUpperCase();
+    }
+    
+    return 'U';
   };
 
-  const isOwnMessage = (message: Message): boolean => {
-    return message.sender.id === currentUserId;
+  const isOwnMessage = (message: ChatMessage): boolean => {
+    return message.sender.id === user?.id;
   };
 
   const formatMessageTime = (dateString: string): string => {
@@ -93,9 +102,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     
-    if (diffInHours < 1) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 24) {
+    if (diffInHours < 24) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
       return date.toLocaleDateString([], { 
@@ -107,11 +114,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
+  // Group consecutive messages from same sender within 5 minutes
   const groupedMessages = messages.reduce((groups: any[], message, index) => {
     const prevMessage = messages[index - 1];
     const shouldGroup = prevMessage && 
       prevMessage.sender.id === message.sender.id && 
-      new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime() < 5 * 60 * 1000; // 5 minutes
+      new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime() < 5 * 60 * 1000;
 
     if (!shouldGroup) {
       groups.push({
@@ -128,11 +136,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   if (!chat) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-muted/10">
-        <div className="text-center">
+      <div className="flex-1 flex items-center justify-center bg-muted/5">
+        <div className="text-center max-w-md">
           <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
           <h3 className="text-lg font-medium text-foreground mb-2">Welcome to Team Chat</h3>
-          <p className="text-muted-foreground max-w-md">
+          <p className="text-muted-foreground">
             Select a conversation from the sidebar to start messaging with your team members, 
             or create a new chat to begin collaborating.
           </p>
@@ -146,14 +154,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4 max-w-4xl mx-auto">
-          {groupedMessages.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Loading messages...</p>
+            </div>
+          ) : groupedMessages.length === 0 ? (
             <div className="text-center py-8">
               <MessageCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
               <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
             </div>
           ) : (
             groupedMessages.map((group, groupIndex) => {
-              const isOwn = group.sender.id === currentUserId;
+              const isOwn = group.sender.id === user?.id;
               
               return (
                 <div key={groupIndex} className={cn("flex gap-3", isOwn ? "justify-end" : "justify-start")}>
@@ -178,7 +191,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     )}
                     
                     <div className="space-y-1">
-                      {group.messages.map((message: Message, messageIndex: number) => (
+                      {group.messages.map((message: ChatMessage) => (
                         <div
                           key={message.id}
                           className={cn(
@@ -212,17 +225,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             })
           )}
           
-          {isTyping && (
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-              </div>
-              <span className="text-sm">Someone is typing...</span>
-            </div>
-          )}
-          
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
@@ -237,31 +239,28 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="pr-20 py-3 rounded-full border-2 focus:border-primary/50 transition-colors"
+                className="pr-4 py-3 rounded-full border-2 focus:border-primary/50 transition-colors"
                 maxLength={1000}
+                disabled={sending}
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Paperclip className="w-4 h-4" />
-                </Button>
-                <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Smile className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
             
             <Button 
               type="submit" 
               size="icon"
               className="rounded-full h-12 w-12"
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || sending}
             >
-              <Send className="w-4 h-4" />
+              {sending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
           
           <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-            <span>Press Enter to send, Shift+Enter for new line</span>
+            <span>Press Enter to send</span>
             <span>{newMessage.length}/1000</span>
           </div>
         </form>
