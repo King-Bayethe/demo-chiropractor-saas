@@ -63,9 +63,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                    otherParticipant.role === 'overlord' ? '(Admin)' : '';
       
       const fullName = `${firstName} ${lastName} ${role}`.trim();
-      return fullName || otherParticipant.email;
+      return fullName || otherParticipant.email || 'Unknown User';
     }
-    return 'Team Member';
+    return 'Unknown User';
   };
 
   const getChatAvatar = (chat: Chat): string => {
