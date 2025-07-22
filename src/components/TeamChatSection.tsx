@@ -58,7 +58,7 @@ export const TeamChatSection = () => {
                 .from('profiles')
                 .select('first_name, last_name, email, role')
                 .eq('user_id', participant.user_id)
-                .single();
+                .maybeSingle();
 
               if (profileError) {
                 console.warn('Profile not found for user:', participant.user_id);
@@ -125,7 +125,7 @@ export const TeamChatSection = () => {
             .from('profiles')
             .select('first_name, last_name, email, role')
             .eq('user_id', msg.sender_id)
-            .single();
+            .maybeSingle();
 
           if (profileError) {
             console.warn('Profile not found for sender:', msg.sender_id);
@@ -217,7 +217,7 @@ export const TeamChatSection = () => {
         .from('profiles')
         .select('first_name, last_name, email, role')
         .eq('user_id', data.sender_id)
-        .single();
+        .maybeSingle();
 
       const newMsg = {
         id: data.id,

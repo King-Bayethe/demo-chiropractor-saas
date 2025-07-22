@@ -53,12 +53,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
     const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
+    
     if (otherParticipant) {
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';
       const role = otherParticipant.role === 'admin' ? '(Admin)' : 
                    otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                   otherParticipant.role === 'nurse' ? '(RN)' : '';
+                   otherParticipant.role === 'nurse' ? '(RN)' : 
+                   otherParticipant.role === 'overlord' ? '(Admin)' : '';
       
       const fullName = `${firstName} ${lastName} ${role}`.trim();
       return fullName || otherParticipant.email || 'Team Member';
