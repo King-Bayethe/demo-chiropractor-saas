@@ -82,6 +82,7 @@ export function Layout({ children }: LayoutProps) {
            'Staff Member';
   };
 
+  // Clean layout without sidebar
   return (
     <div className="h-screen flex w-full bg-background">
       <div className="fixed left-0 top-0 h-screen z-40">
