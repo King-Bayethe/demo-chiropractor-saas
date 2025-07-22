@@ -1,8 +1,7 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppSidebar } from "./AppSidebar";
+import { CRMSidebar } from "./CRMSidebar";
 import { ThemeToggle } from "./ThemeToggle";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Bell, Search, User, LogOut, Settings as SettingsIcon, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,36 +19,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface TeamChat {
-  id: string;
-  name: string | null;
-  type: 'direct' | 'group';
-  created_by: string;
-  created_at: string;
-  participants: any[];
-  unread_count?: number;
-}
-
 interface LayoutProps {
   children: ReactNode;
-  selectedChatId?: string;
-  onSelectChat?: (chat: TeamChat) => void;
-  onDeleteChat?: (chatId: string) => void;
-  onCreateNewChat?: () => void;
 }
 
-export function Layout({ 
-  children, 
-  selectedChatId, 
-  onSelectChat, 
-  onDeleteChat, 
-  onCreateNewChat 
-}: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -104,12 +83,14 @@ export function Layout({
   };
 
   return (
-    <SidebarProvider>
-      {/* Global trigger that is ALWAYS visible */}
-      <header className="h-12 flex items-center border-b px-4 bg-card">
-        <SidebarTrigger className="mr-4" />
-        
-        <div className="flex items-center justify-between flex-1">
+    <div className="h-screen flex w-full bg-background">
+      <div className="fixed left-0 top-0 h-screen z-40">
+        <CRMSidebar onCollapseChange={setSidebarCollapsed} />
+      </div>
+      
+      <div className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+        {/* Top Header */}
+        <header className="h-16 border-b border-border/50 bg-card px-6 flex items-center justify-between shadow-sm flex-shrink-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -173,21 +154,13 @@ export function Layout({
               </DropdownMenu>
             </div>
           </div>
-        </div>
-      </header>
-
-      <div className="flex min-h-screen w-full">
-        <AppSidebar 
-          selectedChatId={selectedChatId}
-          onSelectChat={onSelectChat}
-          onDeleteChat={onDeleteChat}
-          onCreateNewChat={onCreateNewChat}
-        />
+        </header>
         
-        <main className="flex-1">
+        {/* Main Content */}
+        <main className="flex-1 min-h-0">
           {children}
         </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
