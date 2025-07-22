@@ -72,7 +72,8 @@ export const TeamChatSection = () => {
     if (otherParticipant) {
       const role = otherParticipant.role === 'admin' ? '(Admin)' : 
                    otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                   otherParticipant.role === 'nurse' ? '(RN)' : '';
+                   otherParticipant.role === 'overlord' ? '(King)' : 
+                   otherParticipant.role === 'staff' ? '(Staff)' : '';
       return `${otherParticipant.first_name} ${otherParticipant.last_name} ${role}`.trim();
     }
     return 'Clinical Consultation';
