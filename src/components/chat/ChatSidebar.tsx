@@ -97,6 +97,15 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     
     const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
     if (otherParticipant) {
+      // Check if participant has a name field directly
+      if (otherParticipant.name) {
+        const nameParts = otherParticipant.name.trim().split(' ');
+        if (nameParts.length >= 2) {
+          return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+        }
+        return `${nameParts[0][0]}${nameParts[0][1] || ''}`.toUpperCase();
+      }
+      
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';
       const email = otherParticipant.email || '';
