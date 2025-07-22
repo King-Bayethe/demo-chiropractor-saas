@@ -328,6 +328,7 @@ export const useTeamChats = () => {
     }
   };
 
+  // Real-time subscriptions
   useEffect(() => {
     const initializeData = async () => {
       setLoading(true);
@@ -336,6 +337,71 @@ export const useTeamChats = () => {
     };
 
     initializeData();
+
+    // Subscribe to new messages
+    const messagesChannel = supabase
+      .channel('team-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'team_messages'
+        },
+        async (payload) => {
+          console.log('New message received:', payload);
+          
+          // If the message is for the currently selected chat, add it to messages
+          if (selectedChat && payload.new.chat_id === selectedChat.id) {
+            // Get sender profile
+            const { data: senderProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', payload.new.sender_id)
+              .single();
+
+            const newMessage: TeamMessage = {
+              id: payload.new.id,
+              chat_id: payload.new.chat_id,
+              sender_id: payload.new.sender_id,
+              content: payload.new.content,
+              message_type: payload.new.message_type,
+              reply_to_id: payload.new.reply_to_id,
+              edited_at: payload.new.edited_at,
+              deleted_at: payload.new.deleted_at,
+              created_at: payload.new.created_at,
+              sender: senderProfile
+            };
+
+            setMessages(prev => [...prev, newMessage]);
+          }
+          
+          // Refresh chats to update last message and unread counts
+          await fetchChats();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to chat updates
+    const chatsChannel = supabase
+      .channel('team-chats')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_chats'
+        },
+        () => {
+          fetchChats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(chatsChannel);
+    };
   }, []);
 
   useEffect(() => {
