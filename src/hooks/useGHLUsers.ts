@@ -23,7 +23,7 @@ export const useGHLUsers = () => {
     try {
       console.log('Fetching GHL users...');
       
-      const { data, error: functionError } = await supabase.functions.invoke('ghl-users', {
+      const { data, error: functionError } = await supabase.functions.invoke('crud-users', {
         method: 'GET'
       });
 
