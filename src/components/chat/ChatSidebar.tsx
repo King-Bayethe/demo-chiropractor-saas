@@ -118,7 +118,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         return `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
       }
     }
-    return 'TM';
+    return 'GM';
   };
 
   const getLastMessageTime = (chat: Chat): string => {
