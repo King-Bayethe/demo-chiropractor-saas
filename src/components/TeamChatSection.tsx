@@ -6,7 +6,6 @@ import { ChatLayout } from "./chat/ChatLayout";
 import { NewChatDialog } from "./chat/NewChatDialog";
 
 export const TeamChatSection = () => {
-  console.log('TeamChatSection component loaded');
   const { toast } = useToast();
   const { user: currentUser, profile: currentProfile } = useAuth();
   const [chats, setChats] = useState<any[]>([]);
@@ -305,33 +304,29 @@ export const TeamChatSection = () => {
     }
   };
 
-  const archiveChat = async (chatId: string) => {
-    console.log('archiveChat function called with chatId:', chatId);
+  const deleteChat = async (chatId: string) => {
     try {
-      // Archive all messages in the chat
+      // Delete all messages in the chat
       const { error: messagesError } = await supabase
         .from('team_messages')
-        .update({ archived_at: new Date().toISOString() })
-        .eq('chat_id', chatId)
-        .is('archived_at', null);
+        .delete()
+        .eq('chat_id', chatId);
 
       if (messagesError) throw messagesError;
 
-      // Archive all participants
+      // Delete all participants
       const { error: participantsError } = await supabase
         .from('team_chat_participants')
-        .update({ archived_at: new Date().toISOString() })
-        .eq('chat_id', chatId)
-        .is('archived_at', null);
+        .delete()
+        .eq('chat_id', chatId);
 
       if (participantsError) throw participantsError;
 
-      // Archive the chat
+      // Delete the chat
       const { error: chatError } = await supabase
         .from('team_chats')
-        .update({ archived_at: new Date().toISOString() })
-        .eq('id', chatId)
-        .is('archived_at', null);
+        .delete()
+        .eq('id', chatId);
 
       if (chatError) throw chatError;
 
@@ -345,14 +340,14 @@ export const TeamChatSection = () => {
 
       toast({
         title: "Success",
-        description: "Conversation archived successfully"
+        description: "Conversation deleted successfully"
       });
 
     } catch (error) {
-      console.error('Error archiving chat:', error);
+      console.error('Error deleting chat:', error);
       toast({
         title: "Error",
-        description: "Failed to archive conversation",
+        description: "Failed to delete conversation",
         variant: "destructive"
       });
     }
@@ -379,7 +374,7 @@ export const TeamChatSection = () => {
         onSelectChat={setSelectedChat}
         onSendMessage={handleSendMessage}
         onCreateChat={() => setIsNewChatOpen(true)}
-        onDeleteChat={archiveChat}
+        onDeleteChat={deleteChat}
         onRefresh={handleRefresh}
         loading={loading}
       />

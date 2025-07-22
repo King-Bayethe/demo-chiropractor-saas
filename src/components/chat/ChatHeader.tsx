@@ -167,7 +167,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                   onClick={() => onDeleteChat(selectedChat.id)}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Archive Chat
+                  Delete Chat
                 </DropdownMenuItem>
               )}
             </DropdownMenuGroup>

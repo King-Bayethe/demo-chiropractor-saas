@@ -52,7 +52,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const getChatDisplayName = (chat: Chat): string => {
     if (chat.type === 'group') return chat.name || 'Medical Team Group';
     
-    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
+    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     
     if (otherParticipant) {
       const firstName = otherParticipant.first_name?.trim() || '';
@@ -95,17 +95,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       return 'GT';
     }
     
-    const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
+    const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     if (otherParticipant) {
-      // Check if participant has a name field directly
-      if (otherParticipant.name) {
-        const nameParts = otherParticipant.name.trim().split(' ');
-        if (nameParts.length >= 2) {
-          return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
-        }
-        return `${nameParts[0][0]}${nameParts[0][1] || ''}`.toUpperCase();
-      }
-      
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';
       const email = otherParticipant.email || '';
@@ -256,7 +247,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             className="text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Archive Chat
+                            Delete Chat
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

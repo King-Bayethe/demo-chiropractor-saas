@@ -55,33 +55,27 @@ export type Database = {
       }
       team_chat_participants: {
         Row: {
-          archived_at: string | null
           chat_id: string
           id: string
           is_admin: boolean | null
           joined_at: string
           last_read_at: string | null
-          name: string | null
           user_id: string
         }
         Insert: {
-          archived_at?: string | null
           chat_id: string
           id?: string
           is_admin?: boolean | null
           joined_at?: string
           last_read_at?: string | null
-          name?: string | null
           user_id: string
         }
         Update: {
-          archived_at?: string | null
           chat_id?: string
           id?: string
           is_admin?: boolean | null
           joined_at?: string
           last_read_at?: string | null
-          name?: string | null
           user_id?: string
         }
         Relationships: [
@@ -103,7 +97,6 @@ export type Database = {
       }
       team_chats: {
         Row: {
-          archived_at: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -114,7 +107,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          archived_at?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -125,7 +117,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          archived_at?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -139,7 +130,6 @@ export type Database = {
       }
       team_messages: {
         Row: {
-          archived_at: string | null
           chat_id: string
           content: string
           created_at: string
@@ -151,7 +141,6 @@ export type Database = {
           sender_id: string
         }
         Insert: {
-          archived_at?: string | null
           chat_id: string
           content: string
           created_at?: string
@@ -163,7 +152,6 @@ export type Database = {
           sender_id: string
         }
         Update: {
-          archived_at?: string | null
           chat_id?: string
           content?: string
           created_at?: string
