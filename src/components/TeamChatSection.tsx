@@ -191,7 +191,7 @@ export const TeamChatSection = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[calc(100vh-12rem)] max-h-[calc(100vh-8rem)]">
       {/* Chat List */}
       <Card className="lg:col-span-1">
         <CardHeader className="pb-3">
@@ -300,7 +300,7 @@ export const TeamChatSection = () => {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="h-[500px]">
+          <ScrollArea className="h-[calc(100vh-16rem)] min-h-[400px]">
             <div className="space-y-2 p-4">
               {chats.map((chat) => (
                 <div
@@ -369,7 +369,7 @@ export const TeamChatSection = () => {
             
             <CardContent className="p-0">
               {/* Messages Area */}
-              <ScrollArea className="h-[400px] p-4">
+              <ScrollArea className="h-[calc(100vh-20rem)] min-h-[300px] max-h-[500px] p-4">
                 <div className="space-y-4">
                   {messages.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
