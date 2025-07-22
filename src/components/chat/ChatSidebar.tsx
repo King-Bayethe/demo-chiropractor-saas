@@ -57,13 +57,33 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     if (otherParticipant) {
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';
-      const role = otherParticipant.role === 'admin' ? '(Admin)' : 
-                   otherParticipant.role === 'doctor' ? '(Dr.)' : 
-                   otherParticipant.role === 'nurse' ? '(RN)' : 
-                   otherParticipant.role === 'overlord' ? '(Admin)' : '';
+      const email = otherParticipant.email || '';
       
-      const fullName = `${firstName} ${lastName} ${role}`.trim();
-      return fullName || otherParticipant.email;
+      // Priority 1: Full Name
+      if (firstName && lastName) {
+        const role = otherParticipant.role === 'admin' ? '(Admin)' : 
+                     otherParticipant.role === 'doctor' ? '(Dr.)' : 
+                     otherParticipant.role === 'nurse' ? '(RN)' : 
+                     otherParticipant.role === 'overlord' ? '(Admin)' : '';
+        
+        return `${firstName} ${lastName} ${role}`.trim();
+      }
+      
+      // Priority 2: Individual names if only one is available
+      if (firstName || lastName) {
+        const name = (firstName || lastName).trim();
+        const role = otherParticipant.role === 'admin' ? '(Admin)' : 
+                     otherParticipant.role === 'doctor' ? '(Dr.)' : 
+                     otherParticipant.role === 'nurse' ? '(RN)' : 
+                     otherParticipant.role === 'overlord' ? '(Admin)' : '';
+        
+        return `${name} ${role}`.trim();
+      }
+      
+      // Priority 3: Email as fallback
+      if (email) {
+        return email;
+      }
     }
     return 'Unknown User';
   };
@@ -77,7 +97,24 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     if (otherParticipant) {
       const firstName = otherParticipant.first_name || '';
       const lastName = otherParticipant.last_name || '';
-      return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'TM';
+      const email = otherParticipant.email || '';
+      
+      // Try to get initials from first and last name
+      if (firstName && lastName) {
+        return `${firstName[0]}${lastName[0]}`.toUpperCase();
+      }
+      
+      // Try single name
+      if (firstName || lastName) {
+        const name = firstName || lastName;
+        return `${name[0]}${name[1] || ''}`.toUpperCase();
+      }
+      
+      // Fallback to email initials
+      if (email) {
+        const emailParts = email.split('@')[0];
+        return `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
+      }
     }
     return 'TM';
   };

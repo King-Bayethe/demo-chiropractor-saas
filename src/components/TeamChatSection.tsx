@@ -98,8 +98,8 @@ export const TeamChatSection = () => {
                 console.warn('Profile not found for user:', participant.user_id);
                 return {
                   id: participant.user_id,
-                  first_name: 'Unknown',
-                  last_name: 'User',
+                  first_name: '',
+                  last_name: '',
                   email: '',
                   role: 'staff',
                   is_admin: participant.is_admin
@@ -119,7 +119,7 @@ export const TeamChatSection = () => {
 
           return {
             ...chat,
-            participants: lastSenderProfile ? [lastSenderProfile] : participantsWithProfiles
+            participants: lastSenderProfile ? [lastSenderProfile, ...participantsWithProfiles.filter(p => p.id !== lastMessage?.sender_id)] : participantsWithProfiles
           };
         })
       );
@@ -171,8 +171,8 @@ export const TeamChatSection = () => {
             created_at: msg.created_at,
             sender: {
               id: msg.sender_id,
-              first_name: profile?.first_name || 'Unknown',
-              last_name: profile?.last_name || 'User',
+              first_name: profile?.first_name || '',
+              last_name: profile?.last_name || '',
               email: profile?.email || '',
               role: profile?.role || 'staff'
             }
