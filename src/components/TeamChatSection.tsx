@@ -10,14 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Send, Users, MessageSquare, RefreshCw, Trash2, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useGHLUsers } from "@/hooks/useGHLUsers";
+// Remove GHL users import since we'll use profiles table
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 
 
 export const TeamChatSection = () => {
-  const { users: ghlUsers, loading: usersLoading, error: usersError, refetch } = useGHLUsers();
   const { toast } = useToast();
   const [chats, setChats] = useState<any[]>([]);
   const [selectedChat, setSelectedChat] = useState<any>(null);
@@ -29,15 +28,16 @@ export const TeamChatSection = () => {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get current user
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUserEmail(user?.email || null);
-      setCurrentUserId(user?.id || null);
-    });
-  }, []);
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUserEmail(user?.email || null);
+    setCurrentUserId(user?.id || null);
+  };
 
   // Fetch chats
   const fetchChats = async () => {
@@ -175,9 +175,36 @@ export const TeamChatSection = () => {
     }
   };
 
+  const fetchProfiles = async () => {
+    try {
+      setProfilesLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      setProfiles(data || []);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load team members",
+        variant: "destructive"
+      });
+    } finally {
+      setProfilesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getCurrentUser();
+  }, []);
+
   useEffect(() => {
     if (currentUserId) {
       fetchChats();
+      fetchProfiles();
     }
   }, [currentUserId]);
 
@@ -188,7 +215,7 @@ export const TeamChatSection = () => {
   }, [selectedChat?.id]);
 
   // Filter out current user from available team members
-  const availableUsers = ghlUsers.filter(user => user.email !== currentUserEmail);
+  const availableUsers = profiles.filter(user => user.user_id !== currentUserId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -438,22 +465,16 @@ export const TeamChatSection = () => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={refetch}
-                        disabled={usersLoading}
+                        onClick={fetchProfiles}
+                        disabled={profilesLoading}
                       >
-                        <RefreshCw className={`w-4 h-4 ${usersLoading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 ${profilesLoading ? 'animate-spin' : ''}`} />
                       </Button>
                     </div>
                     
-                    {usersError && (
-                      <div className="text-sm text-destructive mb-2">
-                        Error loading users: {usersError}
-                      </div>
-                    )}
-                    
                     <ScrollArea className="h-48 border rounded-md p-3">
                       <div className="space-y-2">
-                        {usersLoading ? (
+                        {profilesLoading ? (
                           <div className="text-center text-muted-foreground py-4">
                             Loading team members...
                           </div>
@@ -462,20 +483,20 @@ export const TeamChatSection = () => {
                             No other team members found
                           </div>
                         ) : (
-                          availableUsers.map((member) => (
-                            <div key={member.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={member.id}
-                                checked={selectedMembers.includes(member.id)}
-                                onCheckedChange={() => handleMemberToggle(member.id)}
-                              />
-                              <div className="flex items-center space-x-2 flex-1">
-                                <Avatar className="w-6 h-6">
-                                  <AvatarFallback className="text-xs">
-                                    {member.first_name?.[0] || 'U'}
+                           availableUsers.map((member) => (
+                             <div key={member.user_id} className="flex items-center space-x-2">
+                               <Checkbox
+                                 id={member.user_id}
+                                 checked={selectedMembers.includes(member.user_id)}
+                                 onCheckedChange={() => handleMemberToggle(member.user_id)}
+                               />
+                               <div className="flex items-center space-x-2 flex-1">
+                                 <Avatar className="w-6 h-6">
+                                   <AvatarFallback className="text-xs">
+                                     {member.first_name?.[0] || 'U'}
                                   </AvatarFallback>
                                 </Avatar>
-                                <label htmlFor={member.id} className="text-sm cursor-pointer">
+                                <label htmlFor={member.user_id} className="text-sm cursor-pointer">
                                   {getMemberDisplayName(member)}
                                 </label>
                               </div>
