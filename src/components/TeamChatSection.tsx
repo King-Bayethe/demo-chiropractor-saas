@@ -352,6 +352,17 @@ export const TeamChatSection = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      fetchChats(),
+      fetchProfiles()
+    ]);
+    
+    if (selectedChat?.id) {
+      await fetchMessages(selectedChat.id);
+    }
+  };
+
   return (
     <>
       <ChatLayout
@@ -363,6 +374,7 @@ export const TeamChatSection = () => {
         onSendMessage={handleSendMessage}
         onCreateChat={() => setIsNewChatOpen(true)}
         onDeleteChat={deleteChat}
+        onRefresh={handleRefresh}
         loading={loading}
       />
 

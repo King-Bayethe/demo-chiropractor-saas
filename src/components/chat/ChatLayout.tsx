@@ -23,6 +23,7 @@ interface ChatLayoutProps {
   onSendMessage: (message: string) => void;
   onCreateChat: () => void;
   onDeleteChat: (chatId: string) => void;
+  onRefresh?: () => void;
   loading: boolean;
 }
 
@@ -35,6 +36,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
   onSendMessage,
   onCreateChat,
   onDeleteChat,
+  onRefresh,
   loading
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -65,6 +67,8 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
           currentUserId={currentUserId}
           onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
           sidebarCollapsed={sidebarCollapsed}
+          onDeleteChat={onDeleteChat}
+          onRefresh={onRefresh}
         />
         
         <ChatWindow
