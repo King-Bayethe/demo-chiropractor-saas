@@ -35,18 +35,32 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     if (chat.type === 'group') return chat.name || 'Team Group';
     
     const otherParticipant = chat.participants?.find(p => p.id !== user?.id);
-    return otherParticipant?.name || 'Unknown User';
+    if (otherParticipant?.name && otherParticipant.name !== 'Unknown User') {
+      return otherParticipant.name;
+    }
+    
+    // Fallback to email if name is not available
+    if (otherParticipant?.email) {
+      return otherParticipant.email;
+    }
+    
+    return 'Team Member';
   };
 
   const getChatAvatar = (chat: TeamChat): string => {
     if (chat.type === 'group') return 'TG';
     
     const otherParticipant = chat.participants?.find(p => p.id !== user?.id);
-    if (otherParticipant?.name) {
+    if (otherParticipant?.name && otherParticipant.name !== 'Unknown User') {
       const nameParts = otherParticipant.name.split(' ');
       return nameParts.map(part => part[0]).join('').toUpperCase().slice(0, 2);
     }
-    return 'U';
+    
+    if (otherParticipant?.email) {
+      return otherParticipant.email.slice(0, 2).toUpperCase();
+    }
+    
+    return 'TM';
   };
 
   if (!selectedChat) {
