@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Send, Users, MessageSquare } from "lucide-react";
+import { Plus, Send, Users, MessageSquare, RefreshCw } from "lucide-react";
+import { useGHLUsers } from "@/hooks/useGHLUsers";
 
 // Mock data for demonstration
 const mockChats = [
@@ -72,16 +73,9 @@ const mockMessages = [
   }
 ];
 
-// Mock team members available for new chats
-const mockTeamMembers = [
-  { id: "1", first_name: "John", last_name: "Smith", role: "doctor", email: "john.smith@hospital.com" },
-  { id: "3", first_name: "Mary", last_name: "Johnson", role: "nurse", email: "mary.johnson@hospital.com" },
-  { id: "4", first_name: "Sarah", last_name: "Wilson", role: "nurse", email: "sarah.wilson@hospital.com" },
-  { id: "5", first_name: "David", last_name: "Brown", role: "admin", email: "david.brown@hospital.com" },
-  { id: "6", first_name: "Lisa", last_name: "Davis", role: "doctor", email: "lisa.davis@hospital.com" }
-];
 
 export const TeamChatSection = () => {
+  const { users: ghlUsers, loading: usersLoading, error: usersError, refetch } = useGHLUsers();
   const [chats, setChats] = useState(mockChats);
   const [selectedChat, setSelectedChat] = useState(mockChats[0]);
   const [messages, setMessages] = useState(mockMessages);
@@ -154,8 +148,8 @@ export const TeamChatSection = () => {
     const isGroupChat = selectedMembers.length > 1;
     const newChatId = (chats.length + 1).toString();
 
-    // Get selected member details
-    const chatParticipants = mockTeamMembers
+    // Get selected member details from GHL users
+    const chatParticipants = ghlUsers
       .filter(member => selectedMembers.includes(member.id))
       .map(member => ({
         id: member.id,
@@ -216,30 +210,58 @@ export const TeamChatSection = () => {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Select Team Members
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium">
+                        Select Team Members
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={refetch}
+                        disabled={usersLoading}
+                      >
+                        <RefreshCw className={`w-4 h-4 ${usersLoading ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    
+                    {usersError && (
+                      <div className="text-sm text-destructive mb-2">
+                        Error loading users: {usersError}
+                      </div>
+                    )}
+                    
                     <ScrollArea className="h-48 border rounded-md p-3">
                       <div className="space-y-2">
-                        {mockTeamMembers.map((member) => (
-                          <div key={member.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={member.id}
-                              checked={selectedMembers.includes(member.id)}
-                              onCheckedChange={() => handleMemberToggle(member.id)}
-                            />
-                            <div className="flex items-center space-x-2 flex-1">
-                              <Avatar className="w-6 h-6">
-                                <AvatarFallback className="text-xs">
-                                  {member.first_name[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <label htmlFor={member.id} className="text-sm cursor-pointer">
-                                {getMemberDisplayName(member)}
-                              </label>
-                            </div>
+                        {usersLoading ? (
+                          <div className="text-center text-muted-foreground py-4">
+                            Loading team members...
                           </div>
-                        ))}
+                        ) : ghlUsers.length === 0 ? (
+                          <div className="text-center text-muted-foreground py-4">
+                            No team members found
+                          </div>
+                        ) : (
+                          ghlUsers.map((member) => (
+                            <div key={member.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={member.id}
+                                checked={selectedMembers.includes(member.id)}
+                                onCheckedChange={() => handleMemberToggle(member.id)}
+                              />
+                              <div className="flex items-center space-x-2 flex-1">
+                                <Avatar className="w-6 h-6">
+                                  <AvatarFallback className="text-xs">
+                                    {member.first_name?.[0] || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <label htmlFor={member.id} className="text-sm cursor-pointer">
+                                  {getMemberDisplayName(member)}
+                                </label>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </ScrollArea>
                   </div>
