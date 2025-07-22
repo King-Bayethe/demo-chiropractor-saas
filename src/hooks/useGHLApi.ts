@@ -25,9 +25,43 @@ export const useGHLApi = () => {
   };
 
   const contacts = {
-    getAll: () => callGHLFunction('ghl-contacts', {
-      body: JSON.stringify({ action: 'getAll' }),
-    }),
+    getAll: async () => {
+      console.log('Starting to fetch all contacts with batching...');
+      let allContacts = [];
+      let searchAfter = undefined;
+      let hasMore = true;
+      let batchCount = 0;
+
+      while (hasMore && batchCount < 10) { // Safety limit of 10 batches
+        batchCount++;
+        console.log(`Fetching batch ${batchCount}, searchAfter:`, searchAfter);
+        
+        const batchResponse = await callGHLFunction('ghl-contacts', {
+          body: JSON.stringify({ 
+            action: 'getAll',
+            searchAfter: searchAfter,
+            pageLimit: 500 
+          }),
+        });
+
+        if (batchResponse?.contacts) {
+          allContacts.push(...batchResponse.contacts);
+          console.log(`Batch ${batchCount} returned ${batchResponse.contacts.length} contacts. Total so far: ${allContacts.length}`);
+          
+          // Check if there are more contacts to fetch
+          if (batchResponse.contacts.length > 0 && batchResponse.contacts[batchResponse.contacts.length - 1]?.searchAfter) {
+            searchAfter = batchResponse.contacts[batchResponse.contacts.length - 1].searchAfter;
+          } else {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      console.log(`Finished fetching contacts. Total: ${allContacts.length} contacts in ${batchCount} batches`);
+      return { contacts: allContacts, total: allContacts.length };
+    },
     getById: (id: string) => callGHLFunction('ghl-contacts', {
       body: JSON.stringify({ action: 'getById', contactId: id }),
     }),

@@ -56,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Request data:', requestData);
 
-    const { action = 'getAll', contactId, data, filters, sort } = requestData;
+    const { action = 'getAll', contactId, data, filters, sort, searchAfter: clientSearchAfter, pageLimit = 100 } = requestData;
 
     // Set up headers for GHL API
     const headers = {
@@ -67,70 +67,49 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Handle different actions
     if (action === 'getAll') {
-      console.log('Fetching all contacts...');
+      console.log('Fetching contacts with batch processing...');
+      console.log('Client searchAfter:', clientSearchAfter);
+      console.log('Page limit:', pageLimit);
       
-      const allContacts = [];
-      let searchAfter: (string | number)[] | undefined = undefined;
-      let total = 0;
-      let hasMorePages = true;
+      const endpoint = `${GHL_API_BASE}/contacts/search`;
+      const searchBody = {
+        locationId: GHL_LOCATION_ID,
+        pageLimit: Math.min(pageLimit, 500), // Ensure we don't exceed API limits
+        searchAfter: clientSearchAfter,
+        filters: filters || [],
+        sort: sort || [{ field: "dateAdded", direction: "desc" }]
+      };
 
-      // Fetch all contacts with pagination
-      while (hasMorePages) {
-        const endpoint = `${GHL_API_BASE}/contacts/search`;
-        const searchBody = {
-          locationId: GHL_LOCATION_ID,
-          pageLimit: 100,
-          searchAfter: searchAfter,
-          filters: filters || [],
-          sort: sort || [{ field: "dateAdded", direction: "desc" }]
-        };
+      console.log('Making request to:', endpoint);
+      console.log('Request body:', JSON.stringify(searchBody, null, 2));
 
-        console.log('Making request to:', endpoint);
-        console.log('Request body:', JSON.stringify(searchBody, null, 2));
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(searchBody),
+      });
 
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(searchBody),
-        });
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('GHL API Error:', response.status, errorText);
-          throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
-        }
-
-        const pageData = await response.json();
-        console.log('Page data received:', {
-          contactsCount: pageData.contacts?.length || 0,
-          total: pageData.total,
-          searchAfter: pageData.searchAfter,
-          totalFetchedSoFar: allContacts.length
-        });
-        
-        if (pageData.contacts && pageData.contacts.length > 0) {
-          allContacts.push(...pageData.contacts);
-          console.log(`Added ${pageData.contacts.length} contacts. Total so far: ${allContacts.length}`);
-        }
-        
-        total = pageData.total || allContacts.length;
-
-        // Continue pagination if there's a searchAfter token and we got contacts
-        if (pageData.searchAfter && pageData.contacts && pageData.contacts.length > 0) {
-          searchAfter = pageData.searchAfter;
-          console.log('Continuing pagination with searchAfter:', searchAfter);
-        } else {
-          console.log('Pagination complete - no more searchAfter or no more contacts');
-          hasMorePages = false;
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL API Error:', response.status, errorText);
+        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
       }
+
+      const pageData = await response.json();
+      console.log('Page data received:', {
+        contactsCount: pageData.contacts?.length || 0,
+        total: pageData.total,
+        searchAfter: pageData.searchAfter
+      });
       
-      console.log(`Total contacts fetched: ${allContacts.length}`);
-      
-      return new Response(JSON.stringify({ contacts: allContacts, total: total }), {
+      return new Response(JSON.stringify({ 
+        contacts: pageData.contacts || [], 
+        total: pageData.total || 0,
+        searchAfter: pageData.searchAfter 
+      }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
