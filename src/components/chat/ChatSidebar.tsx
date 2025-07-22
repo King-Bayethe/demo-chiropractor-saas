@@ -86,7 +86,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
     }
     
-    return 'Loading...';
+    // **FIX:** Changed the final fallback from "Loading..." to "Unknown User"
+    // This correctly handles cases where a profile might exist but is incomplete.
+    return 'Unknown User';
   };
 
   const getChatAvatar = (chat: Chat): string => {
