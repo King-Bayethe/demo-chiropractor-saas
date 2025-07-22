@@ -251,7 +251,7 @@ export const TeamChatSection = () => {
                           {message.sender?.first_name} {message.sender?.last_name}
                           {message.sender?.role === 'admin' && ' (Admin)'}
                           {message.sender?.role === 'doctor' && ' (Dr.)'}
-                          {message.sender?.role === 'nurse' && ' (RN)'}
+                          {message.sender?.role === 'staff' && ' (RN)'}
                         </p>
                         <p className="text-sm">{message.content}</p>
                         <p className={`text-xs mt-1 ${
