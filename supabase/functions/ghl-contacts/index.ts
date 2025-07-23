@@ -43,17 +43,34 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('API Key length:', GHL_API_KEY.length);
     console.log('Location ID:', GHL_LOCATION_ID);
 
-    // Parse request body
+    // Parse request body for POST requests, use URL params for GET requests
     let requestData = {};
-    try {
-      const text = await req.text();
-      if (text) {
-        requestData = JSON.parse(text);
+    
+    if (req.method === 'GET') {
+      // For GET requests, parse URL parameters
+      const url = new URL(req.url);
+      const action = url.searchParams.get('action') || 'getAll';
+      const searchAfter = url.searchParams.get('searchAfter');
+      const pageLimit = url.searchParams.get('pageLimit');
+      
+      requestData = {
+        action,
+        searchAfter: searchAfter ? JSON.parse(searchAfter) : undefined,
+        pageLimit: pageLimit ? parseInt(pageLimit) : 100
+      };
+    } else if (req.method === 'POST') {
+      // For POST requests, parse JSON body
+      try {
+        const text = await req.text();
+        if (text) {
+          requestData = JSON.parse(text);
+        }
+      } catch (e) {
+        console.warn('Could not parse request body:', e.message);
       }
-    } catch (e) {
-      console.warn('Could not parse request body:', e.message);
     }
 
+    console.log('Request method:', req.method);
     console.log('Request data:', requestData);
 
     const { action = 'getAll', contactId, data, filters, sort, searchAfter: clientSearchAfter, pageLimit = 100 } = requestData;
