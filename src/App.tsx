@@ -14,6 +14,11 @@ import Conversations from "./pages/Conversations";
 import Forms from "./pages/Forms";
 import Documents from "./pages/Documents";
 import Emails from "./pages/Emails";
+import Estimates from "./pages/Estimates";
+import PaymentOrders from "./pages/PaymentOrders";
+import Transactions from "./pages/Transactions";
+import MediaLibrary from "./pages/MediaLibrary";
+import Tasks from "./pages/Tasks";
 import Settings from "./pages/Settings";
 import Invoices from "./pages/Invoices";
 import Patients from "./pages/Patients";
@@ -47,6 +52,11 @@ const App = () => (
           <Route path="/forms" element={<Forms />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/emails" element={<Emails />} />
+          <Route path="/estimates" element={<Estimates />} />
+          <Route path="/payment-orders" element={<PaymentOrders />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/media-library" element={<MediaLibrary />} />
+          <Route path="/tasks" element={<Tasks />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

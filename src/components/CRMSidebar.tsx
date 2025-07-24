@@ -19,15 +19,19 @@ import { useState } from "react";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Activity },
-  { title: "Patients", url: "/patients", icon: Users },
-  { title: "Calendar", url: "/calendar", icon: Calendar },
-  { title: "SOAP Notes", url: "/soap-notes", icon: ClipboardList },
-  { title: "Invoices", url: "/invoices", icon: FileText },
   { title: "Conversations", url: "/conversations", icon: MessageSquare },
   { title: "Contacts", url: "/contacts", icon: Users },
+  { title: "Patients", url: "/patients", icon: Users },
+  { title: "Calendar", url: "/calendar", icon: Calendar },
   { title: "Forms", url: "/forms", icon: ClipboardList },
-  { title: "Documents", url: "/documents", icon: FolderOpen },
+  { title: "Invoices", url: "/invoices", icon: FileText },
+  { title: "Estimates", url: "/estimates", icon: FileText },
+  { title: "Payment Orders", url: "/payment-orders", icon: FileText },
+  { title: "Transactions", url: "/transactions", icon: FileText },
   { title: "Emails", url: "/emails", icon: Mail },
+  { title: "Documents", url: "/documents", icon: FolderOpen },
+  { title: "Media Library", url: "/media-library", icon: FolderOpen },
+  { title: "Tasks", url: "/tasks", icon: ClipboardList },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
