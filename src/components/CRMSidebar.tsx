@@ -27,22 +27,57 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 // Using direct path to uploaded logo
 
-const navigationItems = [
-  { title: "Dashboard", url: "/", icon: Activity },
-  { title: "Conversations", url: "/conversations", icon: MessageSquare },
-  { title: "Contacts", url: "/contacts", icon: Users },
-  { title: "Patients", url: "/patients", icon: Users },
-  { title: "Calendar", url: "/calendar", icon: Calendar },
-  { title: "Forms", url: "/forms", icon: ClipboardList },
-  { title: "Invoices", url: "/invoices", icon: FileText },
-  { title: "Estimates", url: "/estimates", icon: FileText },
-  { title: "Payment Orders", url: "/payment-orders", icon: CreditCard },
-  { title: "Transactions", url: "/transactions", icon: ArrowUpDown },
-  { title: "Emails", url: "/emails", icon: Mail },
-  { title: "Documents", url: "/documents", icon: FolderOpen },
-  { title: "Media Library", url: "/media-library", icon: Image },
-  { title: "Tasks", url: "/tasks", icon: CheckSquare },
-  { title: "Settings", url: "/settings", icon: Settings },
+const navigationGroups = [
+  {
+    title: "Home",
+    items: [
+      { title: "Dashboard", url: "/", icon: Activity },
+    ]
+  },
+  {
+    title: "Communication", 
+    items: [
+      { title: "Conversations", url: "/conversations", icon: MessageSquare },
+      { title: "Emails", url: "/emails", icon: Mail },
+    ]
+  },
+  {
+    title: "Patient Management",
+    items: [
+      { title: "Contacts", url: "/contacts", icon: Users },
+      { title: "Patients", url: "/patients", icon: Users },
+      { title: "Forms", url: "/forms", icon: ClipboardList },
+    ]
+  },
+  {
+    title: "Scheduling & Tasks",
+    items: [
+      { title: "Calendar", url: "/calendar", icon: Calendar },
+      { title: "Tasks", url: "/tasks", icon: CheckSquare },
+    ]
+  },
+  {
+    title: "Billing & Finance",
+    items: [
+      { title: "Invoices", url: "/invoices", icon: FileText },
+      { title: "Estimates", url: "/estimates", icon: FileText },
+      { title: "Payment Orders", url: "/payment-orders", icon: CreditCard },
+      { title: "Transactions", url: "/transactions", icon: ArrowUpDown },
+    ]
+  },
+  {
+    title: "Files & Media",
+    items: [
+      { title: "Documents", url: "/documents", icon: FolderOpen },
+      { title: "Media Library", url: "/media-library", icon: Image },
+    ]
+  },
+  {
+    title: "Settings",
+    items: [
+      { title: "Settings", url: "/settings", icon: Settings },
+    ]
+  }
 ];
 
 interface CRMSidebarProps {
@@ -135,42 +170,57 @@ export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-6 overflow-y-auto">
-          <div className="space-y-2">
-            {navigationItems.map((item) => {
-              const active = isActive(item.url);
-              const navItem = (
-                <NavLink
-                  key={item.title}
-                  to={item.url}
-                  className={cn(
-                    "flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
-                    active
-                      ? "bg-white/15 text-white shadow-lg border-r-4 border-[#4DA8FF]"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
-                  )}
-                >
-                  <item.icon className={cn(
-                    "h-5 w-5 transition-colors",
-                    collapsed ? "mx-auto" : "mr-3",
-                    active ? "text-white" : "text-white/70 group-hover:text-white"
-                  )} />
-                  {!collapsed && (
-                    <span className="truncate">{item.title}</span>
-                  )}
-                </NavLink>
-              );
+          <div className="space-y-6">
+            {navigationGroups.map((group, groupIndex) => (
+              <div key={group.title}>
+                {!collapsed && (
+                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-3">
+                    {group.title}
+                  </h3>
+                )}
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const active = isActive(item.url);
+                    const navItem = (
+                      <NavLink
+                        key={item.title}
+                        to={item.url}
+                        className={cn(
+                          "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                          active
+                            ? "bg-white/15 text-white shadow-lg border-r-4 border-[#4DA8FF]"
+                            : "text-white/80 hover:text-white hover:bg-white/10"
+                        )}
+                      >
+                        <item.icon className={cn(
+                          "h-4 w-4 transition-colors",
+                          collapsed ? "mx-auto" : "mr-3",
+                          active ? "text-white" : "text-white/70 group-hover:text-white"
+                        )} />
+                        {!collapsed && (
+                          <span className="truncate">{item.title}</span>
+                        )}
+                      </NavLink>
+                    );
 
-              return collapsed ? (
-                <Tooltip key={item.title}>
-                  <TooltipTrigger asChild>
-                    {navItem}
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    {item.title}
-                  </TooltipContent>
-                </Tooltip>
-              ) : navItem;
-            })}
+                    return collapsed ? (
+                      <Tooltip key={item.title}>
+                        <TooltipTrigger asChild>
+                          {navItem}
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          {item.title}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : navItem;
+                  })}
+                </div>
+                {/* Add separator between groups except for the last one */}
+                {!collapsed && groupIndex < navigationGroups.length - 1 && (
+                  <div className="border-t border-white/10 mt-4"></div>
+                )}
+              </div>
+            ))}
           </div>
         </nav>
 
