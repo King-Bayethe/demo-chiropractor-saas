@@ -46,6 +46,7 @@ const navigationGroups = [
     items: [
       { title: "Contacts", url: "/contacts", icon: Users },
       { title: "Patients", url: "/patients", icon: Users },
+      { title: "Opportunities", url: "/opportunities", icon: Activity },
       { title: "Forms", url: "/forms", icon: ClipboardList },
     ]
   },

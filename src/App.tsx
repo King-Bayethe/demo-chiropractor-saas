@@ -25,6 +25,7 @@ import Patients from "./pages/Patients";
 import PatientProfile from "./pages/PatientProfile";
 import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
+import Opportunities from "./pages/Opportunities";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/contacts" element={<Contacts />} />
+          <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/forms" element={<Forms />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/emails" element={<Emails />} />
