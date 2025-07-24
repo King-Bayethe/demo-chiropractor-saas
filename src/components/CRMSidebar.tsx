@@ -15,7 +15,21 @@ import {
   ArrowUpDown,
   Image,
   CheckSquare,
-  LogOut
+  LogOut,
+  BarChart3,
+  Phone,
+  UserPlus,
+  TrendingUp,
+  FormInput,
+  CalendarDays,
+  CheckCircle,
+  Receipt,
+  FileSpreadsheet,
+  Wallet,
+  RefreshCw,
+  Files,
+  ImageIcon,
+  Cog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,52 +45,52 @@ const navigationGroups = [
   {
     title: "Home",
     items: [
-      { title: "Dashboard", url: "/", icon: Activity },
+      { title: "Dashboard", url: "/", icon: Activity, collapsedIcon: BarChart3 },
     ]
   },
   {
     title: "Communication", 
     items: [
-      { title: "Conversations", url: "/conversations", icon: MessageSquare },
-      { title: "Emails", url: "/emails", icon: Mail },
+      { title: "Conversations", url: "/conversations", icon: MessageSquare, collapsedIcon: Phone },
+      { title: "Emails", url: "/emails", icon: Mail, collapsedIcon: Mail },
     ]
   },
   {
     title: "Patient Management",
     items: [
-      { title: "Contacts", url: "/contacts", icon: Users },
-      { title: "Patients", url: "/patients", icon: Users },
-      { title: "Opportunities", url: "/opportunities", icon: Activity },
-      { title: "Forms", url: "/forms", icon: ClipboardList },
+      { title: "Contacts", url: "/contacts", icon: Users, collapsedIcon: UserPlus },
+      { title: "Patients", url: "/patients", icon: Users, collapsedIcon: Users },
+      { title: "Opportunities", url: "/opportunities", icon: Activity, collapsedIcon: TrendingUp },
+      { title: "Forms", url: "/forms", icon: ClipboardList, collapsedIcon: FormInput },
     ]
   },
   {
     title: "Scheduling & Tasks",
     items: [
-      { title: "Calendar", url: "/calendar", icon: Calendar },
-      { title: "Tasks", url: "/tasks", icon: CheckSquare },
+      { title: "Calendar", url: "/calendar", icon: Calendar, collapsedIcon: CalendarDays },
+      { title: "Tasks", url: "/tasks", icon: CheckSquare, collapsedIcon: CheckCircle },
     ]
   },
   {
     title: "Billing & Finance",
     items: [
-      { title: "Invoices", url: "/invoices", icon: FileText },
-      { title: "Estimates", url: "/estimates", icon: FileText },
-      { title: "Payment Orders", url: "/payment-orders", icon: CreditCard },
-      { title: "Transactions", url: "/transactions", icon: ArrowUpDown },
+      { title: "Invoices", url: "/invoices", icon: FileText, collapsedIcon: Receipt },
+      { title: "Estimates", url: "/estimates", icon: FileText, collapsedIcon: FileSpreadsheet },
+      { title: "Payment Orders", url: "/payment-orders", icon: CreditCard, collapsedIcon: Wallet },
+      { title: "Transactions", url: "/transactions", icon: ArrowUpDown, collapsedIcon: RefreshCw },
     ]
   },
   {
     title: "Files & Media",
     items: [
-      { title: "Documents", url: "/documents", icon: FolderOpen },
-      { title: "Media Library", url: "/media-library", icon: Image },
+      { title: "Documents", url: "/documents", icon: FolderOpen, collapsedIcon: Files },
+      { title: "Media Library", url: "/media-library", icon: Image, collapsedIcon: ImageIcon },
     ]
   },
   {
     title: "Settings",
     items: [
-      { title: "Settings", url: "/settings", icon: Settings },
+      { title: "Settings", url: "/settings", icon: Settings, collapsedIcon: Cog },
     ]
   }
 ];
@@ -182,6 +196,7 @@ export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
                 <div className="space-y-1">
                   {group.items.map((item) => {
                     const active = isActive(item.url);
+                    const IconComponent = collapsed ? item.collapsedIcon : item.icon;
                     const navItem = (
                       <NavLink
                         key={item.title}
@@ -193,7 +208,7 @@ export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
                             : "text-white/80 hover:text-white hover:bg-white/10"
                         )}
                       >
-                        <item.icon className={cn(
+                        <IconComponent className={cn(
                           "h-4 w-4 transition-colors",
                           collapsed ? "mx-auto" : "mr-3",
                           active ? "text-white" : "text-white/70 group-hover:text-white"
