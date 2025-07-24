@@ -29,7 +29,9 @@ import {
   RefreshCw,
   Files,
   ImageIcon,
-  Cog
+  Cog,
+  Send,
+  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -52,14 +54,14 @@ const navigationGroups = [
     title: "Communication", 
     items: [
       { title: "Conversations", url: "/conversations", icon: MessageSquare, collapsedIcon: Phone },
-      { title: "Emails", url: "/emails", icon: Mail, collapsedIcon: Mail },
+      { title: "Emails", url: "/emails", icon: Mail, collapsedIcon: Send },
     ]
   },
   {
     title: "Patient Management",
     items: [
       { title: "Contacts", url: "/contacts", icon: Users, collapsedIcon: UserPlus },
-      { title: "Patients", url: "/patients", icon: Users, collapsedIcon: Users },
+      { title: "Patients", url: "/patients", icon: Users, collapsedIcon: UserCheck },
       { title: "Opportunities", url: "/opportunities", icon: Activity, collapsedIcon: TrendingUp },
       { title: "Forms", url: "/forms", icon: ClipboardList, collapsedIcon: FormInput },
     ]
@@ -240,56 +242,6 @@ export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
           </div>
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-white/10 space-y-3">
-          {!collapsed ? (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/60">Theme</span>
-                <ThemeToggle />
-              </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Sign out of your account
-                </TooltipContent>
-              </Tooltip>
-              <div className="text-center pt-2">
-                <p className="text-xs text-white/60">Dr. Silverman CRM</p>
-                <p className="text-xs text-white/40">v2.0</p>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center space-y-2">
-              <ThemeToggle />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleLogout}
-                    className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  Logout
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-        </div>
       </div>
     </TooltipProvider>
   );
