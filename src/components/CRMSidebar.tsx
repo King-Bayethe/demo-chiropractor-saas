@@ -8,7 +8,9 @@ import {
   Settings,
   Mail,
   Menu,
-  X
+  X,
+  Calendar,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,10 @@ import { useState } from "react";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: Activity },
+  { title: "Patients", url: "/patients", icon: Users },
+  { title: "Calendar", url: "/calendar", icon: Calendar },
+  { title: "SOAP Notes", url: "/soap-notes", icon: ClipboardList },
+  { title: "Invoices", url: "/invoices", icon: FileText },
   { title: "Conversations", url: "/conversations", icon: MessageSquare },
   { title: "Contacts", url: "/contacts", icon: Users },
   { title: "Forms", url: "/forms", icon: ClipboardList },
