@@ -23,7 +23,11 @@ import {
   Plus,
   Download,
   Eye,
-  Upload
+  Upload,
+  Edit,
+  Shield,
+  AlertTriangle,
+  BarChart3
 } from "lucide-react";
 
 // Helper function to safely get patient name
@@ -275,58 +279,160 @@ export default function PatientProfile() {
 
             {/* Patient Header Card */}
             <Card className="border border-border/50 shadow-sm">
-              <CardContent className="p-6">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-6">
+                  <div className="flex items-center space-x-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarFallback className="bg-medical-blue/10 text-medical-blue text-xl font-medium">
-                        {patientName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      <AvatarFallback className="text-xl font-semibold">
+                        {patientName.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="space-y-2">
-                      <div>
-                        <h2 className="text-2xl font-bold">{patientName}</h2>
-                        <p className="text-muted-foreground">GHL ID: {patient.id}</p>
+                    <div>
+                      <CardTitle className="text-3xl">{patientName}</CardTitle>
+                      <div className="flex flex-col space-y-1 text-muted-foreground">
+                        <span className="flex items-center">
+                          <Mail className="h-4 w-4 mr-2" />
+                          {patient.email}
+                        </span>
+                        <span className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2" />
+                          {patient.phone}
+                        </span>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        {patient.phone && (
-                          <div className="flex items-center space-x-2">
-                            <Phone className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{patient.phone}</span>
-                          </div>
-                        )}
-                        {patient.email && (
-                          <div className="flex items-center space-x-2">
-                            <Mail className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm text-medical-blue">{patient.email}</span>
-                          </div>
-                        )}
-                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Message
+                    </Button>
+                    <Button size="sm">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Book Appointment
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Personal Information */}
+                  <Card className="p-4">
+                    <div className="space-y-3">
                       <div className="flex items-center space-x-2">
-                        {patient.tags && patient.tags.map((tag: string, index: number) => (
-                          <Badge key={index} variant="secondary">
-                            {tag}
-                          </Badge>
-                        ))}
+                        <User className="h-4 w-4 text-primary" />
+                        <h4 className="font-semibold">Personal Information</h4>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Date of Birth:</span>
+                          <div className="font-medium">March 15, 1985</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Address:</span>
+                          <div className="font-medium">
+                            123 Main St<br />
+                            Miami, FL 33101
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Emergency Contact:</span>
+                          <div className="font-medium">
+                            John Garcia<br />
+                            (305) 555-0123
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right space-y-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Last Visit</p>
-                      <p className="font-medium">
-                        {lastVisit ? lastVisit.toLocaleDateString() : 'No visits yet'}
-                      </p>
+                  </Card>
+
+                  {/* Insurance Information */}
+                  <Card className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Shield className="h-4 w-4 text-primary" />
+                        <h4 className="font-semibold">Insurance</h4>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Medical Insurance:</span>
+                          <div className="font-medium">Blue Cross Blue Shield</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Auto Insurance:</span>
+                          <div className="font-medium">State Farm</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Attorney:</span>
+                          <div className="font-medium">
+                            Smith & Associates Law Firm<br />
+                            (305) 555-0199
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Visits</p>
-                      <p className="font-medium">{totalVisits}</p>
+                  </Card>
+
+                  {/* Medical Information */}
+                  <Card className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                        <h4 className="font-semibold">Medical Alerts</h4>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Allergies:</span>
+                          <div className="font-medium text-red-600">
+                            <AlertTriangle className="h-3 w-3 inline mr-1" />
+                            Penicillin, Shellfish
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Last Visit:</span>
+                          <div className="font-medium">May 15, 2024</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Next Appointment:</span>
+                          <div className="font-medium text-green-600">June 20, 2024</div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Primary Provider</p>
-                      <p className="font-medium">Dr. Silverman</p>
+                  </Card>
+
+                  {/* Quick Stats */}
+                  <Card className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                        <h4 className="font-semibold">Quick Stats</h4>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Total Visits:</span>
+                          <div className="font-medium">8</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Outstanding Balance:</span>
+                          <div className="font-medium text-orange-600">$450.00</div>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {patient.tags && patient.tags.length > 0 ? (
+                            patient.tags.map((tag: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))
+                          ) : (
+                            <Badge variant="outline" className="text-xs">No tags</Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
