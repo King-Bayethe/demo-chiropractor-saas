@@ -132,7 +132,33 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Handle create contact
+    // Handle get contact by ID
+    if (action === 'getById' && contactId) {
+      console.log('Fetching contact by ID:', contactId);
+      
+      const endpoint = `${GHL_API_BASE}/contacts/${contactId}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers,
+      });
+
+      console.log('Get by ID response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL API Error:', response.status, errorText);
+        throw new Error(`GoHighLevel API error: ${response.status} - ${errorText}`);
+      }
+
+      const contactData = await response.json();
+      console.log('Contact fetched successfully:', contactData.id);
+      
+      return new Response(JSON.stringify(contactData), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
     if (action === 'create' && data) {
       console.log('Creating new contact:', data);
       
