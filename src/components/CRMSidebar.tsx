@@ -10,11 +10,21 @@ import {
   Menu,
   X,
   Calendar,
-  FileText
+  FileText,
+  CreditCard,
+  ArrowUpDown,
+  Image,
+  CheckSquare,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 // Using direct path to uploaded logo
 
 const navigationItems = [
@@ -26,12 +36,12 @@ const navigationItems = [
   { title: "Forms", url: "/forms", icon: ClipboardList },
   { title: "Invoices", url: "/invoices", icon: FileText },
   { title: "Estimates", url: "/estimates", icon: FileText },
-  { title: "Payment Orders", url: "/payment-orders", icon: FileText },
-  { title: "Transactions", url: "/transactions", icon: FileText },
+  { title: "Payment Orders", url: "/payment-orders", icon: CreditCard },
+  { title: "Transactions", url: "/transactions", icon: ArrowUpDown },
   { title: "Emails", url: "/emails", icon: Mail },
   { title: "Documents", url: "/documents", icon: FolderOpen },
-  { title: "Media Library", url: "/media-library", icon: FolderOpen },
-  { title: "Tasks", url: "/tasks", icon: ClipboardList },
+  { title: "Media Library", url: "/media-library", icon: Image },
+  { title: "Tasks", url: "/tasks", icon: CheckSquare },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -41,8 +51,26 @@ interface CRMSidebarProps {
 
 export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const currentPath = location.pathname;
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setCollapsed(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -57,82 +85,146 @@ export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
     onCollapseChange?.(newCollapsed);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
   return (
-    <div className={cn(
-      "h-screen bg-black text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
-      collapsed ? "w-16" : "w-64"
-    )}>
-      {/* Header */}
-      <div className="p-4 border-b border-white/10 bg-white">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex-1 flex justify-center">
-            {!collapsed && (
-              <img 
-                src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
-                alt="Dr. Silverman Chiropractic and Rehabilitation"
-                className="h-32 object-contain"
-              />
-            )}
-            {collapsed && (
-              <img 
-                src="/lovable-uploads/9e0aa9c7-2269-40d3-b093-f00769ff07c2.png" 
-                alt="Dr. Silverman Logo"
-                className="w-20 h-20 object-contain"
-              />
-            )}
+    <TooltipProvider>
+      <div className={cn(
+        "h-screen bg-black text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
+        collapsed ? "w-16" : "w-64"
+      )}>
+        {/* Header */}
+        <div className="p-4 border-b border-white/10 bg-white">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex-1 flex justify-center">
+              {!collapsed && (
+                <img 
+                  src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
+                  alt="Dr. Silverman Chiropractic and Rehabilitation"
+                  className="h-32 object-contain"
+                />
+              )}
+              {collapsed && (
+                <img 
+                  src="/lovable-uploads/9e0aa9c7-2269-40d3-b093-f00769ff07c2.png" 
+                  alt="Dr. Silverman Logo"
+                  className="w-20 h-20 object-contain"
+                />
+              )}
+            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className="h-8 w-8 text-black/80 hover:text-black hover:bg-black/10 transition-colors flex-shrink-0"
+                >
+                  {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-8 w-8 text-black/80 hover:text-black hover:bg-black/10 transition-colors flex-shrink-0"
-          >
-            {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
-          </Button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-6 overflow-y-auto">
+          <div className="space-y-2">
+            {navigationItems.map((item) => {
+              const active = isActive(item.url);
+              const navItem = (
+                <NavLink
+                  key={item.title}
+                  to={item.url}
+                  className={cn(
+                    "flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                    active
+                      ? "bg-white/15 text-white shadow-lg border-r-4 border-[#4DA8FF]"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  )}
+                >
+                  <item.icon className={cn(
+                    "h-5 w-5 transition-colors",
+                    collapsed ? "mx-auto" : "mr-3",
+                    active ? "text-white" : "text-white/70 group-hover:text-white"
+                  )} />
+                  {!collapsed && (
+                    <span className="truncate">{item.title}</span>
+                  )}
+                </NavLink>
+              );
+
+              return collapsed ? (
+                <Tooltip key={item.title}>
+                  <TooltipTrigger asChild>
+                    {navItem}
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {item.title}
+                  </TooltipContent>
+                </Tooltip>
+              ) : navItem;
+            })}
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-white/10 space-y-3">
+          {!collapsed ? (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/60">Theme</span>
+                <ThemeToggle />
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Sign out of your account
+                </TooltipContent>
+              </Tooltip>
+              <div className="text-center pt-2">
+                <p className="text-xs text-white/60">Dr. Silverman CRM</p>
+                <p className="text-xs text-white/40">v2.0</p>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center space-y-2">
+              <ThemeToggle />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleLogout}
+                    className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  Logout
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-6">
-        <div className="space-y-2">
-          {navigationItems.map((item) => {
-            const active = isActive(item.url);
-            return (
-              <NavLink
-                key={item.title}
-                to={item.url}
-                className={cn(
-                  "flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
-                  active
-                    ? "bg-white/15 text-white shadow-lg border-r-4 border-[#4DA8FF]"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
-                )}
-              >
-                <item.icon className={cn(
-                  "h-5 w-5 transition-colors",
-                  collapsed ? "mx-auto" : "mr-3",
-                  active ? "text-white" : "text-white/70 group-hover:text-white"
-                )} />
-                {!collapsed && (
-                  <span className="truncate">{item.title}</span>
-                )}
-              </NavLink>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-white/10">
-        {!collapsed ? (
-          <div className="text-center">
-            <p className="text-xs text-white/60">Dr. Silverman CRM</p>
-            <p className="text-xs text-white/40">v2.0</p>
-          </div>
-        ) : (
-          <div className="h-2"></div>
-        )}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }
