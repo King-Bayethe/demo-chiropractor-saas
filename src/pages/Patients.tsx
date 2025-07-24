@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +32,17 @@ export default function Patients() {
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    type: 'lead',
+    patientType: 'general',
+    notes: ''
+  });
   const { toast } = useToast();
   const ghlApi = useGHLApi();
   const navigate = useNavigate();
@@ -111,6 +125,78 @@ export default function Patients() {
     return Math.floor(Math.random() * 20) + 1;
   };
 
+  const handleAddPatient = () => {
+    setIsAddPatientOpen(true);
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmitPatient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.firstName.trim() || !formData.phone.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "First name and phone number are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const contactData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim() || undefined,
+        phone: formData.phone.trim(),
+        type: formData.type,
+        tags: formData.patientType === 'pip' ? ['patient', 'pip'] : ['patient', 'general'],
+        customFields: formData.notes.trim() ? [
+          { key: 'notes', field_value: formData.notes.trim() }
+        ] : []
+      };
+
+      await ghlApi.contacts.create(contactData);
+      
+      toast({
+        title: "Success",
+        description: "Patient added successfully!",
+      });
+
+      // Reset form and close modal
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        type: 'lead',
+        patientType: 'general',
+        notes: ''
+      });
+      setIsAddPatientOpen(false);
+      
+      // Reload patients list
+      loadPatients();
+      
+    } catch (error) {
+      console.error('Failed to add patient:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add patient. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <AuthGuard>
       <Layout>
@@ -127,7 +213,7 @@ export default function Patients() {
                   <FileText className="w-4 h-4 mr-2" />
                   Export Records
                 </Button>
-                <Button size="sm">
+                <Button size="sm" onClick={handleAddPatient}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Patient
                 </Button>
@@ -294,6 +380,100 @@ export default function Patients() {
               </Card>
             </div>
           </div>
+
+          {/* Add Patient Modal */}
+          <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Patient</DialogTitle>
+              </DialogHeader>
+              
+              <form onSubmit={handleSubmitPatient} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleFormChange('firstName', e.target.value)}
+                      placeholder="Enter first name"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleFormChange('lastName', e.target.value)}
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleFormChange('email', e.target.value)}
+                    placeholder="Enter email address"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleFormChange('phone', e.target.value)}
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="patientType">Patient Type</Label>
+                  <Select value={formData.patientType} onValueChange={(value) => handleFormChange('patientType', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select patient type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General Patient</SelectItem>
+                      <SelectItem value="pip">PIP Patient</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleFormChange('notes', e.target.value)}
+                    placeholder="Enter any additional notes..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddPatientOpen(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Adding..." : "Add Patient"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
 
           {/* Patient Profile Modal */}
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
