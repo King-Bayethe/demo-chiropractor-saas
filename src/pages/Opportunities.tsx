@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -262,7 +264,9 @@ export default function Opportunities() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <AuthGuard>
+      <Layout>
+        <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <div className="border-b bg-card/50 p-6">
         <div className="flex flex-col space-y-4">
@@ -386,5 +390,7 @@ export default function Opportunities() {
         </DndContext>
       </div>
     </div>
+      </Layout>
+    </AuthGuard>
   );
 }
