@@ -47,6 +47,17 @@ interface SOAPNote {
   };
 }
 
+// Helper function to safely get patient name
+const getPatientName = (patient: any): string => {
+  if (!patient) return 'Unknown Patient';
+  
+  const firstName = patient.firstNameLowerCase || '';
+  const lastName = patient.lastNameLowerCase || '';
+  const fullName = `${firstName} ${lastName}`.trim();
+  
+  return fullName || patient.name || 'Unknown Patient';
+};
+
 export default function SOAPNotes() {
   const [soapNotes, setSoapNotes] = useState<SOAPNote[]>([]);
   const [patients, setPatients] = useState([]);
@@ -94,9 +105,7 @@ export default function SOAPNotes() {
         {
           id: "soap-1",
           patientId: patientContacts[0]?.id || "patient-1",
-          patientName: patientContacts[0] ? 
-            `${patientContacts[0].firstNameLowerCase || ''} ${patientContacts[0].lastNameLowerCase || ''}`.trim() || patientContacts[0].name :
-            "John Smith",
+          patientName: getPatientName(patientContacts[0]) || "John Smith",
           providerId: "dr-silverman",
           providerName: "Dr. Silverman",
           dateCreated: new Date(2024, 0, 15),
@@ -115,9 +124,7 @@ export default function SOAPNotes() {
         {
           id: "soap-2",
           patientId: patientContacts[1]?.id || "patient-2",
-          patientName: patientContacts[1] ? 
-            `${patientContacts[1].firstNameLowerCase || ''} ${patientContacts[1].lastNameLowerCase || ''}`.trim() || patientContacts[1].name :
-            "Sarah Johnson",
+          patientName: getPatientName(patientContacts[1]) || "Sarah Johnson",
           providerId: "dr-silverman",
           providerName: "Dr. Silverman",
           dateCreated: new Date(2024, 0, 12),
@@ -154,9 +161,7 @@ export default function SOAPNotes() {
       const newSOAPNote: SOAPNote = {
         id: `soap-${Date.now()}`,
         patientId: formData.patientId,
-        patientName: selectedPatient ? 
-          `${selectedPatient.firstNameLowerCase || ''} ${selectedPatient.lastNameLowerCase || ''}`.trim() || selectedPatient.name :
-          'Unknown Patient',
+        patientName: getPatientName(selectedPatient),
         providerId: formData.providerId || 'dr-silverman',
         providerName: formData.providerName,
         dateCreated: new Date(),
@@ -405,10 +410,10 @@ export default function SOAPNotes() {
                             <SelectValue placeholder="Select a patient" />
                           </SelectTrigger>
                           <SelectContent>
-                            {patients.map((patient: any) => (
-                              <SelectItem key={patient.id} value={patient.id}>
-                                {`${patient.firstNameLowerCase || ''} ${patient.lastNameLowerCase || ''}`.trim() || patient.name || 'Unknown'}
-                              </SelectItem>
+                      {patients.map((patient: any) => (
+                        <SelectItem key={patient.id} value={patient.id}>
+                          {getPatientName(patient)}
+                        </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

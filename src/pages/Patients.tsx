@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
+import { useNavigate } from "react-router-dom";
 import { 
   Search, 
   Filter, 
@@ -30,6 +31,7 @@ export default function Patients() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { toast } = useToast();
   const ghlApi = useGHLApi();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadPatients();
@@ -61,8 +63,8 @@ export default function Patients() {
   };
 
   const handlePatientSelect = (patient: any) => {
-    setSelectedPatient(patient);
-    setIsProfileOpen(true);
+    // Navigate to patient profile page
+    navigate(`/patients/${patient.id}`);
   };
 
   const handleMessagePatient = (patient: any) => {

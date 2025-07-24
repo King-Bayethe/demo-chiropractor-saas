@@ -17,6 +17,7 @@ import Emails from "./pages/Emails";
 import Settings from "./pages/Settings";
 import Invoices from "./pages/Invoices";
 import Patients from "./pages/Patients";
+import PatientProfile from "./pages/PatientProfile";
 import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/patients" element={<Patients />} />
+          <Route path="/patients/:patientId" element={<PatientProfile />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/soap-notes" element={<SOAPNotes />} />
           <Route path="/invoices" element={<Invoices />} />
