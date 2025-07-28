@@ -7,13 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { 
   ArrowLeft,
   Phone, 
   Mail, 
   Calendar,
+  CalendarIcon,
   FileText,
   MessageSquare,
   DollarSign,
@@ -27,8 +39,34 @@ import {
   Edit,
   Shield,
   AlertTriangle,
-  BarChart3
+  BarChart3,
+  Save,
+  X,
+  Check
 } from "lucide-react";
+
+// Form validation schema
+const patientFormSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  dateOfBirth: z.date().optional(),
+  streetAddress: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  medicalInsurance: z.string().optional(),
+  autoInsurance: z.string().optional(),
+  attorneyName: z.string().optional(),
+  attorneyPhone: z.string().optional(),
+  allergies: z.string().optional(),
+  nextAppointment: z.date().optional(),
+});
+
+type PatientFormData = z.infer<typeof patientFormSchema>;
 
 // Helper function to safely get patient name
 const getPatientName = (patient: any): string => {
@@ -50,8 +88,31 @@ export default function PatientProfile() {
   const [invoices, setInvoices] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const ghlApi = useGHLApi();
+
+  const form = useForm<PatientFormData>({
+    resolver: zodResolver(patientFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      streetAddress: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      medicalInsurance: "",
+      autoInsurance: "",
+      attorneyName: "",
+      attorneyPhone: "",
+      allergies: "",
+    },
+  });
 
   useEffect(() => {
     if (patientId) {
@@ -66,6 +127,29 @@ export default function PatientProfile() {
       // Load patient details from GHL
       const patientData = await ghlApi.contacts.getById(patientId);
       setPatient(patientData);
+
+      // Populate form with patient data
+      if (patientData) {
+        form.reset({
+          firstName: patientData.firstNameLowerCase || "",
+          lastName: patientData.lastNameLowerCase || "",
+          email: patientData.email || "",
+          phone: patientData.phone || "",
+          streetAddress: patientData.address?.streetAddress || "",
+          city: patientData.address?.city || "",
+          state: patientData.address?.state || "",
+          zipCode: patientData.address?.postalCode || "",
+          emergencyContactName: patientData.customFields?.emergencyContactName || "",
+          emergencyContactPhone: patientData.customFields?.emergencyContactPhone || "",
+          medicalInsurance: patientData.customFields?.medicalInsurance || "",
+          autoInsurance: patientData.customFields?.autoInsurance || "",
+          attorneyName: patientData.customFields?.attorneyName || "",
+          attorneyPhone: patientData.customFields?.attorneyPhone || "",
+          allergies: patientData.customFields?.allergies || "",
+          dateOfBirth: patientData.dateOfBirth ? new Date(patientData.dateOfBirth) : undefined,
+          nextAppointment: patientData.customFields?.nextAppointment ? new Date(patientData.customFields.nextAppointment) : undefined,
+        });
+      }
       
       // Mock appointments data - in production, this would come from GHL Calendar API
       const mockAppointments = [
@@ -191,6 +275,88 @@ export default function PatientProfile() {
     });
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Reset form to original patient data
+    if (patient) {
+      form.reset({
+        firstName: patient.firstNameLowerCase || "",
+        lastName: patient.lastNameLowerCase || "",
+        email: patient.email || "",
+        phone: patient.phone || "",
+        streetAddress: patient.address?.streetAddress || "",
+        city: patient.address?.city || "",
+        state: patient.address?.state || "",
+        zipCode: patient.address?.postalCode || "",
+        emergencyContactName: patient.customFields?.emergencyContactName || "",
+        emergencyContactPhone: patient.customFields?.emergencyContactPhone || "",
+        medicalInsurance: patient.customFields?.medicalInsurance || "",
+        autoInsurance: patient.customFields?.autoInsurance || "",
+        attorneyName: patient.customFields?.attorneyName || "",
+        attorneyPhone: patient.customFields?.attorneyPhone || "",
+        allergies: patient.customFields?.allergies || "",
+        dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth) : undefined,
+        nextAppointment: patient.customFields?.nextAppointment ? new Date(patient.customFields.nextAppointment) : undefined,
+      });
+    }
+  };
+
+  const handleSave = async (data: PatientFormData) => {
+    try {
+      setSaving(true);
+      
+      // Prepare update data for GHL
+      const updateData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        address: {
+          streetAddress: data.streetAddress,
+          city: data.city,
+          state: data.state,
+          postalCode: data.zipCode,
+        },
+        customFields: {
+          emergencyContactName: data.emergencyContactName,
+          emergencyContactPhone: data.emergencyContactPhone,
+          medicalInsurance: data.medicalInsurance,
+          autoInsurance: data.autoInsurance,
+          attorneyName: data.attorneyName,
+          attorneyPhone: data.attorneyPhone,
+          allergies: data.allergies,
+          nextAppointment: data.nextAppointment?.toISOString(),
+        },
+        dateOfBirth: data.dateOfBirth?.toISOString(),
+      };
+
+      // Update patient via GHL API
+      await ghlApi.contacts.update(patientId, updateData);
+      
+      // Refresh patient data
+      await loadPatientData();
+      
+      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Patient information updated successfully",
+      });
+    } catch (error) {
+      console.error('Failed to update patient:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update patient information",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-success/10 text-success";
@@ -302,138 +468,480 @@ export default function PatientProfile() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Message
-                    </Button>
-                    <Button size="sm">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Book Appointment
-                    </Button>
+                    {isEditing ? (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleCancel}
+                          disabled={saving}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={form.handleSubmit(handleSave)}
+                          disabled={saving}
+                        >
+                          {saving ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" />
+                          )}
+                          Save
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="outline" size="sm" onClick={handleEdit}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleSendMessage}>
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Message
+                        </Button>
+                        <Button size="sm" onClick={handleBookAppointment}>
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Book Appointment
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {/* Personal Information */}
-                  <Card className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-primary" />
-                        <h4 className="font-semibold">Personal Information</h4>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Date of Birth:</span>
-                          <div className="font-medium">March 15, 1985</div>
+                <Form {...form}>
+                  <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Personal Information */}
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold">Personal Information</h4>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Address:</span>
-                          <div className="font-medium">
-                            123 Main St<br />
-                            Miami, FL 33101
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Emergency Contact:</span>
-                          <div className="font-medium">
-                            John Garcia<br />
-                            (305) 555-0123
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Insurance Information */}
-                  <Card className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <Shield className="h-4 w-4 text-primary" />
-                        <h4 className="font-semibold">Insurance</h4>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Medical Insurance:</span>
-                          <div className="font-medium">Blue Cross Blue Shield</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Auto Insurance:</span>
-                          <div className="font-medium">State Farm</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Attorney:</span>
-                          <div className="font-medium">
-                            Smith & Associates Law Firm<br />
-                            (305) 555-0199
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Medical Information */}
-                  <Card className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        <h4 className="font-semibold">Medical Alerts</h4>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Allergies:</span>
-                          <div className="font-medium text-red-600">
-                            <AlertTriangle className="h-3 w-3 inline mr-1" />
-                            Penicillin, Shellfish
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Last Visit:</span>
-                          <div className="font-medium">May 15, 2024</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Next Appointment:</span>
-                          <div className="font-medium text-green-600">June 20, 2024</div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Quick Stats */}
-                  <Card className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <BarChart3 className="h-4 w-4 text-primary" />
-                        <h4 className="font-semibold">Quick Stats</h4>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Total Visits:</span>
-                          <div className="font-medium">8</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Outstanding Balance:</span>
-                          <div className="font-medium text-orange-600">$450.00</div>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {patient.tags && patient.tags.length > 0 ? (
-                            patient.tags.map((tag: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))
+                        <div className="space-y-3 text-sm">
+                          {isEditing ? (
+                            <>
+                              <div className="grid grid-cols-2 gap-2">
+                                <FormField
+                                  control={form.control}
+                                  name="firstName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">First Name</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} className="h-8 text-xs" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="lastName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Last Name</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} className="h-8 text-xs" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <FormField
+                                control={form.control}
+                                name="dateOfBirth"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Date of Birth</FormLabel>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button
+                                            variant="outline"
+                                            className={cn(
+                                              "w-full h-8 text-xs font-normal",
+                                              !field.value && "text-muted-foreground"
+                                            )}
+                                          >
+                                            {field.value ? (
+                                              format(field.value, "PPP")
+                                            ) : (
+                                              <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-3 w-3 opacity-50" />
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent
+                                          mode="single"
+                                          selected={field.value}
+                                          onSelect={field.onChange}
+                                          disabled={(date) =>
+                                            date > new Date() || date < new Date("1900-01-01")
+                                          }
+                                          initialFocus
+                                          className="p-3 pointer-events-auto"
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="streetAddress"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Street Address</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="grid grid-cols-2 gap-2">
+                                <FormField
+                                  control={form.control}
+                                  name="city"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">City</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} className="h-8 text-xs" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="state"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">State</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} className="h-8 text-xs" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <FormField
+                                control={form.control}
+                                name="zipCode"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">ZIP Code</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="emergencyContactName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Emergency Contact Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="emergencyContactPhone"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Emergency Contact Phone</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </>
                           ) : (
-                            <Badge variant="outline" className="text-xs">No tags</Badge>
+                            <>
+                              <div>
+                                <span className="text-muted-foreground">Date of Birth:</span>
+                                <div className="font-medium">
+                                  {form.getValues('dateOfBirth') 
+                                    ? format(form.getValues('dateOfBirth')!, "PPP")
+                                    : "Not specified"
+                                  }
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Address:</span>
+                                <div className="font-medium">
+                                  {form.getValues('streetAddress') && (
+                                    <>
+                                      {form.getValues('streetAddress')}<br />
+                                      {form.getValues('city')}, {form.getValues('state')} {form.getValues('zipCode')}
+                                    </>
+                                  ) || "Not specified"}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Emergency Contact:</span>
+                                <div className="font-medium">
+                                  {form.getValues('emergencyContactName') && (
+                                    <>
+                                      {form.getValues('emergencyContactName')}<br />
+                                      {form.getValues('emergencyContactPhone')}
+                                    </>
+                                  ) || "Not specified"}
+                                </div>
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                </div>
+                    </Card>
+
+                    {/* Insurance & Attorney Information */}
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Shield className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold">Insurance & Attorney</h4>
+                        </div>
+                        <div className="space-y-3 text-sm">
+                          {isEditing ? (
+                            <>
+                              <FormField
+                                control={form.control}
+                                name="medicalInsurance"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Medical Insurance</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" placeholder="e.g. Blue Cross Blue Shield" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="autoInsurance"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Auto Insurance</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" placeholder="e.g. State Farm" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="attorneyName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Attorney Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" placeholder="e.g. Smith & Associates Law Firm" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="attorneyPhone"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Attorney Phone</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-8 text-xs" placeholder="(305) 555-0199" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <div>
+                                <span className="text-muted-foreground">Medical Insurance:</span>
+                                <div className="font-medium">{form.getValues('medicalInsurance') || "Not specified"}</div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Auto Insurance:</span>
+                                <div className="font-medium">{form.getValues('autoInsurance') || "Not specified"}</div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Attorney:</span>
+                                <div className="font-medium">
+                                  {form.getValues('attorneyName') && (
+                                    <>
+                                      {form.getValues('attorneyName')}<br />
+                                      {form.getValues('attorneyPhone')}
+                                    </>
+                                  ) || "Not specified"}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+
+                    {/* Medical Alerts */}
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                          <h4 className="font-semibold">Medical Alerts</h4>
+                        </div>
+                        <div className="space-y-3 text-sm">
+                          {isEditing ? (
+                            <>
+                              <FormField
+                                control={form.control}
+                                name="allergies"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Allergies</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        {...field} 
+                                        className="min-h-[60px] text-xs" 
+                                        placeholder="e.g. Penicillin, Shellfish"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="nextAppointment"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Next Appointment</FormLabel>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button
+                                            variant="outline"
+                                            className={cn(
+                                              "w-full h-8 text-xs font-normal",
+                                              !field.value && "text-muted-foreground"
+                                            )}
+                                          >
+                                            {field.value ? (
+                                              format(field.value, "PPP")
+                                            ) : (
+                                              <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-3 w-3 opacity-50" />
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent
+                                          mode="single"
+                                          selected={field.value}
+                                          onSelect={field.onChange}
+                                          disabled={(date) => date < new Date()}
+                                          initialFocus
+                                          className="p-3 pointer-events-auto"
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <div>
+                                <span className="text-muted-foreground">Allergies:</span>
+                                <div className="font-medium">
+                                  {form.getValues('allergies') ? (
+                                    <div className="text-red-600">
+                                      <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                      {form.getValues('allergies')}
+                                    </div>
+                                  ) : (
+                                    "None reported"
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Last Visit:</span>
+                                <div className="font-medium">
+                                  {lastVisit ? format(lastVisit, "PPP") : "No visits"}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Next Appointment:</span>
+                                <div className="font-medium text-green-600">
+                                  {form.getValues('nextAppointment') 
+                                    ? format(form.getValues('nextAppointment')!, "PPP")
+                                    : "Not scheduled"
+                                  }
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+
+                    {/* Quick Stats (Read-only) */}
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <BarChart3 className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold">Quick Stats</h4>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Total Visits:</span>
+                            <div className="font-medium">{totalVisits}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Outstanding Balance:</span>
+                            <div className="font-medium text-orange-600">
+                              {formatCurrency(unpaidInvoices.reduce((sum, inv) => sum + inv.amount, 0))}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {patient?.tags && patient.tags.length > 0 ? (
+                              patient.tags.map((tag: string, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))
+                            ) : (
+                              <Badge variant="outline" className="text-xs">No tags</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </form>
+                </Form>
               </CardContent>
             </Card>
           </div>
