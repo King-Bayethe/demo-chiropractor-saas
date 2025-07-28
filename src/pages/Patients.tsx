@@ -29,11 +29,15 @@ import {
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -50,6 +54,10 @@ export default function Patients() {
   useEffect(() => {
     loadPatients();
   }, []);
+
+  useEffect(() => {
+    filterPatients();
+  }, [patients, searchTerm, selectedType, selectedStatus]);
 
   const loadPatients = async () => {
     try {
@@ -74,6 +82,43 @@ export default function Patients() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterPatients = () => {
+    let filtered = [...patients];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter((patient: any) => {
+        const name = `${patient.firstNameLowerCase || ''} ${patient.lastNameLowerCase || ''}`.toLowerCase();
+        const email = (patient.email || '').toLowerCase();
+        const phone = (patient.phone || '').toLowerCase();
+        const searchLower = searchTerm.toLowerCase();
+        
+        return name.includes(searchLower) || 
+               email.includes(searchLower) || 
+               phone.includes(searchLower);
+      });
+    }
+
+    // Filter by type
+    if (selectedType !== "all") {
+      filtered = filtered.filter((patient: any) => {
+        const patientType = getPatientType(patient);
+        return patientType.toLowerCase().includes(selectedType.toLowerCase());
+      });
+    }
+
+    // Filter by status
+    if (selectedStatus !== "all") {
+      // In a real app, you'd have actual status data
+      // For now, we'll assume all are active
+      if (selectedStatus === "inactive") {
+        filtered = [];
+      }
+    }
+
+    setFilteredPatients(filtered);
   };
 
   const handlePatientSelect = (patient: any) => {
@@ -223,25 +268,48 @@ export default function Patients() {
             {/* Search and Filters */}
             <Card className="border border-border/50 shadow-sm">
               <CardContent className="p-4">
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input 
                       placeholder="Search patients by name, phone, email..." 
                       className="pl-10"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filters
-                  </Button>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Select value={selectedType} onValueChange={setSelectedType}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="pip">PIP Patients</SelectItem>
+                        <SelectItem value="general">General Patients</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">Total: {patients.length}</Badge>
                     <Badge variant="outline" className="bg-medical-teal/10 text-medical-teal">
-                      PIP: {patients.filter((p: any) => getPatientType(p) === 'PIP Patient').length}
+                      PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP Patient').length}
                     </Badge>
                     <Badge variant="outline" className="bg-primary/10 text-primary">
-                      General: {patients.filter((p: any) => getPatientType(p) === 'General Patient').length}
+                      General: {filteredPatients.filter((p: any) => getPatientType(p) === 'General Patient').length}
                     </Badge>
                   </div>
                 </div>
@@ -256,7 +324,7 @@ export default function Patients() {
               {/* Patients Table */}
               <Card className="border border-border/50 shadow-sm">
                 <CardHeader>
-                  <CardTitle>All Patients</CardTitle>
+                  <CardTitle>All Patients ({filteredPatients.length})</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
@@ -278,14 +346,16 @@ export default function Patients() {
                               Loading patients...
                             </td>
                           </tr>
-                        ) : patients.length === 0 ? (
+                        ) : filteredPatients.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="text-center py-8 text-muted-foreground">
-                              No patients found
+                              {searchTerm || selectedType !== "all" || selectedStatus !== "all" 
+                                ? "No patients match your filters" 
+                                : "No patients found"}
                             </td>
                           </tr>
                         ) : (
-                          patients.map((patient: any) => (
+                          filteredPatients.map((patient: any) => (
                             <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
                               <td className="p-4">
                                 <div className="flex items-center space-x-3">

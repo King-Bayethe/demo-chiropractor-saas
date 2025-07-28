@@ -9,7 +9,6 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import People from "./pages/People";
 import Contacts from "./pages/Contacts";
 import Conversations from "./pages/Conversations";
 import Forms from "./pages/Forms";
@@ -44,7 +43,6 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/people" element={<People />} />
           <Route path="/patients" element={<Patients />} />
           <Route path="/patients/:patientId" element={<PatientProfile />} />
           <Route path="/calendar" element={<Calendar />} />

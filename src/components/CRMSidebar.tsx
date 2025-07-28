@@ -60,7 +60,7 @@ const navigationGroups = [
   {
     title: "Patient Management",
     items: [
-      { title: "People", url: "/people", icon: Users, collapsedIcon: UserPlus },
+      { title: "Patients", url: "/patients", icon: Users, collapsedIcon: UserPlus },
       { title: "Opportunities", url: "/opportunities", icon: Activity, collapsedIcon: TrendingUp },
       { title: "Forms", url: "/forms", icon: ClipboardList, collapsedIcon: FormInput },
     ]
