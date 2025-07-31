@@ -60,18 +60,21 @@ const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
 
 // Using actual Custom Field IDs from your GHL screenshot
 const CUSTOM_FIELD_IDS = {
-  dateOfAccident: 'aWQjhJvshJvshN0coM2Ew', // Note: This is a guess from the screenshot. Verify in GHL.
+  dateOfAccident: 'aWQjhJvshJvshN0coM2Ew',
   claimNumber: 'hI7cK3VoG9XdkHZEE7Vj',
   policyNumber: 'yH8ULGUlU3XPXfJkZ8B4',
   autoInsuranceCompany: 'oFzEgb2y1hbiTjP5VvA2',
-  healthInsurance: 'Ldr9UdjMPXfJkZ8B49wV',
+  healthInsurance: '1zrW9idqNMbLWrZvcPee',
   healthInsuranceId: 'k4sW9iLq0pMHYfJkZ8B4',
-  attorneyName: 'EfgOzyhJbiTjP5VvA2wV',
+  attorneyName: 'Kdh3NRFD0DIfhoE86TzT',
   attorneyPhone: 'ArS1W9iLq0pMHYfJkZ8B',
+  emergencyContactName: 'lY2qsozLiFhvkMaXG4pW',
+  didGoToHospital: 'yozLiFhvkMaXG4pW9iLq',
+  hospitalName: 'oFzEgb2y1hbiTjP5VvA2', // This seems to be duplicated with auto insurance, please verify in GHL
   // You will need to get the IDs for these from your GHL settings > Custom Fields
-  emergencyContactName: 'REPLACE_WITH_REAL_ID_FROM_GHL',
-  didGoToHospital: 'REPLACE_WITH_REAL_ID_FROM_GHL',
-  hospitalName: 'REPLACE_WITH_REAL_ID_FROM_GHL',
+  emergencyContactName: 'l7yGH2qMIQ16VhyaxLMM',
+  // didGoToHospital: 'REPLACE_WITH_REAL_ID_FROM_GHL',
+  // hospitalName: 'REPLACE_WITH_REAL_ID_FROM_GHL',
 };
 
 export default function PatientProfile() {
@@ -106,7 +109,8 @@ export default function PatientProfile() {
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
 
-      const customFields = patientData.customField || [];
+      // CORRECTED: Use `customFields` (plural) to match the API response
+      const customFields = patientData.customFields || [];
       form.reset({
         firstName: patientData.firstName || "",
         lastName: patientData.lastName || "",
