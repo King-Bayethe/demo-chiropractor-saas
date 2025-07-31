@@ -53,6 +53,8 @@ const patientFormSchema = z.object({
   insurancePhoneNumber: z.string().optional(),
   groupNumber: z.string().optional(),
   medicaidMedicareId: z.string().optional(),
+  maritalStatus: z.string().optional(),
+  licenseState: z.string().optional(),
 });
 
 type PatientFormData = z.infer<typeof patientFormSchema>;
@@ -80,6 +82,7 @@ const CUSTOM_FIELD_IDS = {
   groupNumber: '"3CFGGeMzAwkv49z096aB',
   healthInsuranceId: 'tCxf5IqN97TJev00wzkO',
   medicaidMedicareId: 'Y7PjcJSaTjDsmwxHLtpe',
+  maritalStatus: 'YX017UhulJCX03IMTWYg',
   // NOTE: These IDs are not visible in the log, please find them in your GHL settings
   dateOfAccident: 'REPLACE_WITH_REAL_ID_FROM_GHL',
   didGoToHospital: 'REPLACE_WITH_REAL_ID_FROM_GHL',
@@ -197,6 +200,8 @@ export default function PatientProfile() {
             insurancePhoneNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.insurancePhoneNumber),
             groupNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.groupNumber),
             medicaidMedicareId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.medicaidMedicareId),
+            maritalStatus: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.maritalStatus),
+            licenseState: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.licenseState),
         });
         setSensitiveDataVisible(true);
     } catch (error) {
@@ -339,6 +344,8 @@ export default function PatientProfile() {
                           <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                           <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                           <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover></FormItem>)} />
+                          <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Marital Status</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                          <FormField control={form.control} name="licenseState" render={({ field }) => (<FormItem><FormLabel>License State</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                           <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                         </>
                       ) : (
@@ -347,6 +354,8 @@ export default function PatientProfile() {
                           <InfoField label="Date of Birth" value={form.getValues("dateOfBirth") ? format(form.getValues("dateOfBirth")!, 'PPP') : 'N/A'} />
                           <div className="col-span-2"><InfoField label="Address" value={form.getValues("streetAddress")} /></div>
                           {sensitiveDataVisible && <InfoField label="Emergency Contact" value={form.getValues("emergencyContactName")} />}
+                          {sensitiveDataVisible && <InfoField label="Marital Status" value={form.getValues("maritalStatus")} />}
+                          {sensitiveDataVisible && <InfoField label="License State" value={form.getValues("licenseState")} />}
                         </>
                       )}
                     </CardContent>
@@ -380,6 +389,12 @@ export default function PatientProfile() {
                                     <FormField control={form.control} name="claimNumber" render={({ field }) => (<FormItem><FormLabel>Claim #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                     <FormField control={form.control} name="policyNumber" render={({ field }) => (<FormItem><FormLabel>Policy #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                     <FormField control={form.control} name="autoInsuranceCompany" render={({ field }) => (<FormItem><FormLabel>Auto Insurance</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="healthInsurance" render={({ field }) => (<FormItem><FormLabel>Health Insurance</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="healthInsuranceId" render={({ field }) => (<FormItem><FormLabel>Health Insurance ID</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="groupNumber" render={({ field }) => (<FormItem><FormLabel>Group #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="medicaidMedicareId" render={({ field }) => (<FormItem><FormLabel>Medicaid/Medicare ID</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="adjustersName" render={({ field }) => (<FormItem><FormLabel>Adjuster's Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="insurancePhoneNumber" render={({ field }) => (<FormItem><FormLabel>Insurance Phone #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                 </>
                             ) : (
                                 <>
@@ -387,6 +402,29 @@ export default function PatientProfile() {
                                     <InfoField label="Claim #" value={form.getValues("claimNumber")} />
                                     <InfoField label="Policy #" value={form.getValues("policyNumber")} />
                                     <InfoField label="Auto Insurance" value={form.getValues("autoInsuranceCompany")} />
+                                    <InfoField label="Health Insurance" value={form.getValues("healthInsurance")} />
+                                    <InfoField label="Health Insurance ID" value={form.getValues("healthInsuranceId")} />
+                                    <InfoField label="Group #" value={form.getValues("groupNumber")} />
+                                    <InfoField label="Medicaid/Medicare ID" value={form.getValues("medicaidMedicareId")} />
+                                    <InfoField label="Adjuster's Name" value={form.getValues("adjustersName")} />
+                                    <InfoField label="Insurance Phone #" value={form.getValues("insurancePhoneNumber")} />
+                                </>
+                            )}
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><Gavel className="text-amber-600" /> Legal Representation</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {isEditing ? (
+                                <>
+                                    <FormField control={form.control} name="attorneyName" render={({ field }) => (<FormItem><FormLabel>Attorney Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="attorneyPhone" render={({ field }) => (<FormItem><FormLabel>Attorney Phone</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                </>
+                            ) : (
+                                <>
+                                    <InfoField label="Attorney Name" value={form.getValues("attorneyName")} />
+                                    <InfoField label="Attorney Phone" value={form.getValues("attorneyPhone")} />
                                 </>
                             )}
                         </CardContent>
