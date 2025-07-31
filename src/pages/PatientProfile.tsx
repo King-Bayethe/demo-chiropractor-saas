@@ -115,19 +115,19 @@ export default function PatientProfile() {
     setLoading(true);
     setSensitiveDataVisible(false); 
     try {
-      // Fetch contact and appointments in parallel
-      const [contactResponse, appointmentsResponse] = await Promise.all([
-          ghlApi.contacts.getById(patientId),
-          ghlApi.calendars.getAppointments({ contactId: patientId }) // Assumes this function exists in your hook
-      ]);
+      // Fetch contact data
+      const contactResponse = await ghlApi.contacts.getById(patientId);
 
       const patientData = contactResponse.contact || contactResponse;
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
       
-      // Set live appointments, sort them by date (most recent first)
-      const sortedAppointments = (appointmentsResponse.appointments || []).sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-      setAppointments(sortedAppointments);
+      // Set mock appointments for now (replace with actual GHL calendar API when available)
+      const mockAppointments = [
+        { id: "apt-1", startTime: "2025-06-15T10:00:00Z", status: "confirmed", title: "Follow-up Adjustment" },
+        { id: "apt-2", startTime: "2025-05-22T14:30:00Z", status: "completed", title: "Initial PIP Exam" }
+      ];
+      setAppointments(mockAppointments);
 
       // Reset form with only basic info
       form.reset({
