@@ -144,10 +144,25 @@ export default function PatientProfile() {
       });
 
       // Mock data for other related records
-      setSoapNotes([/* ... */]);
-      setInvoices([/* ... */]);
-      setFiles([/* ... */]);
-      setForms([/* ... */]);
+      setSoapNotes([
+         { id: "soap-1", date: new Date("2025-05-22"), provider: "Dr. Silverman", chiefComplaint: "Neck and back pain post-MVA", appointmentId: "apt-1" },
+         { id: "soap-2", date: new Date("2025-06-15"), provider: "Dr. Silverman", chiefComplaint: "Follow-up on cervical spine", appointmentId: "apt-2" }
+      ]);
+      setInvoices([
+        { id: "INV-PIP-001", date: new Date("2025-05-22"), amount: 350.00, description: "Initial PIP Exam & X-Rays", status: "pending" },
+        { id: "INV-PIP-002", date: new Date("2025-06-15"), amount: 150.00, description: "Chiropractic Adjustment", status: "pending" },
+      ]);
+      setFiles([
+        { id: "file-1", name: "Police_Report_MVA.pdf", type: "Legal", uploadDate: new Date("2025-05-21"), uploadedBy: "Front Desk" },
+        { id: "file-2", name: "Patient_Intake_Form.pdf", type: "Admin", uploadDate: new Date("2025-05-22"), uploadedBy: "Patient" },
+        { id: "file-3", name: "Cervical_XRay_Report.pdf", type: "Imaging", uploadDate: new Date("2025-05-23"), uploadedBy: "Dr. Silverman" }
+      ]);
+      setForms([
+        { id: "form-1", name: "PIP Intake Form", status: "completed", submissionDate: new Date("2025-05-22") },
+        { id: "form-2", name: "Medical History Questionnaire", status: "completed", submissionDate: new Date("2025-05-22") },
+        { id: "form-3", name: "HIPAA Acknowledgment", status: "completed", submissionDate: new Date("2025-05-22") },
+      ]);
+
 
     } catch (error) {
       console.error('Failed to load patient data:', error);
@@ -226,8 +241,20 @@ export default function PatientProfile() {
   };
   const handleEdit = () => setIsEditing(true);
   const handleCancel = () => { setIsEditing(false); loadPatientData(); };
-  const getStatusColor = (status: string) => { /* ... */ };
-  const formatCurrency = (amount: number) => { /* ... */ };
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "confirmed":
+      case "completed":
+        return "bg-green-500/10 text-green-600";
+      case "scheduled":
+      case "pending":
+        return "bg-blue-500/10 text-blue-600";
+      case "cancelled": return "bg-red-500/10 text-red-600";
+      case "noshow": return "bg-gray-500/10 text-gray-600";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
   const patientName = useMemo(() => `${form.getValues("firstName")} ${form.getValues("lastName")}`, [form.watch("firstName"), form.watch("lastName")]);
   const patientAge = useMemo(() => {
@@ -272,7 +299,33 @@ export default function PatientProfile() {
             </div>
           </div>
 
-          <Card className="shadow-md">{/* ... Banner Card ... */}</Card>
+          <Card className="shadow-md">
+            <CardContent className="p-6 flex items-center gap-6">
+              <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                <AvatarImage src={patient.profilePictureUrl || ''} alt={patientName} />
+                <AvatarFallback className="text-3xl font-semibold">{patient.firstName?.[0]}{patient.lastName?.[0]}</AvatarFallback>
+              </Avatar>
+              <div className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-3xl font-bold">{patientName}</h2>
+                    <div className="flex items-center gap-4 text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" /> {form.getValues("email") || 'N/A'}</span>
+                      <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> {form.getValues("phone") || 'N/A'}</span>
+                    </div>
+                  </div>
+                   <Badge variant="outline" className="border-green-500 text-green-600">Active PIP Case</Badge>
+                </div>
+                <div className="border-t my-4"></div>
+                <div className="grid grid-cols-4 gap-4 text-sm">
+                   <InfoField label="Age" value={patientAge} />
+                   <InfoField label="Accident" value={form.getValues("dateOfAccident") ? format(form.getValues("dateOfAccident")!, 'MMM d, yyyy') : null} />
+                   <InfoField label="Last Visit" value={appointments[0] ? format(new Date(appointments[0].startTime), 'MMM d, yyyy') : 'N/A'} />
+                   <InfoField label="Balance" value={<span className="text-destructive">{formatCurrency(invoices.reduce((sum, inv) => sum + inv.amount, 0))}</span>} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 space-y-6">
@@ -366,7 +419,72 @@ export default function PatientProfile() {
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="files">Files</TabsTrigger>
                 </TabsList>
-                {/* ... All TabsContent sections ... */}
+                <TabsContent value="appointments">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>Appointment History</CardTitle>
+                        <Button><Plus className="w-4 h-4 mr-2" /> Book Appointment</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {appointments.length > 0 ? appointments.map(apt => (
+                            <div key={apt.id} className="flex justify-between items-center p-2 border-b">
+                                <div>
+                                    <p className="font-semibold">{apt.title || 'Appointment'}</p>
+                                    <p className="text-sm text-muted-foreground">{format(new Date(apt.startTime), 'PPP p')}</p>
+                                </div>
+                                <Badge variant="secondary" className={getStatusColor(apt.status)}>{apt.status}</Badge>
+                            </div>
+                        )) : <p className="text-center text-muted-foreground p-4">No appointments found.</p>}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="tasks">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>Tasks</CardTitle>
+                        <Button><Plus className="w-4 h-4 mr-2" /> Add Task</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {tasks.length > 0 ? tasks.map(task => (
+                            <div key={task.id} className="flex justify-between items-center p-2 border-b">
+                                <div>
+                                    <p className="font-semibold">{task.title || 'Task'}</p>
+                                    <p className="text-sm text-muted-foreground">Due: {format(new Date(task.dueDate), 'PPP')}</p>
+                                </div>
+                                <Badge variant="secondary" className={getStatusColor(task.status)}>{task.status}</Badge>
+                            </div>
+                        )) : <p className="text-center text-muted-foreground p-4">No tasks found.</p>}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                 <TabsContent value="soap-notes">
+                   <Card><CardHeader><CardTitle>SOAP Notes</CardTitle></CardHeader><CardContent className="space-y-2">{soapNotes.map(note => <div key={note.id} className="flex justify-between items-center p-2 border-b"><p>{note.chiefComplaint} - {format(note.date, 'PPP')}</p><Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button></div>)}</CardContent></Card>
+                </TabsContent>
+                <TabsContent value="forms">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>Form Submissions</CardTitle>
+                        <Button><Plus className="w-4 h-4 mr-2" /> Send Form</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {forms.length > 0 ? forms.map(form => (
+                            <div key={form.id} className="flex justify-between items-center p-2 border-b">
+                                <div>
+                                    <p className="font-semibold">{form.name}</p>
+                                    <p className="text-sm text-muted-foreground">Submitted: {format(form.submissionDate, 'PPP')}</p>
+                                </div>
+                                <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                            </div>
+                        )) : <p className="text-center text-muted-foreground p-4">No form submissions found.</p>}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                 <TabsContent value="invoices">
+                   <Card><CardHeader><CardTitle>Invoices</CardTitle></CardHeader><CardContent className="space-y-2">{invoices.map(inv => <div key={inv.id} className="flex justify-between items-center p-2 border-b"><div><p>{inv.id} - {inv.description}</p><p className="text-sm text-muted-foreground">{formatCurrency(inv.amount)}</p></div><Badge variant="secondary" className={getStatusColor(inv.status)}>{inv.status}</Badge></div>)}</CardContent></Card>
+                </TabsContent>
+                 <TabsContent value="files">
+                   <Card><CardHeader><CardTitle>Files</CardTitle></CardHeader><CardContent className="space-y-2">{files.map(file => <div key={file.id} className="flex justify-between items-center p-2 border-b"><p>{file.name}</p><div className="flex gap-2"><Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button><Button variant="ghost" size="icon"><Download className="h-4 w-4" /></Button></div></div>)}</CardContent></Card>
+                </TabsContent>
               </Tabs>
             </div>
           </div>
