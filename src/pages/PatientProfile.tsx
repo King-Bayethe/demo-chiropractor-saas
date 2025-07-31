@@ -25,7 +25,7 @@ import {
   BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase
 } from "lucide-react";
 
-// Form schema with fields matching GHL
+// Form schema updated with all relevant fields
 const patientFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
@@ -47,6 +47,10 @@ const patientFormSchema = z.object({
   healthInsuranceId: z.string().optional(),
   attorneyName: z.string().optional(),
   attorneyPhone: z.string().optional(),
+  adjustersName: z.string().optional(),
+  insurancePhoneNumber: z.string().optional(),
+  groupNumber: z.string().optional(),
+  medicaidMedicareId: z.string().optional(),
 });
 
 type PatientFormData = z.infer<typeof patientFormSchema>;
@@ -58,19 +62,26 @@ const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
     return field ? field.value : undefined;
 };
 
-// Using actual Custom Field IDs from your GHL screenshot
+// UPDATED: Using actual Custom Field IDs from your latest GHL screenshot
 const CUSTOM_FIELD_IDS = {
-  dateOfAccident: 'aWQjhJvshJvshN0coM2Ew',
-  claimNumber: 'hI7cK3VoG9XdkHZEE7Vj',
-  policyNumber: 'yH8ULGUlU3XPXfJkZ8B4',
-  autoInsuranceCompany: 'oFzEgb2y1hbiTjP5VvA2',
-  healthInsurance: '1zrW9idqNMbLWrZvcPee',
-  healthInsuranceId: 'k4sW9iLq0pMHYfJkZ8B4',
-  attorneyName: 'Kdh3NRFD0DIfhoE86TzT',
-  attorneyPhone: 'ArS1W9iLq0pMHYfJkZ8B',
   emergencyContactName: 'l7yGH2qMIQ16VhyaxLMM',
-  didGoToHospital: 'yozLiFhvkMaXG4pW9iLq',
-  hospitalName: 'oFzEgb2y1hbiTjP5VvA2',
+  licenseState: '56tdWdGkTL7J9zVAFQK99',
+  passengersInVehicle: 'prFSE2e2b45Xh7vwAZW',
+  autoInsuranceCompany: 'hzC43YgB8BgpXdhZn6e7A',
+  claimNumber: 'yhO8LGlEuYpxPJrRJZJBHc',
+  policyNumber: 'gNjGqTJP17iRgDRr28BUV',
+  adjustersName: '7TZahJAuelIjP9luqL4Er',
+  insurancePhoneNumber: 'eSgX4XYLb3h8lkBky186Y',
+  attorneyPhone: '4rSh8nIAnaYLFu9Cby9w',
+  attorneyName: 'Kdh3NRFD0DIfhoE86TzT',
+  healthInsurance: '1zrW9idqNMbLWrZvcPee',
+  groupNumber: '3CfGgeMzAkwky49Z096a8',
+  healthInsuranceId: 'tCXf5iQn9TjEv00wZko',
+  medicaidMedicareId: 'YzPjcJSaTJDsmwxHLTpe',
+  // NOTE: These IDs are not visible in the log, please find them in your GHL settings
+  dateOfAccident: 'REPLACE_WITH_REAL_ID_FROM_GHL',
+  didGoToHospital: 'REPLACE_WITH_REAL_ID_FROM_GHL',
+  hospitalName: 'REPLACE_WITH_REAL_ID_FROM_GHL',
 };
 
 export default function PatientProfile() {
@@ -105,7 +116,6 @@ export default function PatientProfile() {
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
 
-      // CORRECTED: Use `customFields` (plural) to match the API response
       const customFields = patientData.customFields || [];
       form.reset({
         firstName: patientData.firstName || "",
@@ -118,6 +128,10 @@ export default function PatientProfile() {
         state: patientData.state || "",
         zipCode: patientData.postalCode || "",
         
+        // Map all fields using the correct IDs
+        emergencyContactName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.emergencyContactName),
+        didGoToHospital: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.didGoToHospital),
+        hospitalName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.hospitalName),
         dateOfAccident: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.dateOfAccident) ? new Date(getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.dateOfAccident)) : undefined,
         claimNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.claimNumber),
         policyNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.policyNumber),
@@ -126,9 +140,10 @@ export default function PatientProfile() {
         healthInsuranceId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.healthInsuranceId),
         attorneyName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.attorneyName),
         attorneyPhone: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.attorneyPhone),
-        emergencyContactName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.emergencyContactName),
-        didGoToHospital: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.didGoToHospital),
-        hospitalName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.hospitalName),
+        adjustersName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.adjustersName),
+        insurancePhoneNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.insurancePhoneNumber),
+        groupNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.groupNumber),
+        medicaidMedicareId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.medicaidMedicareId),
       });
 
       // Mock data for related records
@@ -275,6 +290,10 @@ export default function PatientProfile() {
                         <InfoField label="Auto Insurance" value={form.getValues("autoInsuranceCompany")} />
                         <InfoField label="Health Insurance" value={form.getValues("healthInsurance")} />
                         <InfoField label="Health Insurance ID" value={form.getValues("healthInsuranceId")} />
+                         <InfoField label="Group #" value={form.getValues("groupNumber")} />
+                        <InfoField label="Medicaid/Medicare ID" value={form.getValues("medicaidMedicareId")} />
+                        <InfoField label="Adjuster's Name" value={form.getValues("adjustersName")} />
+                        <InfoField label="Insurance Phone #" value={form.getValues("insurancePhoneNumber")} />
                     </CardContent>
                   </Card>
 
