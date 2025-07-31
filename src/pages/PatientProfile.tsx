@@ -115,19 +115,16 @@ export default function PatientProfile() {
     setLoading(true);
     setSensitiveDataVisible(false); 
     try {
-      // Fetch contact data
-      const contactResponse = await ghlApi.contacts.getById(patientId);
+      // MODIFIED: Make a single API call to get the combined contact and appointment data
+      const response = await ghlApi.contacts.getById(patientId);
 
-      const patientData = contactResponse.contact || contactResponse;
+      const patientData = response.contact || response;
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
       
-      // Mock appointments data for now
-      const mockAppointments = [
-        { id: "apt-1", title: "Initial Consultation", startTime: "2025-05-22T10:00:00Z", status: "confirmed" },
-        { id: "apt-2", title: "Follow-up", startTime: "2025-06-15T14:30:00Z", status: "scheduled" },
-      ];
-      setAppointments(mockAppointments);
+      // MODIFIED: Extract appointments from the same response object
+      const sortedAppointments = (response.appointments || []).sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+      setAppointments(sortedAppointments);
 
       // Reset form with only basic info
       form.reset({
@@ -142,7 +139,7 @@ export default function PatientProfile() {
         zipCode: patientData.postalCode || "",
       });
 
-      // Mock data for other related records
+      // Mock data for other related records (can be replaced with live data later)
       setSoapNotes([
          { id: "soap-1", date: new Date("2025-05-22"), provider: "Dr. Silverman", chiefComplaint: "Neck and back pain post-MVA", appointmentId: "apt-1" },
          { id: "soap-2", date: new Date("2025-06-15"), provider: "Dr. Silverman", chiefComplaint: "Follow-up on cervical spine", appointmentId: "apt-2" }
