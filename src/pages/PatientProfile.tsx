@@ -211,8 +211,45 @@ export default function PatientProfile() {
     return dob ? differenceInYears(new Date(), dob) : null;
   }, [form.watch("dateOfBirth")]);
 
-  if (loading) { /* ... Loading UI ... */ }
-  if (!patient) { /* ... Not Found UI ... */ }
+  if (loading) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="p-6">
+            <div className="animate-pulse space-y-6">
+              <div className="h-8 bg-muted rounded w-48"></div>
+              <div className="h-32 bg-muted rounded"></div>
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-4">
+                  <div className="h-64 bg-muted rounded"></div>
+                </div>
+                <div className="col-span-2">
+                  <div className="h-96 bg-muted rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="p-6 text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Patient Not Found</h1>
+            <p className="text-muted-foreground mb-4">The requested patient could not be found.</p>
+            <Button onClick={() => navigate('/patients')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Patients
+            </Button>
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
 
   return (
     <AuthGuard>
