@@ -93,6 +93,7 @@ export default function PatientProfile() {
   const [soapNotes, setSoapNotes] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [files, setFiles] = useState<any[]>([]);
+  const [forms, setForms] = useState<any[]>([]); // New state for forms
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -125,7 +126,6 @@ export default function PatientProfile() {
       const sortedAppointments = (response.appointments || []).sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       setAppointments(sortedAppointments);
 
-      // Set tasks from the API response
       const sortedTasks = (response.tasks || []).sort((a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
       setTasks(sortedTasks);
 
@@ -155,6 +155,13 @@ export default function PatientProfile() {
         { id: "file-2", name: "Patient_Intake_Form.pdf", type: "Admin", uploadDate: new Date("2025-05-22"), uploadedBy: "Patient" },
         { id: "file-3", name: "Cervical_XRay_Report.pdf", type: "Imaging", uploadDate: new Date("2025-05-23"), uploadedBy: "Dr. Silverman" }
       ]);
+      // New mock data for forms
+      setForms([
+        { id: "form-1", name: "PIP Intake Form", status: "completed", submissionDate: new Date("2025-05-22") },
+        { id: "form-2", name: "Medical History Questionnaire", status: "completed", submissionDate: new Date("2025-05-22") },
+        { id: "form-3", name: "HIPAA Acknowledgment", status: "completed", submissionDate: new Date("2025-05-22") },
+      ]);
+
 
     } catch (error) {
       console.error('Failed to load patient data:', error);
@@ -358,10 +365,11 @@ export default function PatientProfile() {
 
             <div className="lg:col-span-2">
               <Tabs defaultValue="appointments" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="appointments">Appointments</TabsTrigger>
                   <TabsTrigger value="tasks">Tasks</TabsTrigger>
                   <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
+                  <TabsTrigger value="forms">Forms</TabsTrigger>
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="files">Files</TabsTrigger>
                 </TabsList>
@@ -405,6 +413,25 @@ export default function PatientProfile() {
                 </TabsContent>
                  <TabsContent value="soap-notes">
                    <Card><CardHeader><CardTitle>SOAP Notes</CardTitle></CardHeader><CardContent className="space-y-2">{soapNotes.map(note => <div key={note.id} className="flex justify-between items-center p-2 border-b"><p>{note.chiefComplaint} - {format(note.date, 'PPP')}</p><Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button></div>)}</CardContent></Card>
+                </TabsContent>
+                <TabsContent value="forms">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>Form Submissions</CardTitle>
+                        <Button><Plus className="w-4 h-4 mr-2" /> Send Form</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {forms.length > 0 ? forms.map(form => (
+                            <div key={form.id} className="flex justify-between items-center p-2 border-b">
+                                <div>
+                                    <p className="font-semibold">{form.name}</p>
+                                    <p className="text-sm text-muted-foreground">Submitted: {format(form.submissionDate, 'PPP')}</p>
+                                </div>
+                                <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                            </div>
+                        )) : <p className="text-center text-muted-foreground p-4">No form submissions found.</p>}
+                    </CardContent>
+                  </Card>
                 </TabsContent>
                  <TabsContent value="invoices">
                    <Card><CardHeader><CardTitle>Invoices</CardTitle></CardHeader><CardContent className="space-y-2">{invoices.map(inv => <div key={inv.id} className="flex justify-between items-center p-2 border-b"><div><p>{inv.id} - {inv.description}</p><p className="text-sm text-muted-foreground">{formatCurrency(inv.amount)}</p></div><Badge variant="secondary" className={getStatusColor(inv.status)}>{inv.status}</Badge></div>)}</CardContent></Card>
