@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle,
-  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase
+  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock
 } from "lucide-react";
 
 // Form schema updated with all relevant fields
@@ -75,7 +75,7 @@ const CUSTOM_FIELD_IDS = {
   attorneyPhone: '4rSH8n1ANAYLFU9Cby9W',
   attorneyName: 'Kdh3NRFD0DIfhoE86TzT',
   healthInsurance: '1zrW9idqNMbLWrZvcPee',
-  groupNumber: '3CFGGeMzAwkv49z096aB',
+  groupNumber: '"3CFGGeMzAwkv49z096aB',
   healthInsuranceId: 'tCxf5IqN97TJev00wzkO',
   medicaidMedicareId: 'Y7PjcJSaTjDsmwxHLtpe',
   // NOTE: These IDs are not visible in the log, please find them in your GHL settings
@@ -97,6 +97,10 @@ export default function PatientProfile() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const ghlApi = useGHLApi();
+  
+  // NEW: State to manage visibility of sensitive data
+  const [sensitiveDataVisible, setSensitiveDataVisible] = useState(false);
+  const [loadingSensitive, setLoadingSensitive] = useState(false);
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -110,13 +114,15 @@ export default function PatientProfile() {
   
   const loadPatientData = async () => {
     setLoading(true);
+    setSensitiveDataVisible(false); // Reset visibility on new patient load
     try {
+      // Step 1: Fetch only non-sensitive data initially
       const response = await ghlApi.contacts.getById(patientId);
       const patientData = response.contact || response;
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
 
-      const customFields = patientData.customFields || [];
+      // Reset form with only basic info
       form.reset({
         firstName: patientData.firstName || "",
         lastName: patientData.lastName || "",
@@ -127,23 +133,6 @@ export default function PatientProfile() {
         city: patientData.city || "",
         state: patientData.state || "",
         zipCode: patientData.postalCode || "",
-        
-        // Map all fields using the correct IDs
-        emergencyContactName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.emergencyContactName),
-        didGoToHospital: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.didGoToHospital),
-        hospitalName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.hospitalName),
-        dateOfAccident: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.dateOfAccident) ? new Date(getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.dateOfAccident)) : undefined,
-        claimNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.claimNumber),
-        policyNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.policyNumber),
-        autoInsuranceCompany: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.autoInsuranceCompany),
-        healthInsurance: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.healthInsurance),
-        healthInsuranceId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.healthInsuranceId),
-        attorneyName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.attorneyName),
-        attorneyPhone: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.attorneyPhone),
-        adjustersName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.adjustersName),
-        insurancePhoneNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.insurancePhoneNumber),
-        groupNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.groupNumber),
-        medicaidMedicareId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.medicaidMedicareId),
       });
 
       // Mock data for related records
@@ -173,6 +162,42 @@ export default function PatientProfile() {
       setLoading(false);
     }
   };
+
+  // NEW: Function to fetch and reveal sensitive data on demand
+  const loadSensitiveData = async () => {
+    setLoadingSensitive(true);
+    try {
+        const response = await ghlApi.contacts.getById(patientId);
+        const patientData = response.contact || response;
+        if (!patientData) throw new Error("Patient data could not be found.");
+        
+        const customFields = patientData.customFields || [];
+        // Update the form with the sensitive data
+        form.reset({
+            ...form.getValues(), // Keep existing basic data
+            emergencyContactName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.emergencyContactName),
+            didGoToHospital: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.didGoToHospital),
+            hospitalName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.hospitalName),
+            dateOfAccident: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.dateOfAccident) ? new Date(getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.dateOfAccident)) : undefined,
+            claimNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.claimNumber),
+            policyNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.policyNumber),
+            autoInsuranceCompany: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.autoInsuranceCompany),
+            healthInsurance: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.healthInsurance),
+            healthInsuranceId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.healthInsuranceId),
+            attorneyName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.attorneyName),
+            attorneyPhone: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.attorneyPhone),
+            adjustersName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.adjustersName),
+            insurancePhoneNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.insurancePhoneNumber),
+            groupNumber: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.groupNumber),
+            medicaidMedicareId: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.medicaidMedicareId),
+        });
+        setSensitiveDataVisible(true);
+    } catch (error) {
+        toast({ title: "Error", description: "Could not load sensitive patient details.", variant: "destructive" });
+    } finally {
+        setLoadingSensitive(false);
+    }
+  }
 
   const handleSave = async (data: PatientFormData) => { /* ... */ };
   const handleEdit = () => setIsEditing(true);
@@ -267,43 +292,63 @@ export default function PatientProfile() {
                     <CardHeader><CardTitle className="flex items-center gap-2"><User className="text-primary" /> Demographics</CardTitle></CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <InfoField label="Full Name" value={patientName} />
-                      <InfoField label="Date of Birth" value={form.getValues("dateOfBirth") ? format(form.getValues("dateOfBirth")!, 'PPP') : null} />
+                      <InfoField label="Date of Birth" value={form.getValues("dateOfBirth") ? format(form.getValues("dateOfBirth")!, 'PPP') : 'N/A'} />
                       <div className="col-span-2"><InfoField label="Address" value={form.getValues("streetAddress")} /></div>
-                      <InfoField label="Emergency Contact" value={form.getValues("emergencyContactName")} />
+                      {sensitiveDataVisible ? (
+                        <InfoField label="Emergency Contact" value={form.getValues("emergencyContactName")} />
+                      ) : <div className="col-span-2"/>}
                     </CardContent>
                   </Card>
                   
-                  <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><HeartPulse className="text-red-500" /> Medical Info</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                         <InfoField label="Went to Hospital?" value={form.getValues("didGoToHospital")} />
-                         <InfoField label="Hospital Name" value={form.getValues("hospitalName")} />
-                    </CardContent>
-                  </Card>
+                  {sensitiveDataVisible ? (
+                    <>
+                      <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><HeartPulse className="text-red-500" /> Medical Info</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <InfoField label="Went to Hospital?" value={form.getValues("didGoToHospital")} />
+                            <InfoField label="Hospital Name" value={form.getValues("hospitalName")} />
+                        </CardContent>
+                      </Card>
 
-                  <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="text-blue-500" /> Insurance & Case Info</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <InfoField label="Date of Accident" value={form.getValues("dateOfAccident") ? format(form.getValues("dateOfAccident")!, 'PPP') : null} />
-                        <InfoField label="Claim #" value={form.getValues("claimNumber")} />
-                        <InfoField label="Policy #" value={form.getValues("policyNumber")} />
-                        <InfoField label="Auto Insurance" value={form.getValues("autoInsuranceCompany")} />
-                        <InfoField label="Health Insurance" value={form.getValues("healthInsurance")} />
-                        <InfoField label="Health Insurance ID" value={form.getValues("healthInsuranceId")} />
-                         <InfoField label="Group #" value={form.getValues("groupNumber")} />
-                        <InfoField label="Medicaid/Medicare ID" value={form.getValues("medicaidMedicareId")} />
-                        <InfoField label="Adjuster's Name" value={form.getValues("adjustersName")} />
-                        <InfoField label="Insurance Phone #" value={form.getValues("insurancePhoneNumber")} />
-                    </CardContent>
-                  </Card>
+                      <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="text-blue-500" /> Insurance & Case Info</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <InfoField label="Date of Accident" value={form.getValues("dateOfAccident") ? format(form.getValues("dateOfAccident")!, 'PPP') : null} />
+                            <InfoField label="Claim #" value={form.getValues("claimNumber")} />
+                            <InfoField label="Policy #" value={form.getValues("policyNumber")} />
+                            <InfoField label="Auto Insurance" value={form.getValues("autoInsuranceCompany")} />
+                            <InfoField label="Health Insurance" value={form.getValues("healthInsurance")} />
+                            <InfoField label="Health Insurance ID" value={form.getValues("healthInsuranceId")} />
+                            <InfoField label="Group #" value={form.getValues("groupNumber")} />
+                            <InfoField label="Medicaid/Medicare ID" value={form.getValues("medicaidMedicareId")} />
+                            <InfoField label="Adjuster's Name" value={form.getValues("adjustersName")} />
+                            <InfoField label="Insurance Phone #" value={form.getValues("insurancePhoneNumber")} />
+                        </CardContent>
+                      </Card>
 
-                   <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><Gavel className="text-amber-600" /> Legal Representation</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <InfoField label="Attorney Name" value={form.getValues("attorneyName")} />
-                        <InfoField label="Attorney Phone" value={form.getValues("attorneyPhone")} />
-                    </CardContent>
-                  </Card>
+                      <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><Gavel className="text-amber-600" /> Legal Representation</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <InfoField label="Attorney Name" value={form.getValues("attorneyName")} />
+                            <InfoField label="Attorney Phone" value={form.getValues("attorneyPhone")} />
+                        </CardContent>
+                      </Card>
+                    </>
+                  ) : (
+                    <Card className="border-dashed border-yellow-500 bg-yellow-500/5">
+                        <CardContent className="p-6 text-center">
+                            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-yellow-500/20 mb-4">
+                               <Lock className="h-6 w-6 text-yellow-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold">Sensitive Information</h3>
+                            <p className="text-sm text-muted-foreground mb-4">Medical, Insurance, and Legal details are protected.</p>
+                            <Button onClick={loadSensitiveData} disabled={loadingSensitive}>
+                                {loadingSensitive ? <Clock className="animate-spin h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                                View Sensitive Info
+                            </Button>
+                        </CardContent>
+                    </Card>
+                  )}
                 </form>
               </Form>
             </div>
