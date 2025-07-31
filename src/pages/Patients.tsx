@@ -126,7 +126,15 @@ export default function Patients() {
   const handlePatientSelect = (patient: any) => navigate(`/patients/${patient.id}`);
   const handleMessagePatient = (patient: any) => { /* ... */ };
   const handleBookAppointment = (patient: any) => { /* ... */ };
-  const getPatientType = (patient: any) => { /* ... */ };
+  const getPatientType = (patient: any) => {
+    if (patient.tags?.some((tag: string) => tag.toLowerCase().includes('treatment'))) {
+      return 'Treatment Patient';
+    }
+    if (patient.tags?.some((tag: string) => tag.toLowerCase().includes('consultation'))) {
+      return 'Consultation';
+    }
+    return 'General Patient';
+  };
   const getLastAppointment = (patient: any) => { /* ... */ };
   const getTotalVisits = (patient: any) => { /* ... */ };
   const handleAddPatient = () => { /* ... */ };
