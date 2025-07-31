@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabaseClient"; // Assuming you have a Supabase client configured
+import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
@@ -20,7 +21,7 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
-  ArrowLeft, Phone, Mail, Calendar, CalendarIcon, FileText, MessageSquare, DollarSign,
+  ArrowLeft, Phone, Mail, CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle, BarChart3,
   Save, X, Check
 } from "lucide-react";
@@ -141,25 +142,11 @@ export default function PatientProfile() {
           : undefined,
       });
 
-      // 3. Fetch related data from Supabase tables
-      const [appointmentsRes, soapNotesRes, invoicesRes, filesRes] = await Promise.all([
-        supabase.from('appointments').select('*').eq('patient_id', patientId).order('date', { ascending: false }),
-        supabase.from('soap_notes').select('*').eq('patient_id', patientId).order('date', { ascending: false }),
-        supabase.from('invoices').select('*').eq('patient_id', patientId).order('date', { ascending: false }),
-        supabase.from('files').select('*').eq('patient_id', patientId).order('uploadDate', { ascending: false })
-      ]);
-
-      if (appointmentsRes.error) console.error("Error fetching appointments:", appointmentsRes.error.message);
-      else setAppointments(appointmentsRes.data || []);
-      
-      if (soapNotesRes.error) console.error("Error fetching SOAP notes:", soapNotesRes.error.message);
-      else setSoapNotes(soapNotesRes.data || []);
-
-      if (invoicesRes.error) console.error("Error fetching invoices:", invoicesRes.error.message);
-      else setInvoices(invoicesRes.data || []);
-
-      if (filesRes.error) console.error("Error fetching files:", filesRes.error.message);
-      else setFiles(filesRes.data || []);
+      // 3. Initialize empty data for related information (tables don't exist yet)
+      setAppointments([]);
+      setSoapNotes([]);
+      setInvoices([]);
+      setFiles([]);
 
     } catch (error: any) {
       console.error('Failed to load patient data:', error);
@@ -308,8 +295,287 @@ export default function PatientProfile() {
   return (
     <AuthGuard>
       <Layout>
-        {/* The entire JSX for the page layout follows, no changes needed here */}
-        {/* ... (paste your original return() JSX here) ... */}
+        <div className="p-6 space-y-6">
+          {/* Header Section */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/patients')}
+                className="flex items-center"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Patients
+              </Button>
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                    {getPatientName(patient).split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h1 className="text-3xl font-bold">{patientName}</h1>
+                  <p className="text-muted-foreground">Patient ID: {patientId}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              {isEditing ? (
+                <>
+                  <Button 
+                    onClick={form.handleSubmit(handleSave)} 
+                    disabled={saving}
+                    className="flex items-center"
+                  >
+                    {saving ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    Save Changes
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancel}
+                    disabled={saving}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={handleEdit}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Patient
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Patient Information Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Personal Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Personal Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <Form {...form}>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>First Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Last Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="email" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="tel" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="dateOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date of Birth</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  disabled={(date) =>
+                                    date > new Date() || date < new Date("1900-01-01")
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </Form>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-muted-foreground">Email:</span>
+                      <div className="font-medium">{patient.email || "Not provided"}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Phone:</span>
+                      <div className="font-medium">{patient.phone || "Not provided"}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Date of Birth:</span>
+                      <div className="font-medium">
+                        {patient.dateOfBirth ? format(new Date(patient.dateOfBirth), "PPP") : "Not provided"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Address:</span>
+                      <div className="font-medium">
+                        {patient.address1 ? (
+                          <>
+                            {patient.address1}<br />
+                            {patient.city}, {patient.state} {patient.postalCode}
+                          </>
+                        ) : "Not specified"}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Phone className="w-5 h-5 mr-2" />
+                  Emergency Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <Form {...form}>
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="emergencyContactName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Emergency Contact Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="emergencyContactPhone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Emergency Contact Phone</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="tel" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </Form>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-muted-foreground">Name:</span>
+                      <div className="font-medium">
+                        {getCustomFieldValue(patient.customField, 'Emergency Contact Name') || "Not provided"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Phone:</span>
+                      <div className="font-medium">
+                        {getCustomFieldValue(patient.customField, 'Emergency Contact Phone') || "Not provided"}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-4">
+            <Button onClick={handleBookAppointment} className="flex items-center">
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              Book Appointment
+            </Button>
+            <Button variant="outline" onClick={handleSendMessage} className="flex items-center">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Send Message
+            </Button>
+            <Button variant="outline" className="flex items-center">
+              <FileText className="w-4 h-4 mr-2" />
+              View Records
+            </Button>
+          </div>
+        </div>
       </Layout>
     </AuthGuard>
   );
