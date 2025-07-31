@@ -65,11 +65,11 @@ const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
 // UPDATED: Using actual Custom Field IDs from your latest GHL screenshot
 const CUSTOM_FIELD_IDS = {
   emergencyContactName: 'l7yGH2qMIQ16VhyaxLMM',
-  licenseState: '56tdWdGkTL7J9zVAFQK99',
-  passengersInVehicle: 'prFSE2e2b45Xh7vwAZW',
-  autoInsuranceCompany: 'hzC43YgB8BgpXdhZn6e7A',
-  claimNumber: 'yhO8LGlEuYpxPJrRJZJBHc',
-  policyNumber: 'gNjGqTJP17iRgDRr28BUV',
+  licenseState: '5GIdwGCEYt75pVaFQK99',
+  passengersInVehicle: 'pRFYSE2e2bo45V7wvAZw',
+  autoInsuranceCompany: 'hzC43VG8BgpXdhZn6e7A',
+  claimNumber: 'yh0BLG1EUyPxPJRZJBHC',
+  policyNumber: 'gNjgQtJpI71rgDR28BUV',
   adjustersName: '7TZahJAuelIjP9luqL4Er',
   insurancePhoneNumber: 'eSgX4XYLb3h8lkBky186Y',
   attorneyPhone: '4rSh8nIAnaYLFu9Cby9w',
