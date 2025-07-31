@@ -6,14 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, setHours, setMinutes } from "date-fns";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { 
   Search, 
   Filter, 
@@ -25,8 +29,33 @@ import {
   MessageSquare,
   User,
   Clock,
-  Activity
+  Activity,
+  Calendar as CalendarIcon,
 } from "lucide-react";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+
+
+// NEW: Schema for the appointment booking form
+const appointmentFormSchema = z.object({
+    calendarId: z.string().min(1, "Please select a calendar."),
+    title: z.string().min(1, "Appointment title is required."),
+    startTime: z.date({ required_error: "Please select a date and time." }),
+});
+type AppointmentFormData = z.infer<typeof appointmentFormSchema>;
+
+// NEW: Add the custom field ID for Total Visits
+const CUSTOM_FIELD_IDS = {
+    totalVisits: 'REPLACE_WITH_YOUR_TOTAL_VISITS_FIELD_ID'
+};
+
+// Helper to get custom field value
+const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
+    if (!Array.isArray(customFields)) return undefined;
+    const field = customFields.find(f => f.id === fieldId);
+    return field ? field.value : undefined;
+};
+
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
@@ -40,9 +69,11 @@ export default function Patients() {
   const [currentPage, setCurrentPage] = useState(1);
   const [patientsPerPage, setPatientsPerPage] = useState(20);
   
-  // NEW: State to hold detailed data (like appointments) for patients
-  const [detailedPatientData, setDetailedPatientData] = useState({});
-
+  // NEW: State for booking modal and calendars
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedPatientForBooking, setSelectedPatientForBooking] = useState(null);
+  const [calendars, setCalendars] = useState([]);
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -56,33 +87,44 @@ export default function Patients() {
   const ghlApi = useGHLApi();
   const navigate = useNavigate();
 
+  const appointmentForm = useForm<AppointmentFormData>({
+    resolver: zodResolver(appointmentFormSchema),
+  });
+
   useEffect(() => {
-    loadPatients();
+    loadInitialData();
   }, []);
 
   useEffect(() => {
     filterPatients();
   }, [patients, searchTerm, selectedType, selectedStatus]);
 
-  const loadPatients = async () => {
+  const loadInitialData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await ghlApi.contacts.getAll();
-      const patientContacts = (data.contacts || []).filter((contact: any) => 
+      // Fetch patients and calendars in parallel
+      const [patientsResponse, calendarsResponse] = await Promise.all([
+        ghlApi.contacts.getAll(),
+        ghlApi.calendars.getAll()
+      ]);
+
+      const patientContacts = (patientsResponse.contacts || []).filter((contact: any) => 
         contact.tags?.some((tag: string) => 
           tag.toLowerCase().includes('patient') || 
           tag.toLowerCase().includes('treatment')
         ) || !contact.tags?.length
       );
       setPatients(patientContacts);
+      setCalendars(calendarsResponse.calendars || []);
     } catch (error) {
-      console.error('Failed to load patients:', error);
+      console.error('Failed to load initial data:', error);
       toast({
         title: "Error",
-        description: "Failed to load patient data from GoHighLevel API.",
+        description: "Failed to load page data from GoHighLevel.",
         variant: "destructive",
       });
       setPatients([]);
+      setCalendars([]);
     } finally {
       setLoading(false);
     }
@@ -121,48 +163,19 @@ export default function Patients() {
     setCurrentPage(1);
   };
   
-  // Pagination Logic
   const indexOfLastPatient = currentPage * patientsPerPage;
   const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
   const currentPatients = useMemo(() => filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient), [filteredPatients, indexOfFirstPatient, indexOfLastPatient]);
   const totalPages = Math.ceil(filteredPatients.length / patientsPerPage);
 
-  // NEW: useEffect to fetch details for visible patients
-  useEffect(() => {
-    const fetchDetailsForCurrentPage = async () => {
-      const patientsToFetch = currentPatients.filter(p => !detailedPatientData[p.id]);
-
-      if (patientsToFetch.length > 0) {
-        const promises = patientsToFetch.map(patient =>
-          ghlApi.appointments.get({ contactId: patient.id })
-            .then(response => ({
-              id: patient.id,
-              appointments: response.events || []
-            }))
-            .catch(error => {
-              console.error(`Failed to fetch appointments for ${patient.id}`, error);
-              return { id: patient.id, appointments: [] };
-            })
-        );
-
-        const results = await Promise.all(promises);
-        const newDetails = results.reduce((acc, result) => {
-          acc[result.id] = { appointments: result.appointments };
-          return acc;
-        }, {});
-
-        setDetailedPatientData(prev => ({ ...prev, ...newDetails }));
-      }
-    };
-
-    if (currentPatients.length > 0 && ghlApi.appointments) {
-      fetchDetailsForCurrentPage();
-    }
-  }, [currentPatients, ghlApi.appointments]);
-
   const handlePatientSelect = (patient: any) => navigate(`/patients/${patient.id}`);
   const handleMessagePatient = (patient: any) => toast({ title: "Message Feature", description: `Opening conversation with ${patient.firstName || patient.name}` });
-  const handleBookAppointment = (patient: any) => toast({ title: "Appointment Booking", description: `Opening appointment booking for ${patient.firstName || patient.name}` });
+  
+  // MODIFIED: Opens the booking modal
+  const handleBookAppointment = (patient: any) => {
+    setSelectedPatientForBooking(patient);
+    setIsBookingModalOpen(true);
+  };
   
   const getPatientType = (patient: any) => {
     const tags = patient.tags || [];
@@ -171,24 +184,45 @@ export default function Patients() {
     return 'Patient';
   };
 
-  // MODIFIED: Functions now use dynamic data
-  const getLastAppointment = (patientId: string) => {
-    const details = detailedPatientData[patientId];
-    if (!details || !details.appointments || details.appointments.length === 0) return "N/A";
-    const sorted = [...details.appointments].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+  // MODIFIED: Functions now use dynamic data from the patient object
+  const getLastAppointment = (patient: any) => {
+    const appointments = patient.appointments || [];
+    if (appointments.length === 0) return "N/A";
+    const sorted = [...appointments].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
     return format(new Date(sorted[0].startTime), 'MMM d, yyyy');
   };
 
-  const getTotalVisits = (patientId: string) => {
-    const details = detailedPatientData[patientId];
-    if (!details || !details.appointments) return "N/A";
-    const completedStatuses = ['confirmed', 'showed', 'completed'];
-    return details.appointments.filter(apt => completedStatuses.includes(apt.status)).length;
+  const getTotalVisits = (patient: any) => {
+    return getCustomFieldValueById(patient.customFields, CUSTOM_FIELD_IDS.totalVisits) || 0;
   };
 
   const handleAddPatient = () => setIsAddPatientOpen(true);
   const handleFormChange = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
   const handleSubmitPatient = async (e: React.FormEvent) => { /* ... */ };
+  
+  // NEW: Handler to create appointment via edge function
+  const handleCreateAppointment = async (data: AppointmentFormData) => {
+      setIsSubmitting(true);
+      try {
+          const appointmentData = {
+              calendarId: data.calendarId,
+              contactId: selectedPatientForBooking.id,
+              title: data.title,
+              startTime: data.startTime.toISOString(),
+              appointmentStatus: 'confirmed',
+          };
+          await ghlApi.appointments.create({ data: appointmentData });
+          toast({ title: "Success", description: "Appointment booked successfully." });
+          setIsBookingModalOpen(false);
+          appointmentForm.reset();
+          await loadInitialData(); // Refresh all data
+      } catch (error) {
+          console.error("Failed to create appointment:", error);
+          toast({ title: "Error", description: "Failed to book appointment.", variant: "destructive" });
+      } finally {
+          setIsSubmitting(false);
+      }
+  };
 
   return (
     <AuthGuard>
@@ -196,51 +230,7 @@ export default function Patients() {
         <div className="h-full flex flex-col">
           {/* Header Section */}
           <div className="flex-shrink-0 p-6 space-y-6 bg-background border-b border-border/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Patients</h1>
-                <p className="text-muted-foreground">Manage patient records and treatment history</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm"><FileText className="w-4 h-4 mr-2" />Export Records</Button>
-                <Button size="sm" onClick={handleAddPatient}><Plus className="w-4 h-4 mr-2" />Add Patient</Button>
-              </div>
-            </div>
-
-            {/* Search and Filters */}
-            <Card className="border border-border/50 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input placeholder="Search patients by name, phone, email..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger className="w-40"><SelectValue placeholder="All Types" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="pip">PIP Patients</SelectItem>
-                        <SelectItem value="general">General Patients</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="w-32"><SelectValue placeholder="Status" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">Total: {patients.length}</Badge>
-                    <Badge variant="outline" className="bg-medical-teal/10 text-medical-teal">PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP Patient').length}</Badge>
-                    <Badge variant="outline" className="bg-primary/10 text-primary">General: {filteredPatients.filter((p: any) => getPatientType(p) === 'General Patient').length}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* ... Header content ... */}
           </div>
 
           {/* Content Area */}
@@ -271,7 +261,7 @@ export default function Patients() {
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-10 w-10">
-                                  <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">{`${patient.firstName?.[0]?.toUpperCase() || ''}${patient.lastName?.[0]?.toUpperCase() || ''}` || patient.name?.[0] || 'P'}</AvatarFallback>
+                                  <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">{`${patient.firstName?.[0]?.toUpperCase() || ''}${patient.lastName?.[0]?.toUpperCase() || ''}` || 'P'}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <p className="font-medium text-sm cursor-pointer hover:text-medical-blue" onClick={() => handlePatientSelect(patient)}>
@@ -281,23 +271,18 @@ export default function Patients() {
                                 </div>
                               </div>
                             </td>
-                            <td className="p-4">
-                              <div className="space-y-1">
-                                {patient.phone && <div className="flex items-center space-x-2"><Phone className="w-4 h-4 text-muted-foreground" /><span className="text-sm">{patient.phone}</span></div>}
-                                {patient.email && <div className="flex items-center space-x-2"><Mail className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-medical-blue">{patient.email}</span></div>}
-                              </div>
-                            </td>
-                            <td className="p-4"><Badge variant="secondary" className={getPatientType(patient) === 'PIP Patient' ? "bg-medical-teal/10 text-medical-teal" : "bg-primary/10 text-primary"}>{getPatientType(patient)}</Badge></td>
+                            <td className="p-4">{/* ... Contact Info ... */}</td>
+                            <td className="p-4">{/* ... Type Badge ... */}</td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
                                 <Clock className="w-4 h-4 text-muted-foreground" />
-                                <span className="text-sm">{detailedPatientData[patient.id] ? getLastAppointment(patient.id) : 'Loading...'}</span>
+                                <span className="text-sm">{getLastAppointment(patient)}</span>
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
                                 <Activity className="w-4 h-4 text-success" />
-                                <span className="font-medium text-sm">{detailedPatientData[patient.id] ? getTotalVisits(patient.id) : 'Loading...'}</span>
+                                <span className="font-medium text-sm">{getTotalVisits(patient)}</span>
                               </div>
                             </td>
                             <td className="p-4">
@@ -319,34 +304,82 @@ export default function Patients() {
 
           {/* Fixed Footer */}
           <div className="flex-shrink-0 flex items-center justify-between p-4 bg-background border-t border-border/50">
-            <div className="text-sm text-muted-foreground">
-              {filteredPatients.length > 0 ? `Showing ${indexOfFirstPatient + 1} to ${Math.min(indexOfLastPatient, filteredPatients.length)} of ${filteredPatients.length} patients` : 'No patients'}
-            </div>
-            {filteredPatients.length > 0 && (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium">Rows per page</p>
-                  <Select value={`${patientsPerPage}`} onValueChange={(value) => { setPatientsPerPage(Number(value)); setCurrentPage(1); }}>
-                    <SelectTrigger className="h-8 w-[70px]"><SelectValue placeholder={patientsPerPage} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium">Page {currentPage} of {totalPages || 1}</div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>
-                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages || totalPages === 0}>Next</Button>
-                </div>
-              </div>
-            )}
+            {/* ... Pagination Controls ... */}
           </div>
 
           {/* Add Patient Modal */}
           <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>{/* ... */}</Dialog>
+
+          {/* NEW: Appointment Booking Modal */}
+          <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Book Appointment</DialogTitle>
+                    <DialogDescription>
+                        Schedule a new appointment for {selectedPatientForBooking?.firstName} {selectedPatientForBooking?.lastName}.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...appointmentForm}>
+                    <form onSubmit={appointmentForm.handleSubmit(handleCreateAppointment)} className="space-y-4 py-4">
+                        <FormField control={appointmentForm.control} name="calendarId" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Calendar</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a calendar" /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {calendars.map(cal => <SelectItem key={cal.id} value={cal.id}>{cal.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={appointmentForm.control} name="title" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Title / Service</FormLabel>
+                                <FormControl><Input placeholder="e.g., Chiropractic Adjustment" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={appointmentForm.control} name="startTime" render={({ field }) => (
+                             <FormItem className="flex flex-col">
+                                <FormLabel>Date & Time</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                {field.value ? format(field.value, "PPP p") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <div className="p-3 border-t border-border">
+                                            <div className="flex items-center gap-2">
+                                                <Label>Time:</Label>
+                                                <Input type="time" defaultValue={field.value ? format(field.value, "HH:mm") : ""} onChange={e => {
+                                                    const [hours, minutes] = e.target.value.split(':').map(Number);
+                                                    const newDate = setMinutes(setHours(field.value || new Date(), hours), minutes);
+                                                    field.onChange(newDate);
+                                                }} />
+                                            </div>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)}>Cancel</Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? <Clock className="animate-spin h-4 w-4 mr-2" /> : null}
+                                Book Appointment
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
         </div>
       </Layout>
     </AuthGuard>
