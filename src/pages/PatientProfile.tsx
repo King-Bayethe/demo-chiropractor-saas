@@ -62,7 +62,7 @@ const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
     return field ? field.value : undefined;
 };
 
-// UPDATED: Using actual Custom Field IDs from your latest GHL screenshot
+// Using actual Custom Field IDs from your latest GHL screenshot
 const CUSTOM_FIELD_IDS = {
   emergencyContactName: 'l7yGH2qMIQ16VhyaxLMM',
   licenseState: '5GIdwGCEYt75pVaFQK99',
@@ -98,7 +98,6 @@ export default function PatientProfile() {
   const { toast } = useToast();
   const ghlApi = useGHLApi();
   
-  // NEW: State to manage visibility of sensitive data
   const [sensitiveDataVisible, setSensitiveDataVisible] = useState(false);
   const [loadingSensitive, setLoadingSensitive] = useState(false);
 
@@ -114,13 +113,21 @@ export default function PatientProfile() {
   
   const loadPatientData = async () => {
     setLoading(true);
-    setSensitiveDataVisible(false); // Reset visibility on new patient load
+    setSensitiveDataVisible(false); 
     try {
-      // Step 1: Fetch only non-sensitive data initially
-      const response = await ghlApi.contacts.getById(patientId);
-      const patientData = response.contact || response;
+      // Fetch contact and appointments in parallel
+      const [contactResponse, appointmentsResponse] = await Promise.all([
+          ghlApi.contacts.getById(patientId),
+          ghlApi.calendars.getAppointments({ contactId: patientId }) // Assumes this function exists in your hook
+      ]);
+
+      const patientData = contactResponse.contact || contactResponse;
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
+      
+      // Set live appointments, sort them by date (most recent first)
+      const sortedAppointments = (appointmentsResponse.appointments || []).sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+      setAppointments(sortedAppointments);
 
       // Reset form with only basic info
       form.reset({
@@ -135,12 +142,7 @@ export default function PatientProfile() {
         zipCode: patientData.postalCode || "",
       });
 
-      // Mock data for related records
-      setAppointments([
-         { id: "apt-1", date: new Date("2025-05-22"), time: "02:00 PM", provider: "Dr. Silverman", service: "Initial PIP Consultation & Exam", status: "completed", location: "Consultation Room" },
-         { id: "apt-2", date: new Date("2025-06-15"), time: "09:00 AM", provider: "Dr. Silverman", service: "Chiropractic Adjustment", status: "completed", location: "Treatment Room 1" },
-         { id: "apt-3", date: new Date(), time: "10:30 AM", provider: "Dr. Silverman", service: "Follow-up & Therapy", status: "scheduled", location: "Treatment Room 1" }
-      ]);
+      // Mock data for other related records
       setSoapNotes([
          { id: "soap-1", date: new Date("2025-05-22"), provider: "Dr. Silverman", chiefComplaint: "Neck and back pain post-MVA", appointmentId: "apt-1" },
          { id: "soap-2", date: new Date("2025-06-15"), provider: "Dr. Silverman", chiefComplaint: "Follow-up on cervical spine", appointmentId: "apt-2" }
@@ -163,7 +165,6 @@ export default function PatientProfile() {
     }
   };
 
-  // NEW: Function to fetch and reveal sensitive data on demand
   const loadSensitiveData = async () => {
     setLoadingSensitive(true);
     try {
@@ -172,9 +173,8 @@ export default function PatientProfile() {
         if (!patientData) throw new Error("Patient data could not be found.");
         
         const customFields = patientData.customFields || [];
-        // Update the form with the sensitive data
         form.reset({
-            ...form.getValues(), // Keep existing basic data
+            ...form.getValues(), 
             emergencyContactName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.emergencyContactName),
             didGoToHospital: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.didGoToHospital),
             hospitalName: getCustomFieldValueById(customFields, CUSTOM_FIELD_IDS.hospitalName),
@@ -204,10 +204,10 @@ export default function PatientProfile() {
   const handleCancel = () => { setIsEditing(false); loadPatientData(); };
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case "completed": return "bg-green-500/10 text-green-600";
+      case "confirmed": return "bg-green-500/10 text-green-600";
       case "scheduled": return "bg-blue-500/10 text-blue-600";
-      case "paid": return "bg-green-500/10 text-green-600";
-      case "pending": return "bg-yellow-500/10 text-yellow-700";
+      case "cancelled": return "bg-red-500/10 text-red-600";
+      case "noshow": return "bg-gray-500/10 text-gray-600";
       default: return "bg-muted text-muted-foreground";
     }
   };
@@ -277,7 +277,7 @@ export default function PatientProfile() {
                 <div className="grid grid-cols-4 gap-4 text-sm">
                    <InfoField label="Age" value={patientAge} />
                    <InfoField label="Accident" value={form.getValues("dateOfAccident") ? format(form.getValues("dateOfAccident")!, 'MMM d, yyyy') : null} />
-                   <InfoField label="Last Visit" value={appointments[0] ? format(appointments[0].date, 'MMM d, yyyy') : null} />
+                   <InfoField label="Last Visit" value={appointments[0] ? format(new Date(appointments[0].startTime), 'MMM d, yyyy') : 'N/A'} />
                    <InfoField label="Balance" value={<span className="text-destructive">{formatCurrency(invoices.reduce((sum, inv) => sum + inv.amount, 0))}</span>} />
                 </div>
               </div>
@@ -362,7 +362,23 @@ export default function PatientProfile() {
                   <TabsTrigger value="files">Files</TabsTrigger>
                 </TabsList>
                 <TabsContent value="appointments">
-                  <Card><CardHeader><CardTitle>Appointment History</CardTitle></CardHeader><CardContent className="space-y-2">{appointments.map(apt => <div key={apt.id} className="flex justify-between items-center p-2 border-b"><p>{apt.service} - {format(apt.date, 'PPP')}</p><Badge variant="secondary" className={getStatusColor(apt.status)}>{apt.status}</Badge></div>)}</CardContent></Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>Appointment History</CardTitle>
+                        <Button><Plus className="w-4 h-4 mr-2" /> Book Appointment</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {appointments.length > 0 ? appointments.map(apt => (
+                            <div key={apt.id} className="flex justify-between items-center p-2 border-b">
+                                <div>
+                                    <p className="font-semibold">{apt.title || 'Appointment'}</p>
+                                    <p className="text-sm text-muted-foreground">{format(new Date(apt.startTime), 'PPP p')}</p>
+                                </div>
+                                <Badge variant="secondary" className={getStatusColor(apt.status)}>{apt.status}</Badge>
+                            </div>
+                        )) : <p className="text-center text-muted-foreground p-4">No appointments found.</p>}
+                    </CardContent>
+                  </Card>
                 </TabsContent>
                  <TabsContent value="soap-notes">
                    <Card><CardHeader><CardTitle>SOAP Notes</CardTitle></CardHeader><CardContent className="space-y-2">{soapNotes.map(note => <div key={note.id} className="flex justify-between items-center p-2 border-b"><p>{note.chiefComplaint} - {format(note.date, 'PPP')}</p><Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button></div>)}</CardContent></Card>
