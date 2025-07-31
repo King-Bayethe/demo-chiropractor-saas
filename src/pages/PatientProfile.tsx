@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -52,9 +53,17 @@ const patientFormSchema = z.object({
 
 type PatientFormData = z.infer<typeof patientFormSchema>;
 
-// Helper functions (getPatientName, getCustomFieldValue) remain the same
-const getPatientName = (patient: any): string => { /* ... */ };
-const getCustomFieldValue = (customFields: any[], fieldName: string): any => { /* ... */ };
+// Helper functions
+const getPatientName = (patient: any): string => {
+  if (!patient) return "";
+  return `${patient.firstName || ""} ${patient.lastName || ""}`.trim();
+};
+
+const getCustomFieldValue = (customFields: any[], fieldName: string): any => {
+  if (!customFields || !Array.isArray(customFields)) return "";
+  const field = customFields.find((f: any) => f.name === fieldName);
+  return field ? field.value : "";
+};
 
 // UPDATED: Add placeholder IDs for the new PIP custom fields
 const CUSTOM_FIELD_IDS = {
@@ -180,8 +189,21 @@ export default function PatientProfile() {
   // Other handlers and helpers
   const handleEdit = () => setIsEditing(true);
   const handleCancel = () => { setIsEditing(false); loadPatientData(); };
-  const getStatusColor = (status: string) => { /* ... */ };
-  const formatCurrency = (amount: number) => { /* ... */ };
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
 
   const patientName = useMemo(() => getPatientName(form.getValues()), [form.watch()]);
   const patientAge = useMemo(() => {
