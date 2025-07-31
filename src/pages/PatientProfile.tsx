@@ -68,13 +68,9 @@ const CUSTOM_FIELD_IDS = {
   healthInsuranceId: 'k4sW9iLq0pMHYfJkZ8B4',
   attorneyName: 'Kdh3NRFD0DIfhoE86TzT',
   attorneyPhone: 'ArS1W9iLq0pMHYfJkZ8B',
-  emergencyContactName: 'lY2qsozLiFhvkMaXG4pW',
-  didGoToHospital: 'yozLiFhvkMaXG4pW9iLq',
-  hospitalName: 'oFzEgb2y1hbiTjP5VvA2', // This seems to be duplicated with auto insurance, please verify in GHL
-  // You will need to get the IDs for these from your GHL settings > Custom Fields
   emergencyContactName: 'l7yGH2qMIQ16VhyaxLMM',
-  // didGoToHospital: 'REPLACE_WITH_REAL_ID_FROM_GHL',
-  // hospitalName: 'REPLACE_WITH_REAL_ID_FROM_GHL',
+  didGoToHospital: 'yozLiFhvkMaXG4pW9iLq',
+  hospitalName: 'oFzEgb2y1hbiTjP5VvA2',
 };
 
 export default function PatientProfile() {
