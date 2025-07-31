@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle,
-  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock
+  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare
 } from "lucide-react";
 
 // Form schema updated with all relevant fields
@@ -89,6 +89,7 @@ export default function PatientProfile() {
   const navigate = useNavigate();
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [soapNotes, setSoapNotes] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [files, setFiles] = useState<any[]>([]);
@@ -115,18 +116,19 @@ export default function PatientProfile() {
     setLoading(true);
     setSensitiveDataVisible(false); 
     try {
-      // MODIFIED: Make a single API call to get the combined contact and appointment data
       const response = await ghlApi.contacts.getById(patientId);
 
       const patientData = response.contact || response;
       if (!patientData) throw new Error("Patient data could not be found.");
       setPatient(patientData);
       
-      // MODIFIED: Extract appointments from the same response object
       const sortedAppointments = (response.appointments || []).sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       setAppointments(sortedAppointments);
 
-      // Reset form with only basic info
+      // Set tasks from the API response
+      const sortedTasks = (response.tasks || []).sort((a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+      setTasks(sortedTasks);
+
       form.reset({
         firstName: patientData.firstName || "",
         lastName: patientData.lastName || "",
@@ -139,7 +141,7 @@ export default function PatientProfile() {
         zipCode: patientData.postalCode || "",
       });
 
-      // Mock data for other related records (can be replaced with live data later)
+      // Mock data for other related records
       setSoapNotes([
          { id: "soap-1", date: new Date("2025-05-22"), provider: "Dr. Silverman", chiefComplaint: "Neck and back pain post-MVA", appointmentId: "apt-1" },
          { id: "soap-2", date: new Date("2025-06-15"), provider: "Dr. Silverman", chiefComplaint: "Follow-up on cervical spine", appointmentId: "apt-2" }
@@ -201,8 +203,12 @@ export default function PatientProfile() {
   const handleCancel = () => { setIsEditing(false); loadPatientData(); };
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case "confirmed": return "bg-green-500/10 text-green-600";
-      case "scheduled": return "bg-blue-500/10 text-blue-600";
+      case "confirmed":
+      case "completed":
+        return "bg-green-500/10 text-green-600";
+      case "scheduled":
+      case "pending":
+        return "bg-blue-500/10 text-blue-600";
       case "cancelled": return "bg-red-500/10 text-red-600";
       case "noshow": return "bg-gray-500/10 text-gray-600";
       default: return "bg-muted text-muted-foreground";
@@ -352,8 +358,9 @@ export default function PatientProfile() {
 
             <div className="lg:col-span-2">
               <Tabs defaultValue="appointments" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
                   <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="files">Files</TabsTrigger>
@@ -374,6 +381,25 @@ export default function PatientProfile() {
                                 <Badge variant="secondary" className={getStatusColor(apt.status)}>{apt.status}</Badge>
                             </div>
                         )) : <p className="text-center text-muted-foreground p-4">No appointments found.</p>}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="tasks">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>Tasks</CardTitle>
+                        <Button><Plus className="w-4 h-4 mr-2" /> Add Task</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {tasks.length > 0 ? tasks.map(task => (
+                            <div key={task.id} className="flex justify-between items-center p-2 border-b">
+                                <div>
+                                    <p className="font-semibold">{task.title || 'Task'}</p>
+                                    <p className="text-sm text-muted-foreground">Due: {format(new Date(task.dueDate), 'PPP')}</p>
+                                </div>
+                                <Badge variant="secondary" className={getStatusColor(task.status)}>{task.status}</Badge>
+                            </div>
+                        )) : <p className="text-center text-muted-foreground p-4">No tasks found.</p>}
                     </CardContent>
                   </Card>
                 </TabsContent>
