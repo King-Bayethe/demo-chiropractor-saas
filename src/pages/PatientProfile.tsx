@@ -150,8 +150,10 @@ export default function PatientProfile() {
       const sortedTasks = (response.tasks || []).sort((a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
       setTasks(sortedTasks);
 
-      const calendarsResponse = await ghlApi.calendars.getAll();
-      setCalendars(calendarsResponse.calendars || []);
+      if (ghlApi.calendars) {
+        const calendarsResponse = await ghlApi.calendars.getAll();
+        setCalendars(calendarsResponse.calendars || []);
+      }
 
       form.reset({
         firstName: patientData.firstName || "",
