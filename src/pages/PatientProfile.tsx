@@ -256,10 +256,417 @@ export default function PatientProfile() {
   const unpaidInvoices = invoices.filter(inv => inv.status !== 'paid');
 
   return (
-      <AuthGuard>
-          <Layout>
-              {/* ... Paste your original full return() JSX here ... */}
-          </Layout>
-      </AuthGuard>
+    <AuthGuard>
+      <Layout>
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(-1)}
+                className="h-10 w-10"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="text-lg font-semibold">
+                    {patientName.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h1 className="text-2xl font-bold">{patientName}</h1>
+                  <p className="text-muted-foreground">Patient ID: {patientId}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={saving}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={form.handleSubmit(handleSave)}
+                    disabled={saving}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? "Saving..." : "Save"}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={handleEdit}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalVisits}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Last Visit</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {lastVisit ? format(lastVisit, 'MMM dd') : 'None'}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${unpaidInvoices.reduce((sum, inv) => sum + inv.amount, 0).toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Next Appointment</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {form.getValues('nextAppointment') ? format(form.getValues('nextAppointment')!, 'MMM dd') : 'None'}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content Tabs */}
+          <Tabs defaultValue="info" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="info">Patient Information</TabsTrigger>
+              <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              <TabsTrigger value="soap">SOAP Notes</TabsTrigger>
+              <TabsTrigger value="billing">Billing</TabsTrigger>
+              <TabsTrigger value="files">Files</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="info" className="space-y-6">
+              <Form {...form}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Personal Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <User className="h-5 w-5" />
+                        <span>Personal Information</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {isEditing ? (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="firstName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>First Name</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="lastName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Last Name</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="dateOfBirth"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Date of Birth</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full pl-3 text-left font-normal",
+                                          !field.value && "text-muted-foreground"
+                                        )}
+                                      >
+                                        {field.value ? (
+                                          format(field.value, "PPP")
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <CalendarComponent
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={field.onChange}
+                                      disabled={(date) =>
+                                        date > new Date() || date < new Date("1900-01-01")
+                                      }
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </>
+                      ) : (
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+                            <p className="text-sm">{patientName}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Date of Birth</Label>
+                            <p className="text-sm">
+                              {form.getValues('dateOfBirth') ? format(form.getValues('dateOfBirth')!, 'PPP') : 'Not provided'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Phone</Label>
+                            <p className="text-sm">{patient?.phone || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                            <p className="text-sm">{patient?.email || 'Not provided'}</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Contact Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <MapPin className="h-5 w-5" />
+                        <span>Address & Emergency Contact</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {isEditing ? (
+                        <>
+                          <FormField
+                            control={form.control}
+                            name="streetAddress"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Street Address</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="city"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>City</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="state"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>State</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="zipCode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>ZIP Code</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="emergencyContactName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Emergency Contact Name</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="emergencyContactPhone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Emergency Contact Phone</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </>
+                      ) : (
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Address</Label>
+                            <p className="text-sm">
+                              {[patient?.address1, patient?.city, patient?.state, patient?.postalCode]
+                                .filter(Boolean)
+                                .join(', ') || 'Not provided'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Emergency Contact</Label>
+                            <p className="text-sm">
+                              {form.getValues('emergencyContactName') || 'Not provided'}
+                              {form.getValues('emergencyContactPhone') && (
+                                <span className="block">{form.getValues('emergencyContactPhone')}</span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </Form>
+            </TabsContent>
+
+            {/* Other tabs remain the same but simplified for now */}
+            <TabsContent value="appointments">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Appointments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Appointment management coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="soap">
+              <Card>
+                <CardHeader>
+                  <CardTitle>SOAP Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">SOAP notes management coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="billing">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Billing & Invoices</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Billing management coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="files">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Patient Files</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">File management coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </Layout>
+    </AuthGuard>
   );
 }
