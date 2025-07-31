@@ -75,7 +75,7 @@ const CUSTOM_FIELD_IDS = {
   attorneyPhone: '4rSH8n1ANAYLFU9Cby9W',
   attorneyName: 'Kdh3NRFD0DIfhoE86TzT',
   healthInsurance: '1zrW9idqNMbLWrZvcPee',
-  groupNumber: '"3CFGGeMzAwkv49z096aB',
+  groupNumber: '3CFGGeMzAwkv49z096aB',
   healthInsuranceId: 'tCxf5IqN97TJev00wzkO',
   medicaidMedicareId: 'Y7PjcJSaTjDsmwxHLtpe',
   // NOTE: These IDs are not visible in the log, please find them in your GHL settings
