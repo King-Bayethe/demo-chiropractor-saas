@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
+import { Check, ChevronsUpDown, Search, User, Calendar, Clock, MapPin, Stethoscope, FileText } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 import { Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
 
 const appointmentSchema = z.object({
@@ -40,6 +44,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onCancel,
   loading = false,
 }) => {
+  const [contactOpen, setContactOpen] = useState(false);
+  const [providerOpen, setProviderOpen] = useState(false);
   const form = useForm<CreateAppointmentData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -72,23 +78,31 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   };
 
   return (
-    <DialogContent className="max-w-md">
-      <DialogHeader>
-        <DialogTitle>
+    <DialogContent className="max-w-lg">
+      <DialogHeader className="pb-4">
+        <DialogTitle className="flex items-center gap-2 text-xl">
+          <Calendar className="h-5 w-5 text-primary" />
           {appointment ? 'Edit Appointment' : 'New Appointment'}
         </DialogTitle>
       </DialogHeader>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <FileText className="h-4 w-4" />
+                  Appointment Title
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Appointment title" {...field} />
+                  <Input 
+                    placeholder="Enter appointment title" 
+                    className="h-11"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -99,22 +113,66 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             control={form.control}
             name="contact_id"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Patient/Contact</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a contact" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {contacts.map((contact) => (
-                      <SelectItem key={contact.id} value={contact.id}>
-                        {contact.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <FormItem className="flex flex-col">
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <User className="h-4 w-4" />
+                  Select Contact <span className="text-destructive">*</span>
+                </FormLabel>
+                <Popover open={contactOpen} onOpenChange={setContactOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={contactOpen}
+                        className={cn(
+                          "h-11 justify-between bg-background",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? contacts.find((contact) => contact.id === field.value)?.name || "Contact not found"
+                          : "Search by name, email or phone"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search contacts..." 
+                        className="h-11"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No contact found.</CommandEmpty>
+                        <CommandGroup>
+                          {contacts.map((contact) => (
+                            <CommandItem
+                              key={contact.id}
+                              value={contact.name}
+                              onSelect={() => {
+                                field.onChange(contact.id);
+                                setContactOpen(false);
+                              }}
+                              className="flex items-center gap-2 p-3"
+                            >
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span>{contact.name}</span>
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  contact.id === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
@@ -126,9 +184,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               name="start_time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Start Time</FormLabel>
+                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                    <Clock className="h-4 w-4" />
+                    Start Time
+                  </FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" {...field} />
+                    <Input type="datetime-local" className="h-11" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,9 +201,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               name="end_time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>End Time</FormLabel>
+                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                    <Clock className="h-4 w-4" />
+                    End Time
+                  </FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" {...field} />
+                    <Input type="datetime-local" className="h-11" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,10 +220,13 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                    <Calendar className="h-4 w-4" />
+                    Status
+                  </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11">
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -181,10 +248,13 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type</FormLabel>
+                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                    <Stethoscope className="h-4 w-4" />
+                    Type
+                  </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11">
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -205,23 +275,84 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             control={form.control}
             name="provider_id"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Provider (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a provider" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">No provider assigned</SelectItem>
-                    {providers.map((provider) => (
-                      <SelectItem key={provider.id} value={provider.id}>
-                        {provider.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <FormItem className="flex flex-col">
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <Stethoscope className="h-4 w-4" />
+                  Provider (Optional)
+                </FormLabel>
+                <Popover open={providerOpen} onOpenChange={setProviderOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={providerOpen}
+                        className={cn(
+                          "h-11 justify-between bg-background",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value && field.value !== 'none'
+                          ? providers.find((provider) => provider.id === field.value)?.name || "Provider not found"
+                          : "Select a provider"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search providers..." 
+                        className="h-11"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No provider found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="none"
+                            onSelect={() => {
+                              field.onChange('none');
+                              setProviderOpen(false);
+                            }}
+                            className="flex items-center gap-2 p-3"
+                          >
+                            <span className="text-muted-foreground">No provider assigned</span>
+                            <Check
+                              className={cn(
+                                "ml-auto h-4 w-4",
+                                (!field.value || field.value === 'none')
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                          </CommandItem>
+                          {providers.map((provider) => (
+                            <CommandItem
+                              key={provider.id}
+                              value={provider.name}
+                              onSelect={() => {
+                                field.onChange(provider.id);
+                                setProviderOpen(false);
+                              }}
+                              className="flex items-center gap-2 p-3"
+                            >
+                              <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                              <span>{provider.name}</span>
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  provider.id === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
@@ -232,9 +363,16 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             name="location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Location (Optional)</FormLabel>
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <MapPin className="h-4 w-4" />
+                  Location (Optional)
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Appointment location" {...field} />
+                  <Input 
+                    placeholder="Enter appointment location" 
+                    className="h-11"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -246,11 +384,15 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes (Optional)</FormLabel>
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <FileText className="h-4 w-4" />
+                  Internal Notes (Optional)
+                </FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Additional notes about the appointment"
+                    placeholder="Add internal notes about the appointment"
                     rows={3}
+                    className="resize-none"
                     {...field}
                   />
                 </FormControl>
@@ -259,12 +401,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             )}
           />
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onCancel}>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={onCancel} className="px-6">
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : appointment ? 'Update' : 'Create'}
+            <Button type="submit" disabled={loading} className="px-6">
+              {loading ? 'Saving...' : appointment ? 'Update Appointment' : 'Create Appointment'}
             </Button>
           </div>
         </form>
