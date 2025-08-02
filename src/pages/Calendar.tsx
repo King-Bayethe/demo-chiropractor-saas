@@ -3,14 +3,12 @@ import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
+import { useAppointments } from "@/hooks/useAppointments";
+import { AppointmentForm } from "@/components/appointments/AppointmentForm";
 import { 
   ChevronLeft,
   ChevronRight,
@@ -26,15 +24,15 @@ import {
 // Calendar view types
 type CalendarView = 'month' | 'week' | 'day';
 
-// Mock appointment data structure
-interface Appointment {
+// Define display appointment interface for calendar UI
+interface DisplayAppointment {
   id: string;
   title: string;
   patientName: string;
   patientId: string;
   provider: string;
   type: string;
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   startTime: Date;
   endTime: Date;
   location?: string;
@@ -44,75 +42,48 @@ interface Appointment {
 export default function Calendar() {
   const [view, setView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [displayAppointments, setDisplayAppointments] = useState<DisplayAppointment[]>([]);
   const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [providers, setProviders] = useState([]);
   const [isCreateAppointmentOpen, setIsCreateAppointmentOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    patientId: "",
-    title: "",
-    type: "",
-    provider: "",
-    date: "",
-    startTime: "",
-    endTime: "",
-    location: "",
-    notes: ""
-  });
   const { toast } = useToast();
   const ghlApi = useGHLApi();
+  const { appointments, loading, createAppointment, fetchAppointments } = useAppointments();
 
   useEffect(() => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    // Convert appointments to display format when appointments change
+    const convertedAppointments: DisplayAppointment[] = appointments.map(apt => ({
+      id: apt.id,
+      title: apt.title,
+      patientName: apt.contact_name || 'Unknown Patient',
+      patientId: apt.contact_id,
+      provider: apt.provider_name || 'Unassigned',
+      type: apt.type,
+      status: apt.status,
+      startTime: new Date(apt.start_time),
+      endTime: new Date(apt.end_time),
+      location: apt.location,
+      notes: apt.notes
+    }));
+    setDisplayAppointments(convertedAppointments);
+  }, [appointments]);
+
   const loadData = async () => {
     try {
-      setLoading(true);
       // Load contacts for appointment booking
       const contactsData = await ghlApi.contacts.getAll();
       setContacts(contactsData.contacts || []);
       
-      // Mock appointments data - in production this would come from GHL Calendar API
-      const mockAppointments: Appointment[] = [
-        {
-          id: "apt-1",
-          title: "Chiropractic Adjustment",
-          patientName: "John Smith",
-          patientId: "contact-1",
-          provider: "Dr. Silverman",
-          type: "Treatment",
-          status: "confirmed",
-          startTime: new Date(2024, new Date().getMonth(), 15, 9, 0),
-          endTime: new Date(2024, new Date().getMonth(), 15, 10, 0),
-          location: "Treatment Room 1"
-        },
-        {
-          id: "apt-2", 
-          title: "Initial Consultation",
-          patientName: "Sarah Johnson",
-          patientId: "contact-2",
-          provider: "Dr. Silverman",
-          type: "Consultation",
-          status: "scheduled",
-          startTime: new Date(2024, new Date().getMonth(), 16, 14, 0),
-          endTime: new Date(2024, new Date().getMonth(), 16, 15, 0),
-          location: "Consultation Room"
-        },
-        {
-          id: "apt-3",
-          title: "Physical Therapy Session",
-          patientName: "Mike Davis",
-          patientId: "contact-3", 
-          provider: "PT Thompson",
-          type: "Physical Therapy",
-          status: "completed",
-          startTime: new Date(2024, new Date().getMonth(), 14, 11, 0),
-          endTime: new Date(2024, new Date().getMonth(), 14, 12, 30),
-          location: "PT Room"
-        }
-      ];
-      setAppointments(mockAppointments);
+      // Mock providers data - in production this could come from a providers API
+      setProviders([
+        { id: 'dr-silverman', name: 'Dr. Silverman' },
+        { id: 'pt-thompson', name: 'PT Thompson' },
+        { id: 'dr-smith', name: 'Dr. Smith' }
+      ]);
     } catch (error) {
       console.error('Failed to load calendar data:', error);
       toast({
@@ -120,62 +91,16 @@ export default function Calendar() {
         description: "Failed to load calendar data.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleCreateAppointment = async (appointmentData: any) => {
     try {
-      const selectedContact = contacts.find((c: any) => c.id === formData.patientId);
-      const startDateTime = new Date(`${formData.date}T${formData.startTime}`);
-      const endDateTime = new Date(`${formData.date}T${formData.endTime}`);
-      
-      const newAppointment: Appointment = {
-        id: `apt-${Date.now()}`,
-        title: formData.title,
-        patientName: selectedContact ? 
-          `${selectedContact.firstNameLowerCase || ''} ${selectedContact.lastNameLowerCase || ''}`.trim() || selectedContact.name :
-          'Unknown Patient',
-        patientId: formData.patientId,
-        provider: formData.provider,
-        type: formData.type,
-        status: 'scheduled',
-        startTime: startDateTime,
-        endTime: endDateTime,
-        location: formData.location,
-        notes: formData.notes
-      };
-
-      setAppointments(prev => [...prev, newAppointment]);
+      await createAppointment(appointmentData);
       setIsCreateAppointmentOpen(false);
-      
-      toast({
-        title: "Appointment Created",
-        description: `Appointment with ${newAppointment.patientName} has been scheduled.`,
-      });
-      
-      // Reset form
-      setFormData({
-        patientId: "",
-        title: "",
-        type: "",
-        provider: "",
-        date: "",
-        startTime: "",
-        endTime: "",
-        location: "",
-        notes: ""
-      });
     } catch (error) {
+      // Error handling is done in the hook
       console.error('Failed to create appointment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create appointment. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -225,7 +150,7 @@ export default function Calendar() {
   };
 
   const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter(apt => 
+    return displayAppointments.filter(apt => 
       apt.startTime.toDateString() === date.toDateString()
     );
   };
@@ -292,7 +217,7 @@ export default function Calendar() {
   const renderAppointmentsList = () => {
     const filteredAppointments = view === 'day' 
       ? getAppointmentsForDate(currentDate)
-      : appointments.filter(apt => {
+      : displayAppointments.filter(apt => {
           if (view === 'week') {
             const startOfWeek = new Date(currentDate);
             startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -480,150 +405,16 @@ export default function Calendar() {
 
           {/* Create Appointment Modal */}
           <Dialog open={isCreateAppointmentOpen} onOpenChange={setIsCreateAppointmentOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between">
-                  New Appointment
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsCreateAppointmentOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogTitle>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="patientId">Patient *</Label>
-                  <Select 
-                    value={formData.patientId} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, patientId: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a patient" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contacts.map((contact: any) => (
-                        <SelectItem key={contact.id} value={contact.id}>
-                          {`${contact.firstNameLowerCase || ''} ${contact.lastNameLowerCase || ''}`.trim() || contact.name || 'Unknown'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="title">Appointment Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Chiropractic Adjustment"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="type">Type *</Label>
-                    <Select 
-                      value={formData.type} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Consultation">Consultation</SelectItem>
-                        <SelectItem value="Treatment">Treatment</SelectItem>
-                        <SelectItem value="Physical Therapy">Physical Therapy</SelectItem>
-                        <SelectItem value="Follow-up">Follow-up</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="provider">Provider *</Label>
-                    <Select 
-                      value={formData.provider} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, provider: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select provider" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Dr. Silverman">Dr. Silverman</SelectItem>
-                        <SelectItem value="PT Thompson">PT Thompson</SelectItem>
-                        <SelectItem value="Dr. Johnson">Dr. Johnson</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="date">Date *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="startTime">Start Time *</Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      value={formData.startTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="endTime">End Time *</Label>
-                    <Input
-                      id="endTime"
-                      type="time"
-                      value={formData.endTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="e.g., Treatment Room 1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Additional notes..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateAppointmentOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create Appointment</Button>
-                </div>
-              </form>
-            </DialogContent>
+            <AppointmentForm
+              contacts={contacts.map((contact: any) => ({ 
+                id: contact.id, 
+                name: `${contact.firstNameLowerCase || ''} ${contact.lastNameLowerCase || ''}`.trim() || contact.name || 'Unknown'
+              }))}
+              providers={providers}
+              onSubmit={handleCreateAppointment}
+              onCancel={() => setIsCreateAppointmentOpen(false)}
+              loading={loading}
+            />
           </Dialog>
         </div>
       </Layout>
