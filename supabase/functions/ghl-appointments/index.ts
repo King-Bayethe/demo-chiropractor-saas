@@ -91,6 +91,36 @@ const handler = async (req: Request): Promise<Response> => {
         const ghlData = await ghlResponse.json();
         console.log(`Fetched ${ghlData.events?.length || 0} appointments from GoHighLevel`);
 
+        // Fetch contact names for each appointment
+        const appointmentsWithContacts = [];
+        for (const event of ghlData.events || []) {
+          let contactName = 'Unknown Patient';
+          
+          if (event.contactId) {
+            try {
+              console.log(`Fetching contact details for ID: ${event.contactId}`);
+              const contactResponse = await fetch(`https://services.leadconnectorhq.com/contacts/${event.contactId}`, {
+                headers: ghlHeaders,
+              });
+              
+              if (contactResponse.ok) {
+                const contactData = await contactResponse.json();
+                const firstName = contactData.contact?.firstName || '';
+                const lastName = contactData.contact?.lastName || '';
+                contactName = `${firstName} ${lastName}`.trim() || contactData.contact?.name || contactData.contact?.email || 'Unknown Patient';
+                console.log(`Found contact name: ${contactName}`);
+              }
+            } catch (error) {
+              console.error(`Error fetching contact ${event.contactId}:`, error);
+            }
+          }
+          
+          appointmentsWithContacts.push({
+            ...event,
+            contactName
+          });
+        }
+
         // Also fetch from local database
         const { data: localAppointments, error: localError } = await supabaseClient
           .from('appointments')
@@ -106,9 +136,9 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({
-            appointments: ghlData.events || [],
+            appointments: appointmentsWithContacts,
             localAppointments: localAppointments || [],
-            total: ghlData.events?.length || 0
+            total: appointmentsWithContacts.length
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
