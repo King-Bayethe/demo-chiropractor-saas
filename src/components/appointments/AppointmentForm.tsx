@@ -62,6 +62,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         ...data,
         start_time: new Date(data.start_time).toISOString(),
         end_time: new Date(data.end_time).toISOString(),
+        // Convert "none" back to empty string for provider_id
+        provider_id: data.provider_id === 'none' ? '' : data.provider_id,
       };
       await onSubmit(submitData);
     } catch (error) {
@@ -212,7 +214,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No provider assigned</SelectItem>
+                    <SelectItem value="none">No provider assigned</SelectItem>
                     {providers.map((provider) => (
                       <SelectItem key={provider.id} value={provider.id}>
                         {provider.name}
