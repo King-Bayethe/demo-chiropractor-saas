@@ -10,7 +10,11 @@ import { SubjectiveSection, SubjectiveData } from "./SubjectiveSection";
 import { ObjectiveSection, ObjectiveData, VitalSigns, SystemExam, SpecialTest, ImagingLab, Procedure } from "./ObjectiveSection";
 import { AssessmentSection, AssessmentData } from "./AssessmentSection";
 import { PlanSection, PlanData } from "./PlanSection";
-import { ChevronDown, Save, FileText, Download, Clock, X } from "lucide-react";
+import { ProgressIndicator } from "./ProgressIndicator";
+import { SmartTemplates } from "./SmartTemplates";
+import { EnhancedPainAssessment } from "./EnhancedPainAssessment";
+import { EnhancedVitalSigns } from "./EnhancedVitalSigns";
+import { ChevronDown, Save, FileText, Download, Clock, X, Zap, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ComprehensiveSOAPFormProps {
@@ -46,6 +50,7 @@ export function ComprehensiveSOAPForm({
   const [isQuickNote, setIsQuickNote] = useState(false);
   const [activeTab, setActiveTab] = useState("patient");
   const [openSections, setOpenSections] = useState<string[]>(["subjective"]);
+  const [showAdvancedPain, setShowAdvancedPain] = useState(false);
   
   const [formData, setFormData] = useState<SOAPFormData>({
     patientId: patient?.id || "",
@@ -181,6 +186,39 @@ export function ComprehensiveSOAPForm({
     return Math.round((completed / total) * 100);
   };
 
+  const getSectionsComplete = () => {
+    return {
+      subjective: formData.subjective.symptoms.length > 0 || 
+                 !!formData.subjective.painDescription || 
+                 formData.subjective.isRefused || 
+                 formData.subjective.isWithinNormalLimits,
+      objective: Object.values(formData.objective.vitalSigns).some(v => v) || 
+                formData.objective.systemExams.length > 0,
+      assessment: formData.assessment.diagnoses.length > 0 || 
+                 formData.assessment.clinicalImpression !== "",
+      plan: formData.plan.treatments.length > 0 || 
+           formData.plan.medications.length > 0 || 
+           formData.plan.additionalInstructions !== ""
+    };
+  };
+
+  const applyTemplate = (template: any) => {
+    // Auto-fill chief complaint
+    setFormData(prev => ({
+      ...prev,
+      chiefComplaint: template.complaint,
+      subjective: {
+        ...prev.subjective,
+        symptoms: template.commonSymptoms || []
+      }
+    }));
+    
+    toast({
+      title: "Template Applied",
+      description: `${template.name} template has been applied to the form.`,
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -193,11 +231,29 @@ export function ComprehensiveSOAPForm({
               <h1 className="text-2xl font-bold">
                 {isQuickNote ? 'Quick SOAP Note' : 'Comprehensive SOAP Assessment'}
               </h1>
-              <Badge variant="outline" className="text-xs">
-                {getCompletionPercentage()}% Complete
-              </Badge>
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline" className="text-xs bg-medical-blue-light text-medical-blue border-medical-blue">
+                  <Brain className="w-3 h-3 mr-1" />
+                  Smart Form
+                </Badge>
+                <Badge 
+                  variant={getCompletionPercentage() === 100 ? "default" : "secondary"}
+                  className={`text-xs ${getCompletionPercentage() === 100 ? 'bg-medical-green text-white' : ''}`}
+                >
+                  {getCompletionPercentage()}% Complete
+                </Badge>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowAdvancedPain(!showAdvancedPain)}
+                className={showAdvancedPain ? "bg-medical-blue-light border-medical-blue" : ""}
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Advanced Pain
+              </Button>
               <Button variant="outline" size="sm" onClick={exportToPDF}>
                 <Download className="w-4 h-4 mr-2" />
                 Export PDF
@@ -217,11 +273,23 @@ export function ComprehensiveSOAPForm({
             {isQuickNote ? (
               // Quick Note Mode - Collapsible Sections
               <ScrollArea className="flex-1 p-6">
-                <PatientProfileHeader 
-                  patient={mockPatient} 
-                  isQuickNote={isQuickNote}
-                  onToggleMode={() => setIsQuickNote(!isQuickNote)}
-                />
+                <div className="space-y-6">
+                  <ProgressIndicator 
+                    percentage={getCompletionPercentage()} 
+                    sectionsComplete={getSectionsComplete()}
+                  />
+                  
+                  <PatientProfileHeader 
+                    patient={mockPatient} 
+                    isQuickNote={isQuickNote}
+                    onToggleMode={() => setIsQuickNote(!isQuickNote)}
+                  />
+                  
+                  <SmartTemplates 
+                    onApplyTemplate={applyTemplate}
+                    chiefComplaint={formData.chiefComplaint}
+                  />
+                </div>
                 
                 <div className="space-y-4">
                   <div>
@@ -276,11 +344,23 @@ export function ComprehensiveSOAPForm({
                 <div className="flex-1 overflow-hidden">
                   <TabsContent value="patient" className="h-full">
                     <ScrollArea className="h-full px-6 pb-6">
-                      <PatientProfileHeader 
-                        patient={mockPatient} 
-                        isQuickNote={isQuickNote}
-                        onToggleMode={() => setIsQuickNote(!isQuickNote)}
-                      />
+                      <div className="space-y-6">
+                        <ProgressIndicator 
+                          percentage={getCompletionPercentage()} 
+                          sectionsComplete={getSectionsComplete()}
+                        />
+                        
+                        <PatientProfileHeader 
+                          patient={mockPatient} 
+                          isQuickNote={isQuickNote}
+                          onToggleMode={() => setIsQuickNote(!isQuickNote)}
+                        />
+                        
+                        <SmartTemplates 
+                          onApplyTemplate={applyTemplate}
+                          chiefComplaint={formData.chiefComplaint}
+                        />
+                      </div>
                       
                       <Card>
                         <CardHeader>
@@ -325,19 +405,61 @@ export function ComprehensiveSOAPForm({
                   
                   <TabsContent value="subjective" className="h-full">
                     <ScrollArea className="h-full px-6 pb-6">
-                      <SubjectiveSection
-                        data={formData.subjective}
-                        onChange={(data) => setFormData(prev => ({ ...prev, subjective: data }))}
-                      />
+                      <div className="space-y-6">
+                        {showAdvancedPain && (
+                          <EnhancedPainAssessment
+                            data={{
+                              currentPain: formData.subjective.painScale || 0,
+                              worstPain: 0,
+                              averagePain: 0,
+                              location: [],
+                              quality: [],
+                              triggers: [],
+                              reliefFactors: [],
+                              timePattern: "",
+                              description: formData.subjective.painDescription || "",
+                              functionalImpact: ""
+                            }}
+                            onChange={(painData) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                subjective: {
+                                  ...prev.subjective,
+                                  painScale: painData.currentPain,
+                                  painDescription: painData.description
+                                }
+                              }));
+                            }}
+                          />
+                        )}
+                        
+                        <SubjectiveSection
+                          data={formData.subjective}
+                          onChange={(data) => setFormData(prev => ({ ...prev, subjective: data }))}
+                        />
+                      </div>
                     </ScrollArea>
                   </TabsContent>
                   
                   <TabsContent value="objective" className="h-full">
                     <ScrollArea className="h-full px-6 pb-6">
-                      <ObjectiveSection
-                        data={formData.objective}
-                        onChange={(data) => setFormData(prev => ({ ...prev, objective: data }))}
-                      />
+                      <div className="space-y-6">
+                        <EnhancedVitalSigns
+                          data={formData.objective.vitalSigns}
+                          onChange={(vitalSigns) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              vitalSigns
+                            }
+                          }))}
+                        />
+                        
+                        <ObjectiveSection
+                          data={formData.objective}
+                          onChange={(data) => setFormData(prev => ({ ...prev, objective: data }))}
+                        />
+                      </div>
                     </ScrollArea>
                   </TabsContent>
                   

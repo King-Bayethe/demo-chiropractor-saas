@@ -48,11 +48,30 @@ export default {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
 				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
 				medical: {
 					blue: 'hsl(var(--medical-blue))',
 					'blue-light': 'hsl(var(--medical-blue-light))',
 					'blue-dark': 'hsl(var(--medical-blue-dark))',
-					teal: 'hsl(var(--medical-teal))'
+					teal: 'hsl(var(--medical-teal))',
+					green: 'hsl(var(--medical-green))',
+					orange: 'hsl(var(--medical-orange))',
+					red: 'hsl(var(--medical-red))'
+				},
+				'progress': {
+					bg: 'hsl(var(--progress-bg))',
+					complete: 'hsl(var(--progress-complete))',
+					partial: 'hsl(var(--progress-partial))',
+					incomplete: 'hsl(var(--progress-incomplete))'
+				},
+				'indicator': {
+					normal: 'hsl(var(--normal-indicator))',
+					abnormal: 'hsl(var(--abnormal-indicator))',
+					pending: 'hsl(var(--pending-indicator))',
+					refused: 'hsl(var(--refused-indicator))'
 				},
 				'medical-blue': 'hsl(var(--medical-blue))',
 				'medical-blue-light': 'hsl(var(--medical-blue-light))',

@@ -32,10 +32,28 @@ All colors MUST be HSL.
     --success: 145 85% 47%;
     --success-foreground: 0 0% 100%;
 
+    --warning: 45 100% 60%;
+    --warning-foreground: 0 0% 100%;
+
     --medical-blue: 210 100% 50%;
     --medical-blue-light: 210 100% 96%;
     --medical-blue-dark: 210 100% 35%;
     --medical-teal: 180 65% 50%;
+    --medical-green: 145 85% 47%;
+    --medical-orange: 25 95% 53%;
+    --medical-red: 0 84% 60%;
+
+    /* Progress indicators */
+    --progress-bg: 214 31.8% 91.4%;
+    --progress-complete: 145 85% 47%;
+    --progress-partial: 45 100% 60%;
+    --progress-incomplete: 210 20% 96%;
+
+    /* Smart color coding */
+    --normal-indicator: 145 85% 47%;
+    --abnormal-indicator: 0 84% 60%;
+    --pending-indicator: 45 100% 60%;
+    --refused-indicator: 210 8% 46%;
     --sidebar-bg: 210 100% 40%;
     --sidebar-text: 0 0% 100%;
     --sidebar-hover: 210 100% 45%;
@@ -92,10 +110,28 @@ All colors MUST be HSL.
     --success: 145 85% 55%;
     --success-foreground: 0 0% 100%;
 
+    --warning: 45 100% 70%;
+    --warning-foreground: 0 0% 100%;
+
     --medical-blue: 210 100% 60%;
     --medical-blue-light: 210 100% 25%;
     --medical-blue-dark: 210 100% 40%;
     --medical-teal: 180 65% 60%;
+    --medical-green: 145 85% 55%;
+    --medical-orange: 25 95% 63%;
+    --medical-red: 0 84% 70%;
+
+    /* Progress indicators */
+    --progress-bg: 217 32.6% 17.5%;
+    --progress-complete: 145 85% 55%;
+    --progress-partial: 45 100% 70%;
+    --progress-incomplete: 210 30% 18%;
+
+    /* Smart color coding */
+    --normal-indicator: 145 85% 55%;
+    --abnormal-indicator: 0 84% 70%;
+    --pending-indicator: 45 100% 70%;
+    --refused-indicator: 210 20% 65%;
     --sidebar-bg: 210 100% 25%;
     --sidebar-text: 0 0% 100%;
     --sidebar-hover: 210 100% 35%;
