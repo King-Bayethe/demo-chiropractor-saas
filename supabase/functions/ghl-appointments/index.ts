@@ -64,7 +64,8 @@ const handler = async (req: Request): Promise<Response> => {
     const ghlHeaders = {
       'Authorization': `Bearer ${ghlApiKey}`,
       'Content-Type': 'application/json',
-      'Version': '2021-07-28'
+      'Accept': 'application/json',
+      'Version': '2021-04-15'
     };
 
     switch (action) {
@@ -117,20 +118,25 @@ const handler = async (req: Request): Promise<Response> => {
         const appointmentData: AppointmentData = data.appointmentData;
         console.log('Creating appointment:', appointmentData);
 
-        // Create in GoHighLevel
+        // Create in GoHighLevel using the correct payload structure
         const ghlPayload = {
-          calendarId: data.calendarId,
+          title: appointmentData.title,
+          calendarId: data.calendarId || appointmentData.calendarId,
           contactId: appointmentData.contact_id,
           startTime: appointmentData.start_time,
           endTime: appointmentData.end_time,
-          title: appointmentData.title,
-          appointmentStatus: appointmentData.status || 'scheduled',
-          notes: appointmentData.notes,
-          location: appointmentData.location
+          appointmentStatus: appointmentData.status || 'new',
+          meetingLocationType: 'custom',
+          meetingLocationId: 'default',
+          overrideLocationConfig: true,
+          address: appointmentData.location || 'Office',
+          ignoreDateRange: false,
+          toNotify: true,
+          ignoreFreeSlotValidation: true
         };
 
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events`,
+          `https://services.leadconnectorhq.com/calendars/events/appointments`,
           {
             method: 'POST',
             headers: ghlHeaders,
