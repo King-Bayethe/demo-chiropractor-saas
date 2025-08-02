@@ -1,0 +1,369 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { PatientProfileHeader } from "./PatientProfileHeader";
+import { SubjectiveSection, SubjectiveData } from "./SubjectiveSection";
+import { ObjectiveSection, ObjectiveData, VitalSigns, SystemExam, SpecialTest, ImagingLab, Procedure } from "./ObjectiveSection";
+import { AssessmentSection, AssessmentData } from "./AssessmentSection";
+import { PlanSection, PlanData } from "./PlanSection";
+import { ChevronDown, Save, FileText, Download, Clock, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface ComprehensiveSOAPFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  patient?: any;
+  initialData?: Partial<SOAPFormData>;
+  onSave: (data: SOAPFormData) => void;
+}
+
+export interface SOAPFormData {
+  patientId: string;
+  patientName: string;
+  providerId: string;
+  providerName: string;
+  dateCreated: Date;
+  chiefComplaint: string;
+  isQuickNote: boolean;
+  subjective: SubjectiveData;
+  objective: ObjectiveData;
+  assessment: AssessmentData;
+  plan: PlanData;
+}
+
+export function ComprehensiveSOAPForm({ 
+  isOpen, 
+  onClose, 
+  patient, 
+  initialData, 
+  onSave 
+}: ComprehensiveSOAPFormProps) {
+  const { toast } = useToast();
+  const [isQuickNote, setIsQuickNote] = useState(false);
+  const [activeTab, setActiveTab] = useState("patient");
+  const [openSections, setOpenSections] = useState<string[]>(["subjective"]);
+  
+  const [formData, setFormData] = useState<SOAPFormData>({
+    patientId: patient?.id || "",
+    patientName: patient?.name || "",
+    providerId: "dr-silverman",
+    providerName: "Dr. Silverman",
+    dateCreated: new Date(),
+    chiefComplaint: "",
+    isQuickNote: false,
+    subjective: {
+      symptoms: [],
+      painScale: null,
+      painDescription: "",
+      otherSymptoms: "",
+      isRefused: false,
+      isWithinNormalLimits: false
+    },
+    objective: {
+      vitalSigns: {
+        height: "",
+        weight: "",
+        bloodPressure: "",
+        heartRate: "",
+        temperature: "",
+        oxygenSaturation: "",
+        respiratoryRate: ""
+      },
+      systemExams: [],
+      specialTests: [],
+      imagingLabs: [],
+      procedures: []
+    },
+    assessment: {
+      diagnoses: [],
+      clinicalImpression: ""
+    },
+    plan: {
+      treatments: [],
+      customTreatment: "",
+      medications: [],
+      followUpPeriod: "",
+      customFollowUp: "",
+      hasEmergencyDisclaimer: true,
+      legalTags: [],
+      additionalInstructions: ""
+    }
+  });
+
+  // Sample patient data for demo
+  const mockPatient = {
+    id: patient?.id || "pat-001",
+    name: patient?.name || "John Doe",
+    dateOfBirth: "1985-06-15",
+    age: 38,
+    gender: "Male",
+    email: "john.doe@email.com",
+    phone: "(555) 123-4567",
+    address: "123 Main St, Anytown, ST 12345",
+    medicalHistory: ["Hypertension", "Previous lower back injury (2019)"],
+    allergies: ["Penicillin", "Latex"],
+    emergencyContact: {
+      name: "Jane Doe",
+      phone: "(555) 123-4568",
+      relationship: "Spouse"
+    }
+  };
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({ ...prev, ...initialData }));
+    }
+  }, [initialData]);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  const handleSave = () => {
+    try {
+      onSave(formData);
+      toast({
+        title: "SOAP Note Saved",
+        description: `${formData.isQuickNote ? 'Quick note' : 'Comprehensive SOAP note'} saved successfully.`,
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save SOAP note. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportToPDF = () => {
+    toast({
+      title: "Export Feature",
+      description: "PDF export functionality would be implemented here.",
+    });
+  };
+
+  const getCompletionPercentage = () => {
+    let completed = 0;
+    let total = 4;
+
+    // Check subjective completion
+    if (formData.subjective.symptoms.length > 0 || formData.subjective.painDescription || 
+        formData.subjective.isRefused || formData.subjective.isWithinNormalLimits) {
+      completed++;
+    }
+
+    // Check objective completion
+    if (Object.values(formData.objective.vitalSigns).some(v => v) || 
+        formData.objective.systemExams.length > 0) {
+      completed++;
+    }
+
+    // Check assessment completion
+    if (formData.assessment.diagnoses.length > 0 || formData.assessment.clinicalImpression) {
+      completed++;
+    }
+
+    // Check plan completion
+    if (formData.plan.treatments.length > 0 || formData.plan.medications.length > 0 || 
+        formData.plan.additionalInstructions) {
+      completed++;
+    }
+
+    return Math.round((completed / total) * 100);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-7xl h-[90vh] bg-background border border-border rounded-lg shadow-lg">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-border">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold">
+                {isQuickNote ? 'Quick SOAP Note' : 'Comprehensive SOAP Assessment'}
+              </h1>
+              <Badge variant="outline" className="text-xs">
+                {getCompletionPercentage()}% Complete
+              </Badge>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={exportToPDF}>
+                <Download className="w-4 h-4 mr-2" />
+                Export PDF
+              </Button>
+              <Button size="sm" onClick={handleSave}>
+                <Save className="w-4 h-4 mr-2" />
+                Save Note
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex h-[calc(90vh-120px)]">
+            {isQuickNote ? (
+              // Quick Note Mode - Collapsible Sections
+              <ScrollArea className="flex-1 p-6">
+                <PatientProfileHeader 
+                  patient={mockPatient} 
+                  isQuickNote={isQuickNote}
+                  onToggleMode={() => setIsQuickNote(!isQuickNote)}
+                />
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Chief Complaint</label>
+                    <input
+                      type="text"
+                      value={formData.chiefComplaint}
+                      onChange={(e) => setFormData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
+                      placeholder="Brief description of main concern"
+                      className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                    />
+                  </div>
+                  
+                  {/* Collapsible SOAP Sections */}
+                  {[
+                    { id: "subjective", title: "Subjective", component: SubjectiveSection },
+                    { id: "objective", title: "Objective", component: ObjectiveSection },
+                    { id: "assessment", title: "Assessment", component: AssessmentSection },
+                    { id: "plan", title: "Plan", component: PlanSection }
+                  ].map(({ id, title, component: Component }) => {
+                    const isOpen = openSections.includes(id);
+                    return (
+                      <Collapsible key={id} open={isOpen} onOpenChange={() => toggleSection(id)}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between h-auto py-3">
+                            <span className="font-medium">{title}</span>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <Component
+                            data={formData[id as keyof SOAPFormData] as any}
+                            onChange={(data: any) => setFormData(prev => ({ ...prev, [id]: data }))}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            ) : (
+              // Full Assessment Mode - Tabs
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+                <TabsList className="mx-6 mt-6 grid w-full grid-cols-5">
+                  <TabsTrigger value="patient">Patient</TabsTrigger>
+                  <TabsTrigger value="subjective">Subjective</TabsTrigger>
+                  <TabsTrigger value="objective">Objective</TabsTrigger>
+                  <TabsTrigger value="assessment">Assessment</TabsTrigger>
+                  <TabsTrigger value="plan">Plan</TabsTrigger>
+                </TabsList>
+                
+                <div className="flex-1 overflow-hidden">
+                  <TabsContent value="patient" className="h-full">
+                    <ScrollArea className="h-full px-6 pb-6">
+                      <PatientProfileHeader 
+                        patient={mockPatient} 
+                        isQuickNote={isQuickNote}
+                        onToggleMode={() => setIsQuickNote(!isQuickNote)}
+                      />
+                      
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Visit Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Chief Complaint</label>
+                            <input
+                              type="text"
+                              value={formData.chiefComplaint}
+                              onChange={(e) => setFormData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
+                              placeholder="Brief description of main concern"
+                              className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Provider</label>
+                              <input
+                                type="text"
+                                value={formData.providerName}
+                                onChange={(e) => setFormData(prev => ({ ...prev, providerName: e.target.value }))}
+                                className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Date</label>
+                              <input
+                                type="datetime-local"
+                                value={formData.dateCreated.toISOString().slice(0, 16)}
+                                onChange={(e) => setFormData(prev => ({ ...prev, dateCreated: new Date(e.target.value) }))}
+                                className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="subjective" className="h-full">
+                    <ScrollArea className="h-full px-6 pb-6">
+                      <SubjectiveSection
+                        data={formData.subjective}
+                        onChange={(data) => setFormData(prev => ({ ...prev, subjective: data }))}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="objective" className="h-full">
+                    <ScrollArea className="h-full px-6 pb-6">
+                      <ObjectiveSection
+                        data={formData.objective}
+                        onChange={(data) => setFormData(prev => ({ ...prev, objective: data }))}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="assessment" className="h-full">
+                    <ScrollArea className="h-full px-6 pb-6">
+                      <AssessmentSection
+                        data={formData.assessment}
+                        onChange={(data) => setFormData(prev => ({ ...prev, assessment: data }))}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="plan" className="h-full">
+                    <ScrollArea className="h-full px-6 pb-6">
+                      <PlanSection
+                        data={formData.plan}
+                        onChange={(data) => setFormData(prev => ({ ...prev, plan: data }))}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+                </div>
+              </Tabs>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

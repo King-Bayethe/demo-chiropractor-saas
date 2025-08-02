@@ -6,12 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
+import { ComprehensiveSOAPForm, SOAPFormData } from "@/components/soap/ComprehensiveSOAPForm";
 import { 
   Search, 
   Filter, 
@@ -20,7 +17,6 @@ import {
   Calendar,
   User,
   Clock,
-  X,
   Edit,
   Eye
 } from "lucide-react";
@@ -376,201 +372,34 @@ export default function SOAPNotes() {
             </div>
           </div>
 
-          {/* Create SOAP Note Modal */}
-          <Dialog open={isCreateSOAPOpen} onOpenChange={setIsCreateSOAPOpen}>
-            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between">
-                  New SOAP Note
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsCreateSOAPOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogTitle>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Patient and Provider Info */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Patient & Provider Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="patientId">Patient *</Label>
-                        <Select 
-                          value={formData.patientId} 
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, patientId: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a patient" />
-                          </SelectTrigger>
-                          <SelectContent>
-                      {patients.map((patient: any) => (
-                        <SelectItem key={patient.id} value={patient.id}>
-                          {getPatientName(patient)}
-                        </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="providerName">Provider *</Label>
-                        <Select 
-                          value={formData.providerName} 
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, providerName: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Dr. Silverman">Dr. Silverman</SelectItem>
-                            <SelectItem value="PT Thompson">PT Thompson</SelectItem>
-                            <SelectItem value="Dr. Johnson">Dr. Johnson</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="chiefComplaint">Chief Complaint</Label>
-                      <Input
-                        id="chiefComplaint"
-                        value={formData.chiefComplaint}
-                        onChange={(e) => setFormData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
-                        placeholder="Brief description of main concern"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Vital Signs */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Vital Signs</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-4 gap-4">
-                      <div>
-                        <Label htmlFor="bloodPressure">Blood Pressure</Label>
-                        <Input
-                          id="bloodPressure"
-                          value={formData.bloodPressure}
-                          onChange={(e) => setFormData(prev => ({ ...prev, bloodPressure: e.target.value }))}
-                          placeholder="120/80"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="heartRate">Heart Rate</Label>
-                        <Input
-                          id="heartRate"
-                          value={formData.heartRate}
-                          onChange={(e) => setFormData(prev => ({ ...prev, heartRate: e.target.value }))}
-                          placeholder="72 bpm"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="temperature">Temperature</Label>
-                        <Input
-                          id="temperature"
-                          value={formData.temperature}
-                          onChange={(e) => setFormData(prev => ({ ...prev, temperature: e.target.value }))}
-                          placeholder="98.6°F"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="weight">Weight</Label>
-                        <Input
-                          id="weight"
-                          value={formData.weight}
-                          onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-                          placeholder="lbs"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* SOAP Sections */}
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-medical-blue">Subjective</CardTitle>
-                      <p className="text-sm text-muted-foreground">Patient's reported symptoms and history</p>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={formData.subjective}
-                        onChange={(e) => setFormData(prev => ({ ...prev, subjective: e.target.value }))}
-                        placeholder="Patient reports..."
-                        rows={4}
-                        required
-                      />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-medical-teal">Objective</CardTitle>
-                      <p className="text-sm text-muted-foreground">Observable and measurable findings</p>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={formData.objective}
-                        onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
-                        placeholder="Physical examination findings, test results..."
-                        rows={4}
-                        required
-                      />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-yellow-600">Assessment</CardTitle>
-                      <p className="text-sm text-muted-foreground">Clinical diagnosis and impressions</p>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={formData.assessment}
-                        onChange={(e) => setFormData(prev => ({ ...prev, assessment: e.target.value }))}
-                        placeholder="Clinical diagnosis, differential diagnosis..."
-                        rows={3}
-                        required
-                      />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-success">Plan</CardTitle>
-                      <p className="text-sm text-muted-foreground">Treatment plan and next steps</p>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={formData.plan}
-                        onChange={(e) => setFormData(prev => ({ ...prev, plan: e.target.value }))}
-                        placeholder="Treatment plan, medications, follow-up instructions..."
-                        rows={4}
-                        required
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateSOAPOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create SOAP Note</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          {/* Comprehensive SOAP Form */}
+          <ComprehensiveSOAPForm
+            isOpen={isCreateSOAPOpen}
+            onClose={() => setIsCreateSOAPOpen(false)}
+            patient={patients.find((p: any) => p.id === formData.patientId)}
+            onSave={(data: SOAPFormData) => {
+              const newSOAPNote: SOAPNote = {
+                id: `soap-${Date.now()}`,
+                patientId: data.patientId,
+                patientName: data.patientName,
+                providerId: data.providerId,
+                providerName: data.providerName,
+                dateCreated: data.dateCreated,
+                chiefComplaint: data.chiefComplaint,
+                subjective: `${data.subjective.painDescription} ${data.subjective.otherSymptoms}`.trim(),
+                objective: `Vital Signs: BP: ${data.objective.vitalSigns.bloodPressure}, HR: ${data.objective.vitalSigns.heartRate}`,
+                assessment: data.assessment.clinicalImpression,
+                plan: data.plan.additionalInstructions,
+                vitalSigns: {
+                  bloodPressure: data.objective.vitalSigns.bloodPressure,
+                  heartRate: data.objective.vitalSigns.heartRate,
+                  temperature: data.objective.vitalSigns.temperature,
+                  weight: data.objective.vitalSigns.weight
+                }
+              };
+              setSoapNotes(prev => [newSOAPNote, ...prev]);
+            }}
+          />
 
           {/* View SOAP Note Modal */}
           <Dialog open={isViewNoteOpen} onOpenChange={setIsViewNoteOpen}>
