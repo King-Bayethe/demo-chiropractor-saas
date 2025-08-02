@@ -42,7 +42,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, ...data } = await req.json();
+    // Parse request body safely
+    let requestBody;
+    try {
+      const bodyText = await req.text();
+      if (!bodyText) {
+        throw new Error('Empty request body');
+      }
+      requestBody = JSON.parse(bodyText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { action, ...data } = requestBody;
     console.log(`Processing appointment action: ${action}`, data);
 
     const ghlHeaders = {
@@ -55,14 +71,20 @@ const handler = async (req: Request): Promise<Response> => {
       case 'getAll': {
         console.log('Fetching all appointments from GoHighLevel');
         
+        // Get date range for appointments (30 days back and 90 days forward)
+        const startTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
+        const endTime = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days forward
+        
         // Fetch from GoHighLevel Calendar API
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}`,
+          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
           { headers: ghlHeaders }
         );
 
         if (!ghlResponse.ok) {
-          throw new Error(`GoHighLevel API error: ${ghlResponse.status}`);
+          const errorText = await ghlResponse.text();
+          console.error(`GoHighLevel API error: ${ghlResponse.status}`, errorText);
+          throw new Error(`GoHighLevel API error: ${ghlResponse.status} - ${errorText}`);
         }
 
         const ghlData = await ghlResponse.json();
@@ -289,14 +311,20 @@ const handler = async (req: Request): Promise<Response> => {
       case 'sync': {
         console.log('Syncing appointments with GoHighLevel');
         
+        // Get date range for sync (30 days back and 90 days forward)
+        const startTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
+        const endTime = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days forward
+        
         // Fetch all events from GoHighLevel
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}`,
+          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
           { headers: ghlHeaders }
         );
 
         if (!ghlResponse.ok) {
-          throw new Error(`GoHighLevel API error: ${ghlResponse.status}`);
+          const errorText = await ghlResponse.text();
+          console.error(`GoHighLevel API error: ${ghlResponse.status}`, errorText);
+          throw new Error(`GoHighLevel API error: ${ghlResponse.status} - ${errorText}`);
         }
 
         const ghlData = await ghlResponse.json();
