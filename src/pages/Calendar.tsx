@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
 import { useAppointments } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/appointments/AppointmentForm";
+import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDetailDialog";
 import { 
   ChevronLeft,
   ChevronRight,
@@ -46,6 +47,8 @@ export default function Calendar() {
   const [contacts, setContacts] = useState([]);
   const [providers, setProviders] = useState([]);
   const [isCreateAppointmentOpen, setIsCreateAppointmentOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<DisplayAppointment | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const { toast } = useToast();
   const ghlApi = useGHLApi();
   const { appointments, loading, createAppointment, fetchAppointments } = useAppointments();
@@ -102,6 +105,18 @@ export default function Calendar() {
       // Error handling is done in the hook
       console.error('Failed to create appointment:', error);
     }
+  };
+
+  const handleAppointmentClick = (appointment: DisplayAppointment) => {
+    setSelectedAppointment(appointment);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleEditAppointment = (appointment: DisplayAppointment) => {
+    // Close detail dialog and open edit form
+    setIsDetailDialogOpen(false);
+    // TODO: Implement edit functionality
+    console.log('Edit appointment:', appointment);
   };
 
   const getStatusColor = (status: string) => {
@@ -185,7 +200,8 @@ export default function Calendar() {
             {dayAppointments.slice(0, 3).map(apt => (
               <div
                 key={apt.id}
-                className="text-xs p-1 rounded bg-medical-blue/10 text-medical-blue truncate cursor-pointer hover:bg-medical-blue/20"
+                className="text-xs p-1 rounded bg-medical-blue/10 text-medical-blue truncate cursor-pointer hover:bg-medical-blue/20 transition-colors"
+                onClick={() => handleAppointmentClick(apt)}
               >
                 {apt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - {apt.patientName}
               </div>
@@ -231,7 +247,11 @@ export default function Calendar() {
     return (
       <div className="space-y-3">
         {filteredAppointments.map(apt => (
-          <Card key={apt.id} className="border border-border/50">
+          <Card 
+            key={apt.id} 
+            className="border border-border/50 cursor-pointer hover:shadow-sm transition-shadow"
+            onClick={() => handleAppointmentClick(apt)}
+          >
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -273,7 +293,14 @@ export default function Calendar() {
                     )}
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditAppointment(apt);
+                  }}
+                >
                   Edit
                 </Button>
               </div>
@@ -416,6 +443,14 @@ export default function Calendar() {
               loading={loading}
             />
           </Dialog>
+
+          {/* Appointment Detail Dialog */}
+          <AppointmentDetailDialog
+            appointment={selectedAppointment}
+            open={isDetailDialogOpen}
+            onOpenChange={setIsDetailDialogOpen}
+            onEdit={handleEditAppointment}
+          />
         </div>
       </Layout>
     </AuthGuard>
