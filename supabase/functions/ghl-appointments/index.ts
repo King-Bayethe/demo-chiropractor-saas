@@ -89,7 +89,40 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         const ghlData = await ghlResponse.json();
-        console.log(`Fetched ${ghlData.events?.length || 0} appointments from GoHighLevel`);
+        const ghlEvents = ghlData.events || [];
+        console.log(`Fetched ${ghlEvents.length} appointments from GoHighLevel`);
+
+        // Fetch contact names for each appointment
+        const appointmentsWithContacts = await Promise.all(
+          ghlEvents.map(async (appointment: any) => {
+            if (!appointment.contactId) {
+              return { ...appointment, contactName: '' };
+            }
+
+            try {
+              // Fetch contact details from GHL Contacts API
+              const contactResponse = await fetch(
+                `https://services.leadconnectorhq.com/contacts/${appointment.contactId}`,
+                { headers: ghlHeaders }
+              );
+
+              if (contactResponse.ok) {
+                const contactData = await contactResponse.json();
+                const contactName = `${contactData.contact?.firstName || ''} ${contactData.contact?.lastName || ''}`.trim() || 
+                                  contactData.contact?.email || 
+                                  'Unknown Contact';
+                
+                return { ...appointment, contactName };
+              } else {
+                console.warn(`Failed to fetch contact ${appointment.contactId}`);
+                return { ...appointment, contactName: 'Unknown Contact' };
+              }
+            } catch (error) {
+              console.error(`Error fetching contact ${appointment.contactId}:`, error);
+              return { ...appointment, contactName: 'Unknown Contact' };
+            }
+          })
+        );
 
         // Also fetch from local database
         const { data: localAppointments, error: localError } = await supabaseClient
@@ -106,9 +139,9 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({
-            appointments: ghlData.events || [],
+            appointments: appointmentsWithContacts,
             localAppointments: localAppointments || [],
-            total: ghlData.events?.length || 0
+            total: appointmentsWithContacts.length
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
