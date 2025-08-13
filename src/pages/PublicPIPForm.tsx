@@ -5,40 +5,78 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ChevronRight } from "lucide-react";
 
 const PublicPIPForm = () => {
   const [formData, setFormData] = useState({
+    // General Information
     lastName: "",
     firstName: "",
     address: "",
+    city: "",
+    state: "",
+    zip: "",
+    homePhone: "",
+    workPhone: "",
     cellPhone: "",
     email: "",
+    driversLicense: "",
+    driversLicenseState: "",
+    emergencyContact: "",
+    emergencyPhone: "",
+    sex: "",
+    maritalStatus: "",
     dob: "",
     ssn: "",
+    age: "",
+    
+    // Employment & Student Status
+    employmentStatus: "",
+    employerName: "",
+    employerAddress: "",
+    studentStatus: "",
+    
+    // Insurance & Attorney
+    autoInsuranceCo: "",
+    policyNumber: "",
+    claimNumber: "",
+    adjusterName: "",
+    healthInsurance: "",
+    groupNumber: "",
+    attorneyName: "",
+    attorneyPhone: "",
+    
+    // Auto Accident Details
     accidentDate: "",
     accidentTime: "",
     accidentDescription: "",
     personType: "",
-    airbags: "",
-    insuranceCo: "",
-    policyNumber: "",
-    claimNumber: "",
-    attorneyName: "",
-    vehicleOwner: "",
-    symptoms: {
-      headache: false,
-      neckPain: false,
-      backPain: false,
-      dizziness: false,
-      tingling: false,
+    weather: "",
+    streetSurface: "",
+    bodyPart: "",
+    whatItHit: "",
+    
+    // Review of Systems
+    systems: {
+      fever: false,
+      chills: false,
+      fatigue: false,
+      blurredVision: false,
+      doubleVision: false,
+      eyePain: false,
+      ringingEars: false,
+      nasalCongestion: false,
+      chestPains: false,
+      palpitations: false,
+      nausea: false,
+      abdominalPain: false,
+      weakness: false,
       numbness: false,
-      jawPain: false,
-      sleepingProblems: false,
+      dizziness: false,
     },
-    medicalHistory: "",
+    
     consentAcknowledgement: false,
     signature: "",
     date: "",
@@ -51,12 +89,12 @@ const PublicPIPForm = () => {
     }));
   };
 
-  const handleSymptomChange = (symptom: string, checked: boolean) => {
+  const handleSystemChange = (system: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      symptoms: {
-        ...prev.symptoms,
-        [symptom]: checked
+      systems: {
+        ...prev.systems,
+        [system]: checked
       }
     }));
   };
@@ -93,31 +131,59 @@ const PublicPIPForm = () => {
         lastName: "",
         firstName: "",
         address: "",
+        city: "",
+        state: "",
+        zip: "",
+        homePhone: "",
+        workPhone: "",
         cellPhone: "",
         email: "",
+        driversLicense: "",
+        driversLicenseState: "",
+        emergencyContact: "",
+        emergencyPhone: "",
+        sex: "",
+        maritalStatus: "",
         dob: "",
         ssn: "",
+        age: "",
+        employmentStatus: "",
+        employerName: "",
+        employerAddress: "",
+        studentStatus: "",
+        autoInsuranceCo: "",
+        policyNumber: "",
+        claimNumber: "",
+        adjusterName: "",
+        healthInsurance: "",
+        groupNumber: "",
+        attorneyName: "",
+        attorneyPhone: "",
         accidentDate: "",
         accidentTime: "",
         accidentDescription: "",
         personType: "",
-        airbags: "",
-        insuranceCo: "",
-        policyNumber: "",
-        claimNumber: "",
-        attorneyName: "",
-        vehicleOwner: "",
-        symptoms: {
-          headache: false,
-          neckPain: false,
-          backPain: false,
-          dizziness: false,
-          tingling: false,
+        weather: "",
+        streetSurface: "",
+        bodyPart: "",
+        whatItHit: "",
+        systems: {
+          fever: false,
+          chills: false,
+          fatigue: false,
+          blurredVision: false,
+          doubleVision: false,
+          eyePain: false,
+          ringingEars: false,
+          nasalCongestion: false,
+          chestPains: false,
+          palpitations: false,
+          nausea: false,
+          abdominalPain: false,
+          weakness: false,
           numbness: false,
-          jawPain: false,
-          sleepingProblems: false,
+          dizziness: false,
         },
-        medicalHistory: "",
         consentAcknowledgement: false,
         signature: "",
         date: "",
@@ -129,368 +195,552 @@ const PublicPIPForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <Card className="shadow-lg">
-          <CardHeader className="text-center pb-8">
-            <CardTitle className="text-2xl sm:text-3xl font-bold">
-              Comprehensive PIP Patient Intake Form
-            </CardTitle>
-            <CardDescription className="text-lg">
-              Formulario de Admisión de Paciente de PIP (Completo)
-            </CardDescription>
-          </CardHeader>
+    <div className="min-h-screen bg-muted/20 p-4 sm:p-6 md:p-8">
+      <div className="max-w-5xl mx-auto bg-background p-6 sm:p-8 rounded-2xl shadow-2xl">
+        {/* Header */}
+        <header className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Comprehensive Patient Intake Form</h1>
+          <p className="text-lg text-muted-foreground mt-2">Formulario Completo de Admisión de Paciente</p>
+        </header>
 
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* General Information Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">
-                    General Information / <span className="font-medium">INFORMACIÓN GENERAL</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="last-name">Last Name / <span className="italic">Apellido</span></Label>
-                    <Input
-                      id="last-name"
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange("lastName", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="first-name">First Name / <span className="italic">Nombre</span></Label>
-                    <Input
-                      id="first-name"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange("firstName", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="address">Address / <span className="italic">Dirección</span></Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange("address", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cell-phone">Cell Phone / <span className="italic">Teléfono (Celular)</span></Label>
-                    <Input
-                      id="cell-phone"
-                      type="tel"
-                      value={formData.cellPhone}
-                      onChange={(e) => handleInputChange("cellPhone", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email / <span className="italic">Correo Electrónico</span></Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dob">Date of Birth / <span className="italic">Fecha de Nacimiento</span></Label>
-                    <Input
-                      id="dob"
-                      type="date"
-                      value={formData.dob}
-                      onChange={(e) => handleInputChange("dob", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ssn">Social Security # / <span className="italic">Núm. Seguro Social</span></Label>
-                    <Input
-                      id="ssn"
-                      value={formData.ssn}
-                      onChange={(e) => handleInputChange("ssn", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Detailed Accident Information Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">
-                    Detailed Accident Information / <span className="font-medium">Información Detallada del Accidente</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="accident-date">Date of Accident / <span className="italic">Fecha del Accidente</span></Label>
-                    <Input
-                      id="accident-date"
-                      type="date"
-                      value={formData.accidentDate}
-                      onChange={(e) => handleInputChange("accidentDate", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="accident-time">Time of Accident / <span className="italic">Hora del Accidente</span></Label>
-                    <Input
-                      id="accident-time"
-                      type="time"
-                      value={formData.accidentTime}
-                      onChange={(e) => handleInputChange("accidentTime", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="accident-description">Please describe the accident / <span className="italic">Por favor describe el accidente</span></Label>
-                    <Textarea
-                      id="accident-description"
-                      value={formData.accidentDescription}
-                      onChange={(e) => handleInputChange("accidentDescription", e.target.value)}
-                      rows={3}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label>Were you the: / <span className="italic">Usted era:</span></Label>
-                    <Select onValueChange={(value) => handleInputChange("personType", value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="driver">Driver / Chofer</SelectItem>
-                        <SelectItem value="passenger">Passenger / Pasajero</SelectItem>
-                        <SelectItem value="pedestrian">Pedestrian / Peatón</SelectItem>
-                        <SelectItem value="cyclist">Cyclist / Ciclista</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Did airbags deploy? / <span className="italic">¿Se activaron las bolsas de aire?</span></Label>
-                    <Select onValueChange={(value) => handleInputChange("airbags", value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="yes">Yes / Sí</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Insurance Verification Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">
-                    Insurance Verification / <span className="font-medium">VERIFICACIÓN DE SEGURO</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="insurance-co">Auto Insurance Co. / <span className="italic">Compañía de Seguro de Auto</span></Label>
-                    <Input
-                      id="insurance-co"
-                      value={formData.insuranceCo}
-                      onChange={(e) => handleInputChange("insuranceCo", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="policy-number">Policy # / <span className="italic">Número de Póliza</span></Label>
-                    <Input
-                      id="policy-number"
-                      value={formData.policyNumber}
-                      onChange={(e) => handleInputChange("policyNumber", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="claim-number">Claim # / <span className="italic">Núm. de Reclamo</span></Label>
-                    <Input
-                      id="claim-number"
-                      value={formData.claimNumber}
-                      onChange={(e) => handleInputChange("claimNumber", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="attorney-name">Attorney's Name / <span className="italic">Nombre del Abogado</span></Label>
-                    <Input
-                      id="attorney-name"
-                      value={formData.attorneyName}
-                      onChange={(e) => handleInputChange("attorneyName", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="vehicle-owner">Vehicle Owner / <span className="italic">Dueño del Vehículo</span></Label>
-                    <Input
-                      id="vehicle-owner"
-                      value={formData.vehicleOwner}
-                      onChange={(e) => handleInputChange("vehicleOwner", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Symptoms & Medical History Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">
-                    Symptoms & Medical History / <span className="font-medium">SÍNTOMAS E HISTORIAL MÉDICO</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <Label className="text-sm font-medium mb-4 block">
-                      Please check any symptoms you are now experiencing: / <span className="italic">Marque los síntomas que experimenta:</span>
-                    </Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                      {[
-                        { key: "headache", label: "Headache / Dolor de cabeza" },
-                        { key: "neckPain", label: "Neck Pain / Dolor de cuello" },
-                        { key: "backPain", label: "Back Pain / Dolor de Espalda" },
-                        { key: "dizziness", label: "Dizziness / Mareo" },
-                        { key: "tingling", label: "Tingling / Hormigueo" },
-                        { key: "numbness", label: "Numbness / Entumecimiento" },
-                        { key: "jawPain", label: "Jaw Pain / Dolor de Mandíbula" },
-                        { key: "sleepingProblems", label: "Sleeping Problems / Problemas para dormir" },
-                      ].map((symptom) => (
-                        <div key={symptom.key} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={symptom.key}
-                            checked={formData.symptoms[symptom.key as keyof typeof formData.symptoms]}
-                            onCheckedChange={(checked) => handleSymptomChange(symptom.key, checked as boolean)}
-                          />
-                          <Label htmlFor={symptom.key} className="text-sm leading-tight">
-                            {symptom.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="medical-history">
-                      Please list any major illnesses, surgeries, or previous accidents. / <span className="italic">Liste enfermedades, cirugías o accidentes previos.</span>
-                    </Label>
-                    <Textarea
-                      id="medical-history"
-                      value={formData.medicalHistory}
-                      onChange={(e) => handleInputChange("medicalHistory", e.target.value)}
-                      rows={3}
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Authorizations & Consents Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl text-primary">
-                    Authorizations & Consents / <span className="font-medium">AUTORIZACIONES</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {[
-                    {
-                      title: "Assignment of Benefits / Asignación de Beneficios",
-                      content: "I hereby assign the rights and benefits of insurance to the applicable personal injury protection...to Silverman Chiropractic & Rehabilitation Center, Inc... This assignment includes but is not limited to all rights to collect benefits directly from the insurance company...\n\nYo, por el presente, asigno los derechos y beneficios del seguro de protección contra lesiones personales aplicable... a Silverman Chiropractic & Rehabilitation Center, Inc... Esta asignación incluye, entre otros, todos los derechos a cobrar los beneficios directamente de la compañía de seguros..."
-                    },
-                    {
-                      title: "Doctor's Lien / Gravamen del Médico",
-                      content: "I hereby authorize and direct you, my attorney, to pay directly to said doctor such sums as may be due...from any settlement, judgment, or verdict... I hereby give a lien on my case to the said center...\n\nPor la presente autorizo y le ordeno a usted, mi abogado, que pague directamente a dicho médico las sumas adeudadas... de cualquier acuerdo, sentencia o veredicto... Por la presente otorgo un gravamen sobre mi caso a dicho centro..."
-                    },
-                    {
-                      title: "Consent to Medical Care / Consentimiento para Atención Médica",
-                      content: "I authorize Silverman Chiropractic and Rehabilitation Center to determine what kinds of pathological procedures (tests) must be done... I also authorize my doctor to determine what kind of treatment is to be given...\n\nAutorizo al Silverman Chiropractic and Rehabilitation Center a determinar qué tipo de procedimientos patológicos (pruebas) deben realizarse... También autorizo a mi médico a determinar qué tipo de tratamiento se debe administrar..."
-                    },
-                    {
-                      title: "Radiology Warning (Female Patients) / Advertencia de Radiología (Pacientes Femeninas)",
-                      content: "I certify to the best of my knowledge that I AM NOT PREGNANT and that the doctor(s) or the facility have my permission to perform diagnostic x-ray examination.\n\nCertifico, a mi leal saber y entender, que NO ESTOY EMBARAZADA y que el/los médico(s) o el centro tienen mi permiso para realizar un examen de rayos X de diagnóstico."
-                    },
-                    {
-                      title: "HIPAA & Privacy / HIPAA y Privacidad",
-                      content: "I acknowledge that I have been provided with the \"Notice Of Privacy Practices\".\n\nConfirmo que se me ha proveído la \"Noticia De las Practicas de Privacidad\"."
-                    }
-                  ].map((section, index) => (
-                    <div key={index}>
-                      <h3 className="font-semibold text-lg mb-2">{section.title}</h3>
-                      <div className="bg-muted/50 border-l-4 border-primary p-4 rounded text-sm max-h-40 overflow-y-auto">
-                        {section.content.split('\n\n').map((paragraph, pIndex) => (
-                          <p key={pIndex} className={pIndex > 0 ? "mt-2 italic" : ""}>
-                            {paragraph}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Signature Section */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-6">
-                    <div className="flex items-start space-x-2">
-                      <Checkbox
-                        id="consent"
-                        checked={formData.consentAcknowledgement}
-                        onCheckedChange={(checked) => handleInputChange("consentAcknowledgement", checked)}
-                        className="mt-1"
-                      />
-                      <Label htmlFor="consent" className="text-sm leading-relaxed">
-                        By checking this box, I confirm I have read and agree to all authorizations.
-                        <br />
-                        <span className="italic">Al marcar esta casilla, confirmo que he leído y acepto todas las autorizaciones.</span>
-                      </Label>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <Label htmlFor="signature">Patient Signature / <span className="italic">Firma del Paciente</span></Label>
-                        <Input
-                          id="signature"
-                          value={formData.signature}
-                          onChange={(e) => handleInputChange("signature", e.target.value)}
-                          placeholder="Type your full name to sign"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="date">Date / <span className="italic">Fecha</span></Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={formData.date}
-                          onChange={(e) => handleInputChange("date", e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Submit Button */}
-              <div className="flex justify-end pt-6">
-                <Button type="submit" size="lg" className="px-8">
-                  Submit Form / Enviar Formulario
-                </Button>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* General Information Section */}
+          <details className="border border-border rounded-lg" open>
+            <summary className="p-4 flex justify-between items-center bg-muted/50 rounded-t-lg cursor-pointer">
+              <h2 className="text-xl font-semibold text-primary">1. General Information / <span className="font-medium">INFORMACIÓN GENERAL</span></h2>
+              <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+            </summary>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input 
+                  placeholder="Last Name / Apellido" 
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange("lastName", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  placeholder="First Name / Nombre" 
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange("firstName", e.target.value)}
+                  className="w-full"
+                />
+                <div className="md:col-span-2">
+                  <Input 
+                    placeholder="Address / Dirección" 
+                    value={formData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <Input 
+                  placeholder="City / Ciudad" 
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  placeholder="State / Estado" 
+                  value={formData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  placeholder="Zip / Código Postal" 
+                  value={formData.zip}
+                  onChange={(e) => handleInputChange("zip", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  type="tel" 
+                  placeholder="Home Phone / Teléfono (Casa)" 
+                  value={formData.homePhone}
+                  onChange={(e) => handleInputChange("homePhone", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  type="tel" 
+                  placeholder="Work Phone / Teléfono (Trabajo)" 
+                  value={formData.workPhone}
+                  onChange={(e) => handleInputChange("workPhone", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  type="tel" 
+                  placeholder="Cell Phone / Teléfono (Celular)" 
+                  value={formData.cellPhone}
+                  onChange={(e) => handleInputChange("cellPhone", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  type="email" 
+                  placeholder="Email / Correo Electrónico" 
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  className="md:col-span-2 w-full"
+                />
+                <Input 
+                  placeholder="Driver's License # / Núm. de Licencia" 
+                  value={formData.driversLicense}
+                  onChange={(e) => handleInputChange("driversLicense", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  placeholder="Driver's License State / Estado de Licencia" 
+                  value={formData.driversLicenseState}
+                  onChange={(e) => handleInputChange("driversLicenseState", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  placeholder="Emergency Contact / Contacto de Emergencia" 
+                  value={formData.emergencyContact}
+                  onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  type="tel" 
+                  placeholder="Emergency Phone / Teléfono de Emergencia" 
+                  value={formData.emergencyPhone}
+                  onChange={(e) => handleInputChange("emergencyPhone", e.target.value)}
+                  className="w-full"
+                />
+                <Select onValueChange={(value) => handleInputChange("sex", value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sex / Sexo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male / Masculino</SelectItem>
+                    <SelectItem value="female">Female / Femenino</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={(value) => handleInputChange("maritalStatus", value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Marital Status / Estado Civil" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Single / Soltero(a)</SelectItem>
+                    <SelectItem value="married">Married / Casado(a)</SelectItem>
+                    <SelectItem value="divorced">Divorced / Divorciado(a)</SelectItem>
+                    <SelectItem value="widowed">Widowed / Viudo(a)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="md:col-span-2">
+                  <Label className="text-muted-foreground">Date of Birth / Fecha de Nacimiento</Label>
+                  <Input 
+                    type="date" 
+                    value={formData.dob}
+                    onChange={(e) => handleInputChange("dob", e.target.value)}
+                    className="w-full mt-1"
+                  />
+                </div>
+                <Input 
+                  placeholder="Social Security # / Núm. Seguro Social" 
+                  value={formData.ssn}
+                  onChange={(e) => handleInputChange("ssn", e.target.value)}
+                  className="w-full"
+                />
+                <Input 
+                  type="number" 
+                  placeholder="Age / Edad" 
+                  value={formData.age}
+                  onChange={(e) => handleInputChange("age", e.target.value)}
+                  className="w-full"
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
+          </details>
+
+          {/* Employment & Student Status */}
+          <details className="border border-border rounded-lg">
+            <summary className="p-4 flex justify-between items-center bg-muted/50 rounded-t-lg cursor-pointer">
+              <h2 className="text-xl font-semibold text-primary">2. Employment & Student Status / <span className="font-medium">ESTADO LABORAL Y ESTUDIANTIL</span></h2>
+              <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+            </summary>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Select onValueChange={(value) => handleInputChange("employmentStatus", value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Employment Status / Estado Laboral" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fulltime">Full Time / Tiempo Completo</SelectItem>
+                  <SelectItem value="parttime">Part Time / Tiempo Parcial</SelectItem>
+                  <SelectItem value="retired">Retired / Retirado</SelectItem>
+                  <SelectItem value="unemployed">Not Employed / Desempleado</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input 
+                placeholder="Employer Name / Nombre del Empleador" 
+                value={formData.employerName}
+                onChange={(e) => handleInputChange("employerName", e.target.value)}
+                className="w-full"
+              />
+              <div className="md:col-span-2">
+                <Input 
+                  placeholder="Employer Address / Dirección del Empleador" 
+                  value={formData.employerAddress}
+                  onChange={(e) => handleInputChange("employerAddress", e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Select onValueChange={(value) => handleInputChange("studentStatus", value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Student Status / Estado Estudiantil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fulltime">Full Time / Tiempo Completo</SelectItem>
+                  <SelectItem value="parttime">Part Time / Tiempo Parcial</SelectItem>
+                  <SelectItem value="nonstudent">Non Student / No Estudia</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </details>
+
+          {/* Insurance & Attorney Information */}
+          <details className="border border-border rounded-lg">
+            <summary className="p-4 flex justify-between items-center bg-muted/50 rounded-t-lg cursor-pointer">
+              <h2 className="text-xl font-semibold text-primary">3. Insurance & Attorney / <span className="font-medium">SEGURO Y ABOGADO</span></h2>
+              <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+            </summary>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input 
+                placeholder="Auto Insurance Company / Cía. de Seguro de Auto" 
+                value={formData.autoInsuranceCo}
+                onChange={(e) => handleInputChange("autoInsuranceCo", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                placeholder="Policy # / Núm. de Póliza" 
+                value={formData.policyNumber}
+                onChange={(e) => handleInputChange("policyNumber", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                placeholder="Claim # / Núm. de Reclamo" 
+                value={formData.claimNumber}
+                onChange={(e) => handleInputChange("claimNumber", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                placeholder="Adjuster's Name / Nombre del Ajustador" 
+                value={formData.adjusterName}
+                onChange={(e) => handleInputChange("adjusterName", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                placeholder="Health Insurance / Seguro Médico" 
+                value={formData.healthInsurance}
+                onChange={(e) => handleInputChange("healthInsurance", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                placeholder="Group # / Núm. de Grupo" 
+                value={formData.groupNumber}
+                onChange={(e) => handleInputChange("groupNumber", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                placeholder="Attorney's Name / Nombre del Abogado" 
+                value={formData.attorneyName}
+                onChange={(e) => handleInputChange("attorneyName", e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                type="tel" 
+                placeholder="Attorney's Phone / Teléfono del Abogado" 
+                value={formData.attorneyPhone}
+                onChange={(e) => handleInputChange("attorneyPhone", e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </details>
+
+          {/* Auto Accident Details */}
+          <details className="border border-border rounded-lg">
+            <summary className="p-4 flex justify-between items-center bg-muted/50 rounded-t-lg cursor-pointer">
+              <h2 className="text-xl font-semibold text-primary">4. Auto Accident Details / <span className="font-medium">DETALLES DEL ACCIDENTE</span></h2>
+              <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+            </summary>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-muted-foreground">Date of Accident / Fecha del Accidente</Label>
+                  <Input 
+                    type="date" 
+                    value={formData.accidentDate}
+                    onChange={(e) => handleInputChange("accidentDate", e.target.value)}
+                    className="w-full mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Time of Accident / Hora del Accidente</Label>
+                  <Input 
+                    type="time" 
+                    value={formData.accidentTime}
+                    onChange={(e) => handleInputChange("accidentTime", e.target.value)}
+                    className="w-full mt-1"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Textarea 
+                    placeholder="Describe how the accident took place / Describe cómo ocurrió el accidente" 
+                    rows={3} 
+                    value={formData.accidentDescription}
+                    onChange={(e) => handleInputChange("accidentDescription", e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Select onValueChange={(value) => handleInputChange("personType", value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Were you the... / Usted era..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="driver">Driver / Chofer</SelectItem>
+                    <SelectItem value="passenger">Passenger / Pasajero</SelectItem>
+                    <SelectItem value="pedestrian">Pedestrian / Peatón</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={(value) => handleInputChange("weather", value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Weather / Clima" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sunny">Sunny / Soleado</SelectItem>
+                    <SelectItem value="rainy">Rainy / Lluvioso</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={(value) => handleInputChange("streetSurface", value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Street Surface / Superficie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dry">Dry / Seca</SelectItem>
+                    <SelectItem value="wet">Wet / Mojada</SelectItem>
+                    <SelectItem value="slick">Slick / Resbaladiza</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Did your body hit anything inside the car? / ¿Su cuerpo golpeó algo dentro del carro?</Label>
+                <div className="mt-2 flex gap-4">
+                  <Input 
+                    placeholder="Body Part / Parte del Cuerpo" 
+                    value={formData.bodyPart}
+                    onChange={(e) => handleInputChange("bodyPart", e.target.value)}
+                    className="w-1/2"
+                  />
+                  <Input 
+                    placeholder="What it hit / Qué golpeó" 
+                    value={formData.whatItHit}
+                    onChange={(e) => handleInputChange("whatItHit", e.target.value)}
+                    className="w-1/2"
+                  />
+                </div>
+              </div>
+            </div>
+          </details>
+          
+          {/* Review of Systems */}
+          <details className="border border-border rounded-lg">
+            <summary className="p-4 flex justify-between items-center bg-muted/50 rounded-t-lg cursor-pointer">
+              <h2 className="text-xl font-semibold text-primary">5. Review of Systems / <span className="font-medium">REVISIÓN DE SISTEMAS</span></h2>
+              <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+            </summary>
+            <div className="p-6">
+              <p className="text-sm text-muted-foreground mb-4">Do you currently have any of the following problems? / <span className="italic">¿Tiene actualmente alguno de los siguientes problemas?</span></p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-2">General</h4>
+                  <div className="space-y-2">
+                    {[
+                      { key: "fever", label: "Fever / Fiebre" },
+                      { key: "chills", label: "Chills / Escalofríos" },
+                      { key: "fatigue", label: "Fatigue / Fatiga" }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center">
+                        <Checkbox 
+                          checked={formData.systems[item.key as keyof typeof formData.systems]}
+                          onCheckedChange={(checked) => handleSystemChange(item.key, checked as boolean)}
+                          className="h-4 w-4"
+                        />
+                        <Label className="ml-2 text-sm">{item.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Eyes / Ojos</h4>
+                  <div className="space-y-2">
+                    {[
+                      { key: "blurredVision", label: "Blurred vision / Visión borrosa" },
+                      { key: "doubleVision", label: "Double vision / Visión doble" },
+                      { key: "eyePain", label: "Eye pain / Dolor de ojos" }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center">
+                        <Checkbox 
+                          checked={formData.systems[item.key as keyof typeof formData.systems]}
+                          onCheckedChange={(checked) => handleSystemChange(item.key, checked as boolean)}
+                          className="h-4 w-4"
+                        />
+                        <Label className="ml-2 text-sm">{item.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">ENT / Oído, Nariz, Garganta</h4>
+                  <div className="space-y-2">
+                    {[
+                      { key: "ringingEars", label: "Ringing in ears / Zumbido" },
+                      { key: "nasalCongestion", label: "Nasal congestion / Congestión" }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center">
+                        <Checkbox 
+                          checked={formData.systems[item.key as keyof typeof formData.systems]}
+                          onCheckedChange={(checked) => handleSystemChange(item.key, checked as boolean)}
+                          className="h-4 w-4"
+                        />
+                        <Label className="ml-2 text-sm">{item.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Cardiovascular</h4>
+                  <div className="space-y-2">
+                    {[
+                      { key: "chestPains", label: "Chest pains / Dolor de pecho" },
+                      { key: "palpitations", label: "Palpitations / Palpitaciones" }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center">
+                        <Checkbox 
+                          checked={formData.systems[item.key as keyof typeof formData.systems]}
+                          onCheckedChange={(checked) => handleSystemChange(item.key, checked as boolean)}
+                          className="h-4 w-4"
+                        />
+                        <Label className="ml-2 text-sm">{item.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Gastrointestinal</h4>
+                  <div className="space-y-2">
+                    {[
+                      { key: "nausea", label: "Nausea / Náuseas" },
+                      { key: "abdominalPain", label: "Abdominal pain / Dolor abdominal" }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center">
+                        <Checkbox 
+                          checked={formData.systems[item.key as keyof typeof formData.systems]}
+                          onCheckedChange={(checked) => handleSystemChange(item.key, checked as boolean)}
+                          className="h-4 w-4"
+                        />
+                        <Label className="ml-2 text-sm">{item.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Neurologic / Neurológico</h4>
+                  <div className="space-y-2">
+                    {[
+                      { key: "weakness", label: "Weakness / Debilidad" },
+                      { key: "numbness", label: "Numbness / Entumecimiento" },
+                      { key: "dizziness", label: "Dizziness / Mareo" }
+                    ].map((item) => (
+                      <div key={item.key} className="flex items-center">
+                        <Checkbox 
+                          checked={formData.systems[item.key as keyof typeof formData.systems]}
+                          onCheckedChange={(checked) => handleSystemChange(item.key, checked as boolean)}
+                          className="h-4 w-4"
+                        />
+                        <Label className="ml-2 text-sm">{item.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          {/* Authorizations & Consents */}
+          <details className="border border-border rounded-lg" open>
+            <summary className="p-4 flex justify-between items-center bg-muted/50 rounded-t-lg cursor-pointer">
+              <h2 className="text-xl font-semibold text-primary">6. Authorizations & Consents / <span className="font-medium">AUTORIZACIONES</span></h2>
+              <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+            </summary>
+            <div className="p-6 space-y-6">
+              <div>
+                <h3 className="font-semibold text-lg">Assignment of Benefits / <span className="font-medium">Asignación de Beneficios</span></h3>
+                <p className="mt-2 bg-muted/50 border-l-4 border-primary text-sm max-h-40 overflow-y-auto p-3 rounded">
+                  I hereby assign the rights and benefits of insurance to the applicable personal injury protection...to Silverman Chiropractic & Rehabilitation Center, Inc... This assignment includes but is not limited to all rights to collect benefits directly from the insurance company...
+                  <br /><br />
+                  <span className="italic">Yo, por el presente, asigno los derechos y beneficios del seguro de protección contra lesiones personales aplicable... a Silverman Chiropractic & Rehabilitation Center, Inc... Esta asignación incluye, entre otros, todos los derechos a cobrar los beneficios directamente de la compañía de seguros...</span>
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Doctor's Lien / <span className="font-medium">Gravamen del Médico</span></h3>
+                <p className="mt-2 bg-muted/50 border-l-4 border-primary text-sm max-h-40 overflow-y-auto p-3 rounded">
+                  I hereby authorize and direct you, my attorney, to pay directly to said doctor such sums as may be due...from any settlement, judgment, or verdict... I hereby give a lien on my case to the said center...
+                  <br /><br />
+                  <span className="italic">Por la presente autorizo y le ordeno a usted, mi abogado, que pague directamente a dicho médico las sumas adeudadas... de cualquier acuerdo, sentencia o veredicto... Por la presente otorgo un gravamen sobre mi caso a dicho centro...</span>
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Consent to Medical Care / <span className="font-medium">Consentimiento para Atención Médica</span></h3>
+                <p className="mt-2 bg-muted/50 border-l-4 border-primary text-sm max-h-40 overflow-y-auto p-3 rounded">
+                  I authorize Silverman Chiropractic and Rehabilitation Center to determine what kinds of pathological procedures (tests) must be done... I also authorize my doctor to determine what kind of treatment is to be given...
+                  <br /><br />
+                  <span className="italic">Autorizo al Silverman Chiropractic and Rehabilitation Center a determinar qué tipo de procedimientos patológicos (pruebas) deben realizarse... También autorizo a mi médico a determinar qué tipo de tratamiento se debe administrar...</span>
+                </p>
+              </div>
+            </div>
+          </details>
+
+          {/* Signature Section */}
+          <div className="mt-8 pt-5 border-t border-border">
+            <div className="flex items-center mb-4">
+              <Checkbox 
+                checked={formData.consentAcknowledgement}
+                onCheckedChange={(checked) => handleInputChange("consentAcknowledgement", checked)}
+                className="h-4 w-4"
+              />
+              <Label className="ml-3 block text-sm">
+                By checking this box, I confirm I have read and agree to all authorizations.
+                <br />
+                <span className="italic">Al marcar esta casilla, confirmo que he leído y acepto todas las autorizaciones.</span>
+              </Label>
+            </div>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+              <div className="flex-1 w-full">
+                <Label className="block text-sm font-medium text-muted-foreground">Patient Signature / <span className="italic">Firma del Paciente</span></Label>
+                <Input 
+                  placeholder="Type your full name to sign"
+                  value={formData.signature}
+                  onChange={(e) => handleInputChange("signature", e.target.value)}
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div className="flex-1 w-full sm:w-auto">
+                <Label className="block text-sm font-medium text-muted-foreground">Date / <span className="italic">Fecha</span></Label>
+                <Input 
+                  type="date" 
+                  value={formData.date}
+                  onChange={(e) => handleInputChange("date", e.target.value)}
+                  className="mt-1 block w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="mt-10 text-right">
+            <Button type="submit" className="inline-flex justify-center py-3 px-8 text-base font-medium">
+              Submit Form / Enviar Formulario
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
