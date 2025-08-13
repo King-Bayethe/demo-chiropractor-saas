@@ -27,6 +27,7 @@ import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
 import PublicPIPForm from "./pages/PublicPIPForm";
+import PublicLOPForm from "./pages/PublicLOPForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/public/pip-form" element={<PublicPIPForm />} />
+          <Route path="/public/lop-form" element={<PublicLOPForm />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
