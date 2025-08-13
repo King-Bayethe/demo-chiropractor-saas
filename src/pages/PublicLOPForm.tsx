@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PublicLOPForm = () => {
   const [formData, setFormData] = useState({
@@ -30,7 +31,7 @@ const PublicLOPForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.signature) {
@@ -38,8 +39,40 @@ const PublicLOPForm = () => {
       return;
     }
 
-    toast.success("Form submitted successfully! We will contact you soon.");
-    console.log("LOP Form submitted:", formData);
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-form', {
+        body: {
+          formType: 'lop',
+          formData: formData
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Form submitted successfully! We will contact you soon.");
+      
+      // Reset form
+      setFormData({
+        lastName: "",
+        firstName: "",
+        address: "",
+        cellPhone: "",
+        email: "",
+        dob: "",
+        ssn: "",
+        accidentDate: "",
+        accidentDescription: "",
+        attorneyName: "",
+        attorneyPhone: "",
+        signature: "",
+        date: "",
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error("Failed to submit form. Please try again.");
+    }
   };
 
   return (

@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PublicCashForm = () => {
   const [formData, setFormData] = useState({
@@ -54,7 +55,7 @@ const PublicCashForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.signature) {
@@ -62,8 +63,52 @@ const PublicCashForm = () => {
       return;
     }
 
-    toast.success("Form submitted successfully! We will contact you soon.");
-    console.log("Cash Patient Form submitted:", formData);
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-form', {
+        body: {
+          formType: 'cash',
+          formData: formData
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Form submitted successfully! We will contact you soon.");
+      
+      // Reset form
+      setFormData({
+        lastName: "",
+        firstName: "",
+        address: "",
+        city: "",
+        state: "",
+        zip: "",
+        cellPhone: "",
+        email: "",
+        dob: "",
+        accidentDate: "",
+        accidentType: "",
+        accidentDescription: "",
+        symptoms: {
+          headache: false,
+          neckPain: false,
+          backPain: false,
+          dizziness: false,
+          tingling: false,
+          numbness: false,
+          legPain: false,
+          irritability: false,
+          sleepingProblems: false,
+        },
+        signature: "",
+        date: "",
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error("Failed to submit form. Please try again.");
+    }
   };
 
   return (

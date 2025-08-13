@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.ghl-emails]
 verify_jwt = false
+
+[functions.submit-form]
+verify_jwt = false

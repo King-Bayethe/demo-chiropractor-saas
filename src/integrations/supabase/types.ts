@@ -14,6 +14,235 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_notes: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          id: string
+          note: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          id?: string
+          note: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_notes_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointment_notifications: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          id: string
+          message: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          id?: string
+          message: string
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_notifications_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          appointment_type: string | null
+          created_at: string
+          description: string | null
+          end_time: string
+          ghl_appointment_id: string | null
+          id: string
+          location: string | null
+          notes: string | null
+          patient_email: string | null
+          patient_id: string | null
+          patient_name: string | null
+          patient_phone: string | null
+          provider_id: string | null
+          provider_name: string | null
+          start_time: string
+          status: string
+          synced_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_type?: string | null
+          created_at?: string
+          description?: string | null
+          end_time: string
+          ghl_appointment_id?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          patient_email?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          provider_id?: string | null
+          provider_name?: string | null
+          start_time: string
+          status?: string
+          synced_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_type?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          ghl_appointment_id?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          patient_email?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          provider_id?: string | null
+          provider_name?: string | null
+          start_time?: string
+          status?: string
+          synced_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blocked_time_slots: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_time: string
+          id: string
+          is_recurring: boolean | null
+          provider_id: string | null
+          provider_name: string | null
+          reason: string | null
+          recurrence_pattern: string | null
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          end_time: string
+          id?: string
+          is_recurring?: boolean | null
+          provider_id?: string | null
+          provider_name?: string | null
+          reason?: string | null
+          recurrence_pattern?: string | null
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_time?: string
+          id?: string
+          is_recurring?: boolean | null
+          provider_id?: string | null
+          provider_name?: string | null
+          reason?: string | null
+          recurrence_pattern?: string | null
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      form_submissions: {
+        Row: {
+          created_at: string
+          form_data: Json
+          form_type: string
+          id: string
+          patient_email: string | null
+          patient_name: string | null
+          patient_phone: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          form_data: Json
+          form_type: string
+          id?: string
+          patient_email?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          form_data?: Json
+          form_type?: string
+          id?: string
+          patient_email?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

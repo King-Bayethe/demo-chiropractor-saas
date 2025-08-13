@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PublicPIPForm = () => {
   const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ const PublicPIPForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.consentAcknowledgement) {
@@ -73,8 +74,58 @@ const PublicPIPForm = () => {
       return;
     }
 
-    toast.success("Form submitted successfully! We will contact you soon.");
-    console.log("Form submitted:", formData);
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-form', {
+        body: {
+          formType: 'pip',
+          formData: formData
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Form submitted successfully! We will contact you soon.");
+      
+      // Reset form
+      setFormData({
+        lastName: "",
+        firstName: "",
+        address: "",
+        cellPhone: "",
+        email: "",
+        dob: "",
+        ssn: "",
+        accidentDate: "",
+        accidentTime: "",
+        accidentDescription: "",
+        personType: "",
+        airbags: "",
+        insuranceCo: "",
+        policyNumber: "",
+        claimNumber: "",
+        attorneyName: "",
+        vehicleOwner: "",
+        symptoms: {
+          headache: false,
+          neckPain: false,
+          backPain: false,
+          dizziness: false,
+          tingling: false,
+          numbness: false,
+          jawPain: false,
+          sleepingProblems: false,
+        },
+        medicalHistory: "",
+        consentAcknowledgement: false,
+        signature: "",
+        date: "",
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error("Failed to submit form. Please try again.");
+    }
   };
 
   return (
