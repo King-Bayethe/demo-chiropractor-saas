@@ -407,6 +407,166 @@ export type Database = {
         }
         Relationships: []
       }
+      soap_note_attachments: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          soap_note_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          soap_note_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          soap_note_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soap_note_attachments_soap_note_id_fkey"
+            columns: ["soap_note_id"]
+            isOneToOne: false
+            referencedRelation: "soap_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      soap_note_templates: {
+        Row: {
+          chief_complaint: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_public: boolean
+          name: string
+          template_data: Json
+          updated_at: string
+        }
+        Insert: {
+          chief_complaint?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          chief_complaint?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      soap_notes: {
+        Row: {
+          appointment_id: string | null
+          assessment: string | null
+          assessment_data: Json
+          chief_complaint: string | null
+          created_at: string
+          created_by: string
+          date_of_service: string
+          id: string
+          is_draft: boolean
+          last_modified_by: string
+          objective: string | null
+          objective_data: Json
+          patient_id: string
+          plan: string | null
+          plan_data: Json
+          provider_id: string
+          provider_name: string
+          subjective: string | null
+          subjective_data: Json
+          updated_at: string
+          vital_signs: Json | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          assessment?: string | null
+          assessment_data?: Json
+          chief_complaint?: string | null
+          created_at?: string
+          created_by: string
+          date_of_service?: string
+          id?: string
+          is_draft?: boolean
+          last_modified_by: string
+          objective?: string | null
+          objective_data?: Json
+          patient_id: string
+          plan?: string | null
+          plan_data?: Json
+          provider_id: string
+          provider_name: string
+          subjective?: string | null
+          subjective_data?: Json
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Update: {
+          appointment_id?: string | null
+          assessment?: string | null
+          assessment_data?: Json
+          chief_complaint?: string | null
+          created_at?: string
+          created_by?: string
+          date_of_service?: string
+          id?: string
+          is_draft?: boolean
+          last_modified_by?: string
+          objective?: string | null
+          objective_data?: Json
+          patient_id?: string
+          plan?: string | null
+          plan_data?: Json
+          provider_id?: string
+          provider_name?: string
+          subjective?: string | null
+          subjective_data?: Json
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soap_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_chat_participants: {
         Row: {
           archived_at: string | null
@@ -557,6 +717,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_soap_notes_with_patient_info: {
+        Args: { limit_count?: number; offset_count?: number }
+        Returns: {
+          appointment_id: string
+          assessment_data: Json
+          chief_complaint: string
+          created_at: string
+          date_of_service: string
+          id: string
+          is_draft: boolean
+          objective_data: Json
+          patient_id: string
+          patient_name: string
+          plan_data: Json
+          provider_id: string
+          provider_name: string
+          subjective_data: Json
+          updated_at: string
+          vital_signs: Json
+        }[]
+      }
       is_chat_admin: {
         Args: { chat_id_to_check: string; user_id_to_check: string }
         Returns: boolean

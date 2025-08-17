@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useGHLApi } from "@/hooks/useGHLApi";
+import { useSOAPNotes, SOAPNote } from "@/hooks/useSOAPNotes";
+import { usePatients } from "@/hooks/usePatients";
 import { ComprehensiveSOAPForm, SOAPFormData } from "@/components/soap/ComprehensiveSOAPForm";
+import { PatientSelector } from "@/components/PatientSelector";
 import { 
   Search, 
   Filter, 
@@ -23,183 +25,71 @@ import {
   Eye
 } from "lucide-react";
 
-// SOAP Note interface
-interface SOAPNote {
-  id: string;
-  patientId: string;
-  patientName: string;
-  providerId: string;
-  providerName: string;
-  appointmentId?: string;
-  dateCreated: Date;
-  subjective: string;
-  objective: string;
-  assessment: string;
-  plan: string;
-  chiefComplaint?: string;
-  vitalSigns?: {
-    bloodPressure?: string;
-    heartRate?: string;
-    temperature?: string;
-    weight?: string;
-  };
-}
-
 // Helper function to safely get patient name
 const getPatientName = (patient: any): string => {
   if (!patient) return 'Unknown Patient';
   
-  const firstName = patient.firstNameLowerCase || '';
-  const lastName = patient.lastNameLowerCase || '';
+  const firstName = patient.first_name || patient.firstNameLowerCase || '';
+  const lastName = patient.last_name || patient.lastNameLowerCase || '';
   const fullName = `${firstName} ${lastName}`.trim();
   
-  return fullName || patient.name || 'Unknown Patient';
+  return fullName || patient.name || patient.email || 'Unknown Patient';
 };
 
 export default function SOAPNotes() {
-  const [soapNotes, setSoapNotes] = useState<SOAPNote[]>([]);
-  const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [isCreateSOAPOpen, setIsCreateSOAPOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<SOAPNote | null>(null);
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    patientId: "",
-    providerId: "",
-    providerName: "Dr. Silverman",
-    appointmentId: "",
-    chiefComplaint: "",
-    subjective: "",
-    objective: "",
-    assessment: "",
-    plan: "",
-    bloodPressure: "",
-    heartRate: "",
-    temperature: "",
-    weight: ""
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  
   const { toast } = useToast();
-  const ghlApi = useGHLApi();
+  const { soapNotes, loading, error, fetchSOAPNotes, createSOAPNote, deleteSOAPNote } = useSOAPNotes();
+  const { patients } = usePatients();
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      // Load patients from GHL contacts
-      const contactsData = await ghlApi.contacts.getAll();
-      const patientContacts = (contactsData.contacts || []).filter((contact: any) => 
-        contact.tags?.some((tag: string) => 
-          tag.toLowerCase().includes('patient') || 
-          tag.toLowerCase().includes('treatment')
-        ) || !contact.tags?.length
-      );
-      setPatients(patientContacts);
-      
-      // Mock SOAP notes data - in production, this would be stored in Supabase
-      const mockSOAPNotes: SOAPNote[] = [
-        {
-          id: "soap-1",
-          patientId: patientContacts[0]?.id || "patient-1",
-          patientName: getPatientName(patientContacts[0]) || "John Smith",
-          providerId: "dr-silverman",
-          providerName: "Dr. Silverman",
-          dateCreated: new Date(2024, 0, 15),
-          chiefComplaint: "Lower back pain for 2 weeks",
-          subjective: "Patient reports acute lower back pain that started 2 weeks ago after lifting heavy boxes. Pain is sharp, radiating to left leg. Worse in the morning, improves with movement. Pain scale 7/10.",
-          objective: "Patient appears uncomfortable when sitting. Posture shows slight forward lean. ROM: Flexion limited to 45°, extension 15°. Positive straight leg raise test on left. Muscle spasm palpated in L4-L5 region.",
-          assessment: "Acute lumbar strain with possible disc involvement. Rule out disc herniation. Functional limitations present.",
-          plan: "1. Chiropractic adjustments 3x/week for 2 weeks\n2. Ice therapy 15 min, 3x daily\n3. Avoid heavy lifting\n4. Home exercises - gentle stretching\n5. Re-evaluate in 1 week\n6. Consider MRI if no improvement",
-          vitalSigns: {
-            bloodPressure: "120/80",
-            heartRate: "72",
-            temperature: "98.6",
-            weight: "180"
-          }
-        },
-        {
-          id: "soap-2",
-          patientId: patientContacts[1]?.id || "patient-2",
-          patientName: getPatientName(patientContacts[1]) || "Sarah Johnson",
-          providerId: "dr-silverman",
-          providerName: "Dr. Silverman",
-          dateCreated: new Date(2024, 0, 12),
-          chiefComplaint: "Neck pain and headaches",
-          subjective: "Patient presents with chronic neck pain and tension headaches for 3 months. Works at computer all day. Pain worse at end of workday. Headaches occur 2-3 times per week.",
-          objective: "Forward head posture noted. Cervical ROM: Limited in all planes. Tender points at C2-C3, C5-C6. Upper trap muscles tight bilaterally. No neurological deficits noted.",
-          assessment: "Cervical dysfunction with myofascial pain syndrome. Postural syndrome related to prolonged computer use.",
-          plan: "1. Cervical adjustments\n2. Soft tissue therapy\n3. Ergonomic evaluation\n4. Postural exercises\n5. Return in 3 days",
-          vitalSigns: {
-            bloodPressure: "118/76",
-            heartRate: "68"
-          }
-        }
-      ];
-      setSoapNotes(mockSOAPNotes);
-    } catch (error) {
-      console.error('Failed to load SOAP notes data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load SOAP notes data.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    if (searchTerm) {
+      const timeoutId = setTimeout(() => {
+        fetchSOAPNotes({ search: searchTerm });
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      fetchSOAPNotes();
     }
-  };
+  }, [searchTerm]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleCreateSOAPNote = async (data: SOAPFormData) => {
     try {
-      const selectedPatient = patients.find((p: any) => p.id === formData.patientId);
-      
-      const newSOAPNote: SOAPNote = {
-        id: `soap-${Date.now()}`,
-        patientId: formData.patientId,
-        patientName: getPatientName(selectedPatient),
-        providerId: formData.providerId || 'dr-silverman',
-        providerName: formData.providerName,
-        dateCreated: new Date(),
-        chiefComplaint: formData.chiefComplaint,
-        subjective: formData.subjective,
-        objective: formData.objective,
-        assessment: formData.assessment,
-        plan: formData.plan,
-        vitalSigns: {
-          bloodPressure: formData.bloodPressure || undefined,
-          heartRate: formData.heartRate || undefined,
-          temperature: formData.temperature || undefined,
-          weight: formData.weight || undefined
-        }
-      };
+      if (!selectedPatient) {
+        toast({
+          title: "Error",
+          description: "Please select a patient first.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      setSoapNotes(prev => [newSOAPNote, ...prev]);
-      setIsCreateSOAPOpen(false);
-      
-      toast({
-        title: "SOAP Note Created",
-        description: `SOAP note for ${newSOAPNote.patientName} has been created successfully.`,
+      const result = await createSOAPNote({
+        patient_id: selectedPatient.id,
+        provider_name: data.providerName,
+        date_of_service: data.dateCreated,
+        chief_complaint: data.chiefComplaint,
+        is_draft: data.isQuickNote,
+        subjective_data: data.subjective,
+        objective_data: data.objective,
+        assessment_data: data.assessment,
+        plan_data: data.plan,
+        vital_signs: data.objective.vitalSigns
       });
-      
-      // Reset form
-      setFormData({
-        patientId: "",
-        providerId: "",
-        providerName: "Dr. Silverman",
-        appointmentId: "",
-        chiefComplaint: "",
-        subjective: "",
-        objective: "",
-        assessment: "",
-        plan: "",
-        bloodPressure: "",
-        heartRate: "",
-        temperature: "",
-        weight: ""
-      });
+
+      if (result) {
+        setIsCreateSOAPOpen(false);
+        setSelectedPatient(null);
+        toast({
+          title: "SOAP Note Created",
+          description: `SOAP note for ${getPatientName(selectedPatient)} has been created successfully.`,
+        });
+      }
     } catch (error) {
       console.error('Failed to create SOAP note:', error);
       toast({
@@ -247,6 +137,8 @@ export default function SOAPNotes() {
                     <Input 
                       placeholder="Search by patient name, provider, or chief complaint..." 
                       className="pl-10"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   <Button variant="outline" size="sm">
@@ -257,7 +149,7 @@ export default function SOAPNotes() {
                     <Badge variant="secondary">Total Notes: {soapNotes.length}</Badge>
                     <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue">
                       This Month: {soapNotes.filter(note => 
-                        note.dateCreated.getMonth() === new Date().getMonth()
+                        new Date(note.date_of_service).getMonth() === new Date().getMonth()
                       ).length}
                     </Badge>
                   </div>
@@ -297,74 +189,79 @@ export default function SOAPNotes() {
                         ) : soapNotes.length === 0 ? (
                           <tr>
                             <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                              No SOAP notes found
+                              {error ? `Error: ${error}` : 'No SOAP notes found'}
                             </td>
                           </tr>
                         ) : (
-                          soapNotes.map((note) => (
-                            <tr key={note.id} className="hover:bg-muted/20 transition-colors">
-                              <td className="p-4">
-                                <div className="flex items-center space-x-2">
-                                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                                  <div>
-                                    <p className="font-medium text-sm">
-                                      {note.dateCreated.toLocaleDateString()}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {note.dateCreated.toLocaleTimeString('en-US', { 
-                                        hour: 'numeric', 
-                                        minute: '2-digit' 
-                                      })}
-                                    </p>
+                          soapNotes.map((note) => {
+                            const patientName = getPatientName(note.patients) || 'Unknown Patient';
+                            const dateOfService = new Date(note.date_of_service);
+                            
+                            return (
+                              <tr key={note.id} className="hover:bg-muted/20 transition-colors">
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <div>
+                                      <p className="font-medium text-sm">
+                                        {dateOfService.toLocaleDateString()}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {dateOfService.toLocaleTimeString('en-US', { 
+                                          hour: 'numeric', 
+                                          minute: '2-digit' 
+                                        })}
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                <div className="flex items-center space-x-3">
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue text-xs">
-                                      {note.patientName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-medium text-sm">{note.patientName}</p>
-                                    <p className="text-xs text-muted-foreground">ID: {note.patientId.slice(-8)}</p>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-3">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarFallback className="bg-medical-blue/10 text-medical-blue text-xs">
+                                        {patientName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium text-sm">{patientName}</p>
+                                      <p className="text-xs text-muted-foreground">ID: {note.patient_id.slice(-8)}</p>
+                                    </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                <div className="flex items-center space-x-2">
-                                  <User className="w-4 h-4 text-muted-foreground" />
-                                  <span className="text-sm">{note.providerName}</span>
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                <p className="text-sm max-w-xs truncate" title={note.chiefComplaint}>
-                                  {note.chiefComplaint || 'No chief complaint recorded'}
-                                </p>
-                              </td>
-                              <td className="p-4">
-                                <div className="flex items-center space-x-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => handleViewNote(note)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    View
-                                  </Button>
-                                  <Button variant="ghost" size="sm">
-                                    <Edit className="w-4 h-4 mr-1" />
-                                    Edit
-                                  </Button>
-                                  <Button variant="ghost" size="sm">
-                                    <FileText className="w-4 h-4 mr-1" />
-                                    Export
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <User className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-sm">{note.provider_name}</span>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <p className="text-sm max-w-xs truncate" title={note.chief_complaint}>
+                                    {note.chief_complaint || 'No chief complaint recorded'}
+                                  </p>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleViewNote(note)}
+                                    >
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      View
+                                    </Button>
+                                    <Button variant="ghost" size="sm">
+                                      <Edit className="w-4 h-4 mr-1" />
+                                      Edit
+                                    </Button>
+                                    <Button variant="ghost" size="sm">
+                                      <FileText className="w-4 h-4 mr-1" />
+                                      Export
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
                         )}
                       </tbody>
                     </table>
@@ -374,50 +271,72 @@ export default function SOAPNotes() {
             </div>
           </div>
 
+          {/* Patient Selection */}
+          {isCreateSOAPOpen && (
+            <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm">
+              <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+                <Card className="w-full max-w-md">
+                  <CardHeader>
+                    <CardTitle>Select Patient</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <PatientSelector
+                      selectedPatient={selectedPatient}
+                      onPatientSelect={setSelectedPatient}
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsCreateSOAPOpen(false);
+                          setSelectedPatient(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          if (selectedPatient) {
+                            // Patient selected, now open the form
+                            setIsCreateSOAPOpen(false);
+                            setTimeout(() => setIsCreateSOAPOpen(true), 100);
+                          }
+                        }}
+                        disabled={!selectedPatient}
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
           {/* Comprehensive SOAP Form */}
-          <ComprehensiveSOAPForm
-            isOpen={isCreateSOAPOpen}
-            onClose={() => setIsCreateSOAPOpen(false)}
-            patient={patients.find((p: any) => p.id === formData.patientId)}
-            onSave={(data: SOAPFormData) => {
-              const newSOAPNote: SOAPNote = {
-                id: `soap-${Date.now()}`,
-                patientId: data.patientId,
-                patientName: data.patientName,
-                providerId: data.providerId,
-                providerName: data.providerName,
-                dateCreated: data.dateCreated,
-                chiefComplaint: data.chiefComplaint,
-                subjective: `${data.subjective.painDescription} ${data.subjective.otherSymptoms}`.trim(),
-                objective: `Vital Signs: BP: ${data.objective.vitalSigns.bloodPressure}, HR: ${data.objective.vitalSigns.heartRate}`,
-                assessment: data.assessment.clinicalImpression,
-                plan: data.plan.additionalInstructions,
-                vitalSigns: {
-                  bloodPressure: data.objective.vitalSigns.bloodPressure,
-                  heartRate: data.objective.vitalSigns.heartRate,
-                  temperature: data.objective.vitalSigns.temperature,
-                  weight: data.objective.vitalSigns.weight
-                }
-              };
-              setSoapNotes(prev => [newSOAPNote, ...prev]);
-            }}
-          />
+          {selectedPatient && (
+            <ComprehensiveSOAPForm
+              isOpen={isCreateSOAPOpen}
+              onClose={() => {
+                setIsCreateSOAPOpen(false);
+                setSelectedPatient(null);
+              }}
+              patient={selectedPatient}
+              onSave={handleCreateSOAPNote}
+            />
+          )}
 
           {/* View SOAP Note Modal */}
           <Dialog open={isViewNoteOpen} onOpenChange={setIsViewNoteOpen}>
             <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
-                  SOAP Note - {selectedNote?.patientName}
+                  SOAP Note - {getPatientName(selectedNote?.patients)}
                   <div className="flex items-center space-x-2">
                     <Badge variant="outline">
-                      {selectedNote?.dateCreated.toLocaleDateString()}
+                      {selectedNote ? new Date(selectedNote.date_of_service).toLocaleDateString() : ''}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsViewNoteOpen(false)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => setIsViewNoteOpen(false)}>
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
@@ -426,108 +345,62 @@ export default function SOAPNotes() {
               
               {selectedNote && (
                 <div className="space-y-6">
-                  {/* Header Info */}
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Patient</p>
-                          <p className="font-medium">{selectedNote.patientName}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Provider</p>
-                          <p className="font-medium">{selectedNote.providerName}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Date</p>
-                          <p className="font-medium">
-                            {selectedNote.dateCreated.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      {selectedNote.chiefComplaint && (
-                        <div className="mt-4">
-                          <p className="text-sm text-muted-foreground">Chief Complaint</p>
-                          <p className="font-medium">{selectedNote.chiefComplaint}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Patient Information</h3>
+                      <p className="font-medium">{getPatientName(selectedNote?.patients)}</p>
+                      <p className="text-sm text-muted-foreground">ID: {selectedNote?.patient_id}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Provider & Date</h3>
+                      <p className="font-medium">{selectedNote?.provider_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedNote ? new Date(selectedNote.date_of_service).toLocaleDateString() : ''} at {' '}
+                        {selectedNote ? new Date(selectedNote.date_of_service).toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit' 
+                        }) : ''}
+                      </p>
+                    </div>
+                  </div>
 
-                  {/* Vital Signs */}
-                  {selectedNote.vitalSigns && Object.keys(selectedNote.vitalSigns).some(key => selectedNote.vitalSigns![key as keyof typeof selectedNote.vitalSigns]) && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Vital Signs</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-4 gap-4">
-                          {selectedNote.vitalSigns.bloodPressure && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Blood Pressure</p>
-                              <p className="font-medium">{selectedNote.vitalSigns.bloodPressure}</p>
-                            </div>
-                          )}
-                          {selectedNote.vitalSigns.heartRate && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Heart Rate</p>
-                              <p className="font-medium">{selectedNote.vitalSigns.heartRate} bpm</p>
-                            </div>
-                          )}
-                          {selectedNote.vitalSigns.temperature && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Temperature</p>
-                              <p className="font-medium">{selectedNote.vitalSigns.temperature}°F</p>
-                            </div>
-                          )}
-                          {selectedNote.vitalSigns.weight && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Weight</p>
-                              <p className="font-medium">{selectedNote.vitalSigns.weight} lbs</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {/* Chief Complaint */}
+                  {selectedNote?.chief_complaint && (
+                    <div className="mb-6">
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Chief Complaint</h3>
+                      <p className="text-sm bg-muted/30 p-3 rounded-md">{selectedNote.chief_complaint}</p>
+                    </div>
                   )}
 
                   {/* SOAP Sections */}
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg text-medical-blue">Subjective</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm whitespace-pre-wrap">{selectedNote.subjective}</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg text-medical-teal">Objective</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm whitespace-pre-wrap">{selectedNote.objective}</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg text-yellow-600">Assessment</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm whitespace-pre-wrap">{selectedNote.assessment}</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg text-success">Plan</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm whitespace-pre-wrap">{selectedNote.plan}</p>
-                      </CardContent>
-                    </Card>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Subjective</h3>
+                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
+                        {JSON.stringify(selectedNote?.subjective_data, null, 2) || 'No subjective data recorded'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Objective</h3>
+                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
+                        {JSON.stringify(selectedNote?.objective_data, null, 2) || 'No objective data recorded'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Assessment</h3>
+                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
+                        {JSON.stringify(selectedNote?.assessment_data, null, 2) || 'No assessment recorded'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Plan</h3>
+                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
+                        {JSON.stringify(selectedNote?.plan_data, null, 2) || 'No plan recorded'}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex justify-end space-x-2">
