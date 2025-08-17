@@ -110,16 +110,18 @@ async function fetchPatientContacts() {
       filters: [
         {
           field: "tags",
-          operator: "INCLUDES_ANY",
+          operator: "contains_set",
           value: ["patient", "treatment"]
         }
       ],
-      pageLimit: 500
+      pageLimit: 100
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch patient contacts: ${response.status}`);
+    const errorResponse = await response.text();
+    console.error(`GHL API Error (fetchPatientContacts): ${response.status}`, errorResponse);
+    throw new Error(`Failed to fetch patient contacts from GHL: Status ${response.status}. Response: ${errorResponse}`);
   }
 
   const data = await response.json();
