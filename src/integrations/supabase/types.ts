@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -211,6 +211,7 @@ export type Database = {
           form_type: string
           id: string
           patient_email: string | null
+          patient_id: string | null
           patient_name: string | null
           patient_phone: string | null
           status: string
@@ -223,6 +224,7 @@ export type Database = {
           form_type: string
           id?: string
           patient_email?: string | null
+          patient_id?: string | null
           patient_name?: string | null
           patient_phone?: string | null
           status?: string
@@ -235,13 +237,22 @@ export type Database = {
           form_type?: string
           id?: string
           patient_email?: string | null
+          patient_id?: string | null
           patient_name?: string | null
           patient_phone?: string | null
           status?: string
           submitted_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "form_submissions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -282,6 +293,78 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          date_of_birth: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          first_name: string | null
+          gender: string | null
+          ghl_contact_id: string | null
+          id: string
+          insurance_policy_number: string | null
+          insurance_provider: string | null
+          is_active: boolean | null
+          last_name: string | null
+          last_synced_at: string | null
+          phone: string | null
+          state: string | null
+          tags: string[] | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
+          gender?: string | null
+          ghl_contact_id?: string | null
+          id?: string
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          is_active?: boolean | null
+          last_name?: string | null
+          last_synced_at?: string | null
+          phone?: string | null
+          state?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
+          gender?: string | null
+          ghl_contact_id?: string | null
+          id?: string
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          is_active?: boolean | null
+          last_name?: string | null
+          last_synced_at?: string | null
+          phone?: string | null
+          state?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          zip_code?: string | null
         }
         Relationships: []
       }

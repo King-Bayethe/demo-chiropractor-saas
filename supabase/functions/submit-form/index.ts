@@ -51,12 +51,53 @@ serve(async (req) => {
       patientPhone = formData.cellPhone
     }
 
+    // Find or create patient record
+    let patientId = null;
+    
+    try {
+      // Try to find existing patient by email or phone
+      const { data: existingPatient } = await supabase
+        .from('patients')
+        .select('id')
+        .or(`email.eq.${patientEmail || ''},phone.eq.${patientPhone || ''}`)
+        .single();
+
+      if (existingPatient) {
+        patientId = existingPatient.id;
+      } else if (patientName || patientEmail || patientPhone) {
+        // Create new patient if not found
+        const nameParts = patientName?.split(' ') || [];
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const { data: newPatient, error: patientError } = await supabase
+          .from('patients')
+          .insert({
+            first_name: firstName,
+            last_name: lastName,
+            email: patientEmail || null,
+            phone: patientPhone || null,
+          })
+          .select('id')
+          .single();
+
+        if (patientError) {
+          console.warn('Could not create patient record:', patientError);
+        } else {
+          patientId = newPatient.id;
+        }
+      }
+    } catch (patientLookupError) {
+      console.warn('Could not find/create patient record:', patientLookupError);
+    }
+
     // Insert form submission
     const { data, error } = await supabase
       .from('form_submissions')
       .insert({
         form_type: formType,
         form_data: formData,
+        patient_id: patientId,
         patient_name: patientName || null,
         patient_email: patientEmail || null,
         patient_phone: patientPhone || null,
