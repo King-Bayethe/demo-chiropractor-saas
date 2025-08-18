@@ -1,0 +1,622 @@
+-- Comprehensive mock data for SOAP notes showcase
+-- Insert mock patients (diverse medical cases)
+INSERT INTO public.patients (id, first_name, last_name, email, phone, date_of_birth, gender, address, city, state, zip_code, insurance_provider, insurance_policy_number, emergency_contact_name, emergency_contact_phone, ghl_contact_id, is_active, tags) VALUES
+('11111111-1111-1111-1111-111111111111', 'Michael', 'Rodriguez', 'michael.rodriguez@email.com', '555-0101', '1995-03-15', 'Male', '123 Sports Ave', 'Denver', 'CO', '80205', 'Athletic Health Insurance', 'AHI-789456', 'Maria Rodriguez', '555-0102', 'ghl_001', true, ARRAY['athlete', 'soccer', 'knee-injury']),
+('22222222-2222-2222-2222-222222222222', 'Sarah', 'Chen', 'sarah.chen@email.com', '555-0201', '1978-11-22', 'Female', '456 Office Blvd', 'Austin', 'TX', '73301', 'Corporate Health Plan', 'CHP-456789', 'David Chen', '555-0202', 'ghl_002', true, ARRAY['chronic-pain', 'office-worker', 'back-pain']),
+('33333333-3333-3333-3333-333333333333', 'Robert', 'Johnson', 'robert.johnson@email.com', '555-0301', '1952-07-08', 'Male', '789 Retirement Ln', 'Phoenix', 'AZ', '85001', 'Medicare Plus', 'MP-123456', 'Betty Johnson', '555-0302', 'ghl_003', true, ARRAY['post-surgical', 'knee-replacement', 'elderly']),
+('44444444-4444-4444-4444-444444444444', 'Emma', 'Thompson', 'emma.thompson@email.com', '555-0401', '2015-04-12', 'Female', '321 Family St', 'Portland', 'OR', '97201', 'Pediatric Care Insurance', 'PCI-987654', 'Lisa Thompson', '555-0402', 'ghl_004', true, ARRAY['pediatric', 'asthma', 'child']),
+('55555555-5555-5555-5555-555555555555', 'William', 'Davis', 'william.davis@email.com', '555-0501', '1943-12-03', 'Male', '654 Senior Way', 'Miami', 'FL', '33101', 'Senior Health Network', 'SHN-147258', 'Dorothy Davis', '555-0502', 'ghl_005', true, ARRAY['hypertension', 'diabetes', 'senior']),
+('66666666-6666-6666-6666-666666666666', 'Jennifer', 'Wilson', 'jennifer.wilson@email.com', '555-0601', '1987-09-14', 'Female', '987 Corporate Dr', 'Chicago', 'IL', '60601', 'Executive Health Plan', 'EHP-369258', 'Mark Wilson', '555-0602', 'ghl_006', true, ARRAY['migraine', 'stress', 'executive']),
+('77777777-7777-7777-7777-777777777777', 'Amanda', 'Garcia', 'amanda.garcia@email.com', '555-0701', '1992-01-28', 'Female', '147 Maternity Ave', 'San Diego', 'CA', '92101', 'Maternity Care Plus', 'MCP-741852', 'Carlos Garcia', '555-0702', 'ghl_007', true, ARRAY['pregnancy', 'prenatal', 'healthy']),
+('88888888-8888-8888-8888-888888888888', 'James', 'Miller', 'james.miller@email.com', '555-0801', '1985-06-19', 'Male', '258 Construction St', 'Dallas', 'TX', '75201', 'Workers Compensation', 'WC-852963', 'Linda Miller', '555-0802', 'ghl_008', true, ARRAY['workplace-injury', 'shoulder', 'construction']);
+
+-- Insert custom templates
+INSERT INTO public.custom_templates (id, name, description, category, icon, specialty, keywords, age_groups, urgency_level, template_data, created_by, is_approved, is_active, version, organization_id) VALUES
+('t1111111-1111-1111-1111-111111111111', 'Orthopedic Knee Evaluation', 'Comprehensive knee assessment template for sports injuries and general orthopedic conditions', 'Orthopedics', '🦴', 'Orthopedic Surgery', ARRAY['knee', 'sports injury', 'orthopedic', 'ligament', 'meniscus'], ARRAY['adolescent', 'adult'], 'medium', 
+'{
+  "chiefComplaint": "Knee pain and instability following sports injury",
+  "subjectiveTemplate": {
+    "symptoms": ["knee pain", "swelling", "instability", "difficulty weight bearing"],
+    "painDescription": "Sharp pain with movement, aching at rest",
+    "otherSymptoms": "Patient reports hearing a pop during injury"
+  },
+  "objectiveTemplate": {
+    "systemExams": [
+      {
+        "system": "Musculoskeletal",
+        "findings": "Inspect for swelling, deformity, ecchymosis. Palpate for tenderness, warmth. Test range of motion, stability tests (Lachman, McMurray, drawer tests)"
+      }
+    ],
+    "specialTests": [
+      {"name": "Lachman Test", "result": "", "notes": ""},
+      {"name": "McMurray Test", "result": "", "notes": ""},
+      {"name": "Anterior Drawer Test", "result": "", "notes": ""}
+    ]
+  },
+  "assessmentTemplate": {
+    "diagnoses": [
+      {"code": "S83.2", "description": "Meniscus tear"},
+      {"code": "S83.5", "description": "Ligament injury of knee"}
+    ],
+    "clinicalImpression": "Rule out meniscal tear vs ligament injury"
+  },
+  "planTemplate": {
+    "treatments": ["Rest", "Ice", "Compression", "Elevation", "Physical therapy"],
+    "medications": [
+      {"genericName": "Ibuprofen", "strength": "600mg", "frequency": "TID with food"}
+    ],
+    "followUpPeriod": "2 weeks",
+    "additionalInstructions": "No weight bearing activities until follow-up. Begin gentle range of motion exercises as tolerated."
+  }
+}', 
+(SELECT id FROM auth.users LIMIT 1), true, true, 1, 'silverman_clinic'),
+
+('t2222222-2222-2222-2222-222222222222', 'Sports Medicine Assessment', 'Comprehensive evaluation for athletic injuries and performance optimization', 'Sports Medicine', '⚽', 'Sports Medicine', ARRAY['sports', 'athletic injury', 'performance', 'concussion'], ARRAY['adolescent', 'adult'], 'high', 
+'{
+  "chiefComplaint": "Athletic injury evaluation and return-to-play assessment",
+  "subjectiveTemplate": {
+    "symptoms": ["pain during activity", "decreased performance", "functional limitation"],
+    "painDescription": "Activity-related pain with specific movement patterns",
+    "otherSymptoms": "Athlete reports impact on training and competition"
+  },
+  "objectiveTemplate": {
+    "systemExams": [
+      {
+        "system": "Musculoskeletal",
+        "findings": "Sport-specific functional assessment, movement screening, strength testing"
+      },
+      {
+        "system": "Neurological",
+        "findings": "Balance, coordination, reaction time assessment"
+      }
+    ],
+    "specialTests": [
+      {"name": "Functional Movement Screen", "result": "", "notes": ""},
+      {"name": "Single Leg Hop Test", "result": "", "notes": ""},
+      {"name": "Balance Error Scoring System", "result": "", "notes": ""}
+    ]
+  },
+  "assessmentTemplate": {
+    "diagnoses": [
+      {"code": "M25.5", "description": "Joint pain"},
+      {"code": "M62.8", "description": "Other specified disorders of muscle"}
+    ],
+    "clinicalImpression": "Athletic injury with functional limitations"
+  },
+  "planTemplate": {
+    "treatments": ["Sport-specific rehabilitation", "Biomechanical correction", "Performance optimization"],
+    "medications": [],
+    "followUpPeriod": "1 week",
+    "additionalInstructions": "Graduated return-to-play protocol. Avoid high-risk activities until cleared."
+  }
+}', 
+(SELECT id FROM auth.users LIMIT 1), true, true, 1, 'silverman_clinic'),
+
+('t3333333-3333-3333-3333-333333333333', 'Post-Surgical Follow-up', 'Standardized assessment for post-operative patients', 'Surgery', '🏥', 'General Surgery', ARRAY['post-op', 'surgical follow-up', 'wound care', 'recovery'], ARRAY['adult', 'senior'], 'medium', 
+'{
+  "chiefComplaint": "Post-operative follow-up and wound assessment",
+  "subjectiveTemplate": {
+    "symptoms": ["surgical site pain", "wound healing", "functional recovery"],
+    "painDescription": "Post-operative pain with gradual improvement",
+    "otherSymptoms": "Patient reports on activity tolerance and medication compliance"
+  },
+  "objectiveTemplate": {
+    "systemExams": [
+      {
+        "system": "Surgical Site",
+        "findings": "Inspect incision for healing, signs of infection, dehiscence. Assess surrounding tissue."
+      }
+    ],
+    "specialTests": [
+      {"name": "Wound Assessment", "result": "", "notes": ""},
+      {"name": "Range of Motion", "result": "", "notes": ""}
+    ]
+  },
+  "assessmentTemplate": {
+    "diagnoses": [
+      {"code": "Z48.8", "description": "Other specified surgical follow-up care"}
+    ],
+    "clinicalImpression": "Post-operative recovery assessment"
+  },
+  "planTemplate": {
+    "treatments": ["Wound care", "Physical therapy as indicated", "Activity modification"],
+    "medications": [
+      {"genericName": "Acetaminophen", "strength": "500mg", "frequency": "Q6H PRN pain"}
+    ],
+    "followUpPeriod": "2 weeks",
+    "additionalInstructions": "Keep wound clean and dry. Follow activity restrictions as prescribed."
+  }
+}', 
+(SELECT id FROM auth.users LIMIT 1), true, true, 1, 'silverman_clinic'),
+
+('t4444444-4444-4444-4444-444444444444', 'Chronic Pain Management', 'Comprehensive evaluation for patients with chronic pain conditions', 'Pain Management', '🎯', 'Pain Medicine', ARRAY['chronic pain', 'pain management', 'functional assessment'], ARRAY['adult', 'senior'], 'medium', 
+'{
+  "chiefComplaint": "Chronic pain evaluation and management optimization",
+  "subjectiveTemplate": {
+    "symptoms": ["persistent pain", "functional limitations", "sleep disturbance", "mood changes"],
+    "painDescription": "Chronic, persistent pain with flare-ups",
+    "otherSymptoms": "Impact on daily activities, work, and quality of life"
+  },
+  "objectiveTemplate": {
+    "systemExams": [
+      {
+        "system": "Pain Assessment",
+        "findings": "Pain scale rating, functional assessment, psychological screening"
+      }
+    ],
+    "specialTests": [
+      {"name": "Functional Assessment", "result": "", "notes": ""},
+      {"name": "Pain Scale Assessment", "result": "", "notes": ""}
+    ]
+  },
+  "assessmentTemplate": {
+    "diagnoses": [
+      {"code": "M79.3", "description": "Chronic pain syndrome"}
+    ],
+    "clinicalImpression": "Chronic pain with functional limitations"
+  },
+  "planTemplate": {
+    "treatments": ["Multimodal pain management", "Physical therapy", "Behavioral therapy"],
+    "medications": [
+      {"genericName": "Gabapentin", "strength": "300mg", "frequency": "TID"}
+    ],
+    "followUpPeriod": "4 weeks",
+    "additionalInstructions": "Pain diary recommended. Consider referral to pain management specialist if no improvement."
+  }
+}', 
+(SELECT id FROM auth.users LIMIT 1), true, true, 1, 'silverman_clinic');
+
+-- Insert comprehensive SOAP notes showcasing all features
+INSERT INTO public.soap_notes (id, patient_id, provider_id, provider_name, appointment_id, date_of_service, chief_complaint, is_draft, subjective_data, objective_data, assessment_data, plan_data, vital_signs, created_by, last_modified_by) VALUES
+
+-- Michael Rodriguez - Sports Injury (Knee)
+('s1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', (SELECT id FROM auth.users LIMIT 1), 'Dr. Sarah Silverman', NULL, '2024-01-15 10:00:00', 'Right knee pain and swelling after soccer injury', false,
+'{
+  "historyOfPresentIllness": "22-year-old male soccer player presents with acute onset right knee pain after landing awkwardly during practice 3 days ago. Reports hearing a pop at time of injury. Pain is 7/10, sharp with movement, aching at rest.",
+  "painAssessment": {
+    "currentPainLevel": 7,
+    "averagePainLevel": 6,
+    "worstPainLevel": 9,
+    "painScale": "numeric",
+    "location": ["right knee", "medial aspect"],
+    "quality": ["sharp", "aching"],
+    "triggers": ["weight bearing", "twisting movements", "stairs"],
+    "relievingFactors": ["rest", "ice", "elevation"],
+    "timePattern": "constant with exacerbations",
+    "description": "Sharp shooting pain with movement, constant ache at rest",
+    "functionalImpact": "Unable to participate in sports, difficulty with stairs and prolonged walking"
+  },
+  "reviewOfSystems": {
+    "constitutional": "Denies fever, chills, weight loss",
+    "musculoskeletal": "Right knee pain and swelling, no other joint involvement"
+  },
+  "allergies": "NKDA",
+  "medications": "Ibuprofen 600mg TID",
+  "socialHistory": "College soccer player, non-smoker, occasional alcohol use"
+}',
+'{
+  "vitalSigns": {
+    "height": "180 cm",
+    "weight": "75 kg",
+    "bloodPressure": "118/72",
+    "heartRate": 68,
+    "temperature": 98.4,
+    "oxygenSaturation": 99,
+    "respiratoryRate": 16,
+    "bmi": 23.1
+  },
+  "systemExams": [
+    {
+      "system": "Musculoskeletal",
+      "status": "abnormal",
+      "refused": false,
+      "notes": "Right knee: Moderate effusion, tenderness over medial joint line. Limited ROM: flexion 90 degrees (normal 135). Positive McMurray test, negative Lachman."
+    }
+  ],
+  "specialTests": [
+    {
+      "name": "McMurray Test",
+      "result": "positive",
+      "notes": "Positive for medial meniscus tear"
+    },
+    {
+      "name": "Lachman Test",
+      "result": "negative",
+      "notes": "No anterior cruciate ligament laxity"
+    },
+    {
+      "name": "Valgus Stress Test",
+      "result": "negative",
+      "notes": "MCL stable"
+    }
+  ],
+  "imagingLab": [
+    {
+      "type": "MRI",
+      "name": "Right Knee MRI",
+      "date": "2024-01-16",
+      "results": "Pending - ordered to rule out meniscal tear"
+    }
+  ]
+}',
+'{
+  "diagnoses": [
+    {
+      "code": "S83.2",
+      "description": "Meniscus tear, unspecified"
+    },
+    {
+      "code": "M25.461",
+      "description": "Effusion, right knee"
+    }
+  ],
+  "clinicalImpression": "Acute right knee injury with suspected medial meniscus tear based on mechanism of injury and positive McMurray test. MRI pending for confirmation."
+}',
+'{
+  "treatments": ["Rest", "Ice 20 minutes every 2-3 hours", "Compression", "Elevation", "Physical therapy"],
+  "medications": [
+    {
+      "genericName": "Ibuprofen",
+      "brandName": "Advil",
+      "strength": "600mg",
+      "quantity": "60",
+      "frequency": "Three times daily with food",
+      "refills": "1",
+      "diagnosisCode": "S83.2",
+      "ePrescribing": false
+    }
+  ],
+  "followUp": "2 weeks or sooner if symptoms worsen",
+  "emergencyDisclaimer": true,
+  "legalTags": ["Workers Compensation"],
+  "additionalInstructions": "No weight bearing activities until follow-up. Begin gentle range of motion exercises as tolerated. Ice for 20 minutes every 2-3 hours. Return if increased pain, swelling, or inability to bear weight."
+}',
+'{
+  "height": "180 cm",
+  "weight": "75 kg",
+  "bloodPressure": "118/72",
+  "heartRate": 68,
+  "temperature": 98.4,
+  "oxygenSaturation": 99,
+  "respiratoryRate": 16,
+  "bmi": 23.1
+}',
+(SELECT id FROM auth.users LIMIT 1), (SELECT id FROM auth.users LIMIT 1)),
+
+-- Sarah Chen - Chronic Lower Back Pain
+('s2222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', (SELECT id FROM auth.users LIMIT 1), 'Dr. Michael Thompson', NULL, '2024-01-18 14:30:00', 'Chronic lower back pain, worsening over past month', false,
+'{
+  "historyOfPresentIllness": "45-year-old office worker with 3-year history of intermittent lower back pain, significantly worse over past month. Pain is 6/10, described as deep aching with sharp exacerbations. Worse with prolonged sitting, better with movement.",
+  "painAssessment": {
+    "currentPainLevel": 6,
+    "averagePainLevel": 5,
+    "worstPainLevel": 8,
+    "painScale": "faces",
+    "location": ["lower back", "bilateral", "radiating to right leg"],
+    "quality": ["aching", "sharp", "burning"],
+    "triggers": ["prolonged sitting", "forward bending", "coughing"],
+    "relievingFactors": ["walking", "heat therapy", "lying down"],
+    "timePattern": "worse morning and evening",
+    "description": "Deep aching pain with sharp shooting episodes down right leg",
+    "functionalImpact": "Difficulty with prolonged sitting at work, sleep disruption, limited exercise tolerance"
+  },
+  "reviewOfSystems": {
+    "constitutional": "Denies fever, weight loss",
+    "neurological": "Occasional numbness in right foot",
+    "musculoskeletal": "Lower back pain with right leg radiation"
+  },
+  "allergies": "Codeine - nausea",
+  "medications": "Naproxen 220mg BID, Acetaminophen 500mg PRN",
+  "socialHistory": "Desk job, minimal exercise, former smoker (quit 2 years ago)"
+}',
+'{
+  "vitalSigns": {
+    "height": "165 cm",
+    "weight": "68 kg",
+    "bloodPressure": "128/82",
+    "heartRate": 76,
+    "temperature": 98.2,
+    "oxygenSaturation": 98,
+    "respiratoryRate": 18,
+    "bmi": 25.0
+  },
+  "systemExams": [
+    {
+      "system": "Musculoskeletal",
+      "status": "abnormal",
+      "refused": false,
+      "notes": "Lumbar spine: Decreased lordosis, paravertebral muscle spasm L4-S1. Limited forward flexion (50% of normal). Positive straight leg raise at 45 degrees right side."
+    },
+    {
+      "system": "Neurological",
+      "status": "abnormal",
+      "refused": false,
+      "notes": "Decreased sensation to light touch over right L5 dermatome. Normal motor strength all extremities. Reflexes: diminished right Achilles reflex."
+    }
+  ],
+  "specialTests": [
+    {
+      "name": "Straight Leg Raise",
+      "result": "positive",
+      "notes": "Positive at 45 degrees on right, reproduces leg pain"
+    },
+    {
+      "name": "Lasegue Test",
+      "result": "positive",
+      "notes": "Confirms nerve root irritation"
+    }
+  ],
+  "imagingLab": [
+    {
+      "type": "X-ray",
+      "name": "Lumbar Spine X-ray",
+      "date": "2024-01-10",
+      "results": "Mild degenerative changes L4-L5, no acute fracture"
+    }
+  ]
+}',
+'{
+  "diagnoses": [
+    {
+      "code": "M54.5",
+      "description": "Low back pain"
+    },
+    {
+      "code": "M51.1",
+      "description": "Lumbar disc disorder with radiculopathy"
+    }
+  ],
+  "clinicalImpression": "Chronic lumbar disc disease with right L5 radiculopathy. Clinical findings consistent with L4-L5 disc involvement. Consider MRI if conservative treatment fails."
+}',
+'{
+  "treatments": ["Physical therapy", "Heat therapy", "Ergonomic workplace assessment", "Core strengthening exercises"],
+  "medications": [
+    {
+      "genericName": "Meloxicam",
+      "brandName": "Mobic",
+      "strength": "15mg",
+      "quantity": "30",
+      "frequency": "Once daily with food",
+      "refills": "2",
+      "diagnosisCode": "M54.5",
+      "ePrescribing": true
+    },
+    {
+      "genericName": "Cyclobenzaprine",
+      "brandName": "Flexeril",
+      "strength": "10mg",
+      "quantity": "30",
+      "frequency": "Bedtime as needed for muscle spasm",
+      "refills": "1",
+      "diagnosisCode": "M54.5",
+      "ePrescribing": true
+    }
+  ],
+  "followUp": "4 weeks",
+  "emergencyDisclaimer": true,
+  "legalTags": ["Disability Documentation"],
+  "additionalInstructions": "Continue physical therapy 3x weekly. Apply heat 20 minutes BID. Avoid prolonged sitting >30 minutes. Return sooner if numbness/weakness increases."
+}',
+'{
+  "height": "165 cm",
+  "weight": "68 kg",
+  "bloodPressure": "128/82",
+  "heartRate": 76,
+  "temperature": 98.2,
+  "oxygenSaturation": 98,
+  "respiratoryRate": 18,
+  "bmi": 25.0
+}',
+(SELECT id FROM auth.users LIMIT 1), (SELECT id FROM auth.users LIMIT 1)),
+
+-- Robert Johnson - Post-Surgical Knee Follow-up
+('s3333333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333', (SELECT id FROM auth.users LIMIT 1), 'Dr. Sarah Silverman', NULL, '2024-01-20 09:00:00', 'Post-operative follow-up for right total knee replacement', false,
+'{
+  "historyOfPresentIllness": "71-year-old male 6 weeks post right total knee replacement surgery. Reports good pain control with gradual improvement. Currently attending physical therapy 3x weekly.",
+  "painAssessment": {
+    "currentPainLevel": 3,
+    "averagePainLevel": 4,
+    "worstPainLevel": 6,
+    "painScale": "numeric",
+    "location": ["right knee", "surgical site"],
+    "quality": ["aching", "stiff"],
+    "triggers": ["prolonged activity", "weather changes"],
+    "relievingFactors": ["rest", "ice", "elevation", "medication"],
+    "timePattern": "worse in morning, improves with activity",
+    "description": "Mild aching pain at surgical site, significant improvement from pre-operative pain",
+    "functionalImpact": "Walking with cane, able to perform basic ADLs, improving weekly"
+  },
+  "reviewOfSystems": {
+    "constitutional": "Denies fever, chills",
+    "musculoskeletal": "Right knee stiffness improving with PT"
+  },
+  "allergies": "Penicillin - rash",
+  "medications": "Acetaminophen 1000mg TID, Aspirin 81mg daily",
+  "socialHistory": "Retired, lives with spouse, good family support"
+}',
+'{
+  "vitalSigns": {
+    "height": "175 cm",
+    "weight": "82 kg",
+    "bloodPressure": "138/88",
+    "heartRate": 72,
+    "temperature": 98.0,
+    "oxygenSaturation": 97,
+    "respiratoryRate": 20,
+    "bmi": 26.8
+  },
+  "systemExams": [
+    {
+      "system": "Surgical Site",
+      "status": "normal",
+      "refused": false,
+      "notes": "Right knee incision well-healed, no erythema, warmth, or drainage. Staples removed at 2 weeks post-op."
+    },
+    {
+      "system": "Musculoskeletal",
+      "status": "normal",
+      "refused": false,
+      "notes": "Right knee: Active ROM 0-95 degrees (goal 0-110). Good quadriceps activation. Minimal effusion. Stable prosthesis."
+    }
+  ],
+  "specialTests": [
+    {
+      "name": "Range of Motion",
+      "result": "improved",
+      "notes": "Active flexion 95 degrees, extension 0 degrees"
+    },
+    {
+      "name": "Wound Assessment",
+      "result": "healed",
+      "notes": "Incision completely healed, no signs of infection"
+    }
+  ],
+  "imagingLab": [
+    {
+      "type": "X-ray",
+      "name": "Right Knee X-ray",
+      "date": "2024-01-20",
+      "results": "Total knee prosthesis in good position, no loosening or complications"
+    }
+  ]
+}',
+'{
+  "diagnoses": [
+    {
+      "code": "Z96.651",
+      "description": "Presence of right artificial knee joint"
+    },
+    {
+      "code": "Z48.815",
+      "description": "Encounter for surgical aftercare following surgery on the musculoskeletal system"
+    }
+  ],
+  "clinicalImpression": "Excellent post-operative recovery from right total knee replacement. Wound healed appropriately, good progress with physical therapy. Continue current rehabilitation plan."
+}',
+'{
+  "treatments": ["Continue physical therapy 3x weekly", "Progressive weight bearing", "Home exercise program"],
+  "medications": [
+    {
+      "genericName": "Acetaminophen",
+      "brandName": "Tylenol",
+      "strength": "500mg",
+      "quantity": "180",
+      "frequency": "Two tablets three times daily",
+      "refills": "2",
+      "diagnosisCode": "Z96.651",
+      "ePrescribing": false
+    }
+  ],
+  "followUp": "8 weeks",
+  "emergencyDisclaimer": true,
+  "legalTags": ["Post-Surgical"],
+  "additionalInstructions": "Continue PT 3x weekly. May progress to walking without assistive device as tolerated. Goal ROM 0-110 degrees by 3 months post-op. Return if increased pain, swelling, or signs of infection."
+}',
+'{
+  "height": "175 cm",
+  "weight": "82 kg",
+  "bloodPressure": "138/88",
+  "heartRate": 72,
+  "temperature": 98.0,
+  "oxygenSaturation": 97,
+  "respiratoryRate": 20,
+  "bmi": 26.8
+}',
+(SELECT id FROM auth.users LIMIT 1), (SELECT id FROM auth.users LIMIT 1)),
+
+-- Emma Thompson - Pediatric Asthma (DRAFT)
+('s4444444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444', (SELECT id FROM auth.users LIMIT 1), 'Dr. Lisa pediatric', NULL, '2024-01-22 11:00:00', 'Asthma follow-up and medication adjustment', true,
+'{
+  "historyOfPresentIllness": "9-year-old female with mild persistent asthma presents for routine follow-up. Mother reports increased wheezing and nighttime cough over past 2 weeks, especially with cold weather.",
+  "painAssessment": {
+    "currentPainLevel": 0,
+    "averagePainLevel": 0,
+    "worstPainLevel": 2,
+    "painScale": "faces",
+    "location": ["chest"],
+    "quality": ["tight"],
+    "triggers": ["cold air", "exercise", "allergens"],
+    "relievingFactors": ["bronchodilator", "warm environment"],
+    "timePattern": "worse at night and early morning",
+    "description": "Chest tightness with breathing difficulty, no significant pain",
+    "functionalImpact": "Occasional limitation of physical activities at school"
+  },
+  "reviewOfSystems": {
+    "respiratory": "Increased cough, wheeze, chest tightness. No fever.",
+    "allergic": "Known environmental allergies to dust, pollen"
+  },
+  "allergies": "Environmental: dust, pollen. No drug allergies known.",
+  "medications": "Albuterol inhaler PRN, Budesonide/Formoterol 160/4.5 mcg BID"
+}',
+'{
+  "vitalSigns": {
+    "height": "132 cm",
+    "weight": "28 kg",
+    "bloodPressure": "98/62",
+    "heartRate": 88,
+    "temperature": 98.6,
+    "oxygenSaturation": 96,
+    "respiratoryRate": 22,
+    "bmi": 16.1
+  },
+  "systemExams": [
+    {
+      "system": "Respiratory",
+      "status": "abnormal",
+      "refused": false,
+      "notes": "Mild expiratory wheeze bilateral lower lobes. Good air entry. No retractions or accessory muscle use."
+    }
+  ],
+  "specialTests": [
+    {
+      "name": "Peak Flow",
+      "result": "280 L/min",
+      "notes": "85% of personal best (330 L/min)"
+    }
+  ]
+}',
+'{
+  "diagnoses": [
+    {
+      "code": "J45.0",
+      "description": "Allergic asthma"
+    }
+  ],
+  "clinicalImpression": "Mild persistent asthma with suboptimal control. Consider step-up therapy."
+}',
+'{}',
+'{
+  "height": "132 cm",
+  "weight": "28 kg",
+  "bloodPressure": "98/62",
+  "heartRate": 88,
+  "temperature": 98.6,
+  "oxygenSaturation": 96,
+  "respiratoryRate": 22,
+  "bmi": 16.1
+}',
+(SELECT id FROM auth.users LIMIT 1), (SELECT id FROM auth.users LIMIT 1));
+
+-- Insert template usage records
+INSERT INTO public.template_usage (id, template_id, template_name, template_type, used_by, patient_id, chief_complaint, usage_context) VALUES
+('u1111111-1111-1111-1111-111111111111', 't1111111-1111-1111-1111-111111111111', 'Orthopedic Knee Evaluation', 'custom', (SELECT id FROM auth.users LIMIT 1), '11111111-1111-1111-1111-111111111111', 'Right knee pain and swelling after soccer injury', 
+'{
+  "effectiveness": "high",
+  "timeToComplete": "12 minutes",
+  "sectionsUsed": ["subjective", "objective", "assessment", "plan"],
+  "modifications": "Added sport-specific functional tests"
+}'),
+('u2222222-2222-2222-2222-222222222222', 't4444444-4444-4444-4444-444444444444', 'Chronic Pain Management', 'custom', (SELECT id FROM auth.users LIMIT 1), '22222222-2222-2222-2222-222222222222', 'Chronic lower back pain, worsening over past month', 
+'{
+  "effectiveness": "high",
+  "timeToComplete": "15 minutes",
+  "sectionsUsed": ["subjective", "objective", "assessment", "plan"],
+  "modifications": "Enhanced pain assessment with functional impact scoring"
+}'),
+('u3333333-3333-3333-3333-333333333333', 't3333333-3333-3333-3333-333333333333', 'Post-Surgical Follow-up', 'custom', (SELECT id FROM auth.users LIMIT 1), '33333333-3333-3333-3333-333333333333', 'Post-operative follow-up for right total knee replacement', 
+'{
+  "effectiveness": "high",
+  "timeToComplete": "8 minutes",
+  "sectionsUsed": ["subjective", "objective", "assessment", "plan"],
+  "modifications": "Added specific post-operative milestones tracking"
+}');
