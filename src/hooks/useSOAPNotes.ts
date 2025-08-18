@@ -152,6 +152,7 @@ export function useSOAPNotes() {
       console.log('useSOAPNotes updateSOAPNote - Updating note:', noteId, 'with data:', updates);
 
       const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+        method: 'PUT',
         body: updates
       });
 
