@@ -159,10 +159,24 @@ export function ComprehensiveSOAPForm({
   };
 
   const exportToPDF = () => {
-    toast({
-      title: "Export Feature",
-      description: "PDF export functionality would be implemented here.",
-    });
+    const patientName = formData.patientName || 'Unknown Patient';
+    
+    try {
+      import('../../services/pdfExport').then(({ exportSOAPFormDataToPDF }) => {
+        exportSOAPFormDataToPDF(formData, patientName);
+        toast({
+          title: "PDF Export",
+          description: "PDF exported successfully!",
+        });
+      });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: "Export Error",
+        description: "Failed to export PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getCompletionPercentage = () => {

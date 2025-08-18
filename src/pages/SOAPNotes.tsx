@@ -171,7 +171,25 @@ export default function SOAPNotes() {
                 <p className="text-muted-foreground">Medical documentation and patient assessments</p>
               </div>
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    if (soapNotes.length === 0) {
+                      toast({
+                        title: "No Data",
+                        description: "No SOAP notes available to export.",
+                      });
+                      return;
+                    }
+                    
+                    // Export all notes as a summary
+                    toast({
+                      title: "Bulk Export",
+                      description: "Bulk export feature coming soon!",
+                    });
+                  }}
+                >
                   <FileText className="w-4 h-4 mr-2" />
                   Export
                 </Button>
@@ -311,7 +329,27 @@ export default function SOAPNotes() {
                                       <Edit className="w-4 h-4 mr-1" />
                                       Edit
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => {
+                                        const patientName = getPatientName(note.patients);
+                                        import('../services/pdfExport').then(({ exportSOAPNoteToPDF }) => {
+                                          exportSOAPNoteToPDF(note, patientName);
+                                          toast({
+                                            title: "PDF Export",
+                                            description: "PDF exported successfully!",
+                                          });
+                                        }).catch((error) => {
+                                          console.error('PDF export error:', error);
+                                          toast({
+                                            title: "Export Error",
+                                            description: "Failed to export PDF. Please try again.",
+                                            variant: "destructive",
+                                          });
+                                        });
+                                      }}
+                                    >
                                       <FileText className="w-4 h-4 mr-1" />
                                       Export
                                     </Button>
@@ -448,7 +486,28 @@ export default function SOAPNotes() {
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Note
                     </Button>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const patientName = getPatientName(selectedNote?.patients);
+                        if (selectedNote) {
+                          import('../services/pdfExport').then(({ exportSOAPNoteToPDF }) => {
+                            exportSOAPNoteToPDF(selectedNote, patientName);
+                            toast({
+                              title: "PDF Export",
+                              description: "PDF exported successfully!",
+                            });
+                          }).catch((error) => {
+                            console.error('PDF export error:', error);
+                            toast({
+                              title: "Export Error",
+                              description: "Failed to export PDF. Please try again.",
+                              variant: "destructive",
+                            });
+                          });
+                        }
+                      }}
+                    >
                       <FileText className="w-4 h-4 mr-2" />
                       Export PDF
                     </Button>
