@@ -49,9 +49,10 @@ const painFaces = [
 
 export function SubjectiveSection({ data, onChange }: SubjectiveSectionProps) {
   const handleSymptomChange = (symptomId: string, checked: boolean) => {
+    const currentSymptoms = data.symptoms || [];
     const newSymptoms = checked 
-      ? [...data.symptoms, symptomId]
-      : data.symptoms.filter(s => s !== symptomId);
+      ? [...currentSymptoms, symptomId]
+      : currentSymptoms.filter(s => s !== symptomId);
     
     onChange({ ...data, symptoms: newSymptoms });
   };
@@ -124,9 +125,9 @@ export function SubjectiveSection({ data, onChange }: SubjectiveSectionProps) {
               <div className="grid grid-cols-3 gap-3">
                 {commonSymptoms.map((symptom) => (
                   <div key={symptom.id} className="flex items-center space-x-2">
-                    <Checkbox
+                     <Checkbox
                       id={symptom.id}
-                      checked={data.symptoms.includes(symptom.id)}
+                      checked={data.symptoms?.includes(symptom.id) || false}
                       onCheckedChange={(checked) => handleSymptomChange(symptom.id, checked as boolean)}
                     />
                     <Label htmlFor={symptom.id} className="text-sm">{symptom.label}</Label>
