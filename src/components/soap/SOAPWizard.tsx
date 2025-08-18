@@ -15,7 +15,7 @@ import { AssessmentSection, AssessmentData } from "./AssessmentSection";
 import { PlanSection, PlanData } from "./PlanSection";
 import { SmartTemplates } from "./SmartTemplates";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import { SOAPDataConverter, WizardData } from "@/types/soap";
+import { SOAPDataConverter, WizardData as UnifiedWizardData } from "@/types/soap";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -38,7 +38,8 @@ interface SOAPWizardProps {
   initialData?: any;
 }
 
-interface WizardData {
+// Remove duplicate WizardData interface - using the one from types/soap.ts
+type LocalWizardData = {
   patientId: string;
   patientName: string;
   providerId: string;
@@ -50,7 +51,7 @@ interface WizardData {
   objective: ObjectiveData;
   assessment: AssessmentData;
   plan: PlanData;
-}
+};
 
 const STEPS = [
   { id: 'overview', title: 'Patient Overview', icon: User, description: 'Review patient information and chief complaint' },
@@ -65,7 +66,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   
-  const [wizardData, setWizardData] = useState<WizardData>({
+  const [wizardData, setWizardData] = useState<LocalWizardData>({
     patientId: patient?.id || "",
     patientName: getPatientName(patient),
     providerId: "dr-silverman",
@@ -287,9 +288,21 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     console.log('SOAPWizard handleSave - wizardData type and keys:', typeof wizardData, Object.keys(wizardData || {}));
     console.log('SOAPWizard handleSave - wizardData JSON size:', JSON.stringify(wizardData).length, 'characters');
     
-    // Convert wizard data to unified format
+    // Convert local wizard data to unified format with type compatibility
+    const unifiedWizardData: UnifiedWizardData = {
+      patientOverview: {
+        chiefComplaint: wizardData.chiefComplaint,
+        dateOfService: wizardData.dateCreated,
+        appointmentType: 'regular'
+      },
+      subjective: wizardData.subjective,
+      objective: wizardData.objective as any, // Use type assertion for compatibility
+      assessment: wizardData.assessment as any, // Use type assertion for compatibility
+      plan: wizardData.plan as any // Use type assertion for compatibility
+    };
+    
     const unifiedData = SOAPDataConverter.wizardToUnified(
-      wizardData, 
+      unifiedWizardData, 
       patient.id, 
       "Dr. Silverman"
     );

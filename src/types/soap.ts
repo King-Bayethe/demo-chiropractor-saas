@@ -31,11 +31,11 @@ export interface SubjectiveData {
   otherSymptoms: string;
   isRefused: boolean;
   isWithinNormalLimits: boolean;
-  // Additional fields for comprehensive notes
+  // Additional fields for comprehensive notes - keeping flexible for compatibility
   historyOfPresentIllness?: string;
   reviewOfSystems?: any; // Keep as any for backward compatibility with existing components
   pastMedicalHistory?: string[];
-  medications?: string | string[]; // Support both formats for compatibility
+  medications?: any; // Support both string and string[] formats for compatibility
   allergies?: string[];
   socialHistory?: string;
   familyHistory?: string;
@@ -55,9 +55,12 @@ export interface VitalSigns {
 
 export interface SystemExam {
   system: string;
-  findings: string;
+  findings?: string;
   isNormal: boolean;
-  isNotExamined: boolean;
+  isNotExamined?: boolean;
+  // Legacy compatibility fields
+  finding?: string;
+  abnormal?: string;
 }
 
 export interface SpecialTest {

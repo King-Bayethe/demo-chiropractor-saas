@@ -1,102 +1,68 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { UnifiedSOAPNote } from '@/types/soap';
 
+// Interface for SOAP notes from database
 export interface SOAPNote {
   id: string;
   patient_id: string;
-  provider_id: string;
+  provider_id?: string;
   provider_name: string;
   appointment_id?: string;
   created_at: string;
   updated_at: string;
   date_of_service: string;
-  chief_complaint?: string;
+  chief_complaint: string;
   is_draft: boolean;
   subjective_data: any;
   objective_data: any;
   assessment_data: any;
   plan_data: any;
-  vital_signs?: any;
-  created_by: string;
-  last_modified_by: string;
-  patients?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-}
-
-export interface CreateSOAPNoteData {
-  patient_id: string;
-  provider_name: string;
-  appointment_id?: string;
-  date_of_service?: Date;
-  chief_complaint?: string;
-  is_draft?: boolean;
-  subjective_data: any;
-  objective_data: any;
-  assessment_data: any;
-  plan_data: any;
-  vital_signs?: any;
+  vital_signs: any;
+  // Legacy compatibility
+  patients?: any;
 }
 
 export function useSOAPNotes() {
-  const [soapNotes, setSoapNotes] = useState<SOAPNote[]>([]);
+  const { toast } = useToast();
+  const [soapNotes, setSOAPNotes] = useState<SOAPNote[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSOAPNotes = async (options?: {
-    limit?: number;
-    offset?: number;
-    search?: string;
-  }) => {
+  const fetchSOAPNotes = async (options?: { limit?: number; offset?: number; search?: string; }) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('Fetching SOAP notes with options:', options);
-
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        throw new Error('Authentication error');
-      }
-      
-      if (!session?.access_token) {
-        console.error('No valid session found');
-        throw new Error('Not authenticated - please log in');
-      }
-
-      const searchParams = new URLSearchParams();
-      if (options?.limit) searchParams.set('limit', options.limit.toString());
-      if (options?.offset) searchParams.set('offset', options.offset.toString());
-      if (options?.search) searchParams.set('search', options.search);
-
-      const queryString = searchParams.toString();
-      console.log('Invoking SOAP notes function with query:', queryString);
-
       const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
+        },
+        body: {
+          limit: options?.limit || 50,
+          offset: options?.offset || 0,
+          search: options?.search || ''
         }
       });
 
-      if (error) {
-        console.error('Function invocation error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Successfully fetched SOAP notes:', data);
-      setSoapNotes(data.data || []);
-      return { data: data.data || [], count: data.count || 0 };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch SOAP notes';
-      setError(errorMessage);
-      console.error('Error fetching SOAP notes:', err);
-      return { data: [], count: 0 };
+      if (data && Array.isArray(data.notes)) {
+        setSOAPNotes(data.notes);
+      } else {
+        console.warn('Unexpected data format:', data);
+        setSOAPNotes([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch SOAP notes:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch SOAP notes');
+      toast({
+        title: "Error",
+        description: "Failed to load SOAP notes. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -107,35 +73,31 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
         throw new Error('Not authenticated');
       }
 
       console.log('useSOAPNotes createSOAPNote - Received noteData:', noteData);
       console.log('useSOAPNotes createSOAPNote - noteData type and keys:', typeof noteData, Object.keys(noteData || {}));
       
-      // Clean and validate data before sending to edge function
-      const cleanedData: any = {
+      // Clean and validate data - data is already in unified format
+      const cleanedData = {
         patient_id: noteData.patient_id,
+        provider_id: noteData.provider_id || null,
         provider_name: noteData.provider_name,
-        date_of_service: noteData.date_of_service?.toISOString() || new Date().toISOString(),
+        date_of_service: noteData.date_of_service instanceof Date 
+          ? noteData.date_of_service.toISOString()
+          : noteData.date_of_service,
         chief_complaint: noteData.chief_complaint || '',
-        is_draft: noteData.is_draft ?? false,
+        is_draft: noteData.is_draft || false,
         subjective_data: noteData.subjective_data || {},
         objective_data: noteData.objective_data || {},
         assessment_data: noteData.assessment_data || {},
         plan_data: noteData.plan_data || {},
-        vital_signs: noteData.vital_signs || {}
+        vital_signs: noteData.vital_signs || noteData.objective_data?.vitalSigns || {},
+        appointment_id: noteData.appointment_id || null
       };
-
-      // Only include appointment_id if it's a valid string
-      if (noteData.appointment_id && 
-          typeof noteData.appointment_id === 'string' && 
-          noteData.appointment_id !== 'undefined' && 
-          noteData.appointment_id.trim() !== '') {
-        cleanedData.appointment_id = noteData.appointment_id;
-      }
 
       console.log('useSOAPNotes createSOAPNote - Cleaned data before sending:', cleanedData);
       console.log('useSOAPNotes createSOAPNote - Cleaned data JSON size:', JSON.stringify(cleanedData).length, 'characters');
@@ -150,8 +112,8 @@ export function useSOAPNotes() {
       const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.data.session.access_token}`
         },
         body: cleanedData
       });
@@ -160,13 +122,25 @@ export function useSOAPNotes() {
 
       if (error) throw error;
 
-      const newNote = data.data;
-      setSoapNotes(prev => [newNote, ...prev]);
-      return newNote;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create SOAP note';
-      setError(errorMessage);
-      console.error('Error creating SOAP note:', err);
+      const newNote = data?.note;
+      if (newNote) {
+        setSOAPNotes(prev => [newNote, ...prev]);
+        toast({
+          title: "Success",
+          description: "SOAP note created successfully.",
+        });
+        return newNote;
+      } else {
+        throw new Error('No note data returned from server');
+      }
+    } catch (error) {
+      console.error('Failed to create SOAP note:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create SOAP note');
+      toast({
+        title: "Error",
+        description: "Failed to create SOAP note. Please try again.",
+        variant: "destructive",
+      });
       return null;
     } finally {
       setLoading(false);
@@ -178,47 +152,46 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
         throw new Error('Not authenticated');
       }
 
-      // Standardize the update data structure
-      const standardizedUpdates: any = {};
-      if (updates.patient_id) standardizedUpdates.patient_id = updates.patient_id;
-      if (updates.provider_name) standardizedUpdates.provider_name = updates.provider_name;
-      if (updates.appointment_id) standardizedUpdates.appointment_id = updates.appointment_id;
-      if (updates.date_of_service) standardizedUpdates.date_of_service = updates.date_of_service.toISOString();
-      if (updates.chief_complaint !== undefined) standardizedUpdates.chief_complaint = updates.chief_complaint;
-      if (updates.is_draft !== undefined) standardizedUpdates.is_draft = updates.is_draft;
-      if (updates.subjective_data) standardizedUpdates.subjective_data = updates.subjective_data;
-      if (updates.objective_data) standardizedUpdates.objective_data = updates.objective_data;
-      if (updates.assessment_data) standardizedUpdates.assessment_data = updates.assessment_data;
-      if (updates.plan_data) standardizedUpdates.plan_data = updates.plan_data;
-      if (updates.vital_signs) standardizedUpdates.vital_signs = updates.vital_signs;
-
-      console.log('Updating SOAP note:', noteId, standardizedUpdates);
-
-      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+      const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.data.session.access_token}`
         },
-        body: standardizedUpdates
+        body: {
+          id: noteId,
+          ...updates
+        }
       });
 
       if (error) throw error;
 
-      const updatedNote = data.data;
-      setSoapNotes(prev => prev.map(note => 
-        note.id === noteId ? updatedNote : note
-      ));
-      return updatedNote;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update SOAP note';
-      setError(errorMessage);
-      console.error('Error updating SOAP note:', err);
+      const updatedNote = data?.note;
+      if (updatedNote) {
+        setSOAPNotes(prev => prev.map(note => 
+          note.id === noteId ? updatedNote : note
+        ));
+        toast({
+          title: "Success",
+          description: "SOAP note updated successfully.",
+        });
+        return updatedNote;
+      } else {
+        throw new Error('No note data returned from server');
+      }
+    } catch (error) {
+      console.error('Failed to update SOAP note:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update SOAP note');
+      toast({
+        title: "Error",
+        description: "Failed to update SOAP note. Please try again.",
+        variant: "destructive",
+      });
       return null;
     } finally {
       setLoading(false);
@@ -230,28 +203,36 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
         throw new Error('Not authenticated');
       }
 
-      console.log('Deleting SOAP note:', noteId);
-
-      const { error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+      const { error } = await supabase.functions.invoke('soap-notes', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        }
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.data.session.access_token}`
+        },
+        body: { id: noteId }
       });
 
       if (error) throw error;
 
-      setSoapNotes(prev => prev.filter(note => note.id !== noteId));
+      setSOAPNotes(prev => prev.filter(note => note.id !== noteId));
+      toast({
+        title: "Success",
+        description: "SOAP note deleted successfully.",
+      });
       return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete SOAP note';
-      setError(errorMessage);
-      console.error('Error deleting SOAP note:', err);
+    } catch (error) {
+      console.error('Failed to delete SOAP note:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete SOAP note');
+      toast({
+        title: "Error",
+        description: "Failed to delete SOAP note. Please try again.",
+        variant: "destructive",
+      });
       return false;
     } finally {
       setLoading(false);
@@ -263,47 +244,38 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      console.log('Fetching individual SOAP note:', noteId);
-
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        throw new Error('Authentication error');
-      }
-      
-      if (!session?.access_token) {
-        console.error('No valid session found');
-        throw new Error('Not authenticated - please log in');
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
+        throw new Error('Not authenticated');
       }
 
-      console.log('Fetching individual SOAP note with ID:', noteId);
-
-      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+      const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
-        }
+          'Authorization': `Bearer ${session.data.session.access_token}`
+        },
+        body: { id: noteId }
       });
 
-      if (error) {
-        console.error('Function invocation error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Successfully fetched SOAP note:', data);
-      return data.data;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch SOAP note';
-      setError(errorMessage);
-      console.error('Error fetching SOAP note:', err);
+      return data?.note || null;
+    } catch (error) {
+      console.error('Failed to get SOAP note:', error);
+      setError(error instanceof Error ? error.message : 'Failed to get SOAP note');
+      toast({
+        title: "Error",
+        description: "Failed to load SOAP note. Please try again.",
+        variant: "destructive",
+      });
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-load SOAP notes on hook initialization
+  // Fetch notes on mount
   useEffect(() => {
     fetchSOAPNotes();
   }, []);
@@ -316,6 +288,6 @@ export function useSOAPNotes() {
     createSOAPNote,
     updateSOAPNote,
     deleteSOAPNote,
-    getSOAPNote,
+    getSOAPNote
   };
 }
