@@ -107,83 +107,94 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
   };
 
   const updateSystemExam = (system: string, updates: Partial<SystemExam>) => {
-    const existingIndex = data.systemExams.findIndex(exam => exam.system === system);
+    const systemExams = data.systemExams || [];
+    const existingIndex = systemExams.findIndex(exam => exam.system === system);
     const updatedExam = existingIndex >= 0 
-      ? { ...data.systemExams[existingIndex], ...updates }
+      ? { ...systemExams[existingIndex], ...updates }
       : { system, isNormal: false, isAbnormal: false, notes: '', isRefused: false, ...updates };
 
     const newSystemExams = existingIndex >= 0
-      ? data.systemExams.map((exam, index) => index === existingIndex ? updatedExam : exam)
-      : [...data.systemExams, updatedExam];
+      ? systemExams.map((exam, index) => index === existingIndex ? updatedExam : exam)
+      : [...systemExams, updatedExam];
 
     onChange({ ...data, systemExams: newSystemExams });
   };
 
   const addSpecialTest = () => {
+    const specialTests = data.specialTests || [];
     onChange({
       ...data,
-      specialTests: [...data.specialTests, { name: '', result: '', notes: '' }]
+      specialTests: [...specialTests, { name: '', result: '', notes: '' }]
     });
   };
 
   const updateSpecialTest = (index: number, updates: Partial<SpecialTest>) => {
-    const newTests = data.specialTests.map((test, i) => 
+    const specialTests = data.specialTests || [];
+    const newTests = specialTests.map((test, i) => 
       i === index ? { ...test, ...updates } : test
     );
     onChange({ ...data, specialTests: newTests });
   };
 
   const removeSpecialTest = (index: number) => {
+    const specialTests = data.specialTests || [];
     onChange({
       ...data,
-      specialTests: data.specialTests.filter((_, i) => i !== index)
+      specialTests: specialTests.filter((_, i) => i !== index)
     });
   };
 
   const addImagingLab = () => {
+    const imagingLabs = data.imagingLabs || [];
     onChange({
       ...data,
-      imagingLabs: [...data.imagingLabs, { type: '', name: '', date: '', results: '' }]
+      imagingLabs: [...imagingLabs, { type: '', name: '', date: '', results: '' }]
     });
   };
 
   const updateImagingLab = (index: number, updates: Partial<ImagingLab>) => {
-    const newLabs = data.imagingLabs.map((lab, i) => 
+    const imagingLabs = data.imagingLabs || [];
+    const newLabs = imagingLabs.map((lab, i) => 
       i === index ? { ...lab, ...updates } : lab
     );
     onChange({ ...data, imagingLabs: newLabs });
   };
 
   const removeImagingLab = (index: number) => {
+    const imagingLabs = data.imagingLabs || [];
     onChange({
       ...data,
-      imagingLabs: data.imagingLabs.filter((_, i) => i !== index)
+      imagingLabs: imagingLabs.filter((_, i) => i !== index)
     });
   };
 
   const addProcedure = () => {
+    const procedures = data.procedures || [];
     onChange({
       ...data,
-      procedures: [...data.procedures, { name: '', cptCode: '', description: '' }]
+      procedures: [...procedures, { name: '', cptCode: '', description: '' }]
     });
   };
 
   const updateProcedure = (index: number, updates: Partial<Procedure>) => {
-    const newProcedures = data.procedures.map((proc, i) => 
+    const procedures = data.procedures || [];
+    const newProcedures = procedures.map((proc, i) => 
       i === index ? { ...proc, ...updates } : proc
     );
     onChange({ ...data, procedures: newProcedures });
   };
 
   const removeProcedure = (index: number) => {
+    const procedures = data.procedures || [];
     onChange({
       ...data,
-      procedures: data.procedures.filter((_, i) => i !== index)
+      procedures: procedures.filter((_, i) => i !== index)
     });
   };
 
   const getSystemExam = (system: string): SystemExam => {
-    return data.systemExams.find(exam => exam.system === system) || {
+    const systemExams = data.systemExams || [];
+    return systemExams.find(exam => exam.system === system) || {
       system,
       isNormal: false,
       isAbnormal: false,
@@ -355,7 +366,7 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
             </Button>
           </div>
           <div className="space-y-3">
-            {data.specialTests.map((test, index) => (
+            {(data.specialTests || []).map((test, index) => (
               <div key={index} className="flex items-center space-x-2 p-3 border border-border rounded-lg">
                 <div className="flex-1 grid grid-cols-3 gap-2">
                   <div>
@@ -399,7 +410,7 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
                 </Button>
               </div>
             ))}
-            {data.specialTests.length === 0 && (
+            {(data.specialTests || []).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No special tests recorded</p>
             )}
           </div>
@@ -417,7 +428,7 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
             </Button>
           </div>
           <div className="space-y-3">
-            {data.imagingLabs.map((lab, index) => (
+            {(data.imagingLabs || []).map((lab, index) => (
               <div key={index} className="p-3 border border-border rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="grid grid-cols-4 gap-2 flex-1">
@@ -468,7 +479,7 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
                 </div>
               </div>
             ))}
-            {data.imagingLabs.length === 0 && (
+            {(data.imagingLabs || []).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No imaging or lab results recorded</p>
             )}
           </div>
@@ -486,7 +497,7 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
             </Button>
           </div>
           <div className="space-y-3">
-            {data.procedures.map((procedure, index) => (
+            {(data.procedures || []).map((procedure, index) => (
               <div key={index} className="flex items-center space-x-2 p-3 border border-border rounded-lg">
                 <div className="flex-1 grid grid-cols-3 gap-2">
                   <div>
@@ -524,7 +535,7 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
                 </Button>
               </div>
             ))}
-            {data.procedures.length === 0 && (
+            {(data.procedures || []).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No procedures recorded</p>
             )}
           </div>
