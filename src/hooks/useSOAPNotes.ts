@@ -82,9 +82,12 @@ export function useSOAPNotes() {
       console.log('useSOAPNotes createSOAPNote - noteData type and keys:', typeof noteData, Object.keys(noteData || {}));
       
       // Clean and validate data - data is already in unified format
+      // Get current user for provider_id
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const cleanedData = {
         patient_id: noteData.patient_id,
-        provider_id: noteData.provider_id || null,
+        provider_id: user?.id || null,
         provider_name: noteData.provider_name,
         date_of_service: noteData.date_of_service instanceof Date 
           ? noteData.date_of_service.toISOString()
@@ -95,7 +98,6 @@ export function useSOAPNotes() {
         objective_data: noteData.objective_data || {},
         assessment_data: noteData.assessment_data || {},
         plan_data: noteData.plan_data || {},
-        vital_signs: noteData.vital_signs || noteData.objective_data?.vitalSigns || {},
         appointment_id: noteData.appointment_id || null
       };
 
@@ -110,17 +112,14 @@ export function useSOAPNotes() {
       });
 
       const { data, error } = await supabase.functions.invoke('soap-notes', {
-        body: JSON.stringify(cleanedData),
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        body: cleanedData
       });
 
       console.log('useSOAPNotes createSOAPNote - Edge function response:', { data, error });
 
       if (error) throw error;
 
-      const newNote = data?.note;
+      const newNote = data?.data;
       if (newNote) {
         setSOAPNotes(prev => [newNote, ...prev]);
         toast({
