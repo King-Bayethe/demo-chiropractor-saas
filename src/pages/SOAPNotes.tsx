@@ -41,11 +41,12 @@ export default function SOAPNotes() {
   const [isCreateSOAPOpen, setIsCreateSOAPOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<SOAPNote | null>(null);
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
+  const [isEditNoteOpen, setIsEditNoteOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   
   const { toast } = useToast();
-  const { soapNotes, loading, error, fetchSOAPNotes, createSOAPNote, deleteSOAPNote } = useSOAPNotes();
+  const { soapNotes, loading, error, fetchSOAPNotes, createSOAPNote, updateSOAPNote, deleteSOAPNote } = useSOAPNotes();
   const { patients } = usePatients();
 
   useEffect(() => {
@@ -104,6 +105,58 @@ export default function SOAPNotes() {
   const handleViewNote = (note: SOAPNote) => {
     setSelectedNote(note);
     setIsViewNoteOpen(true);
+  };
+
+  const handleEditNote = (note: SOAPNote) => {
+    setSelectedNote(note);
+    // Find the patient for this note
+    const patient = patients.find(p => p.id === note.patient_id);
+    if (patient) {
+      setSelectedPatient(patient);
+      setIsEditNoteOpen(true);
+    }
+  };
+
+  const handleUpdateSOAPNote = async (data: SOAPFormData) => {
+    try {
+      if (!selectedNote) {
+        toast({
+          title: "Error",
+          description: "No note selected for editing.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const result = await updateSOAPNote(selectedNote.id, {
+        provider_name: data.providerName,
+        date_of_service: data.dateCreated,
+        chief_complaint: data.chiefComplaint,
+        is_draft: data.isQuickNote,
+        subjective_data: data.subjective,
+        objective_data: data.objective,
+        assessment_data: data.assessment,
+        plan_data: data.plan,
+        vital_signs: data.objective.vitalSigns
+      });
+
+      if (result) {
+        setIsEditNoteOpen(false);
+        setSelectedNote(null);
+        setSelectedPatient(null);
+        toast({
+          title: "SOAP Note Updated",
+          description: "SOAP note has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update SOAP note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update SOAP note. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -250,7 +303,11 @@ export default function SOAPNotes() {
                                       <Eye className="w-4 h-4 mr-1" />
                                       View
                                     </Button>
-                                    <Button variant="ghost" size="sm">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleEditNote(note)}
+                                    >
                                       <Edit className="w-4 h-4 mr-1" />
                                       Edit
                                     </Button>
@@ -314,8 +371,8 @@ export default function SOAPNotes() {
             </div>
           )}
 
-          {/* Comprehensive SOAP Form */}
-          {selectedPatient && (
+          {/* Comprehensive SOAP Form - Create */}
+          {selectedPatient && !isEditNoteOpen && (
             <ComprehensiveSOAPForm
               isOpen={isCreateSOAPOpen}
               onClose={() => {
@@ -324,6 +381,33 @@ export default function SOAPNotes() {
               }}
               patient={selectedPatient}
               onSave={handleCreateSOAPNote}
+            />
+          )}
+
+          {/* Comprehensive SOAP Form - Edit */}
+          {selectedPatient && selectedNote && (
+            <ComprehensiveSOAPForm
+              isOpen={isEditNoteOpen}
+              onClose={() => {
+                setIsEditNoteOpen(false);
+                setSelectedNote(null);
+                setSelectedPatient(null);
+              }}
+              patient={selectedPatient}
+              initialData={{
+                patientId: selectedNote.patient_id,
+                patientName: getPatientName(selectedNote.patients),
+                providerId: selectedNote.provider_id,
+                providerName: selectedNote.provider_name,
+                dateCreated: new Date(selectedNote.date_of_service),
+                chiefComplaint: selectedNote.chief_complaint || "",
+                isQuickNote: selectedNote.is_draft,
+                subjective: selectedNote.subjective_data as any,
+                objective: selectedNote.objective_data as any,
+                assessment: selectedNote.assessment_data as any,
+                plan: selectedNote.plan_data as any
+              }}
+              onSave={handleUpdateSOAPNote}
             />
           )}
 
@@ -352,7 +436,15 @@ export default function SOAPNotes() {
                   />
                   
                   <div className="flex justify-end space-x-2">
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setIsViewNoteOpen(false);
+                        if (selectedNote) {
+                          handleEditNote(selectedNote);
+                        }
+                      }}
+                    >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Note
                     </Button>
