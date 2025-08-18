@@ -139,7 +139,27 @@ serve(async (req) => {
         }
 
       case 'POST':
-        const noteData: SOAPNoteData = await req.json();
+        let noteData: SOAPNoteData;
+        
+        try {
+          const requestText = await req.text();
+          console.log('Raw request body:', requestText.slice(0, 200) + '...');
+          
+          if (!requestText.trim()) {
+            return new Response(
+              JSON.stringify({ error: 'Empty request body' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          
+          noteData = JSON.parse(requestText);
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          return new Response(
+            JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         
         // Validate required fields
         if (!noteData.patient_id || !noteData.provider_name) {
@@ -186,7 +206,27 @@ serve(async (req) => {
           );
         }
 
-        const updateData: Partial<SOAPNoteData> = await req.json();
+        let updateData: Partial<SOAPNoteData>;
+        
+        try {
+          const requestText = await req.text();
+          console.log('Update request body:', requestText.slice(0, 200) + '...');
+          
+          if (!requestText.trim()) {
+            return new Response(
+              JSON.stringify({ error: 'Empty request body' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          
+          updateData = JSON.parse(requestText);
+        } catch (parseError) {
+          console.error('JSON parse error in update:', parseError);
+          return new Response(
+            JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         
         console.log('Updating SOAP note:', noteId);
         const { data: updatedNote, error: updateError } = await supabaseClient

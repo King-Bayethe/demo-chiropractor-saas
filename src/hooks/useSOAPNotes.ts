@@ -112,7 +112,22 @@ export function useSOAPNotes() {
         throw new Error('Not authenticated');
       }
 
-      console.log('Creating SOAP note with data:', noteData);
+      // Standardize the data structure to match edge function expectations
+      const standardizedData = {
+        patient_id: noteData.patient_id,
+        provider_name: noteData.provider_name,
+        appointment_id: noteData.appointment_id,
+        date_of_service: noteData.date_of_service?.toISOString() || new Date().toISOString(),
+        chief_complaint: noteData.chief_complaint || '',
+        is_draft: noteData.is_draft ?? false,
+        subjective_data: noteData.subjective_data || {},
+        objective_data: noteData.objective_data || {},
+        assessment_data: noteData.assessment_data || {},
+        plan_data: noteData.plan_data || {},
+        vital_signs: noteData.vital_signs || {}
+      };
+
+      console.log('Creating SOAP note with standardized data:', standardizedData);
 
       const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'POST',
@@ -120,10 +135,7 @@ export function useSOAPNotes() {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: {
-          ...noteData,
-          date_of_service: noteData.date_of_service?.toISOString() || new Date().toISOString()
-        }
+        body: standardizedData
       });
 
       if (error) throw error;
@@ -151,7 +163,21 @@ export function useSOAPNotes() {
         throw new Error('Not authenticated');
       }
 
-      console.log('Updating SOAP note:', noteId, updates);
+      // Standardize the update data structure
+      const standardizedUpdates: any = {};
+      if (updates.patient_id) standardizedUpdates.patient_id = updates.patient_id;
+      if (updates.provider_name) standardizedUpdates.provider_name = updates.provider_name;
+      if (updates.appointment_id) standardizedUpdates.appointment_id = updates.appointment_id;
+      if (updates.date_of_service) standardizedUpdates.date_of_service = updates.date_of_service.toISOString();
+      if (updates.chief_complaint !== undefined) standardizedUpdates.chief_complaint = updates.chief_complaint;
+      if (updates.is_draft !== undefined) standardizedUpdates.is_draft = updates.is_draft;
+      if (updates.subjective_data) standardizedUpdates.subjective_data = updates.subjective_data;
+      if (updates.objective_data) standardizedUpdates.objective_data = updates.objective_data;
+      if (updates.assessment_data) standardizedUpdates.assessment_data = updates.assessment_data;
+      if (updates.plan_data) standardizedUpdates.plan_data = updates.plan_data;
+      if (updates.vital_signs) standardizedUpdates.vital_signs = updates.vital_signs;
+
+      console.log('Updating SOAP note:', noteId, standardizedUpdates);
 
       const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
         method: 'PUT',
@@ -159,7 +185,7 @@ export function useSOAPNotes() {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: updates
+        body: standardizedUpdates
       });
 
       if (error) throw error;
