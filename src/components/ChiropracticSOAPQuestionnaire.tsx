@@ -14,6 +14,80 @@ import { Separator } from "@/components/ui/separator";
 import { Save, FileText, User, Stethoscope, Brain, Clipboard, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+interface ReviewOfSystemsData {
+  neurological: { [key: string]: string };
+  cardiovascular: { [key: string]: string };
+  respiratory: { [key: string]: string };
+  musculoskeletal: { [key: string]: string };
+  gastrointestinal: { [key: string]: string };
+  genitourinary: { [key: string]: string };
+  endocrine: { [key: string]: string };
+  skinImmune: { [key: string]: string };
+  mentalHealth: { [key: string]: string };
+  notes: {
+    neurological: string;
+    cardiovascular: string;
+    respiratory: string;
+    musculoskeletal: string;
+    gastrointestinal: string;
+    genitourinary: string;
+    endocrine: string;
+    skinImmune: string;
+    mentalHealth: string;
+  };
+}
+
+interface ObjectiveData {
+  posture: string[];
+  gait: string[];
+  gaitOther: string;
+  muscleTone: string;
+  tenderness: string;
+  triggerPoints: string;
+  jointFixation: string;
+  edema: string;
+  edemaLocation: string;
+  reflexes: string;
+  sensation: string;
+  sensationLocation: string;
+  strength: string;
+  strengthMuscle: string;
+  vitalSigns: {
+    bp: string;
+    hr: string;
+    resp: string;
+    temp: string;
+  };
+  rangeOfMotion: {
+    cervical: {
+      flexion: string;
+      extension: string;
+      rotation: string;
+      lateralFlexion: string;
+    };
+    thoracic: {
+      rotation: string;
+      flexionExtension: string;
+    };
+    lumbar: {
+      flexion: string;
+      extension: string;
+      lateralFlexion: string;
+      rotation: string;
+    };
+  };
+  orthopedicTests: {
+    slr: string;
+    slrAngle: string;
+    kemps: string;
+    kempsSide: string;
+    faber: string;
+    faberSide: string;
+    yeoman: string;
+    otherTests: string;
+  };
+}
+
 interface ChiropracticSOAPData {
   // Patient Info
   patientName: string;
@@ -35,11 +109,11 @@ interface ChiropracticSOAPData {
   otherSymptoms: string;
   medications: string;
   
+  // Review of Systems
+  reviewOfSystems: ReviewOfSystemsData;
+  
   // Objective
-  posture: string;
-  rom: string;
-  palpation: string;
-  orthoNeuro: string;
+  objective: ObjectiveData;
   
   // Assessment
   diagnosis: string;
@@ -84,10 +158,78 @@ export function ChiropracticSOAPQuestionnaire({
     painFrequency: [],
     otherSymptoms: "",
     medications: "",
-    posture: "",
-    rom: "",
-    palpation: "",
-    orthoNeuro: "",
+    reviewOfSystems: {
+      neurological: {},
+      cardiovascular: {},
+      respiratory: {},
+      musculoskeletal: {},
+      gastrointestinal: {},
+      genitourinary: {},
+      endocrine: {},
+      skinImmune: {},
+      mentalHealth: {},
+      notes: {
+        neurological: "",
+        cardiovascular: "",
+        respiratory: "",
+        musculoskeletal: "",
+        gastrointestinal: "",
+        genitourinary: "",
+        endocrine: "",
+        skinImmune: "",
+        mentalHealth: "",
+      }
+    },
+    objective: {
+      posture: [],
+      gait: [],
+      gaitOther: "",
+      muscleTone: "",
+      tenderness: "",
+      triggerPoints: "",
+      jointFixation: "",
+      edema: "",
+      edemaLocation: "",
+      reflexes: "",
+      sensation: "",
+      sensationLocation: "",
+      strength: "",
+      strengthMuscle: "",
+      vitalSigns: {
+        bp: "",
+        hr: "",
+        resp: "",
+        temp: "",
+      },
+      rangeOfMotion: {
+        cervical: {
+          flexion: "",
+          extension: "",
+          rotation: "",
+          lateralFlexion: "",
+        },
+        thoracic: {
+          rotation: "",
+          flexionExtension: "",
+        },
+        lumbar: {
+          flexion: "",
+          extension: "",
+          lateralFlexion: "",
+          rotation: "",
+        },
+      },
+      orthopedicTests: {
+        slr: "",
+        slrAngle: "",
+        kemps: "",
+        kempsSide: "",
+        faber: "",
+        faberSide: "",
+        yeoman: "",
+        otherTests: "",
+      },
+    },
     diagnosis: "",
     secondaryFindings: "",
     treatment: "",
@@ -124,6 +266,56 @@ export function ChiropracticSOAPQuestionnaire({
     }));
   };
 
+  const handleROSChange = (system: keyof ReviewOfSystemsData['notes'], item: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      reviewOfSystems: {
+        ...prev.reviewOfSystems,
+        [system]: {
+          ...prev.reviewOfSystems[system as keyof Omit<ReviewOfSystemsData, 'notes'>],
+          [item]: value
+        }
+      }
+    }));
+  };
+
+  const handleROSNotesChange = (system: keyof ReviewOfSystemsData['notes'], value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      reviewOfSystems: {
+        ...prev.reviewOfSystems,
+        notes: {
+          ...prev.reviewOfSystems.notes,
+          [system]: value
+        }
+      }
+    }));
+  };
+
+  const handlePostureChange = (posture: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      objective: {
+        ...prev.objective,
+        posture: checked 
+          ? [...prev.objective.posture, posture]
+          : prev.objective.posture.filter(p => p !== posture)
+      }
+    }));
+  };
+
+  const handleGaitChange = (gait: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      objective: {
+        ...prev.objective,
+        gait: checked 
+          ? [...prev.objective.gait, gait]
+          : prev.objective.gait.filter(g => g !== gait)
+      }
+    }));
+  };
+
   const handleSave = () => {
     if (!formData.patientName.trim()) {
       toast({
@@ -137,7 +329,7 @@ export function ChiropracticSOAPQuestionnaire({
     onSave(formData);
     toast({
       title: "SOAP Questionnaire Saved",
-      description: "Chiropractic assessment has been saved successfully.",
+      description: "Comprehensive chiropractic assessment has been saved successfully.",
     });
     onClose();
   };
@@ -147,15 +339,15 @@ export function ChiropracticSOAPQuestionnaire({
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl h-[90vh] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
+        <div className="w-full max-w-6xl h-[90vh] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border bg-medical-blue-light">
+          <div className="flex items-center justify-between p-6 border-b border-border bg-gradient-to-r from-primary/10 to-primary/5">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-medical-blue rounded-lg">
-                <FileText className="w-5 h-5 text-white" />
+              <div className="p-2 bg-primary rounded-lg">
+                <FileText className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-medical-blue-dark">
+                <h1 className="text-2xl font-bold text-foreground">
                   Chiropractic SOAP Note Questionnaire
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -164,7 +356,7 @@ export function ChiropracticSOAPQuestionnaire({
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={handleSave} className="bg-medical-blue hover:bg-medical-blue-dark">
+              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
                 <Save className="w-4 h-4 mr-2" />
                 Save Assessment
               </Button>
@@ -178,9 +370,9 @@ export function ChiropracticSOAPQuestionnaire({
           <ScrollArea className="flex-1 p-6">
             <div className="space-y-6">
               {/* Patient Information */}
-              <Card className="border-medical-blue/20">
+              <Card className="border-primary/20">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-medical-blue-dark">
+                  <CardTitle className="flex items-center space-x-2 text-primary">
                     <User className="w-5 h-5" />
                     <span>Patient Information</span>
                   </CardTitle>
@@ -234,9 +426,9 @@ export function ChiropracticSOAPQuestionnaire({
               </Card>
 
               {/* Subjective Section */}
-              <Card className="border-medical-teal/20">
+              <Card className="border-blue-500/20">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-medical-teal">
+                  <CardTitle className="flex items-center space-x-2 text-blue-600">
                     <User className="w-5 h-5" />
                     <span>S - Subjective (Patient's Report)</span>
                   </CardTitle>
@@ -412,84 +604,1071 @@ export function ChiropracticSOAPQuestionnaire({
                 </CardContent>
               </Card>
 
-              {/* Objective Section */}
-              <Card className="border-medical-green/20">
+              {/* Review of Systems */}
+              <Card className="border-purple-500/20">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-medical-green">
+                  <CardTitle className="flex items-center space-x-2 text-purple-600">
+                    <Brain className="w-5 h-5" />
+                    <span>Review of Systems</span>
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Please check Yes if you have experienced these symptoms recently or in the past, and No if not.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Neurological System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">1. Neurological System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Frequent headaches",
+                        "Dizziness or balance problems", 
+                        "Numbness or tingling",
+                        "Weakness in arms or legs",
+                        "Tremors or shaking",
+                        "Memory or concentration problems"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.neurological[`neuro${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('neurological', `neuro${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`neuro${index + 1}-yes`} />
+                              <Label htmlFor={`neuro${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`neuro${index + 1}-no`} />
+                              <Label htmlFor={`neuro${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="neuro-notes">Notes:</Label>
+                        <Textarea
+                          id="neuro-notes"
+                          value={formData.reviewOfSystems.notes.neurological}
+                          onChange={(e) => handleROSNotesChange('neurological', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cardiovascular System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">2. Cardiovascular System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Chest pain or tightness",
+                        "Irregular heartbeat or palpitations",
+                        "Swelling in ankles or feet",
+                        "Shortness of breath with activity",
+                        "High blood pressure history",
+                        "Cold hands/feet or poor circulation"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.cardiovascular[`cardio${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('cardiovascular', `cardio${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`cardio${index + 1}-yes`} />
+                              <Label htmlFor={`cardio${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`cardio${index + 1}-no`} />
+                              <Label htmlFor={`cardio${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="cardio-notes">Notes:</Label>
+                        <Textarea
+                          id="cardio-notes"
+                          value={formData.reviewOfSystems.notes.cardiovascular}
+                          onChange={(e) => handleROSNotesChange('cardiovascular', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Respiratory System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">3. Respiratory System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Persistent cough",
+                        "Wheezing or asthma",
+                        "Shortness of breath at rest",
+                        "History of bronchitis or pneumonia",
+                        "Snoring or sleep apnea"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.respiratory[`resp${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('respiratory', `resp${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`resp${index + 1}-yes`} />
+                              <Label htmlFor={`resp${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`resp${index + 1}-no`} />
+                              <Label htmlFor={`resp${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="resp-notes">Notes:</Label>
+                        <Textarea
+                          id="resp-notes"
+                          value={formData.reviewOfSystems.notes.respiratory}
+                          onChange={(e) => handleROSNotesChange('respiratory', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Musculoskeletal System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">4. Musculoskeletal System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Joint pain or stiffness",
+                        "Muscle weakness",
+                        "Back pain",
+                        "Neck pain",
+                        "Difficulty walking"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.musculoskeletal[`msk${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('musculoskeletal', `msk${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`msk${index + 1}-yes`} />
+                              <Label htmlFor={`msk${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`msk${index + 1}-no`} />
+                              <Label htmlFor={`msk${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="msk-notes">Notes:</Label>
+                        <Textarea
+                          id="msk-notes"
+                          value={formData.reviewOfSystems.notes.musculoskeletal}
+                          onChange={(e) => handleROSNotesChange('musculoskeletal', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gastrointestinal System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">5. Gastrointestinal System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Frequent heartburn or indigestion",
+                        "Abdominal pain",
+                        "Constipation",
+                        "Diarrhea",
+                        "Nausea or vomiting"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.gastrointestinal[`gi${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('gastrointestinal', `gi${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`gi${index + 1}-yes`} />
+                              <Label htmlFor={`gi${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`gi${index + 1}-no`} />
+                              <Label htmlFor={`gi${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="gi-notes">Notes:</Label>
+                        <Textarea
+                          id="gi-notes"
+                          value={formData.reviewOfSystems.notes.gastrointestinal}
+                          onChange={(e) => handleROSNotesChange('gastrointestinal', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Genitourinary System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">6. Genitourinary System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Pain or burning with urination",
+                        "Frequent urination",
+                        "Blood in urine",
+                        "Loss of bladder control",
+                        "Erectile or menstrual issues"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.genitourinary[`gu${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('genitourinary', `gu${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`gu${index + 1}-yes`} />
+                              <Label htmlFor={`gu${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`gu${index + 1}-no`} />
+                              <Label htmlFor={`gu${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="gu-notes">Notes:</Label>
+                        <Textarea
+                          id="gu-notes"
+                          value={formData.reviewOfSystems.notes.genitourinary}
+                          onChange={(e) => handleROSNotesChange('genitourinary', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Endocrine/Metabolic */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">7. Endocrine/Metabolic</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Unexplained weight change",
+                        "Excessive thirst",
+                        "Heat or cold intolerance",
+                        "Excessive sweating",
+                        "Thyroid problems"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.endocrine[`endo${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('endocrine', `endo${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`endo${index + 1}-yes`} />
+                              <Label htmlFor={`endo${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`endo${index + 1}-no`} />
+                              <Label htmlFor={`endo${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="endo-notes">Notes:</Label>
+                        <Textarea
+                          id="endo-notes"
+                          value={formData.reviewOfSystems.notes.endocrine}
+                          onChange={(e) => handleROSNotesChange('endocrine', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Skin & Immune System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">8. Skin & Immune System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Rash or itching",
+                        "Frequent infections",
+                        "Delayed wound healing",
+                        "Allergies",
+                        "Autoimmune disease history"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.skinImmune[`skin${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('skinImmune', `skin${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`skin${index + 1}-yes`} />
+                              <Label htmlFor={`skin${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`skin${index + 1}-no`} />
+                              <Label htmlFor={`skin${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="skin-notes">Notes:</Label>
+                        <Textarea
+                          id="skin-notes"
+                          value={formData.reviewOfSystems.notes.skinImmune}
+                          onChange={(e) => handleROSNotesChange('skinImmune', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mental/Emotional Health */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">9. Mental/Emotional Health</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Anxiety or nervousness",
+                        "Depression",
+                        "Trouble sleeping",
+                        "Stress impacting daily life"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.mentalHealth[`mental${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('mentalHealth', `mental${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`mental${index + 1}-yes`} />
+                              <Label htmlFor={`mental${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`mental${index + 1}-no`} />
+                              <Label htmlFor={`mental${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="mental-notes">Notes:</Label>
+                        <Textarea
+                          id="mental-notes"
+                          value={formData.reviewOfSystems.notes.mentalHealth}
+                          onChange={(e) => handleROSNotesChange('mentalHealth', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Objective Section */}
+              <Card className="border-green-500/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-green-600">
                     <Stethoscope className="w-5 h-5" />
                     <span>O - Objective (Provider fills in)</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="posture" className="text-base font-semibold">Posture/Observation:</Label>
-                    <Textarea
-                      id="posture"
-                      value={formData.posture}
-                      onChange={(e) => setFormData(prev => ({ ...prev, posture: e.target.value }))}
-                      placeholder="Postural observations and gait analysis"
-                      rows={3}
-                    />
+                <CardContent className="space-y-6">
+                  {/* General Observations */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-green-600">Posture</h3>
+                      <div className="space-y-2">
+                        {["Normal", "Forward Head", "Rounded Shoulders", "Kyphotic", "Lordotic", "Scoliosis", "Pelvic Tilt"].map((posture) => (
+                          <div key={posture} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`posture-${posture}`}
+                              checked={formData.objective.posture.includes(posture)}
+                              onCheckedChange={(checked) => handlePostureChange(posture, checked as boolean)}
+                            />
+                            <Label htmlFor={`posture-${posture}`} className="text-sm">{posture}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-green-600">Gait</h3>
+                      <div className="space-y-2">
+                        {["Normal", "Antalgic", "Limp", "Shuffling"].map((gait) => (
+                          <div key={gait} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`gait-${gait}`}
+                              checked={formData.objective.gait.includes(gait)}
+                              onCheckedChange={(checked) => handleGaitChange(gait, checked as boolean)}
+                            />
+                            <Label htmlFor={`gait-${gait}`} className="text-sm">{gait}</Label>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gait-other">Other:</Label>
+                        <Input
+                          id="gait-other"
+                          value={formData.objective.gaitOther}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, gaitOther: e.target.value }
+                          }))}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rom" className="text-base font-semibold">Range of Motion:</Label>
-                    <Textarea
-                      id="rom"
-                      value={formData.rom}
-                      onChange={(e) => setFormData(prev => ({ ...prev, rom: e.target.value }))}
-                      placeholder="Range of motion findings and limitations"
-                      rows={3}
-                    />
+
+                  {/* Range of Motion */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-green-600">Range of Motion (ROM)</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Cervical Spine */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium">Cervical Spine</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Flexion (Normal ~50°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.cervical.flexion}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    cervical: { ...prev.objective.rangeOfMotion.cervical, flexion: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Extension (Normal ~60°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.cervical.extension}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    cervical: { ...prev.objective.rangeOfMotion.cervical, extension: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Rotation L/R (Normal ~80°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.cervical.rotation}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    cervical: { ...prev.objective.rangeOfMotion.cervical, rotation: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Lateral Flexion L/R (Normal ~45°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.cervical.lateralFlexion}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    cervical: { ...prev.objective.rangeOfMotion.cervical, lateralFlexion: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Thoracic Spine */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium">Thoracic Spine</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Rotation L/R:</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.thoracic.rotation}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    thoracic: { ...prev.objective.rangeOfMotion.thoracic, rotation: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Flexion/Extension:</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.thoracic.flexionExtension}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    thoracic: { ...prev.objective.rangeOfMotion.thoracic, flexionExtension: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Lumbar Spine */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium">Lumbar Spine</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Flexion (Normal ~60°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.lumbar.flexion}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    lumbar: { ...prev.objective.rangeOfMotion.lumbar, flexion: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Extension (Normal ~25°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.lumbar.extension}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    lumbar: { ...prev.objective.rangeOfMotion.lumbar, extension: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Lateral Flexion L/R (Normal ~25°):</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.lumbar.lateralFlexion}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    lumbar: { ...prev.objective.rangeOfMotion.lumbar, lateralFlexion: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Rotation L/R:</Label>
+                            <Input 
+                              className="w-20" 
+                              value={formData.objective.rangeOfMotion.lumbar.rotation}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: {
+                                  ...prev.objective,
+                                  rangeOfMotion: {
+                                    ...prev.objective.rangeOfMotion,
+                                    lumbar: { ...prev.objective.rangeOfMotion.lumbar, rotation: e.target.value }
+                                  }
+                                }
+                              }))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="palpation" className="text-base font-semibold">Palpation Findings:</Label>
-                    <Textarea
-                      id="palpation"
-                      value={formData.palpation}
-                      onChange={(e) => setFormData(prev => ({ ...prev, palpation: e.target.value }))}
-                      placeholder="Muscle tension, trigger points, tenderness"
-                      rows={3}
-                    />
+
+                  {/* Palpation Findings */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-green-600">Palpation Findings</h3>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Muscle Tone:</Label>
+                        <RadioGroup 
+                          value={formData.objective.muscleTone} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, muscleTone: value }
+                          }))}
+                          className="flex space-x-6"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Normal" id="tone-normal" />
+                            <Label htmlFor="tone-normal">Normal</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Hypertonic" id="hypertonic" />
+                            <Label htmlFor="hypertonic">Hypertonic</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Hypotonic" id="hypotonic" />
+                            <Label htmlFor="hypotonic">Hypotonic</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tenderness">Areas of Tenderness:</Label>
+                        <Textarea
+                          id="tenderness"
+                          value={formData.objective.tenderness}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, tenderness: e.target.value }
+                          }))}
+                          rows={2}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="trigger-points">Trigger Points:</Label>
+                        <Textarea
+                          id="trigger-points"
+                          value={formData.objective.triggerPoints}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, triggerPoints: e.target.value }
+                          }))}
+                          rows={2}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="joint-fixation">Joint Fixation/Restriction:</Label>
+                        <Textarea
+                          id="joint-fixation"
+                          value={formData.objective.jointFixation}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, jointFixation: e.target.value }
+                          }))}
+                          rows={2}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Edema/Swelling:</Label>
+                        <div className="flex items-center space-x-4">
+                          <RadioGroup 
+                            value={formData.objective.edema} 
+                            onValueChange={(value) => setFormData(prev => ({
+                              ...prev,
+                              objective: { ...prev.objective, edema: value }
+                            }))}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="Present" id="edema-present" />
+                              <Label htmlFor="edema-present">Present</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="Absent" id="edema-absent" />
+                              <Label htmlFor="edema-absent">Absent</Label>
+                            </div>
+                          </RadioGroup>
+                          <div className="flex items-center space-x-2">
+                            <Label htmlFor="edema-location">Location:</Label>
+                            <Input
+                              id="edema-location"
+                              value={formData.objective.edemaLocation}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                objective: { ...prev.objective, edemaLocation: e.target.value }
+                              }))}
+                              className="w-32"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ortho-neuro" className="text-base font-semibold">Orthopedic/Neurological Tests:</Label>
-                    <Textarea
-                      id="ortho-neuro"
-                      value={formData.orthoNeuro}
-                      onChange={(e) => setFormData(prev => ({ ...prev, orthoNeuro: e.target.value }))}
-                      placeholder="Special tests performed and results"
-                      rows={3}
-                    />
+
+                  {/* Orthopedic Tests */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-green-600">Orthopedic Tests</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-4">
+                        <Label className="w-40">Straight Leg Raise:</Label>
+                        <RadioGroup 
+                          value={formData.objective.orthopedicTests.slr} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, slr: value }
+                            }
+                          }))}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Positive" id="slr-pos" />
+                            <Label htmlFor="slr-pos">Positive</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Negative" id="slr-neg" />
+                            <Label htmlFor="slr-neg">Negative</Label>
+                          </div>
+                        </RadioGroup>
+                        <Label htmlFor="slr-angle">Angle:</Label>
+                        <Input
+                          id="slr-angle"
+                          value={formData.objective.orthopedicTests.slrAngle}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, slrAngle: e.target.value }
+                            }
+                          }))}
+                          className="w-20"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <Label className="w-40">Kemp's Test:</Label>
+                        <RadioGroup 
+                          value={formData.objective.orthopedicTests.kemps} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, kemps: value }
+                            }
+                          }))}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Positive" id="kemps-pos" />
+                            <Label htmlFor="kemps-pos">Positive</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Negative" id="kemps-neg" />
+                            <Label htmlFor="kemps-neg">Negative</Label>
+                          </div>
+                        </RadioGroup>
+                        <Label htmlFor="kemps-side">Side:</Label>
+                        <Input
+                          id="kemps-side"
+                          value={formData.objective.orthopedicTests.kempsSide}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, kempsSide: e.target.value }
+                            }
+                          }))}
+                          className="w-20"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <Label className="w-40">FABER/Patrick's Test:</Label>
+                        <RadioGroup 
+                          value={formData.objective.orthopedicTests.faber} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, faber: value }
+                            }
+                          }))}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Positive" id="faber-pos" />
+                            <Label htmlFor="faber-pos">Positive</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Negative" id="faber-neg" />
+                            <Label htmlFor="faber-neg">Negative</Label>
+                          </div>
+                        </RadioGroup>
+                        <Label htmlFor="faber-side">Side:</Label>
+                        <Input
+                          id="faber-side"
+                          value={formData.objective.orthopedicTests.faberSide}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, faberSide: e.target.value }
+                            }
+                          }))}
+                          className="w-20"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <Label className="w-40">Yeoman's Test:</Label>
+                        <RadioGroup 
+                          value={formData.objective.orthopedicTests.yeoman} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, yeoman: value }
+                            }
+                          }))}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Positive" id="yeoman-pos" />
+                            <Label htmlFor="yeoman-pos">Positive</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Negative" id="yeoman-neg" />
+                            <Label htmlFor="yeoman-neg">Negative</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="other-tests">Other tests performed:</Label>
+                        <Textarea
+                          id="other-tests"
+                          value={formData.objective.orthopedicTests.otherTests}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              orthopedicTests: { ...prev.objective.orthopedicTests, otherTests: e.target.value }
+                            }
+                          }))}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Neurological Findings */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-green-600">Neurological Findings</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reflexes">Reflexes:</Label>
+                        <Textarea
+                          id="reflexes"
+                          value={formData.objective.reflexes}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, reflexes: e.target.value }
+                          }))}
+                          placeholder="Biceps (C5), Brachioradialis (C6), Triceps (C7), Patellar (L4), Achilles (S1)"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Sensation:</Label>
+                        <RadioGroup 
+                          value={formData.objective.sensation} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, sensation: value }
+                          }))}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Intact" id="sensation-intact" />
+                            <Label htmlFor="sensation-intact">Intact</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Altered" id="sensation-altered" />
+                            <Label htmlFor="sensation-altered">Altered</Label>
+                          </div>
+                        </RadioGroup>
+                        <div className="space-y-2">
+                          <Label htmlFor="sensation-location">Location:</Label>
+                          <Input
+                            id="sensation-location"
+                            value={formData.objective.sensationLocation}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              objective: { ...prev.objective, sensationLocation: e.target.value }
+                            }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Strength:</Label>
+                        <RadioGroup 
+                          value={formData.objective.strength} 
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            objective: { ...prev.objective, strength: value }
+                          }))}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Normal" id="strength-normal" />
+                            <Label htmlFor="strength-normal">Normal</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Weak" id="strength-weak" />
+                            <Label htmlFor="strength-weak">Weak</Label>
+                          </div>
+                        </RadioGroup>
+                        <div className="space-y-2">
+                          <Label htmlFor="strength-muscle">Muscle group:</Label>
+                          <Input
+                            id="strength-muscle"
+                            value={formData.objective.strengthMuscle}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              objective: { ...prev.objective, strengthMuscle: e.target.value }
+                            }))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vital Signs */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-green-600">Vital Signs (if taken)</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bp">BP:</Label>
+                        <Input
+                          id="bp"
+                          placeholder="mmHg"
+                          value={formData.objective.vitalSigns.bp}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              vitalSigns: { ...prev.objective.vitalSigns, bp: e.target.value }
+                            }
+                          }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="hr">HR:</Label>
+                        <Input
+                          id="hr"
+                          placeholder="bpm"
+                          value={formData.objective.vitalSigns.hr}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              vitalSigns: { ...prev.objective.vitalSigns, hr: e.target.value }
+                            }
+                          }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="resp">Resp:</Label>
+                        <Input
+                          id="resp"
+                          placeholder="/min"
+                          value={formData.objective.vitalSigns.resp}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              vitalSigns: { ...prev.objective.vitalSigns, resp: e.target.value }
+                            }
+                          }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="temp">Temp:</Label>
+                        <Input
+                          id="temp"
+                          placeholder="°F/°C"
+                          value={formData.objective.vitalSigns.temp}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            objective: {
+                              ...prev.objective,
+                              vitalSigns: { ...prev.objective.vitalSigns, temp: e.target.value }
+                            }
+                          }))}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Assessment Section */}
-              <Card className="border-medical-orange/20">
+              <Card className="border-orange-500/20">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-medical-orange">
-                    <Brain className="w-5 h-5" />
+                  <CardTitle className="flex items-center space-x-2 text-orange-600">
+                    <Clipboard className="w-5 h-5" />
                     <span>A - Assessment</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="diagnosis" className="text-base font-semibold">Working Diagnosis:</Label>
+                    <Label htmlFor="diagnosis">Working Diagnosis:</Label>
                     <Textarea
                       id="diagnosis"
                       value={formData.diagnosis}
                       onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
-                      placeholder="Primary diagnosis and clinical impression"
                       rows={3}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="secondary-findings" className="text-base font-semibold">Secondary Findings:</Label>
+                    <Label htmlFor="secondary-findings">Secondary Findings:</Label>
                     <Textarea
                       id="secondary-findings"
                       value={formData.secondaryFindings}
                       onChange={(e) => setFormData(prev => ({ ...prev, secondaryFindings: e.target.value }))}
-                      placeholder="Additional findings and considerations"
                       rows={3}
                     />
                   </div>
@@ -497,51 +1676,48 @@ export function ChiropracticSOAPQuestionnaire({
               </Card>
 
               {/* Plan Section */}
-              <Card className="border-primary/20">
+              <Card className="border-violet-500/20">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-primary">
-                    <Clipboard className="w-5 h-5" />
+                  <CardTitle className="flex items-center space-x-2 text-violet-600">
+                    <Calendar className="w-5 h-5" />
                     <span>P - Plan</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="treatment" className="text-base font-semibold">Treatment provided today:</Label>
+                    <Label htmlFor="treatment">Treatment provided today:</Label>
                     <Textarea
                       id="treatment"
                       value={formData.treatment}
                       onChange={(e) => setFormData(prev => ({ ...prev, treatment: e.target.value }))}
-                      placeholder="Specific treatments and adjustments performed"
                       rows={3}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="frequency" className="text-base font-semibold">Frequency/Duration of Care:</Label>
+                    <Label htmlFor="frequency">Frequency/Duration of Care:</Label>
                     <Textarea
                       id="frequency"
                       value={formData.frequency}
                       onChange={(e) => setFormData(prev => ({ ...prev, frequency: e.target.value }))}
-                      placeholder="Recommended frequency and duration of treatment"
                       rows={2}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="home-care" className="text-base font-semibold">Home Care Instructions:</Label>
+                    <Label htmlFor="home-care">Home Care Instructions:</Label>
                     <Textarea
                       id="home-care"
                       value={formData.homeCare}
                       onChange={(e) => setFormData(prev => ({ ...prev, homeCare: e.target.value }))}
-                      placeholder="Exercise recommendations, lifestyle modifications"
                       rows={3}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="follow-up" className="text-base font-semibold">Follow-up Appointment:</Label>
+                    <Label htmlFor="follow-up">Follow-up Appointment:</Label>
                     <Input
                       id="follow-up"
                       value={formData.followUp}
                       onChange={(e) => setFormData(prev => ({ ...prev, followUp: e.target.value }))}
-                      placeholder="Next appointment date/timeframe"
+                      placeholder="Date and time for next appointment"
                     />
                   </div>
                 </CardContent>
