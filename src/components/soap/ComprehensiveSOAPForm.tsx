@@ -122,7 +122,16 @@ export function ComprehensiveSOAPForm({
     if (initialData) {
       setFormData(prev => ({ ...prev, ...initialData }));
     }
-  }, [initialData]);
+    if (patient) {
+      const patientName = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 
+                         patient.name || patient.email || 'Unknown Patient';
+      setFormData(prev => ({
+        ...prev,
+        patientId: patient.id,
+        patientName: patientName
+      }));
+    }
+  }, [initialData, patient]);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => 

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes, SOAPNote } from "@/hooks/useSOAPNotes";
 import { usePatients } from "@/hooks/usePatients";
 import { ComprehensiveSOAPForm, SOAPFormData } from "@/components/soap/ComprehensiveSOAPForm";
+import { SOAPNoteDisplay } from "@/components/soap/SOAPNoteDisplay";
 import { PatientSelector } from "@/components/PatientSelector";
 import { 
   Search, 
@@ -345,64 +346,11 @@ export default function SOAPNotes() {
               
               {selectedNote && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Patient Information</h3>
-                      <p className="font-medium">{getPatientName(selectedNote?.patients)}</p>
-                      <p className="text-sm text-muted-foreground">ID: {selectedNote?.patient_id}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Provider & Date</h3>
-                      <p className="font-medium">{selectedNote?.provider_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedNote ? new Date(selectedNote.date_of_service).toLocaleDateString() : ''} at {' '}
-                        {selectedNote ? new Date(selectedNote.date_of_service).toLocaleTimeString('en-US', { 
-                          hour: 'numeric', 
-                          minute: '2-digit' 
-                        }) : ''}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Chief Complaint */}
-                  {selectedNote?.chief_complaint && (
-                    <div className="mb-6">
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Chief Complaint</h3>
-                      <p className="text-sm bg-muted/30 p-3 rounded-md">{selectedNote.chief_complaint}</p>
-                    </div>
-                  )}
-
-                  {/* SOAP Sections */}
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Subjective</h3>
-                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
-                        {JSON.stringify(selectedNote?.subjective_data, null, 2) || 'No subjective data recorded'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Objective</h3>
-                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
-                        {JSON.stringify(selectedNote?.objective_data, null, 2) || 'No objective data recorded'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Assessment</h3>
-                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
-                        {JSON.stringify(selectedNote?.assessment_data, null, 2) || 'No assessment recorded'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium text-sm text-muted-foreground mb-2">Plan</h3>
-                      <p className="text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">
-                        {JSON.stringify(selectedNote?.plan_data, null, 2) || 'No plan recorded'}
-                      </p>
-                    </div>
-                  </div>
-
+                  <SOAPNoteDisplay 
+                    note={selectedNote} 
+                    patientName={getPatientName(selectedNote?.patients)}
+                  />
+                  
                   <div className="flex justify-end space-x-2">
                     <Button variant="outline">
                       <Edit className="w-4 h-4 mr-2" />
