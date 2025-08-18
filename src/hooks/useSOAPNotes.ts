@@ -74,11 +74,10 @@ export function useSOAPNotes() {
       if (options?.search) searchParams.set('search', options.search);
 
       const queryString = searchParams.toString();
-      const functionName = queryString ? `soap-notes?${queryString}` : 'soap-notes';
+      console.log('Invoking SOAP notes function with query:', queryString);
 
-      console.log('Invoking function:', functionName);
-
-      const { data, error } = await supabase.functions.invoke(functionName, {
+      const { data, error } = await supabase.functions.invoke('soap-notes', {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
@@ -112,6 +111,8 @@ export function useSOAPNotes() {
       if (!session) {
         throw new Error('Not authenticated');
       }
+
+      console.log('Creating SOAP note with data:', noteData);
 
       const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'POST',
@@ -150,6 +151,8 @@ export function useSOAPNotes() {
         throw new Error('Not authenticated');
       }
 
+      console.log('Updating SOAP note:', noteId, updates);
+
       const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
         method: 'PUT',
         headers: {
@@ -185,6 +188,8 @@ export function useSOAPNotes() {
       if (!session) {
         throw new Error('Not authenticated');
       }
+
+      console.log('Deleting SOAP note:', noteId);
 
       const { error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
         method: 'DELETE',
@@ -225,9 +230,10 @@ export function useSOAPNotes() {
         throw new Error('Not authenticated - please log in');
       }
 
-      console.log('Making function call for note ID:', noteId);
+      console.log('Fetching individual SOAP note with ID:', noteId);
 
       const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
