@@ -585,7 +585,9 @@ export function ComprehensiveSOAPForm({
                                   <label className="text-sm font-medium mb-2 block">Date</label>
                                   <input
                                     type="datetime-local"
-                                    value={formData.dateCreated.toISOString().slice(0, 16)}
+                                    value={formData.dateCreated instanceof Date && !isNaN(formData.dateCreated.getTime()) 
+                                      ? formData.dateCreated.toISOString().slice(0, 16) 
+                                      : new Date().toISOString().slice(0, 16)}
                                     onChange={(e) => setFormData(prev => ({ ...prev, dateCreated: new Date(e.target.value) }))}
                                     className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
                                   />

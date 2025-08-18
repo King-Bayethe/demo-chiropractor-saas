@@ -63,8 +63,8 @@ serve(async (req) => {
     console.log('Path segments:', pathSegments);
     
     // For requests like /soap-notes/{id}, get the ID from the path
-    // The path will be something like ['functions', 'v1', 'soap-notes', 'note-id']
-    const noteId = pathSegments.length > 3 ? pathSegments[3] : null;
+    // The path will be something like ['soap-notes', 'note-id'] or ['functions', 'v1', 'soap-notes', 'note-id']
+    const noteId = pathSegments.length === 2 ? pathSegments[1] : (pathSegments.length > 3 ? pathSegments[3] : null);
     
     console.log('Parsed note ID:', noteId);
 
