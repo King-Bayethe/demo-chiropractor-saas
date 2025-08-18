@@ -357,7 +357,7 @@ export function ComprehensiveSOAPForm({
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-7xl max-h-[90vh] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
+        <div className="w-full max-w-7xl h-[85vh] max-h-[700px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-4">
