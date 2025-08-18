@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Search, Brain, Lightbulb, Filter } from 'lucide-react';
+import { Loader2, Search, Brain, Lightbulb, Filter, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -15,6 +15,7 @@ import {
   searchTemplates,
   type MedicalTemplate 
 } from '@/data/medicalTemplates';
+import { TemplateManager } from './TemplateManager';
 
 interface SmartTemplatesProps {
   onApplyTemplate: (template: MedicalTemplate) => void;
@@ -121,22 +122,30 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
 
   const suggestedTemplates = getSuggestedTemplates();
   const filteredTemplates = getFilteredTemplates();
+  const [showManager, setShowManager] = useState(false);
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-primary" />
-          Smart Templates
-          {isAnalyzing && <Loader2 className="h-4 w-4 animate-spin" />}
-        </CardTitle>
-        <CardDescription>
-          AI-powered template suggestions and clinical insights
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search and Filter Controls */}
-        <div className="space-y-3">
+    <>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Smart Templates
+              {isAnalyzing && <Loader2 className="h-4 w-4 animate-spin" />}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setShowManager(true)}>
+              <Settings className="h-4 w-4 mr-2" />
+              Manage
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            AI-powered template suggestions and clinical insights
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Search and Filter Controls */}
+          <div className="space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -265,6 +274,8 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
         </Tabs>
       </CardContent>
     </Card>
+    <TemplateManager isOpen={showManager} onClose={() => setShowManager(false)} />
+    </>
   );
 }
 
