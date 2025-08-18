@@ -112,11 +112,10 @@ export function useSOAPNotes() {
         throw new Error('Not authenticated');
       }
 
-      // Standardize the data structure to match edge function expectations
-      const standardizedData = {
+      // Clean and validate data before sending to edge function
+      const cleanedData: any = {
         patient_id: noteData.patient_id,
         provider_name: noteData.provider_name,
-        appointment_id: noteData.appointment_id,
         date_of_service: noteData.date_of_service?.toISOString() || new Date().toISOString(),
         chief_complaint: noteData.chief_complaint || '',
         is_draft: noteData.is_draft ?? false,
@@ -127,7 +126,15 @@ export function useSOAPNotes() {
         vital_signs: noteData.vital_signs || {}
       };
 
-      console.log('Creating SOAP note with standardized data:', standardizedData);
+      // Only include appointment_id if it's a valid string
+      if (noteData.appointment_id && 
+          typeof noteData.appointment_id === 'string' && 
+          noteData.appointment_id !== 'undefined' && 
+          noteData.appointment_id.trim() !== '') {
+        cleanedData.appointment_id = noteData.appointment_id;
+      }
+
+      console.log('Creating SOAP note with cleaned data:', cleanedData);
 
       const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'POST',
@@ -135,7 +142,7 @@ export function useSOAPNotes() {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: standardizedData
+        body: cleanedData
       });
 
       if (error) throw error;

@@ -86,11 +86,15 @@ export default function NewSOAPNote() {
         provider_name: data.providerName,
         date_of_service: data.dateCreated,
         chief_complaint: data.chiefComplaint,
-        subjective_data: data.subjective,
-        objective_data: data.objective,
-        assessment_data: data.assessment,
-        plan_data: data.plan,
-        is_draft: data.isQuickNote || false
+        subjective_data: data.subjective || {},
+        objective_data: data.objective || {},
+        assessment_data: data.assessment || {},
+        plan_data: data.plan || {},
+        is_draft: data.isQuickNote || false,
+        // Explicitly handle appointment_id - only include if it's a valid string
+        ...(data.appointmentId && typeof data.appointmentId === 'string' && data.appointmentId !== 'undefined' 
+          ? { appointment_id: data.appointmentId } 
+          : {})
       };
 
       console.log('Sending unified data to createSOAPNote:', soapNoteData);
