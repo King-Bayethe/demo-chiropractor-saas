@@ -314,27 +314,25 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     
     setWizardData(prev => ({
       ...prev,
-      chiefComplaint: template.template?.subjective?.chiefComplaint || template.chiefComplaint || prev.chiefComplaint,
+      overview: {
+        ...prev.overview,
+        chiefComplaint: template.template?.subjective?.chiefComplaint || template.chiefComplaint || prev.overview.chiefComplaint
+      },
       subjective: chiropracticData?.subjective ? {
         ...prev.subjective,
         mainComplaints: chiropracticData.subjective.mainComplaints || prev.subjective.mainComplaints,
-        painRating: chiropracticData.subjective.painAssessment?.rating ? [chiropracticData.subjective.painAssessment.rating] : prev.subjective.painRating,
-        painDescriptions: chiropracticData.subjective.painAssessment?.descriptions || prev.subjective.painDescriptions,
-        painFrequency: chiropracticData.subjective.painAssessment?.frequency ? [chiropracticData.subjective.painAssessment.frequency] : prev.subjective.painFrequency,
-        painRadiate: chiropracticData.subjective.painAssessment?.radiation || prev.subjective.painRadiate,
-        painWorse: chiropracticData.subjective.problemHistory?.aggravatingFactors?.join(', ') || prev.subjective.painWorse,
-        painBetter: chiropracticData.subjective.problemHistory?.alleviatingFactors?.join(', ') || prev.subjective.painBetter,
-        problemBegin: chiropracticData.subjective.problemHistory?.onset || prev.subjective.problemBegin,
-        reviewOfSystems: {
-          ...prev.subjective.reviewOfSystems,
-          ...Object.keys(chiropracticData.subjective.reviewOfSystems || {}).reduce((acc, system) => {
-            acc[system] = chiropracticData.subjective.reviewOfSystems[system].reduce((systemAcc: any, item: string) => {
-              systemAcc[item] = 'positive';
-              return systemAcc;
-            }, {});
-            return acc;
-          }, {} as any)
-        }
+        otherComplaint: chiropracticData.subjective.otherComplaint || prev.subjective.otherComplaint,
+        problemStart: chiropracticData.subjective.problemStart || prev.subjective.problemStart,
+        problemBegin: chiropracticData.subjective.problemBegin || prev.subjective.problemBegin,
+        painRating: chiropracticData.subjective.painRating || prev.subjective.painRating,
+        painBetter: chiropracticData.subjective.painBetter || prev.subjective.painBetter,
+        painWorse: chiropracticData.subjective.painWorse || prev.subjective.painWorse,
+        painDescriptions: chiropracticData.subjective.painDescriptions || prev.subjective.painDescriptions,
+        painRadiate: chiropracticData.subjective.painRadiate || prev.subjective.painRadiate,
+        painFrequency: chiropracticData.subjective.painFrequency || prev.subjective.painFrequency,
+        otherSymptoms: chiropracticData.subjective.otherSymptoms || prev.subjective.otherSymptoms,
+        medications: chiropracticData.subjective.medications || prev.subjective.medications,
+        reviewOfSystems: chiropracticData.subjective.reviewOfSystems || prev.subjective.reviewOfSystems
       } : {
         ...prev.subjective,
         mainComplaints: template.subjectiveTemplate?.symptoms || template.commonSymptoms || prev.subjective.mainComplaints,
@@ -345,26 +343,21 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         ...prev.objective,
         posture: chiropracticData.objective.posture || prev.objective.posture,
         gait: chiropracticData.objective.gait || prev.objective.gait,
-        rangeOfMotion: {
-          ...prev.objective.rangeOfMotion,
-          ...(chiropracticData.objective.rangeOfMotion && Object.keys(chiropracticData.objective.rangeOfMotion).reduce((acc, region) => {
-            acc[region] = Object.keys(chiropracticData.objective.rangeOfMotion[region]).reduce((regionAcc: any, movement) => {
-              regionAcc[movement] = chiropracticData.objective.rangeOfMotion[region][movement].toString();
-              return regionAcc;
-            }, {});
-            return acc;
-          }, {} as any))
-        },
-        orthopedicTests: chiropracticData.objective.orthopedicTests ? {
-          ...prev.objective.orthopedicTests,
-          slr: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'Straight Leg Raise')?.result || prev.objective.orthopedicTests.slr,
-          kemps: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'Kemp\'s Test')?.result || prev.objective.orthopedicTests.kemps,
-          faber: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'FABER')?.result || prev.objective.orthopedicTests.faber,
-          yeoman: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'Yeoman\'s')?.result || prev.objective.orthopedicTests.yeoman
-        } : prev.objective.orthopedicTests,
-        reflexes: chiropracticData.objective.neurologicalFindings?.reflexes ? Object.entries(chiropracticData.objective.neurologicalFindings.reflexes).map(([key, value]) => `${key}: ${value}`).join(', ') : prev.objective.reflexes,
-        sensation: chiropracticData.objective.neurologicalFindings?.sensation ? Object.entries(chiropracticData.objective.neurologicalFindings.sensation).map(([key, value]) => `${key}: ${value}`).join(', ') : prev.objective.sensation,
-        strength: chiropracticData.objective.neurologicalFindings?.strength ? Object.entries(chiropracticData.objective.neurologicalFindings.strength).map(([key, value]) => `${key}: ${value}`).join(', ') : prev.objective.strength
+        gaitOther: chiropracticData.objective.gaitOther || prev.objective.gaitOther,
+        muscleTone: chiropracticData.objective.muscleTone || prev.objective.muscleTone,
+        tenderness: chiropracticData.objective.tenderness || prev.objective.tenderness,
+        triggerPoints: chiropracticData.objective.triggerPoints || prev.objective.triggerPoints,
+        jointFixation: chiropracticData.objective.jointFixation || prev.objective.jointFixation,
+        edema: chiropracticData.objective.edema || prev.objective.edema,
+        edemaLocation: chiropracticData.objective.edemaLocation || prev.objective.edemaLocation,
+        reflexes: chiropracticData.objective.reflexes || prev.objective.reflexes,
+        sensation: chiropracticData.objective.sensation || prev.objective.sensation,
+        sensationLocation: chiropracticData.objective.sensationLocation || prev.objective.sensationLocation,
+        strength: chiropracticData.objective.strength || prev.objective.strength,
+        strengthMuscle: chiropracticData.objective.strengthMuscle || prev.objective.strengthMuscle,
+        vitalSigns: chiropracticData.objective.vitalSigns || prev.objective.vitalSigns,
+        rangeOfMotion: chiropracticData.objective.rangeOfMotion || prev.objective.rangeOfMotion,
+        orthopedicTests: chiropracticData.objective.orthopedicTests || prev.objective.orthopedicTests
       } : {
         ...prev.objective,
         systemExams: template.objectiveTemplate?.systemExams || prev.objective.systemExams,

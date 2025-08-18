@@ -41,46 +41,96 @@ export interface MedicalTemplate {
       preventiveCare: string[];
     };
   };
-  // Enhanced for chiropractic data
+  // Enhanced for chiropractic data - matches ChiropracticSubjectiveData and ChiropracticObjectiveData
   chiropracticTemplate?: {
     subjective: {
       mainComplaints: string[];
-      painAssessment: {
-        rating: number;
-        descriptions: string[];
-        frequency: string;
-        radiation: string;
-        triggers: string[];
-      };
-      problemHistory: {
-        onset: string;
-        mechanism: string;
-        aggravatingFactors: string[];
-        alleviatingFactors: string[];
-      };
+      otherComplaint: string;
+      problemStart: string;
+      problemBegin: string;
+      painRating: number[];
+      painBetter: string;
+      painWorse: string;
+      painDescriptions: string[];
+      painRadiate: string;
+      painFrequency: string[];
+      otherSymptoms: string;
+      medications: string;
       reviewOfSystems: {
-        [key: string]: string[];
+        neurological: { [key: string]: string };
+        cardiovascular: { [key: string]: string };
+        respiratory: { [key: string]: string };
+        musculoskeletal: { [key: string]: string };
+        gastrointestinal: { [key: string]: string };
+        genitourinary: { [key: string]: string };
+        endocrine: { [key: string]: string };
+        skinImmune: { [key: string]: string };
+        mentalHealth: { [key: string]: string };
+        notes: {
+          neurological: string;
+          cardiovascular: string;
+          respiratory: string;
+          musculoskeletal: string;
+          gastrointestinal: string;
+          genitourinary: string;
+          endocrine: string;
+          skinImmune: string;
+          mentalHealth: string;
+        };
       };
     };
     objective: {
       posture: string[];
       gait: string[];
+      gaitOther: string;
+      muscleTone: string;
+      tenderness: string;
+      triggerPoints: string;
+      jointFixation: string;
+      edema: string;
+      edemaLocation: string;
+      reflexes: string;
+      sensation: string;
+      sensationLocation: string;
+      strength: string;
+      strengthMuscle: string;
+      vitalSigns: {
+        bp: string;
+        hr: string;
+        resp: string;
+        temp: string;
+        height: string;
+        weight: string;
+        oxygenSaturation: string;
+      };
       rangeOfMotion: {
-        cervical?: { [key: string]: number };
-        thoracic?: { [key: string]: number };
-        lumbar?: { [key: string]: number };
+        cervical: {
+          flexion: string;
+          extension: string;
+          rotation: string;
+          lateralFlexion: string;
+        };
+        thoracic: {
+          rotation: string;
+          flexionExtension: string;
+        };
+        lumbar: {
+          flexion: string;
+          extension: string;
+          lateralFlexion: string;
+          rotation: string;
+        };
       };
       orthopedicTests: {
-        name: string;
-        result: string;
-        notes?: string;
-      }[];
-      neurologicalFindings: {
-        reflexes: { [key: string]: string };
-        sensation: { [key: string]: string };
-        strength: { [key: string]: string };
+        slr: string;
+        slrAngle: string;
+        kemps: string;
+        kempsSide: string;
+        faber: string;
+        faberSide: string;
+        yeoman: string;
+        otherTests: string;
       };
-      clinicalFindings: string[];
     };
   };
   redFlags: string[];
@@ -152,48 +202,92 @@ export const medicalTemplates: MedicalTemplate[] = [
     chiropracticTemplate: {
       subjective: {
         mainComplaints: ['Low back'],
-        painAssessment: {
-          rating: 6,
-          descriptions: ['Achy', 'Dull'],
-          frequency: 'Intermittent',
-          radiation: 'No radiation',
-          triggers: ['Bending', 'Sitting']
-        },
-        problemHistory: {
-          onset: 'Gradual',
-          mechanism: 'Unknown',
-          aggravatingFactors: ['Prolonged sitting', 'Forward bending'],
-          alleviatingFactors: ['Rest', 'Heat therapy']
-        },
+        otherComplaint: '',
+        problemStart: '1 week ago',
+        problemBegin: 'Gradual',
+        painRating: [6],
+        painBetter: 'Rest, heat therapy',
+        painWorse: 'Prolonged sitting, forward bending',
+        painDescriptions: ['Achy', 'Dull'],
+        painRadiate: 'No radiation',
+        painFrequency: ['Intermittent'],
+        otherSymptoms: 'Lower back stiffness',
+        medications: 'Ibuprofen as needed',
         reviewOfSystems: {
-          neurological: [],
-          cardiovascular: [],
-          musculoskeletal: ['Lower back stiffness']
+          neurological: { 'Headaches': 'no', 'Dizziness': 'no', 'Numbness': 'no', 'Weakness': 'no', 'Tremors': 'no', 'Memory issues': 'no' },
+          cardiovascular: { 'Chest pain': 'no', 'Palpitations': 'no', 'Swelling': 'no', 'Shortness of breath': 'no', 'High blood pressure': 'no' },
+          respiratory: { 'Cough': 'no', 'Wheezing': 'no', 'Breathing difficulties': 'no', 'Asthma': 'no' },
+          musculoskeletal: { 'Joint pain': 'yes', 'Stiffness': 'yes', 'Swelling': 'no', 'Muscle weakness': 'no', 'Previous injuries': 'no' },
+          gastrointestinal: { 'Poor appetite': 'no', 'Nausea': 'no', 'Bowel changes': 'no', 'Abdominal pain': 'no' },
+          genitourinary: { 'Frequent urination': 'no', 'Urgency': 'no', 'Pain with urination': 'no', 'Reproductive issues': 'no' },
+          endocrine: { 'Fatigue': 'no', 'Weight changes': 'no', 'Temperature sensitivity': 'no', 'Excessive thirst': 'no' },
+          skinImmune: { 'Rashes': 'no', 'Allergies': 'no', 'Frequent infections': 'no', 'Poor healing': 'no' },
+          mentalHealth: { 'Mood changes': 'no', 'Sleep problems': 'no', 'Anxiety': 'no', 'High stress levels': 'no' },
+          notes: {
+            neurological: '',
+            cardiovascular: '',
+            respiratory: '',
+            musculoskeletal: 'Lower back stiffness and pain',
+            gastrointestinal: '',
+            genitourinary: '',
+            endocrine: '',
+            skinImmune: '',
+            mentalHealth: ''
+          }
         }
       },
       objective: {
         posture: ['Forward Head'],
         gait: ['Normal'],
+        gaitOther: '',
+        muscleTone: 'Increased tension in lumbar paraspinals',
+        tenderness: 'L4-L5 paraspinal muscles',
+        triggerPoints: 'Active trigger points in quadratus lumborum',
+        jointFixation: 'L4-L5 segment restriction',
+        edema: 'None',
+        edemaLocation: '',
+        reflexes: 'Normal and symmetrical',
+        sensation: 'Intact',
+        sensationLocation: '',
+        strength: '5/5 all movements',
+        strengthMuscle: 'Hip flexors, extensors',
+        vitalSigns: {
+          bp: '120/80',
+          hr: '72',
+          resp: '16',
+          temp: '98.6',
+          height: '',
+          weight: '',
+          oxygenSaturation: '99'
+        },
         rangeOfMotion: {
+          cervical: {
+            flexion: '',
+            extension: '',
+            rotation: '',
+            lateralFlexion: ''
+          },
+          thoracic: {
+            rotation: '',
+            flexionExtension: ''
+          },
           lumbar: {
-            flexion: 45,
-            extension: 15,
-            lateralFlexionRight: 20,
-            lateralFlexionLeft: 20,
-            rotationRight: 15,
-            rotationLeft: 15
+            flexion: '45°',
+            extension: '15°',
+            lateralFlexion: '20°',
+            rotation: '15°'
           }
         },
-        orthopedicTests: [
-          { name: 'Straight Leg Raise', result: 'Negative', notes: 'No pain at 70 degrees bilaterally' },
-          { name: 'Kemp\'s Test', result: 'Positive', notes: 'Reproduces familiar pain on right' }
-        ],
-        neurologicalFindings: {
-          reflexes: { 'Patellar': 'Normal', 'Achilles': 'Normal' },
-          sensation: { 'L4': 'Intact', 'L5': 'Intact', 'S1': 'Intact' },
-          strength: { 'Hip Flexors': 'Normal', 'Quadriceps': 'Normal', 'Ankle DF': 'Normal' }
-        },
-        clinicalFindings: ['Muscle tension in paraspinals', 'Restricted lumbar extension']
+        orthopedicTests: {
+          slr: 'negative',
+          slrAngle: '70°',
+          kemps: 'positive',
+          kempsSide: 'right',
+          faber: 'negative',
+          faberSide: '',
+          yeoman: 'negative',
+          otherTests: 'Straight leg raise negative bilaterally, Kemp\'s test positive right'
+        }
       }
     },
     redFlags: ['Bowel/bladder dysfunction', 'Progressive neurological deficits', 'Fever with back pain', 'History of cancer'],
@@ -667,45 +761,92 @@ export const medicalTemplates: MedicalTemplate[] = [
     chiropracticTemplate: {
       subjective: {
         mainComplaints: ['Neck'],
-        painAssessment: {
-          rating: 6,
-          descriptions: ['Achy', 'Stiff'],
-          frequency: 'Constant',
-          radiation: 'No radiation',
-          triggers: ['Turning head', 'Looking up']
-        },
-        problemHistory: {
-          onset: 'Gradual',
-          mechanism: 'Unknown',
-          aggravatingFactors: ['Computer work', 'Stress', 'Poor posture'],
-          alleviatingFactors: ['Heat', 'Gentle movement', 'Rest']
-        },
+        otherComplaint: '',
+        problemStart: '2 weeks ago',
+        problemBegin: 'Gradual',
+        painRating: [6],
+        painBetter: 'Heat, gentle movement, rest',
+        painWorse: 'Computer work, stress, poor posture',
+        painDescriptions: ['Achy', 'Dull'],
+        painRadiate: 'No radiation',
+        painFrequency: ['Constant'],
+        otherSymptoms: 'Neck stiffness, shoulder tension',
+        medications: 'Ibuprofen as needed',
         reviewOfSystems: {
-          neurological: ['Headaches'],
-          musculoskeletal: ['Neck stiffness', 'Shoulder tension']
+          neurological: { 'Headaches': 'yes', 'Dizziness': 'no', 'Numbness': 'no', 'Weakness': 'no', 'Tremors': 'no', 'Memory issues': 'no' },
+          cardiovascular: { 'Chest pain': 'no', 'Palpitations': 'no', 'Swelling': 'no', 'Shortness of breath': 'no', 'High blood pressure': 'no' },
+          respiratory: { 'Cough': 'no', 'Wheezing': 'no', 'Breathing difficulties': 'no', 'Asthma': 'no' },
+          musculoskeletal: { 'Joint pain': 'yes', 'Stiffness': 'yes', 'Swelling': 'no', 'Muscle weakness': 'no', 'Previous injuries': 'no' },
+          gastrointestinal: { 'Poor appetite': 'no', 'Nausea': 'no', 'Bowel changes': 'no', 'Abdominal pain': 'no' },
+          genitourinary: { 'Frequent urination': 'no', 'Urgency': 'no', 'Pain with urination': 'no', 'Reproductive issues': 'no' },
+          endocrine: { 'Fatigue': 'no', 'Weight changes': 'no', 'Temperature sensitivity': 'no', 'Excessive thirst': 'no' },
+          skinImmune: { 'Rashes': 'no', 'Allergies': 'no', 'Frequent infections': 'no', 'Poor healing': 'no' },
+          mentalHealth: { 'Mood changes': 'no', 'Sleep problems': 'no', 'Anxiety': 'no', 'High stress levels': 'yes' },
+          notes: {
+            neurological: 'Mild tension headaches',
+            cardiovascular: '',
+            respiratory: '',
+            musculoskeletal: 'Neck stiffness and shoulder tension',
+            gastrointestinal: '',
+            genitourinary: '',
+            endocrine: '',
+            skinImmune: '',
+            mentalHealth: 'Work-related stress'
+          }
         }
       },
       objective: {
         posture: ['Forward Head'],
         gait: ['Normal'],
+        gaitOther: '',
+        muscleTone: 'Increased tension in upper trapezius',
+        tenderness: 'Suboccipital region, upper trapezius',
+        triggerPoints: 'Active trigger points in upper trapezius',
+        jointFixation: 'C1-C2 and C5-C6 segments',
+        edema: 'None',
+        edemaLocation: '',
+        reflexes: 'Normal and symmetrical',
+        sensation: 'Intact',
+        sensationLocation: '',
+        strength: '5/5 cervical movements',
+        strengthMuscle: 'Cervical flexors, extensors',
+        vitalSigns: {
+          bp: '120/80',
+          hr: '72',
+          resp: '16',
+          temp: '98.6',
+          height: '',
+          weight: '',
+          oxygenSaturation: '99'
+        },
         rangeOfMotion: {
           cervical: {
-            flexion: 35,
-            extension: 45,
-            rotation: 60,
-            lateralFlexion: 30
+            flexion: '35°',
+            extension: '45°',
+            rotation: '60°',
+            lateralFlexion: '30°'
+          },
+          thoracic: {
+            rotation: '',
+            flexionExtension: ''
+          },
+          lumbar: {
+            flexion: '',
+            extension: '',
+            lateralFlexion: '',
+            rotation: ''
           }
         },
-        orthopedicTests: [
-          { name: 'Spurling\'s Test', result: 'Negative', notes: 'No radicular symptoms' },
-          { name: 'Distraction Test', result: 'Positive', notes: 'Relieves neck pain' }
-        ],
-        neurologicalFindings: {
-          reflexes: { 'Biceps': 'Normal', 'Triceps': 'Normal' },
-          sensation: { 'C5': 'Intact', 'C6': 'Intact', 'C7': 'Intact' },
-          strength: { 'Deltoid': 'Normal', 'Biceps': 'Normal', 'Triceps': 'Normal' }
-        },
-        clinicalFindings: ['Cervical paraspinal muscle tension', 'Restricted cervical extension']
+        orthopedicTests: {
+          slr: '',
+          slrAngle: '',
+          kemps: '',
+          kempsSide: '',
+          faber: '',
+          faberSide: '',
+          yeoman: '',
+          otherTests: 'Spurling\'s test: negative, Distraction test: positive'
+        }
       }
     },
     redFlags: ['Severe neurological deficits', 'Signs of myelopathy', 'Vertebral artery insufficiency', 'Fracture'],
