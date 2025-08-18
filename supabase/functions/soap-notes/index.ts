@@ -64,20 +64,29 @@ serve(async (req) => {
       case 'GET':
         if (noteId && noteId !== 'soap-notes') {
           // Get specific SOAP note
+          console.log('Fetching SOAP note with ID:', noteId);
           const { data: note, error } = await supabaseClient
             .from('soap_notes')
             .select(`
               *,
-              patients!inner(id, first_name, last_name, email)
+              patients(id, first_name, last_name, email)
             `)
             .eq('id', noteId)
-            .single();
+            .maybeSingle();
 
           if (error) {
             console.error('Error fetching SOAP note:', error);
             return new Response(
-              JSON.stringify({ error: 'Failed to fetch SOAP note' }),
+              JSON.stringify({ error: 'Failed to fetch SOAP note', details: error.message }),
               { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          if (!note) {
+            console.log('SOAP note not found with ID:', noteId);
+            return new Response(
+              JSON.stringify({ error: 'SOAP note not found' }),
+              { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
 
@@ -91,12 +100,13 @@ serve(async (req) => {
           const offset = parseInt(urlObj.searchParams.get('offset') || '0');
           const searchTerm = urlObj.searchParams.get('search') || '';
 
+          console.log('Fetching SOAP notes with params:', { limit, offset, searchTerm });
           let query = supabaseClient
             .from('soap_notes')
             .select(`
               *,
-              patients!inner(id, first_name, last_name, email)
-            `)
+              patients(id, first_name, last_name, email)
+            `, { count: 'exact' })
             .order('date_of_service', { ascending: false })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
@@ -110,10 +120,12 @@ serve(async (req) => {
           if (error) {
             console.error('Error fetching SOAP notes:', error);
             return new Response(
-              JSON.stringify({ error: 'Failed to fetch SOAP notes' }),
+              JSON.stringify({ error: 'Failed to fetch SOAP notes', details: error.message }),
               { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
+
+          console.log('Successfully fetched SOAP notes:', notes?.length || 0);
 
           return new Response(
             JSON.stringify({ 
@@ -137,6 +149,7 @@ serve(async (req) => {
           );
         }
 
+        console.log('Creating SOAP note for patient:', noteData.patient_id);
         const { data: newNote, error: createError } = await supabaseClient
           .from('soap_notes')
           .insert({
@@ -148,7 +161,7 @@ serve(async (req) => {
           })
           .select(`
             *,
-            patients!inner(id, first_name, last_name, email)
+            patients(id, first_name, last_name, email)
           `)
           .single();
 
@@ -175,6 +188,7 @@ serve(async (req) => {
 
         const updateData: Partial<SOAPNoteData> = await req.json();
         
+        console.log('Updating SOAP note:', noteId);
         const { data: updatedNote, error: updateError } = await supabaseClient
           .from('soap_notes')
           .update({
@@ -185,7 +199,7 @@ serve(async (req) => {
           .eq('id', noteId)
           .select(`
             *,
-            patients!inner(id, first_name, last_name, email)
+            patients(id, first_name, last_name, email)
           `)
           .single();
 

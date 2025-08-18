@@ -55,9 +55,17 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Not authenticated');
+      console.log('Fetching SOAP notes with options:', options);
+
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication error');
+      }
+      
+      if (!session?.access_token) {
+        console.error('No valid session found');
+        throw new Error('Not authenticated - please log in');
       }
 
       const searchParams = new URLSearchParams();
@@ -65,15 +73,24 @@ export function useSOAPNotes() {
       if (options?.offset) searchParams.set('offset', options.offset.toString());
       if (options?.search) searchParams.set('search', options.search);
 
-      const { data, error } = await supabase.functions.invoke('soap-notes', {
-        method: 'GET',
+      const queryString = searchParams.toString();
+      const functionName = queryString ? `soap-notes?${queryString}` : 'soap-notes';
+
+      console.log('Invoking function:', functionName);
+
+      const { data, error } = await supabase.functions.invoke(functionName, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function invocation error:', error);
+        throw error;
+      }
 
+      console.log('Successfully fetched SOAP notes:', data);
       setSoapNotes(data.data || []);
       return { data: data.data || [], count: data.count || 0 };
     } catch (err) {
@@ -195,20 +212,34 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Not authenticated');
+      console.log('Fetching individual SOAP note:', noteId);
+
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication error');
+      }
+      
+      if (!session?.access_token) {
+        console.error('No valid session found');
+        throw new Error('Not authenticated - please log in');
       }
 
+      console.log('Making function call for note ID:', noteId);
+
       const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
-        method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function invocation error:', error);
+        throw error;
+      }
 
+      console.log('Successfully fetched SOAP note:', data);
       return data.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch SOAP note';
