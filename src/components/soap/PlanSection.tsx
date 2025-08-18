@@ -362,15 +362,15 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
             ))}
           </div>
           
-          {data.legalTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {data.legalTags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
+           {data.legalTags.length > 0 && (
+             <div className="flex flex-wrap gap-2">
+               {data.legalTags.map((tag) => (
+                 <Badge key={tag} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                   {tag}
+                 </Badge>
+               ))}
+             </div>
+           )}
         </div>
 
         <Separator />
