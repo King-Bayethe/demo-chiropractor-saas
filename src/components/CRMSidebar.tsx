@@ -31,7 +31,9 @@ import {
   ImageIcon,
   Cog,
   Send,
-  UserCheck
+  UserCheck,
+  Stethoscope,
+  FileEdit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -61,6 +63,7 @@ const navigationGroups = [
     title: "Patient Management",
     items: [
       { title: "Patients", url: "/patients", icon: Users, collapsedIcon: UserPlus },
+      { title: "SOAP Notes", url: "/soap-notes", icon: Stethoscope, collapsedIcon: FileEdit },
       { title: "Opportunities", url: "/opportunities", icon: Activity, collapsedIcon: TrendingUp },
       { title: "Forms", url: "/forms", icon: ClipboardList, collapsedIcon: FormInput },
     ]
