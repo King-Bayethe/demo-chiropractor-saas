@@ -604,389 +604,6 @@ export function ChiropracticSOAPQuestionnaire({
                 </CardContent>
               </Card>
 
-              {/* Review of Systems */}
-              <Card className="border-purple-500/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-purple-600">
-                    <Brain className="w-5 h-5" />
-                    <span>Review of Systems</span>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Please check Yes if you have experienced these symptoms recently or in the past, and No if not.
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Neurological System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">1. Neurological System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Frequent headaches",
-                        "Dizziness or balance problems", 
-                        "Numbness or tingling",
-                        "Weakness in arms or legs",
-                        "Tremors or shaking",
-                        "Memory or concentration problems"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.neurological[`neuro${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('neurological', `neuro${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`neuro${index + 1}-yes`} />
-                              <Label htmlFor={`neuro${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`neuro${index + 1}-no`} />
-                              <Label htmlFor={`neuro${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="neuro-notes">Notes:</Label>
-                        <Textarea
-                          id="neuro-notes"
-                          value={formData.reviewOfSystems.notes.neurological}
-                          onChange={(e) => handleROSNotesChange('neurological', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cardiovascular System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">2. Cardiovascular System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Chest pain or tightness",
-                        "Irregular heartbeat or palpitations",
-                        "Swelling in ankles or feet",
-                        "Shortness of breath with activity",
-                        "High blood pressure history",
-                        "Cold hands/feet or poor circulation"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.cardiovascular[`cardio${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('cardiovascular', `cardio${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`cardio${index + 1}-yes`} />
-                              <Label htmlFor={`cardio${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`cardio${index + 1}-no`} />
-                              <Label htmlFor={`cardio${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="cardio-notes">Notes:</Label>
-                        <Textarea
-                          id="cardio-notes"
-                          value={formData.reviewOfSystems.notes.cardiovascular}
-                          onChange={(e) => handleROSNotesChange('cardiovascular', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Respiratory System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">3. Respiratory System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Persistent cough",
-                        "Wheezing or asthma",
-                        "Shortness of breath at rest",
-                        "History of bronchitis or pneumonia",
-                        "Snoring or sleep apnea"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.respiratory[`resp${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('respiratory', `resp${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`resp${index + 1}-yes`} />
-                              <Label htmlFor={`resp${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`resp${index + 1}-no`} />
-                              <Label htmlFor={`resp${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="resp-notes">Notes:</Label>
-                        <Textarea
-                          id="resp-notes"
-                          value={formData.reviewOfSystems.notes.respiratory}
-                          onChange={(e) => handleROSNotesChange('respiratory', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Musculoskeletal System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">4. Musculoskeletal System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Joint pain or stiffness",
-                        "Muscle weakness",
-                        "Back pain",
-                        "Neck pain",
-                        "Difficulty walking"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.musculoskeletal[`msk${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('musculoskeletal', `msk${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`msk${index + 1}-yes`} />
-                              <Label htmlFor={`msk${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`msk${index + 1}-no`} />
-                              <Label htmlFor={`msk${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="msk-notes">Notes:</Label>
-                        <Textarea
-                          id="msk-notes"
-                          value={formData.reviewOfSystems.notes.musculoskeletal}
-                          onChange={(e) => handleROSNotesChange('musculoskeletal', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Gastrointestinal System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">5. Gastrointestinal System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Frequent heartburn or indigestion",
-                        "Abdominal pain",
-                        "Constipation",
-                        "Diarrhea",
-                        "Nausea or vomiting"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.gastrointestinal[`gi${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('gastrointestinal', `gi${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`gi${index + 1}-yes`} />
-                              <Label htmlFor={`gi${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`gi${index + 1}-no`} />
-                              <Label htmlFor={`gi${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="gi-notes">Notes:</Label>
-                        <Textarea
-                          id="gi-notes"
-                          value={formData.reviewOfSystems.notes.gastrointestinal}
-                          onChange={(e) => handleROSNotesChange('gastrointestinal', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Genitourinary System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">6. Genitourinary System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Pain or burning with urination",
-                        "Frequent urination",
-                        "Blood in urine",
-                        "Loss of bladder control",
-                        "Erectile or menstrual issues"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.genitourinary[`gu${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('genitourinary', `gu${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`gu${index + 1}-yes`} />
-                              <Label htmlFor={`gu${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`gu${index + 1}-no`} />
-                              <Label htmlFor={`gu${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="gu-notes">Notes:</Label>
-                        <Textarea
-                          id="gu-notes"
-                          value={formData.reviewOfSystems.notes.genitourinary}
-                          onChange={(e) => handleROSNotesChange('genitourinary', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Endocrine/Metabolic */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">7. Endocrine/Metabolic</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Unexplained weight change",
-                        "Excessive thirst",
-                        "Heat or cold intolerance",
-                        "Excessive sweating",
-                        "Thyroid problems"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.endocrine[`endo${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('endocrine', `endo${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`endo${index + 1}-yes`} />
-                              <Label htmlFor={`endo${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`endo${index + 1}-no`} />
-                              <Label htmlFor={`endo${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="endo-notes">Notes:</Label>
-                        <Textarea
-                          id="endo-notes"
-                          value={formData.reviewOfSystems.notes.endocrine}
-                          onChange={(e) => handleROSNotesChange('endocrine', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Skin & Immune System */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">8. Skin & Immune System</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Rash or itching",
-                        "Frequent infections",
-                        "Delayed wound healing",
-                        "Allergies",
-                        "Autoimmune disease history"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.skinImmune[`skin${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('skinImmune', `skin${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`skin${index + 1}-yes`} />
-                              <Label htmlFor={`skin${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`skin${index + 1}-no`} />
-                              <Label htmlFor={`skin${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="skin-notes">Notes:</Label>
-                        <Textarea
-                          id="skin-notes"
-                          value={formData.reviewOfSystems.notes.skinImmune}
-                          onChange={(e) => handleROSNotesChange('skinImmune', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mental/Emotional Health */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">9. Mental/Emotional Health</h3>
-                    <div className="space-y-3">
-                      {[
-                        "Anxiety or nervousness",
-                        "Depression",
-                        "Trouble sleeping",
-                        "Stress impacting daily life"
-                      ].map((symptom, index) => (
-                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
-                          <span className="text-sm">{symptom}</span>
-                          <RadioGroup 
-                            value={formData.reviewOfSystems.mentalHealth[`mental${index + 1}`] || ""} 
-                            onValueChange={(value) => handleROSChange('mentalHealth', `mental${index + 1}`, value)}
-                            className="flex space-x-4"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="yes" id={`mental${index + 1}-yes`} />
-                              <Label htmlFor={`mental${index + 1}-yes`} className="text-sm">Yes</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="no" id={`mental${index + 1}-no`} />
-                              <Label htmlFor={`mental${index + 1}-no`} className="text-sm">No</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                      <div className="space-y-2">
-                        <Label htmlFor="mental-notes">Notes:</Label>
-                        <Textarea
-                          id="mental-notes"
-                          value={formData.reviewOfSystems.notes.mentalHealth}
-                          onChange={(e) => handleROSNotesChange('mentalHealth', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
               {/* Objective Section */}
               <Card className="border-green-500/20">
@@ -1638,6 +1255,390 @@ export function ChiropracticSOAPQuestionnaire({
                               vitalSigns: { ...prev.objective.vitalSigns, temp: e.target.value }
                             }
                           }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Review of Systems */}
+              <Card className="border-purple-500/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-purple-600">
+                    <Brain className="w-5 h-5" />
+                    <span>Review of Systems</span>
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Please check Yes if you have experienced these symptoms recently or in the past, and No if not.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Neurological System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">1. Neurological System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Frequent headaches",
+                        "Dizziness or balance problems", 
+                        "Numbness or tingling",
+                        "Weakness in arms or legs",
+                        "Tremors or shaking",
+                        "Memory or concentration problems"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.neurological[`neuro${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('neurological', `neuro${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`neuro${index + 1}-yes`} />
+                              <Label htmlFor={`neuro${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`neuro${index + 1}-no`} />
+                              <Label htmlFor={`neuro${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="neuro-notes">Notes:</Label>
+                        <Textarea
+                          id="neuro-notes"
+                          value={formData.reviewOfSystems.notes.neurological}
+                          onChange={(e) => handleROSNotesChange('neurological', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cardiovascular System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">2. Cardiovascular System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Chest pain or tightness",
+                        "Irregular heartbeat or palpitations",
+                        "Swelling in ankles or feet",
+                        "Shortness of breath with activity",
+                        "High blood pressure history",
+                        "Cold hands/feet or poor circulation"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.cardiovascular[`cardio${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('cardiovascular', `cardio${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`cardio${index + 1}-yes`} />
+                              <Label htmlFor={`cardio${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`cardio${index + 1}-no`} />
+                              <Label htmlFor={`cardio${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="cardio-notes">Notes:</Label>
+                        <Textarea
+                          id="cardio-notes"
+                          value={formData.reviewOfSystems.notes.cardiovascular}
+                          onChange={(e) => handleROSNotesChange('cardiovascular', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Respiratory System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">3. Respiratory System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Persistent cough",
+                        "Wheezing or asthma",
+                        "Shortness of breath at rest",
+                        "History of bronchitis or pneumonia",
+                        "Snoring or sleep apnea"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.respiratory[`resp${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('respiratory', `resp${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`resp${index + 1}-yes`} />
+                              <Label htmlFor={`resp${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`resp${index + 1}-no`} />
+                              <Label htmlFor={`resp${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="resp-notes">Notes:</Label>
+                        <Textarea
+                          id="resp-notes"
+                          value={formData.reviewOfSystems.notes.respiratory}
+                          onChange={(e) => handleROSNotesChange('respiratory', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Musculoskeletal System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">4. Musculoskeletal System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Joint pain or stiffness",
+                        "Muscle weakness",
+                        "Back pain",
+                        "Neck pain",
+                        "Difficulty walking"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.musculoskeletal[`msk${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('musculoskeletal', `msk${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`msk${index + 1}-yes`} />
+                              <Label htmlFor={`msk${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`msk${index + 1}-no`} />
+                              <Label htmlFor={`msk${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="msk-notes">Notes:</Label>
+                        <Textarea
+                          id="msk-notes"
+                          value={formData.reviewOfSystems.notes.musculoskeletal}
+                          onChange={(e) => handleROSNotesChange('musculoskeletal', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gastrointestinal System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">5. Gastrointestinal System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Frequent heartburn or indigestion",
+                        "Abdominal pain",
+                        "Constipation",
+                        "Diarrhea",
+                        "Nausea or vomiting"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.gastrointestinal[`gi${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('gastrointestinal', `gi${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`gi${index + 1}-yes`} />
+                              <Label htmlFor={`gi${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`gi${index + 1}-no`} />
+                              <Label htmlFor={`gi${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="gi-notes">Notes:</Label>
+                        <Textarea
+                          id="gi-notes"
+                          value={formData.reviewOfSystems.notes.gastrointestinal}
+                          onChange={(e) => handleROSNotesChange('gastrointestinal', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Genitourinary System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">6. Genitourinary System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Pain or burning with urination",
+                        "Frequent urination",
+                        "Blood in urine",
+                        "Loss of bladder control",
+                        "Erectile or menstrual issues"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.genitourinary[`gu${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('genitourinary', `gu${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`gu${index + 1}-yes`} />
+                              <Label htmlFor={`gu${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`gu${index + 1}-no`} />
+                              <Label htmlFor={`gu${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="gu-notes">Notes:</Label>
+                        <Textarea
+                          id="gu-notes"
+                          value={formData.reviewOfSystems.notes.genitourinary}
+                          onChange={(e) => handleROSNotesChange('genitourinary', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Endocrine/Metabolic */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">7. Endocrine/Metabolic</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Unexplained weight change",
+                        "Excessive thirst",
+                        "Heat or cold intolerance",
+                        "Excessive sweating",
+                        "Thyroid problems"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.endocrine[`endo${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('endocrine', `endo${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`endo${index + 1}-yes`} />
+                              <Label htmlFor={`endo${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`endo${index + 1}-no`} />
+                              <Label htmlFor={`endo${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="endo-notes">Notes:</Label>
+                        <Textarea
+                          id="endo-notes"
+                          value={formData.reviewOfSystems.notes.endocrine}
+                          onChange={(e) => handleROSNotesChange('endocrine', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Skin & Immune System */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">8. Skin & Immune System</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Rash or itching",
+                        "Frequent infections",
+                        "Delayed wound healing",
+                        "Allergies",
+                        "Autoimmune disease history"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.skinImmune[`skin${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('skinImmune', `skin${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`skin${index + 1}-yes`} />
+                              <Label htmlFor={`skin${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`skin${index + 1}-no`} />
+                              <Label htmlFor={`skin${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="skin-notes">Notes:</Label>
+                        <Textarea
+                          id="skin-notes"
+                          value={formData.reviewOfSystems.notes.skinImmune}
+                          onChange={(e) => handleROSNotesChange('skinImmune', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mental/Emotional Health */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">9. Mental/Emotional Health</h3>
+                    <div className="space-y-3">
+                      {[
+                        "Anxiety or nervousness",
+                        "Depression",
+                        "Trouble sleeping",
+                        "Stress impacting daily life"
+                      ].map((symptom, index) => (
+                        <div key={symptom} className="flex items-center justify-between border-b border-muted pb-2">
+                          <span className="text-sm">{symptom}</span>
+                          <RadioGroup 
+                            value={formData.reviewOfSystems.mentalHealth[`mental${index + 1}`] || ""} 
+                            onValueChange={(value) => handleROSChange('mentalHealth', `mental${index + 1}`, value)}
+                            className="flex space-x-4"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id={`mental${index + 1}-yes`} />
+                              <Label htmlFor={`mental${index + 1}-yes`} className="text-sm">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id={`mental${index + 1}-no`} />
+                              <Label htmlFor={`mental${index + 1}-no`} className="text-sm">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="mental-notes">Notes:</Label>
+                        <Textarea
+                          id="mental-notes"
+                          value={formData.reviewOfSystems.notes.mentalHealth}
+                          onChange={(e) => handleROSNotesChange('mentalHealth', e.target.value)}
+                          rows={2}
                         />
                       </div>
                     </div>
