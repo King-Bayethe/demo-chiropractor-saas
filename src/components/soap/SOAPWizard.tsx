@@ -15,6 +15,7 @@ import { AssessmentSection, AssessmentData } from "./AssessmentSection";
 import { PlanSection, PlanData } from "./PlanSection";
 import { SmartTemplates } from "./SmartTemplates";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { SOAPDataConverter, WizardData } from "@/types/soap";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -286,7 +287,16 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     console.log('SOAPWizard handleSave - wizardData type and keys:', typeof wizardData, Object.keys(wizardData || {}));
     console.log('SOAPWizard handleSave - wizardData JSON size:', JSON.stringify(wizardData).length, 'characters');
     
-    onSave(wizardData);
+    // Convert wizard data to unified format
+    const unifiedData = SOAPDataConverter.wizardToUnified(
+      wizardData, 
+      patient.id, 
+      "Dr. Silverman"
+    );
+    
+    console.log('SOAPWizard handleSave - Converted to unified format:', unifiedData);
+    
+    onSave(unifiedData);
     clearDraft();
   };
 

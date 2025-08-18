@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes } from "@/hooks/useSOAPNotes";
 import { usePatients } from "@/hooks/usePatients";
+import { UnifiedSOAPNote } from "@/types/soap";
 import { ArrowLeft, UserPlus, Stethoscope, Sparkles } from "lucide-react";
 
 export default function NewSOAPNote() {
@@ -67,9 +68,9 @@ export default function NewSOAPNote() {
     setShowWizard(true);
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: UnifiedSOAPNote) => {
     try {
-      if (!selectedPatient) {
+      if (!selectedPatient?.id) {
         toast({
           title: "Error",
           description: "Please select a patient first.",
@@ -78,31 +79,12 @@ export default function NewSOAPNote() {
         return;
       }
 
-      console.log('NewSOAPNote handleSave - Raw wizard data received:', data);
+      console.log('NewSOAPNote handleSave - Unified SOAP data received:', data);
       console.log('NewSOAPNote handleSave - Data type and keys:', typeof data, Object.keys(data || {}));
       console.log('NewSOAPNote handleSave - Data content preview:', JSON.stringify(data).substring(0, 200) + '...');
 
-      // Create SOAP note data in the unified format
-      const soapNoteData = {
-        patient_id: data.patientId,
-        provider_name: data.providerName,
-        date_of_service: data.dateCreated,
-        chief_complaint: data.chiefComplaint,
-        subjective_data: data.subjective || {},
-        objective_data: data.objective || {},
-        assessment_data: data.assessment || {},
-        plan_data: data.plan || {},
-        is_draft: data.isQuickNote || false,
-        // Explicitly handle appointment_id - only include if it's a valid string
-        ...(data.appointmentId && typeof data.appointmentId === 'string' && data.appointmentId !== 'undefined' 
-          ? { appointment_id: data.appointmentId } 
-          : {})
-      };
-
-      console.log('NewSOAPNote handleSave - Constructed soapNoteData:', soapNoteData);
-      console.log('NewSOAPNote handleSave - soapNoteData JSON size:', JSON.stringify(soapNoteData).length, 'characters');
-
-      const result = await createSOAPNote(soapNoteData);
+      // Data is already in the correct unified format from SOAPWizard
+      const result = await createSOAPNote(data);
 
       if (result) {
         toast({

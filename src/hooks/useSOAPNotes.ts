@@ -102,7 +102,7 @@ export function useSOAPNotes() {
     }
   };
 
-  const createSOAPNote = async (noteData: CreateSOAPNoteData): Promise<SOAPNote | null> => {
+  const createSOAPNote = async (noteData: UnifiedSOAPNote): Promise<SOAPNote | null> => {
     try {
       setLoading(true);
       setError(null);
@@ -173,7 +173,7 @@ export function useSOAPNotes() {
     }
   };
 
-  const updateSOAPNote = async (noteId: string, updates: Partial<CreateSOAPNoteData>): Promise<SOAPNote | null> => {
+  const updateSOAPNote = async (noteId: string, updates: Partial<UnifiedSOAPNote>): Promise<SOAPNote | null> => {
     try {
       setLoading(true);
       setError(null);

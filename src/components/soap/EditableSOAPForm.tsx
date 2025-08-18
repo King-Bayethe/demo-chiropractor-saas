@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes } from "@/hooks/useSOAPNotes";
 import { usePatients } from "@/hooks/usePatients";
 import { ComprehensiveSOAPForm, SOAPFormData } from "./ComprehensiveSOAPForm";
+import { SOAPDataConverter, UnifiedSOAPNote } from "@/types/soap";
 import { ArrowLeft, Save } from "lucide-react";
 
 export default function EditableSOAPForm() {
@@ -63,19 +64,9 @@ export default function EditableSOAPForm() {
     if (!id) return;
 
     try {
-      const updateData = {
-        patient_id: formData.patientId,
-        provider_name: formData.providerName,
-        date_of_service: formData.dateCreated,
-        chief_complaint: formData.chiefComplaint,
-        is_draft: formData.isQuickNote,
-        subjective_data: formData.subjective,
-        objective_data: formData.objective,
-        assessment_data: formData.assessment,
-        plan_data: formData.plan,
-        vital_signs: formData.objective?.vitalSigns
-      };
-
+      // Convert form data to unified format
+      const updateData = SOAPDataConverter.formToUnified(formData);
+      
       const updatedNote = await updateSOAPNote(id, updateData);
       
       if (updatedNote) {
@@ -99,100 +90,20 @@ export default function EditableSOAPForm() {
 
   const convertToFormData = (soapNote: any): SOAPFormData => {
     if (!soapNote) {
-      return {
-        patientId: patient?.id || "",
-        patientName: getPatientName(patient),
-        providerId: "dr-silverman",
-        providerName: "Dr. Silverman",
-        dateCreated: new Date(),
-        chiefComplaint: "",
-        isQuickNote: false,
-        subjective: {
-          symptoms: [],
-          painScale: null,
-          painDescription: "",
-          otherSymptoms: "",
-          isRefused: false,
-          isWithinNormalLimits: false
-        },
-        objective: {
-          vitalSigns: {
-            height: "",
-            weight: "",
-            bloodPressure: "",
-            heartRate: "",
-            temperature: "",
-            oxygenSaturation: "",
-            respiratoryRate: ""
-          },
-          systemExams: [],
-          specialTests: [],
-          imagingLabs: [],
-          procedures: []
-        },
-        assessment: {
-          diagnoses: [],
-          clinicalImpression: ""
-        },
-        plan: {
-          treatments: [],
-          customTreatment: "",
-          medications: [],
-          followUpPeriod: "",
-          customFollowUp: "",
-          hasEmergencyDisclaimer: true,
-          legalTags: [],
-          additionalInstructions: ""
-        }
-      };
+      return SOAPDataConverter.unifiedToForm({
+        patient_id: patient?.id || "",
+        provider_name: "Dr. Silverman",
+        date_of_service: new Date(),
+        chief_complaint: "",
+        is_draft: false,
+        subjective_data: SOAPDataConverter.getDefaultSubjective(),
+        objective_data: SOAPDataConverter.getDefaultObjective(),
+        assessment_data: SOAPDataConverter.getDefaultAssessment(),
+        plan_data: SOAPDataConverter.getDefaultPlan()
+      }, getPatientName(patient));
     }
 
-    return {
-      patientId: soapNote.patient_id || "",
-      patientName: getPatientName(patient),
-      providerId: soapNote.provider_id || "dr-silverman",
-      providerName: soapNote.provider_name || "Dr. Silverman",
-      dateCreated: new Date(soapNote.date_of_service || soapNote.created_at),
-      chiefComplaint: soapNote.chief_complaint || "",
-      isQuickNote: soapNote.is_draft || false,
-      subjective: soapNote.subjective_data || {
-        symptoms: [],
-        painScale: null,
-        painDescription: "",
-        otherSymptoms: "",
-        isRefused: false,
-        isWithinNormalLimits: false
-      },
-      objective: soapNote.objective_data || {
-        vitalSigns: soapNote.vital_signs || {
-          height: "",
-          weight: "",
-          bloodPressure: "",
-          heartRate: "",
-          temperature: "",
-          oxygenSaturation: "",
-          respiratoryRate: ""
-        },
-        systemExams: [],
-        specialTests: [],
-        imagingLabs: [],
-        procedures: []
-      },
-      assessment: soapNote.assessment_data || {
-        diagnoses: [],
-        clinicalImpression: ""
-      },
-      plan: soapNote.plan_data || {
-        treatments: [],
-        customTreatment: "",
-        medications: [],
-        followUpPeriod: "",
-        customFollowUp: "",
-        hasEmergencyDisclaimer: true,
-        legalTags: [],
-        additionalInstructions: ""
-      }
-    };
+    return SOAPDataConverter.unifiedToForm(soapNote, getPatientName(patient));
   };
 
   const getPatientName = (patient: any): string => {
