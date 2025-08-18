@@ -112,6 +112,9 @@ export function useSOAPNotes() {
         throw new Error('Not authenticated');
       }
 
+      console.log('useSOAPNotes createSOAPNote - Received noteData:', noteData);
+      console.log('useSOAPNotes createSOAPNote - noteData type and keys:', typeof noteData, Object.keys(noteData || {}));
+      
       // Clean and validate data before sending to edge function
       const cleanedData: any = {
         patient_id: noteData.patient_id,
@@ -134,7 +137,15 @@ export function useSOAPNotes() {
         cleanedData.appointment_id = noteData.appointment_id;
       }
 
-      console.log('Creating SOAP note with cleaned data:', cleanedData);
+      console.log('useSOAPNotes createSOAPNote - Cleaned data before sending:', cleanedData);
+      console.log('useSOAPNotes createSOAPNote - Cleaned data JSON size:', JSON.stringify(cleanedData).length, 'characters');
+      console.log('useSOAPNotes createSOAPNote - Cleaned data JSON preview:', JSON.stringify(cleanedData).substring(0, 200) + '...');
+
+      console.log('useSOAPNotes createSOAPNote - About to invoke edge function with:', {
+        method: 'POST',
+        bodySize: JSON.stringify(cleanedData).length,
+        bodyPreview: JSON.stringify(cleanedData).substring(0, 100) + '...'
+      });
 
       const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'POST',
@@ -144,6 +155,8 @@ export function useSOAPNotes() {
         },
         body: cleanedData
       });
+
+      console.log('useSOAPNotes createSOAPNote - Edge function response:', { data, error });
 
       if (error) throw error;
 

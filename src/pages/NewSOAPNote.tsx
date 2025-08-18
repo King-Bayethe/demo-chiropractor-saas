@@ -78,7 +78,9 @@ export default function NewSOAPNote() {
         return;
       }
 
-      console.log('Raw wizard data received:', data);
+      console.log('NewSOAPNote handleSave - Raw wizard data received:', data);
+      console.log('NewSOAPNote handleSave - Data type and keys:', typeof data, Object.keys(data || {}));
+      console.log('NewSOAPNote handleSave - Data content preview:', JSON.stringify(data).substring(0, 200) + '...');
 
       // Create SOAP note data in the unified format
       const soapNoteData = {
@@ -97,7 +99,8 @@ export default function NewSOAPNote() {
           : {})
       };
 
-      console.log('Sending unified data to createSOAPNote:', soapNoteData);
+      console.log('NewSOAPNote handleSave - Constructed soapNoteData:', soapNoteData);
+      console.log('NewSOAPNote handleSave - soapNoteData JSON size:', JSON.stringify(soapNoteData).length, 'characters');
 
       const result = await createSOAPNote(soapNoteData);
 

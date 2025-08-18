@@ -282,6 +282,10 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
   };
 
   const handleSave = () => {
+    console.log('SOAPWizard handleSave - Current wizardData:', wizardData);
+    console.log('SOAPWizard handleSave - wizardData type and keys:', typeof wizardData, Object.keys(wizardData || {}));
+    console.log('SOAPWizard handleSave - wizardData JSON size:', JSON.stringify(wizardData).length, 'characters');
+    
     onSave(wizardData);
     clearDraft();
   };
