@@ -110,12 +110,10 @@ export function useSOAPNotes() {
       });
 
       const { data, error } = await supabase.functions.invoke('soap-notes', {
-        method: 'POST',
+        body: JSON.stringify(cleanedData),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session.access_token}`
-        },
-        body: cleanedData
+        }
       });
 
       console.log('useSOAPNotes createSOAPNote - Edge function response:', { data, error });

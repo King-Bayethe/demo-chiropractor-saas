@@ -189,8 +189,8 @@ export class SOAPDataConverter {
       subjective_data: wizardData.subjective || this.getDefaultSubjective(),
       objective_data: wizardData.objective || this.getDefaultObjective(),
       assessment_data: wizardData.assessment || this.getDefaultAssessment(),
-      plan_data: wizardData.plan || this.getDefaultPlan(),
-      vital_signs: wizardData.objective?.vitalSigns
+      plan_data: wizardData.plan || this.getDefaultPlan()
+      // Removed vital_signs to prevent circular reference - it's already in objective_data.vitalSigns
     };
   }
 
@@ -205,8 +205,8 @@ export class SOAPDataConverter {
       subjective_data: formData.subjective,
       objective_data: formData.objective,
       assessment_data: formData.assessment,
-      plan_data: formData.plan,
-      vital_signs: formData.objective.vitalSigns
+      plan_data: formData.plan
+      // Removed vital_signs to prevent circular reference - it's already in objective_data.vitalSigns
     };
   }
 
