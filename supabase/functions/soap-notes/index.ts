@@ -207,13 +207,8 @@ serve(async (req) => {
         );
 
       case 'PUT':
-        if (!noteId || noteId === 'soap-notes') {
-          return new Response(
-            JSON.stringify({ error: 'Note ID required for update' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
+        // For PUT requests, check if noteId is in the body (new format) or URL (old format)
+        let targetNoteId = noteId;
         let updateData: Partial<SOAPNoteData>;
         
         try {
@@ -227,7 +222,16 @@ serve(async (req) => {
             );
           }
           
-          updateData = JSON.parse(requestText);
+          const parsedData = JSON.parse(requestText);
+          
+          // Check if noteId is in the body (new format)
+          if (parsedData.noteId) {
+            targetNoteId = parsedData.noteId;
+            const { noteId: _, ...restData } = parsedData;
+            updateData = restData;
+          } else {
+            updateData = parsedData;
+          }
         } catch (parseError) {
           console.error('JSON parse error in update:', parseError);
           return new Response(
@@ -236,7 +240,14 @@ serve(async (req) => {
           );
         }
         
-        console.log('Updating SOAP note:', noteId);
+        if (!targetNoteId || targetNoteId === 'soap-notes') {
+          return new Response(
+            JSON.stringify({ error: 'Note ID required for update' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        console.log('Updating SOAP note:', targetNoteId, 'with data:', updateData);
         const { data: updatedNote, error: updateError } = await supabaseClient
           .from('soap_notes')
           .update({
@@ -244,7 +255,7 @@ serve(async (req) => {
             last_modified_by: user.id,
             updated_at: new Date().toISOString()
           })
-          .eq('id', noteId)
+          .eq('id', targetNoteId)
           .select(`
             *,
             patients(id, first_name, last_name, email)

@@ -65,8 +65,12 @@ export default function EditableSOAPForm() {
     if (!id) return;
 
     try {
+      console.log('EditableSOAPForm handleSave - Original form data:', formData);
+      
       // Convert form data to unified format using any to bypass type conflicts temporarily
       const updateData = SOAPDataConverter.formToUnified(formData as any);
+      
+      console.log('EditableSOAPForm handleSave - Converted update data:', updateData);
       
       const updatedNote = await updateSOAPNote(id, updateData);
       

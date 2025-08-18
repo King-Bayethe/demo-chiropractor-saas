@@ -151,9 +151,25 @@ export function useSOAPNotes() {
 
       console.log('useSOAPNotes updateSOAPNote - Updating note:', noteId, 'with data:', updates);
 
-      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+      // Clean the update data similar to create
+      const cleanedUpdates = {
+        ...updates,
+        date_of_service: updates.date_of_service instanceof Date 
+          ? updates.date_of_service.toISOString()
+          : updates.date_of_service
+      };
+
+      console.log('useSOAPNotes updateSOAPNote - Cleaned updates:', cleanedUpdates);
+
+      const { data, error } = await supabase.functions.invoke('soap-notes', {
         method: 'PUT',
-        body: updates
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          noteId,
+          ...cleanedUpdates
+        }
       });
 
       console.log('useSOAPNotes updateSOAPNote - Edge function response:', { data, error });
