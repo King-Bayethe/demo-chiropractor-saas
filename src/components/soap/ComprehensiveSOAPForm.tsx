@@ -43,6 +43,18 @@ export interface SOAPFormData {
   plan: PlanData;
 }
 
+// Helper function to ensure we have a valid Date object
+const ensureDate = (value: any): Date => {
+  if (value instanceof Date) {
+    return value;
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? new Date() : date;
+  }
+  return new Date();
+};
+
 export function ComprehensiveSOAPForm({ 
   isOpen, 
   onClose, 
@@ -191,7 +203,12 @@ export function ComprehensiveSOAPForm({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(prev => ({ ...prev, ...initialData }));
+      setFormData(prev => ({ 
+        ...prev, 
+        ...initialData,
+        // Ensure dateCreated is always a Date object
+        dateCreated: ensureDate(initialData.dateCreated || prev.dateCreated)
+      }));
     }
     if (patient) {
       const patientName = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 
@@ -233,7 +250,11 @@ export function ComprehensiveSOAPForm({
 
   const handleRestoreDraft = () => {
     if (draftToRestore) {
-      setFormData(draftToRestore.data);
+      setFormData({
+        ...draftToRestore.data,
+        // Ensure dateCreated is always a Date object when restoring
+        dateCreated: ensureDate(draftToRestore.data.dateCreated)
+      });
       setShowDraftDialog(false);
       toast({
         title: "Draft Restored",
