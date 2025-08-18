@@ -12,39 +12,7 @@ import { Search, Plus, Edit, Trash2, Eye, BarChart3, Settings, Clock, Users, Tre
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TemplateBuilder } from './TemplateBuilder';
-
-interface CustomTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: string;
-  specialty: string;
-  keywords: string[];
-  age_groups: string[];
-  ageGroups: string[];
-  urgency_level: string;
-  urgencyLevel: string;
-  template_data: any;
-  templateData: any;
-  created_by: string;
-  is_approved: boolean;
-  is_active: boolean;
-  version: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface TemplateUsage {
-  id: string;
-  template_id: string;
-  template_name: string;
-  template_type: string;
-  used_by: string;
-  patient_id: string;
-  chief_complaint: string;
-  created_at: string;
-}
+import { CustomTemplate, TemplateUsage } from '@/types/templates';
 
 interface TemplateManagerProps {
   isOpen: boolean;
@@ -84,8 +52,15 @@ export function TemplateManager({ isOpen, onClose }: TemplateManagerProps) {
         ...item,
         ageGroups: item.age_groups || [],
         urgencyLevel: item.urgency_level as 'low' | 'medium' | 'high',
-        templateData: item.template_data || {}
-      }));
+        templateData: typeof item.template_data === 'object' && item.template_data ? 
+          item.template_data as any : {
+            chiefComplaint: '',
+            subjectiveTemplate: { symptoms: [], painDescription: '', otherSymptoms: '' },
+            objectiveTemplate: { systemExams: [], specialTests: [] },
+            assessmentTemplate: { diagnoses: [], clinicalImpression: '' },
+            planTemplate: { treatments: [], medications: [], followUpPeriod: '', additionalInstructions: '' }
+          }
+      })) as CustomTemplate[];
       
       setTemplates(transformedData);
     } catch (error) {

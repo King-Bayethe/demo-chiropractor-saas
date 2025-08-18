@@ -14,45 +14,12 @@ import { Plus, X, Save, Eye, Copy, Upload, Download, Trash2, Settings } from 'lu
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { medicalTemplateCategories } from '@/data/medicalTemplates';
+import { CustomTemplate } from '@/types/templates';
 
 interface TemplateBuilderProps {
   isOpen: boolean;
   onClose: () => void;
   existingTemplate?: CustomTemplate | null;
-}
-
-interface CustomTemplate {
-  id?: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: string;
-  specialty: string;
-  keywords: string[];
-  ageGroups: string[];
-  urgencyLevel: 'low' | 'medium' | 'high';
-  templateData: {
-    chiefComplaint: string;
-    subjectiveTemplate: {
-      symptoms: string[];
-      painDescription: string;
-      otherSymptoms: string;
-    };
-    objectiveTemplate: {
-      systemExams: any[];
-      specialTests: any[];
-    };
-    assessmentTemplate: {
-      diagnoses: any[];
-      clinicalImpression: string;
-    };
-    planTemplate: {
-      treatments: any[];
-      medications: any[];
-      followUpPeriod: string;
-      additionalInstructions: string;
-    };
-  };
 }
 
 const AGE_GROUPS = ['Pediatric', 'Adult', 'Geriatric', 'All Ages'];
