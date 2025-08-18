@@ -249,7 +249,9 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`);
+      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+        method: 'GET'
+      });
 
       if (error) throw error;
 
