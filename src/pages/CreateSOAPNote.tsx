@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -19,96 +19,119 @@ export default function CreateSOAPNote() {
   
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [initialData, setInitialData] = useState<SOAPFormData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingNote, setIsLoadingNote] = useState(false);
+  const [isLoadingPatient, setIsLoadingPatient] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   
   const { createSOAPNote, updateSOAPNote, getSOAPNote } = useSOAPNotes();
   const { patients } = usePatients();
+  
+  const loadingRef = useRef(false);
 
   const isEditMode = !!editId;
   const patientId = searchParams.get('patientId');
 
-  // Load patient and note data
+  // Load SOAP note data (for edit mode)
   useEffect(() => {
-    const loadData = async () => {
-      if (isEditMode && !editId) return;
-      if (!isEditMode && !patientId) return;
+    const loadSOAPNote = async () => {
+      if (!isEditMode || !editId || dataLoaded || loadingRef.current) return;
       
-      setIsLoading(true);
+      loadingRef.current = true;
+      setIsLoadingNote(true);
       
       try {
-        // If editing, load the existing note
-        if (isEditMode && editId) {
-          const note = await getSOAPNote(editId);
-          if (note) {
-            // Find the patient for this note
+        console.log('Loading SOAP note for edit:', editId);
+        const note = await getSOAPNote(editId);
+        
+        if (note) {
+          console.log('SOAP note loaded successfully:', note);
+          
+          // Check if we have patient data in the note (from join)
+          let patientData = null;
+          let patientName = 'Unknown Patient';
+          
+          // If the note has joined patient data
+          if (note.patients) {
+            patientData = note.patients;
+            patientName = getPatientName(note.patients);
+            setSelectedPatient(note.patients);
+          } else {
+            // Fallback: look for patient in the patients list
             const patient = patients.find(p => p.id === note.patient_id);
             if (patient) {
+              patientData = patient;
+              patientName = getPatientName(patient);
               setSelectedPatient(patient);
-              
-              // Convert note data to form format with patient name
-              const patientName = getPatientName(patient);
-              setInitialData({
-                patientId: note.patient_id,
-                patientName: patientName,
-                providerId: "dr-silverman",
-                providerName: note.provider_name,
-                dateCreated: new Date(note.date_of_service),
-                chiefComplaint: note.chief_complaint,
-                isQuickNote: note.is_draft,
-                subjective: note.subjective_data || {},
-                objective: note.objective_data || { vitalSigns: note.vital_signs || {} },
-                assessment: note.assessment_data || {},
-                plan: note.plan_data || {}
-              });
-            } else {
-              // Patient not found in current patient list, but still load the note
-              setInitialData({
-                patientId: note.patient_id,
-                patientName: 'Unknown Patient',
-                providerId: "dr-silverman", 
-                providerName: note.provider_name,
-                dateCreated: new Date(note.date_of_service),
-                chiefComplaint: note.chief_complaint,
-                isQuickNote: note.is_draft,
-                subjective: note.subjective_data || {},
-                objective: note.objective_data || { vitalSigns: note.vital_signs || {} },
-                assessment: note.assessment_data || {},
-                plan: note.plan_data || {}
-              });
             }
-          } else {
-            toast({
-              title: "Error",
-              description: "SOAP note not found.",
-              variant: "destructive",
-            });
-            navigate('/soap-notes');
           }
-        }
-        // If creating with a specific patient
-        else if (patientId && patients.length > 0) {
-          const patient = patients.find(p => p.id === patientId);
-          if (patient) {
-            setSelectedPatient(patient);
-          }
+          
+          // Convert note data to form format
+          setInitialData({
+            patientId: note.patient_id,
+            patientName: patientName,
+            providerId: "dr-silverman",
+            providerName: note.provider_name,
+            dateCreated: new Date(note.date_of_service),
+            chiefComplaint: note.chief_complaint,
+            isQuickNote: note.is_draft,
+            subjective: note.subjective_data || {},
+            objective: note.objective_data || { vitalSigns: note.vital_signs || {} },
+            assessment: note.assessment_data || {},
+            plan: note.plan_data || {}
+          });
+          
+          setDataLoaded(true);
+        } else {
+          toast({
+            title: "Error",
+            description: "SOAP note not found.",
+            variant: "destructive",
+          });
+          navigate('/soap-notes');
         }
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error('Failed to load SOAP note:', error);
         toast({
           title: "Error",
-          description: "Failed to load data. Please try again.",
+          description: "Failed to load SOAP note. Please try again.",
           variant: "destructive",
         });
+        navigate('/soap-notes');
       } finally {
-        setIsLoading(false);
+        setIsLoadingNote(false);
+        loadingRef.current = false;
       }
     };
 
-    // Only run if we have patients loaded or we're in edit mode
-    if (patients.length > 0 || isEditMode) {
-      loadData();
+    loadSOAPNote();
+  }, [editId, isEditMode]); // Only depend on editId and isEditMode
+
+  // Load patient data (for create mode with patientId)
+  useEffect(() => {
+    const loadPatient = async () => {
+      if (isEditMode || !patientId || dataLoaded) return;
+      
+      setIsLoadingPatient(true);
+      
+      try {
+        console.log('Loading patient for create mode:', patientId);
+        const patient = patients.find(p => p.id === patientId);
+        if (patient) {
+          setSelectedPatient(patient);
+          setDataLoaded(true);
+        }
+      } catch (error) {
+        console.error('Failed to load patient:', error);
+      } finally {
+        setIsLoadingPatient(false);
+      }
+    };
+
+    // Only run if we have patients loaded
+    if (patients.length > 0) {
+      loadPatient();
     }
-  }, [editId, patientId, patients, getSOAPNote, isEditMode, toast, navigate]);
+  }, [patientId, patients, isEditMode, dataLoaded]);
 
   const handleSave = async (data: SOAPFormData) => {
     try {
@@ -191,7 +214,7 @@ export default function CreateSOAPNote() {
   };
 
   // Show patient selection if no patient is selected and not in edit mode and not loading
-  if (!selectedPatient && !isEditMode && !isLoading) {
+  if (!selectedPatient && !isEditMode && !isLoadingPatient && !isLoadingNote) {
     return (
       <AuthGuard>
         <Layout>
@@ -233,14 +256,16 @@ export default function CreateSOAPNote() {
   }
 
   // Show loading state while loading data
-  if (isLoading) {
+  if (isLoadingNote || isLoadingPatient) {
     return (
       <AuthGuard>
         <Layout>
           <div className="p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading...</p>
+              <p className="text-muted-foreground">
+                {isLoadingNote ? 'Loading SOAP note...' : 'Loading patient data...'}
+              </p>
             </div>
           </div>
         </Layout>
