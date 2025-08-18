@@ -149,26 +149,17 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const session = await supabase.auth.getSession();
-      if (!session.data.session?.access_token) {
-        throw new Error('Not authenticated');
-      }
+      console.log('useSOAPNotes updateSOAPNote - Updating note:', noteId, 'with data:', updates);
 
-      const { data, error } = await supabase.functions.invoke('soap-notes', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session.access_token}`
-        },
-        body: {
-          id: noteId,
-          ...updates
-        }
+      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`, {
+        body: updates
       });
+
+      console.log('useSOAPNotes updateSOAPNote - Edge function response:', { data, error });
 
       if (error) throw error;
 
-      const updatedNote = data?.note;
+      const updatedNote = data?.data;
       if (updatedNote) {
         setSOAPNotes(prev => prev.map(note => 
           note.id === noteId ? updatedNote : note
@@ -241,23 +232,11 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const session = await supabase.auth.getSession();
-      if (!session.data.session?.access_token) {
-        throw new Error('Not authenticated');
-      }
-
-      const { data, error } = await supabase.functions.invoke('soap-notes', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session.access_token}`
-        },
-        body: { id: noteId }
-      });
+      const { data, error } = await supabase.functions.invoke(`soap-notes/${noteId}`);
 
       if (error) throw error;
 
-      return data?.note || null;
+      return data?.data || null;
     } catch (error) {
       console.error('Failed to get SOAP note:', error);
       setError(error instanceof Error ? error.message : 'Failed to get SOAP note');

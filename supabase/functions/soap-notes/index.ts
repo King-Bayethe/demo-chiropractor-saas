@@ -58,7 +58,9 @@ serve(async (req) => {
     const { method, url } = req;
     const urlObj = new URL(url);
     const pathSegments = urlObj.pathname.split('/').filter(Boolean);
-    const noteId = pathSegments[pathSegments.length - 1];
+    
+    // For requests like /soap-notes/{id}, get the ID from the path
+    const noteId = pathSegments.length > 1 ? pathSegments[pathSegments.length - 1] : null;
 
     switch (method) {
       case 'GET':
