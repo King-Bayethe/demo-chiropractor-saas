@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -234,7 +235,9 @@ export function SOAPNoteDisplay({ note, patientName }: SOAPNoteDisplayProps) {
               <h4 className="font-medium text-sm mb-2">Treatments</h4>
               <div className="flex flex-wrap gap-2">
                 {planData.treatments.map((treatment, index) => (
-                  <Badge key={index} variant="outline">{treatment}</Badge>
+                  <Badge key={index} variant="outline">
+                    {typeof treatment === 'string' ? treatment : treatment.treatment || 'Unknown Treatment'}
+                  </Badge>
                 ))}
               </div>
             </div>
