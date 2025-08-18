@@ -26,6 +26,7 @@ import PatientProfile from "./pages/PatientProfile";
 import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
+import CreateSOAPNote from "./pages/CreateSOAPNote";
 import PublicPIPForm from "./pages/PublicPIPForm";
 import PublicLOPForm from "./pages/PublicLOPForm";
 import PublicCashForm from "./pages/PublicCashForm";
@@ -50,6 +51,8 @@ const App = () => (
           <Route path="/patients/:patientId" element={<PatientProfile />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/soap-notes" element={<SOAPNotes />} />
+          <Route path="/soap-notes/create" element={<CreateSOAPNote />} />
+          <Route path="/soap-notes/edit/:id" element={<CreateSOAPNote />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/contacts" element={<Contacts />} />

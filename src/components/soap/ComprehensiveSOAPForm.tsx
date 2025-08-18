@@ -26,6 +26,7 @@ interface ComprehensiveSOAPFormProps {
   patient?: any;
   initialData?: Partial<SOAPFormData>;
   onSave: (data: SOAPFormData) => void;
+  isPageMode?: boolean;
 }
 
 export interface SOAPFormData {
@@ -47,7 +48,8 @@ export function ComprehensiveSOAPForm({
   onClose, 
   patient, 
   initialData, 
-  onSave 
+  onSave,
+  isPageMode = false
 }: ComprehensiveSOAPFormProps) {
   const { toast } = useToast();
   const [isQuickNote, setIsQuickNote] = useState(false);
@@ -354,10 +356,22 @@ export function ComprehensiveSOAPForm({
 
   if (!isOpen) return null;
 
+  const containerClass = isPageMode 
+    ? "h-full flex flex-col bg-background"
+    : "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm";
+    
+  const innerClass = isPageMode
+    ? "flex-1 max-w-7xl mx-auto w-full flex flex-col overflow-hidden"
+    : "fixed inset-0 z-50 flex items-center justify-center p-4";
+    
+  const contentClass = isPageMode
+    ? "flex flex-col h-full overflow-hidden"
+    : "w-full max-w-7xl h-[85vh] max-h-[700px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden";
+
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-7xl h-[85vh] max-h-[700px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
+    <div className={containerClass}>
+      <div className={innerClass}>
+        <div className={contentClass}>
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-4">
