@@ -185,7 +185,7 @@ export default function EditSOAPNote() {
             </div>
           </div>
 
-          <div className="flex h-[calc(100vh-80px)]">
+          <div className="flex h-[calc(100vh-120px)]">
             {/* Patient Sidebar */}
             <Collapsible
               open={sidebarOpen}
@@ -195,8 +195,8 @@ export default function EditSOAPNote() {
               }`}
             >
               <CollapsibleContent className="h-full">
-                <ScrollArea className="h-full p-4">
-                  <div className="space-y-4">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-4">
                     {/* Patient Information */}
                     <Card className="border-2 border-primary/20">
                       <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-3">
@@ -346,9 +346,9 @@ export default function EditSOAPNote() {
 
                 <div className="flex-1 overflow-hidden">
                   {/* Subjective Tab */}
-                  <TabsContent value="subjective" className="flex-1 m-0">
-                    <ScrollArea className="h-full">
-                      <div className="p-6">
+                  <TabsContent value="subjective" className="h-full m-0">
+                    <ScrollArea className="h-[calc(100vh-220px)]">
+                      <div className="p-6 pb-20">
                         {soapNote.subjective_data ? (
                           <div className="space-y-6">
                             <div className="border-l-4 border-blue-500 pl-4">
@@ -478,9 +478,9 @@ export default function EditSOAPNote() {
                   </TabsContent>
 
                   {/* Objective Tab */}
-                  <TabsContent value="objective" className="flex-1 m-0">
-                    <ScrollArea className="h-full">
-                      <div className="p-6">
+                  <TabsContent value="objective" className="h-full m-0">
+                    <ScrollArea className="h-[calc(100vh-220px)]">
+                      <div className="p-6 pb-20">
                         {soapNote.objective_data ? (
                           <div className="space-y-6">
                             <div className="border-l-4 border-green-500 pl-4">
@@ -595,9 +595,9 @@ export default function EditSOAPNote() {
                   </TabsContent>
 
                   {/* Assessment Tab */}
-                  <TabsContent value="assessment" className="flex-1 m-0">
-                    <ScrollArea className="h-full">
-                      <div className="p-6">
+                  <TabsContent value="assessment" className="h-full m-0">
+                    <ScrollArea className="h-[calc(100vh-220px)]">
+                      <div className="p-6 pb-20">
                         {soapNote.assessment_data ? (
                           <div className="space-y-6">
                             <div className="border-l-4 border-orange-500 pl-4">
@@ -666,9 +666,9 @@ export default function EditSOAPNote() {
                   </TabsContent>
 
                   {/* Plan Tab */}
-                  <TabsContent value="plan" className="flex-1 m-0">
-                    <ScrollArea className="h-full">
-                      <div className="p-6">
+                  <TabsContent value="plan" className="h-full m-0">
+                    <ScrollArea className="h-[calc(100vh-220px)]">
+                      <div className="p-6 pb-20">
                         {soapNote.plan_data ? (
                           <div className="space-y-6">
                             <div className="border-l-4 border-purple-500 pl-4">
