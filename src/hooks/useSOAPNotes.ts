@@ -49,8 +49,8 @@ export function useSOAPNotes() {
 
       if (error) throw error;
 
-      if (data && Array.isArray(data.notes)) {
-        setSOAPNotes(data.notes);
+      if (data && data.data && Array.isArray(data.data)) {
+        setSOAPNotes(data.data);
       } else {
         console.warn('Unexpected data format:', data);
         setSOAPNotes([]);
