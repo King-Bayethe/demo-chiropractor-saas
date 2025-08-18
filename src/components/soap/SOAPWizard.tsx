@@ -309,31 +309,83 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
   };
 
   const applyTemplate = (template: any) => {
+    // Enhanced template application for chiropractic data
+    const chiropracticData = template.chiropracticTemplate;
+    
     setWizardData(prev => ({
       ...prev,
-      chiefComplaint: template.chiefComplaint || template.complaint || prev.chiefComplaint,
-      subjective: {
+      chiefComplaint: template.template?.subjective?.chiefComplaint || template.chiefComplaint || prev.chiefComplaint,
+      subjective: chiropracticData?.subjective ? {
+        ...prev.subjective,
+        mainComplaints: chiropracticData.subjective.mainComplaints || prev.subjective.mainComplaints,
+        painRating: chiropracticData.subjective.painAssessment?.rating ? [chiropracticData.subjective.painAssessment.rating] : prev.subjective.painRating,
+        painDescriptions: chiropracticData.subjective.painAssessment?.descriptions || prev.subjective.painDescriptions,
+        painFrequency: chiropracticData.subjective.painAssessment?.frequency ? [chiropracticData.subjective.painAssessment.frequency] : prev.subjective.painFrequency,
+        painRadiate: chiropracticData.subjective.painAssessment?.radiation || prev.subjective.painRadiate,
+        painWorse: chiropracticData.subjective.problemHistory?.aggravatingFactors?.join(', ') || prev.subjective.painWorse,
+        painBetter: chiropracticData.subjective.problemHistory?.alleviatingFactors?.join(', ') || prev.subjective.painBetter,
+        problemBegin: chiropracticData.subjective.problemHistory?.onset || prev.subjective.problemBegin,
+        reviewOfSystems: {
+          ...prev.subjective.reviewOfSystems,
+          ...Object.keys(chiropracticData.subjective.reviewOfSystems || {}).reduce((acc, system) => {
+            acc[system] = chiropracticData.subjective.reviewOfSystems[system].reduce((systemAcc: any, item: string) => {
+              systemAcc[item] = 'positive';
+              return systemAcc;
+            }, {});
+            return acc;
+          }, {} as any)
+        }
+      } : {
         ...prev.subjective,
         mainComplaints: template.subjectiveTemplate?.symptoms || template.commonSymptoms || prev.subjective.mainComplaints,
         painDescriptions: template.subjectiveTemplate?.painDescriptions || prev.subjective.painDescriptions,
         otherSymptoms: template.subjectiveTemplate?.otherSymptoms || prev.subjective.otherSymptoms
       },
-      objective: {
+      objective: chiropracticData?.objective ? {
+        ...prev.objective,
+        posture: chiropracticData.objective.posture || prev.objective.posture,
+        gait: chiropracticData.objective.gait || prev.objective.gait,
+        rangeOfMotion: {
+          ...prev.objective.rangeOfMotion,
+          ...(chiropracticData.objective.rangeOfMotion && Object.keys(chiropracticData.objective.rangeOfMotion).reduce((acc, region) => {
+            acc[region] = Object.keys(chiropracticData.objective.rangeOfMotion[region]).reduce((regionAcc: any, movement) => {
+              regionAcc[movement] = chiropracticData.objective.rangeOfMotion[region][movement].toString();
+              return regionAcc;
+            }, {});
+            return acc;
+          }, {} as any))
+        },
+        orthopedicTests: chiropracticData.objective.orthopedicTests ? {
+          ...prev.objective.orthopedicTests,
+          slr: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'Straight Leg Raise')?.result || prev.objective.orthopedicTests.slr,
+          kemps: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'Kemp\'s Test')?.result || prev.objective.orthopedicTests.kemps,
+          faber: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'FABER')?.result || prev.objective.orthopedicTests.faber,
+          yeoman: chiropracticData.objective.orthopedicTests.find((test: any) => test.name === 'Yeoman\'s')?.result || prev.objective.orthopedicTests.yeoman
+        } : prev.objective.orthopedicTests,
+        reflexes: chiropracticData.objective.neurologicalFindings?.reflexes ? Object.entries(chiropracticData.objective.neurologicalFindings.reflexes).map(([key, value]) => `${key}: ${value}`).join(', ') : prev.objective.reflexes,
+        sensation: chiropracticData.objective.neurologicalFindings?.sensation ? Object.entries(chiropracticData.objective.neurologicalFindings.sensation).map(([key, value]) => `${key}: ${value}`).join(', ') : prev.objective.sensation,
+        strength: chiropracticData.objective.neurologicalFindings?.strength ? Object.entries(chiropracticData.objective.neurologicalFindings.strength).map(([key, value]) => `${key}: ${value}`).join(', ') : prev.objective.strength
+      } : {
         ...prev.objective,
         systemExams: template.objectiveTemplate?.systemExams || prev.objective.systemExams,
         specialTests: template.objectiveTemplate?.specialTests || prev.objective.specialTests
       },
       assessment: {
         ...prev.assessment,
-        diagnoses: template.assessmentTemplate?.diagnoses || prev.assessment.diagnoses,
-        clinicalImpression: template.assessmentTemplate?.clinicalImpression || prev.assessment.clinicalImpression
+        diagnoses: template.template?.assessment?.differentialDiagnoses?.map((dx: string) => ({ diagnosis: dx, icd10: '', notes: '' })) || 
+                  template.assessmentTemplate?.diagnoses || prev.assessment.diagnoses,
+        clinicalImpression: template.template?.assessment?.clinicalImpression || 
+                           template.assessmentTemplate?.clinicalImpression || prev.assessment.clinicalImpression
       },
       plan: {
         ...prev.plan,
-        treatments: template.planTemplate?.treatments || prev.plan.treatments,
-        medications: template.planTemplate?.medications || prev.plan.medications,
-        followUpPeriod: template.planTemplate?.followUpPeriod || prev.plan.followUpPeriod,
-        additionalInstructions: template.planTemplate?.additionalInstructions || prev.plan.additionalInstructions
+        treatments: template.template?.plan?.treatments?.map((tx: string) => ({ treatment: tx, notes: '' })) || 
+                   template.planTemplate?.treatments || prev.plan.treatments,
+        medications: template.template?.plan?.medications?.map((med: string) => ({ medication: med, dosage: '', frequency: '', notes: '' })) || 
+                    template.planTemplate?.medications || prev.plan.medications,
+        followUpPeriod: template.template?.plan?.followUp?.[0] || template.planTemplate?.followUpPeriod || prev.plan.followUpPeriod,
+        additionalInstructions: template.template?.plan?.patientEducation?.join('\n') || 
+                               template.planTemplate?.additionalInstructions || prev.plan.additionalInstructions
       }
     }));
     

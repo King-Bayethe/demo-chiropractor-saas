@@ -41,6 +41,48 @@ export interface MedicalTemplate {
       preventiveCare: string[];
     };
   };
+  // Enhanced for chiropractic data
+  chiropracticTemplate?: {
+    subjective: {
+      mainComplaints: string[];
+      painAssessment: {
+        rating: number;
+        descriptions: string[];
+        frequency: string;
+        radiation: string;
+        triggers: string[];
+      };
+      problemHistory: {
+        onset: string;
+        mechanism: string;
+        aggravatingFactors: string[];
+        alleviatingFactors: string[];
+      };
+      reviewOfSystems: {
+        [key: string]: string[];
+      };
+    };
+    objective: {
+      posture: string[];
+      gait: string[];
+      rangeOfMotion: {
+        cervical?: { [key: string]: number };
+        thoracic?: { [key: string]: number };
+        lumbar?: { [key: string]: number };
+      };
+      orthopedicTests: {
+        name: string;
+        result: string;
+        notes?: string;
+      }[];
+      neurologicalFindings: {
+        reflexes: { [key: string]: string };
+        sensation: { [key: string]: string };
+        strength: { [key: string]: string };
+      };
+      clinicalFindings: string[];
+    };
+  };
   redFlags: string[];
   clinicalPearls: string[];
 }
@@ -59,7 +101,8 @@ export const medicalTemplateCategories = [
   'Ophthalmology',
   'Emergency',
   'Preventive Care',
-  'General Assessment'
+  'General Assessment',
+  'Chiropractic'
 ];
 
 export const medicalTemplates: MedicalTemplate[] = [
@@ -104,6 +147,53 @@ export const medicalTemplates: MedicalTemplate[] = [
         followUp: ['2-4 weeks or sooner if worsening'],
         patientEducation: ['Proper body mechanics', 'Exercise program', 'When to seek immediate care'],
         preventiveCare: ['Core strengthening', 'Ergonomic assessment']
+      }
+    },
+    chiropracticTemplate: {
+      subjective: {
+        mainComplaints: ['Low back'],
+        painAssessment: {
+          rating: 6,
+          descriptions: ['Achy', 'Dull'],
+          frequency: 'Intermittent',
+          radiation: 'No radiation',
+          triggers: ['Bending', 'Sitting']
+        },
+        problemHistory: {
+          onset: 'Gradual',
+          mechanism: 'Unknown',
+          aggravatingFactors: ['Prolonged sitting', 'Forward bending'],
+          alleviatingFactors: ['Rest', 'Heat therapy']
+        },
+        reviewOfSystems: {
+          neurological: [],
+          cardiovascular: [],
+          musculoskeletal: ['Lower back stiffness']
+        }
+      },
+      objective: {
+        posture: ['Forward Head'],
+        gait: ['Normal'],
+        rangeOfMotion: {
+          lumbar: {
+            flexion: 45,
+            extension: 15,
+            lateralFlexionRight: 20,
+            lateralFlexionLeft: 20,
+            rotationRight: 15,
+            rotationLeft: 15
+          }
+        },
+        orthopedicTests: [
+          { name: 'Straight Leg Raise', result: 'Negative', notes: 'No pain at 70 degrees bilaterally' },
+          { name: 'Kemp\'s Test', result: 'Positive', notes: 'Reproduces familiar pain on right' }
+        ],
+        neurologicalFindings: {
+          reflexes: { 'Patellar': 'Normal', 'Achilles': 'Normal' },
+          sensation: { 'L4': 'Intact', 'L5': 'Intact', 'S1': 'Intact' },
+          strength: { 'Hip Flexors': 'Normal', 'Quadriceps': 'Normal', 'Ankle DF': 'Normal' }
+        },
+        clinicalFindings: ['Muscle tension in paraspinals', 'Restricted lumbar extension']
       }
     },
     redFlags: ['Bowel/bladder dysfunction', 'Progressive neurological deficits', 'Fever with back pain', 'History of cancer'],
@@ -529,6 +619,180 @@ export const medicalTemplates: MedicalTemplate[] = [
     },
     redFlags: ['Red flag symptoms based on presentation'],
     clinicalPearls: ['Adapt assessment to presenting concerns', 'Consider age-appropriate screening', 'Document thoroughly']
+  },
+
+  // Chiropractic Templates
+  {
+    id: 'chiropractic-neck-pain',
+    name: 'Cervical Spine Pain',
+    category: 'Chiropractic',
+    specialty: 'Chiropractic',
+    description: 'Comprehensive chiropractic assessment for neck pain and cervical spine conditions',
+    icon: '🦴',
+    keywords: ['neck pain', 'cervical', 'headache', 'stiffness', 'whiplash', 'torticollis'],
+    icd10Codes: ['M54.2', 'M50.30', 'S13.4XXA'],
+    cptCodes: ['98940', '98941', '99213'],
+    ageGroups: ['adult', 'geriatric'],
+    urgencyLevel: 'medium',
+    template: {
+      subjective: {
+        chiefComplaint: 'Patient presents with neck pain and stiffness',
+        historyOfPresentIllness: 'Onset, duration, radiation to arms, headaches, mechanism of injury',
+        reviewOfSystems: ['Headaches', 'Upper extremity symptoms', 'Dizziness', 'Visual disturbances'],
+        pastMedicalHistory: ['Previous neck injuries', 'Arthritis', 'Degenerative disc disease'],
+        medications: ['NSAIDs', 'Muscle relaxants', 'Pain medications'],
+        allergies: ['Drug allergies'],
+        socialHistory: ['Computer use', 'Pillow type', 'Sleep position', 'Stress levels'],
+        familyHistory: ['Arthritis', 'Spinal disorders']
+      },
+      objective: {
+        vitalSigns: ['BP', 'HR', 'Pain scale'],
+        physicalExam: ['Cervical ROM', 'Posture assessment', 'Palpation', 'Neurological exam', 'Orthopedic tests'],
+        diagnosticTests: ['X-ray cervical spine', 'MRI if neurological symptoms']
+      },
+      assessment: {
+        primaryDiagnosis: 'Cervical strain',
+        differentialDiagnoses: ['Cervical facet dysfunction', 'Cervical disc derangement', 'Myofascial pain syndrome', 'Cervical radiculopathy'],
+        clinicalImpression: 'Mechanical neck pain with restricted range of motion'
+      },
+      plan: {
+        treatments: ['Chiropractic manipulation', 'Soft tissue therapy', 'Postural exercises', 'Ergonomic counseling'],
+        medications: ['NSAIDs as needed', 'Topical analgesics'],
+        diagnostics: ['Re-evaluate in 1-2 weeks', 'Advanced imaging if no improvement'],
+        followUp: ['1 week for progress assessment'],
+        patientEducation: ['Proper posture', 'Neck exercises', 'Ergonomic workstation setup'],
+        preventiveCare: ['Stress management', 'Regular exercise', 'Sleep hygiene']
+      }
+    },
+    chiropracticTemplate: {
+      subjective: {
+        mainComplaints: ['Neck'],
+        painAssessment: {
+          rating: 6,
+          descriptions: ['Achy', 'Stiff'],
+          frequency: 'Constant',
+          radiation: 'No radiation',
+          triggers: ['Turning head', 'Looking up']
+        },
+        problemHistory: {
+          onset: 'Gradual',
+          mechanism: 'Unknown',
+          aggravatingFactors: ['Computer work', 'Stress', 'Poor posture'],
+          alleviatingFactors: ['Heat', 'Gentle movement', 'Rest']
+        },
+        reviewOfSystems: {
+          neurological: ['Headaches'],
+          musculoskeletal: ['Neck stiffness', 'Shoulder tension']
+        }
+      },
+      objective: {
+        posture: ['Forward Head'],
+        gait: ['Normal'],
+        rangeOfMotion: {
+          cervical: {
+            flexion: 35,
+            extension: 45,
+            rotation: 60,
+            lateralFlexion: 30
+          }
+        },
+        orthopedicTests: [
+          { name: 'Spurling\'s Test', result: 'Negative', notes: 'No radicular symptoms' },
+          { name: 'Distraction Test', result: 'Positive', notes: 'Relieves neck pain' }
+        ],
+        neurologicalFindings: {
+          reflexes: { 'Biceps': 'Normal', 'Triceps': 'Normal' },
+          sensation: { 'C5': 'Intact', 'C6': 'Intact', 'C7': 'Intact' },
+          strength: { 'Deltoid': 'Normal', 'Biceps': 'Normal', 'Triceps': 'Normal' }
+        },
+        clinicalFindings: ['Cervical paraspinal muscle tension', 'Restricted cervical extension']
+      }
+    },
+    redFlags: ['Severe neurological deficits', 'Signs of myelopathy', 'Vertebral artery insufficiency', 'Fracture'],
+    clinicalPearls: ['Screen for red flags before manipulation', 'Address postural factors', 'Consider cervical pillow']
+  },
+
+  {
+    id: 'chiropractic-shoulder-pain',
+    name: 'Shoulder Impingement',
+    category: 'Chiropractic',
+    specialty: 'Chiropractic',
+    description: 'Chiropractic evaluation and treatment for shoulder impingement syndrome',
+    icon: '💪',
+    keywords: ['shoulder pain', 'impingement', 'rotator cuff', 'subacromial', 'bursitis'],
+    icd10Codes: ['M75.30', 'M75.40', 'M25.511'],
+    cptCodes: ['98940', '97110', '99213'],
+    ageGroups: ['adult', 'geriatric'],
+    urgencyLevel: 'medium',
+    template: {
+      subjective: {
+        chiefComplaint: 'Patient presents with shoulder pain and limited range of motion',
+        historyOfPresentIllness: 'Pain with overhead activities, night pain, mechanism of injury',
+        reviewOfSystems: ['Weakness', 'Numbness', 'Catching sensation', 'Night pain'],
+        pastMedicalHistory: ['Previous shoulder injuries', 'Rotator cuff tears', 'Arthritis'],
+        medications: ['NSAIDs', 'Topical analgesics'],
+        allergies: ['Drug allergies'],
+        socialHistory: ['Occupation', 'Sports activities', 'Overhead activities'],
+        familyHistory: ['Shoulder problems', 'Arthritis']
+      },
+      objective: {
+        vitalSigns: ['BP', 'HR', 'Pain scale'],
+        physicalExam: ['Shoulder ROM', 'Strength testing', 'Impingement tests', 'Instability tests'],
+        diagnosticTests: ['X-ray shoulder', 'MRI if indicated']
+      },
+      assessment: {
+        primaryDiagnosis: 'Shoulder impingement syndrome',
+        differentialDiagnoses: ['Rotator cuff tendinopathy', 'Subacromial bursitis', 'Adhesive capsulitis', 'AC joint arthritis'],
+        clinicalImpression: 'Shoulder impingement with functional limitation'
+      },
+      plan: {
+        treatments: ['Joint mobilization', 'Soft tissue therapy', 'Strengthening exercises', 'Activity modification'],
+        medications: ['NSAIDs', 'Ice therapy'],
+        diagnostics: ['Follow-up in 2 weeks', 'MRI if no improvement'],
+        followUp: ['2 weeks for progress check'],
+        patientEducation: ['Proper lifting technique', 'Shoulder exercises', 'Activity modification'],
+        preventiveCare: ['Postural exercises', 'Ergonomic assessment']
+      }
+    },
+    chiropracticTemplate: {
+      subjective: {
+        mainComplaints: ['Shoulder'],
+        painAssessment: {
+          rating: 7,
+          descriptions: ['Sharp', 'Achy'],
+          frequency: 'Intermittent',
+          radiation: 'No radiation',
+          triggers: ['Overhead reaching', 'Lifting']
+        },
+        problemHistory: {
+          onset: 'Gradual',
+          mechanism: 'Repetitive overhead activity',
+          aggravatingFactors: ['Overhead activities', 'Sleeping on affected side'],
+          alleviatingFactors: ['Rest', 'Ice', 'Anti-inflammatories']
+        },
+        reviewOfSystems: {
+          musculoskeletal: ['Shoulder stiffness', 'Weakness with overhead activities']
+        }
+      },
+      objective: {
+        posture: ['Rounded Shoulders'],
+        gait: ['Normal'],
+        rangeOfMotion: {},
+        orthopedicTests: [
+          { name: 'Hawkins-Kennedy Test', result: 'Positive', notes: 'Pain with impingement' },
+          { name: 'Neer\'s Test', result: 'Positive', notes: 'Reproduces shoulder pain' },
+          { name: 'Empty Can Test', result: 'Weak', notes: 'Supraspinatus weakness' }
+        ],
+        neurologicalFindings: {
+          reflexes: { 'Biceps': 'Normal', 'Triceps': 'Normal' },
+          sensation: { 'Deltoid': 'Intact', 'Lateral arm': 'Intact' },
+          strength: { 'Supraspinatus': 'Weak', 'Infraspinatus': 'Normal', 'Deltoid': 'Normal' }
+        },
+        clinicalFindings: ['Subacromial tenderness', 'Restricted shoulder abduction']
+      }
+    },
+    redFlags: ['Complete loss of function', 'Signs of massive rotator cuff tear', 'Neurovascular compromise'],
+    clinicalPearls: ['Night pain suggests rotator cuff pathology', 'Avoid overhead activities initially', 'Progress exercises gradually']
   }
 ];
 
