@@ -238,25 +238,25 @@ export function ComprehensiveSOAPForm({
     let total = 4;
 
     // Check subjective completion
-    if (formData.subjective.symptoms.length > 0 || formData.subjective.painDescription || 
-        formData.subjective.isRefused || formData.subjective.isWithinNormalLimits) {
+    if ((formData.subjective?.symptoms?.length || 0) > 0 || formData.subjective?.painDescription || 
+        formData.subjective?.isRefused || formData.subjective?.isWithinNormalLimits) {
       completed++;
     }
 
     // Check objective completion
-    if (Object.values(formData.objective.vitalSigns).some(v => v) || 
-        formData.objective.systemExams.length > 0) {
+    if (Object.values(formData.objective?.vitalSigns || {}).some(v => v) || 
+        (formData.objective?.systemExams?.length || 0) > 0) {
       completed++;
     }
 
     // Check assessment completion
-    if (formData.assessment.diagnoses.length > 0 || formData.assessment.clinicalImpression) {
+    if ((formData.assessment?.diagnoses?.length || 0) > 0 || formData.assessment?.clinicalImpression) {
       completed++;
     }
 
     // Check plan completion
-    if (formData.plan.treatments.length > 0 || formData.plan.medications.length > 0 || 
-        formData.plan.additionalInstructions) {
+    if ((formData.plan?.treatments?.length || 0) > 0 || (formData.plan?.medications?.length || 0) > 0 || 
+        formData.plan?.additionalInstructions) {
       completed++;
     }
 
@@ -265,17 +265,17 @@ export function ComprehensiveSOAPForm({
 
   const getSectionsComplete = () => {
     return {
-      subjective: formData.subjective.symptoms.length > 0 || 
-                 !!formData.subjective.painDescription || 
-                 formData.subjective.isRefused || 
-                 formData.subjective.isWithinNormalLimits,
-      objective: Object.values(formData.objective.vitalSigns).some(v => v) || 
-                formData.objective.systemExams.length > 0,
-      assessment: formData.assessment.diagnoses.length > 0 || 
-                 formData.assessment.clinicalImpression !== "",
-      plan: formData.plan.treatments.length > 0 || 
-           formData.plan.medications.length > 0 || 
-           formData.plan.additionalInstructions !== ""
+      subjective: (formData.subjective?.symptoms?.length || 0) > 0 || 
+                 !!formData.subjective?.painDescription || 
+                 formData.subjective?.isRefused || 
+                 formData.subjective?.isWithinNormalLimits,
+      objective: Object.values(formData.objective?.vitalSigns || {}).some(v => v) || 
+                (formData.objective?.systemExams?.length || 0) > 0,
+      assessment: (formData.assessment?.diagnoses?.length || 0) > 0 || 
+                 formData.assessment?.clinicalImpression !== "",
+      plan: (formData.plan?.treatments?.length || 0) > 0 || 
+           (formData.plan?.medications?.length || 0) > 0 || 
+           formData.plan?.additionalInstructions !== ""
     };
   };
 
