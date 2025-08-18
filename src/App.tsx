@@ -26,7 +26,7 @@ import PatientProfile from "./pages/PatientProfile";
 import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
-import CreateSOAPNote from "./pages/CreateSOAPNote";
+
 import NewSOAPNote from "./pages/NewSOAPNote";
 import ViewSOAPNote from "./pages/ViewSOAPNote";
 import EditSOAPNote from "./pages/EditSOAPNote";
@@ -57,7 +57,7 @@ const App = () => (
           <Route path="/soap-notes/new" element={<NewSOAPNote />} />
           <Route path="/soap-notes/view/:id" element={<ViewSOAPNote />} />
           <Route path="/soap-notes/edit/:id" element={<EditSOAPNote />} />
-          <Route path="/soap-notes/create" element={<CreateSOAPNote />} />
+          
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/contacts" element={<Contacts />} />

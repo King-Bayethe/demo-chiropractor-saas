@@ -104,7 +104,7 @@ export default function SOAPNotes() {
                   <FileText className="w-4 h-4 mr-2" />
                   Export
                 </Button>
-                <Button size="sm" onClick={() => navigate('/soap-notes/create')}>
+                <Button size="sm" onClick={() => navigate('/soap-notes/new')}>
                   <Plus className="w-4 h-4 mr-2" />
                   New SOAP Note
                 </Button>
