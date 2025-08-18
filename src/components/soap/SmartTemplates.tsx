@@ -29,10 +29,10 @@ interface AIInsights {
   urgencyLevel: 'low' | 'medium' | 'high';
 }
 
-interface GeminiResponse {
-  suggestedTemplates: string[];
-  aiInsights: AIInsights;
-  autocompletions: {
+// Response comes as flat structure from Gemini API
+interface GeminiAnalysisResponse extends AIInsights {
+  suggestedTemplates?: string[];
+  autocompletions?: {
     subjective?: string;
     objective?: string;
     assessment?: string;
@@ -56,6 +56,8 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
   }, [chiefComplaint]);
 
   const analyzeChiefComplaint = async () => {
+    if (isAnalyzing) return; // Prevent duplicate calls
+    
     setIsAnalyzing(true);
     try {
       const { data, error } = await supabase.functions.invoke('gemini-smart-templates', {
@@ -67,10 +69,20 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
 
       if (error) throw error;
 
-      const response: GeminiResponse = data;
-      setAiInsights(response.aiInsights);
+      // API returns flat structure, not nested under aiInsights
+      const response: GeminiAnalysisResponse = data;
       
-      if (response.aiInsights.urgencyLevel === 'high') {
+      // Create AIInsights object from flat response
+      const insights: AIInsights = {
+        possibleDiagnoses: response.possibleDiagnoses || [],
+        recommendedQuestions: response.recommendedQuestions || [],
+        clinicalNotes: response.clinicalNotes || '',
+        urgencyLevel: response.urgencyLevel || 'low',
+      };
+      
+      setAiInsights(insights);
+      
+      if (insights.urgencyLevel === 'high') {
         toast({
           title: "High Urgency Alert",
           description: "This presentation may require immediate attention.",
@@ -79,6 +91,11 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
       }
     } catch (error) {
       console.error('Error analyzing chief complaint:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to analyze chief complaint. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsAnalyzing(false);
     }

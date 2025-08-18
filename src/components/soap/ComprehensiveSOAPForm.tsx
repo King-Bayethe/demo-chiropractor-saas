@@ -515,8 +515,8 @@ export function ComprehensiveSOAPForm({
                   </TabsList>
                   
                   <div className="flex-1 min-h-0 overflow-hidden">
-                    <TabsContent value="patient" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-                      <ScrollArea className="flex-1 px-6 pb-6">
+                    <TabsContent value="patient" className="h-full m-0">
+                      <ScrollArea className="h-full px-6 pb-6">
                         <div className="space-y-6 pt-6">
                           <ProgressIndicator 
                             percentage={getCompletionPercentage()} 
@@ -576,8 +576,8 @@ export function ComprehensiveSOAPForm({
                       </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="subjective" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-                    <ScrollArea className="flex-1 px-6 pb-6">
+                  <TabsContent value="subjective" className="h-full m-0">
+                    <ScrollArea className="h-full px-6 pb-6">
                       <div className="space-y-6 pt-6">
                         {showAdvancedPain && (
                           <EnhancedPainAssessment
@@ -614,8 +614,8 @@ export function ComprehensiveSOAPForm({
                     </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="objective" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-                    <ScrollArea className="flex-1 px-6 pb-6">
+                  <TabsContent value="objective" className="h-full m-0">
+                    <ScrollArea className="h-full px-6 pb-6">
                       <div className="space-y-6 pt-6">
                         <EnhancedVitalSigns
                           data={formData.objective.vitalSigns}
@@ -636,8 +636,8 @@ export function ComprehensiveSOAPForm({
                     </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="assessment" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-                    <ScrollArea className="flex-1 px-6 pb-6">
+                  <TabsContent value="assessment" className="h-full m-0">
+                    <ScrollArea className="h-full px-6 pb-6">
                       <div className="space-y-6 pt-6">
                         <AssessmentSection
                           data={formData.assessment}
@@ -647,8 +647,8 @@ export function ComprehensiveSOAPForm({
                     </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="plan" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-                    <ScrollArea className="flex-1 px-6 pb-6">
+                  <TabsContent value="plan" className="h-full m-0">
+                    <ScrollArea className="h-full px-6 pb-6">
                       <div className="space-y-6 pt-6">
                         <PlanSection
                           data={formData.plan}
