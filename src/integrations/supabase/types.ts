@@ -204,6 +204,72 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_templates: {
+        Row: {
+          age_groups: string[] | null
+          approved_at: string | null
+          approved_by: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_approved: boolean | null
+          keywords: string[] | null
+          name: string
+          organization_id: string | null
+          specialty: string | null
+          template_data: Json
+          updated_at: string
+          urgency_level: string | null
+          version: number | null
+        }
+        Insert: {
+          age_groups?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_approved?: boolean | null
+          keywords?: string[] | null
+          name: string
+          organization_id?: string | null
+          specialty?: string | null
+          template_data: Json
+          updated_at?: string
+          urgency_level?: string | null
+          version?: number | null
+        }
+        Update: {
+          age_groups?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_approved?: boolean | null
+          keywords?: string[] | null
+          name?: string
+          organization_id?: string | null
+          specialty?: string | null
+          template_data?: Json
+          updated_at?: string
+          urgency_level?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       form_submissions: {
         Row: {
           created_at: string
@@ -708,6 +774,88 @@ export type Database = {
             columns: ["reply_to_id"]
             isOneToOne: false
             referencedRelation: "team_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_usage: {
+        Row: {
+          chief_complaint: string | null
+          created_at: string
+          id: string
+          patient_id: string | null
+          template_id: string | null
+          template_name: string
+          template_type: string
+          usage_context: Json | null
+          used_by: string
+        }
+        Insert: {
+          chief_complaint?: string | null
+          created_at?: string
+          id?: string
+          patient_id?: string | null
+          template_id?: string | null
+          template_name: string
+          template_type: string
+          usage_context?: Json | null
+          used_by: string
+        }
+        Update: {
+          chief_complaint?: string | null
+          created_at?: string
+          id?: string
+          patient_id?: string | null
+          template_id?: string | null
+          template_name?: string
+          template_type?: string
+          usage_context?: Json | null
+          used_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_usage_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "custom_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_versions: {
+        Row: {
+          change_notes: string | null
+          created_at: string
+          created_by: string
+          id: string
+          template_data: Json
+          template_id: string | null
+          version: number
+        }
+        Insert: {
+          change_notes?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          template_data: Json
+          template_id?: string | null
+          version: number
+        }
+        Update: {
+          change_notes?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          template_data?: Json
+          template_id?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "custom_templates"
             referencedColumns: ["id"]
           },
         ]
