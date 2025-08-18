@@ -78,21 +78,35 @@ const legalTagOptions = [
 ];
 
 export function PlanSection({ data, onChange }: PlanSectionProps) {
+  console.log('PlanSection data:', data);
   const [showEPrescribing, setShowEPrescribing] = useState(false);
 
+  // Ensure data has all required properties with default values
+  const safeData = {
+    treatments: [],
+    customTreatment: "",
+    medications: [],
+    followUpPeriod: "",
+    customFollowUp: "",
+    hasEmergencyDisclaimer: true,
+    legalTags: [],
+    additionalInstructions: "",
+    ...data
+  };
+
   const handleTreatmentChange = (treatment: string, checked: boolean) => {
-    const treatments = data.treatments || [];
+    const treatments = safeData.treatments;
     const newTreatments = checked
       ? [...treatments, treatment]
       : treatments.filter(t => t !== treatment);
     
-    onChange({ ...data, treatments: newTreatments });
+    onChange({ ...safeData, treatments: newTreatments });
   };
 
   const addMedication = () => {
     onChange({
-      ...data,
-      medications: [...(data.medications || []), {
+      ...safeData,
+      medications: [...safeData.medications, {
         genericName: '',
         brandName: '',
         strength: '',
@@ -106,27 +120,27 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
   };
 
   const updateMedication = (index: number, updates: Partial<Medication>) => {
-    const medications = data.medications || [];
+    const medications = safeData.medications;
     const newMedications = medications.map((med, i) => 
       i === index ? { ...med, ...updates } : med
     );
-    onChange({ ...data, medications: newMedications });
+    onChange({ ...safeData, medications: newMedications });
   };
 
   const removeMedication = (index: number) => {
     onChange({
-      ...data,
-      medications: (data.medications || []).filter((_, i) => i !== index)
+      ...safeData,
+      medications: safeData.medications.filter((_, i) => i !== index)
     });
   };
 
   const handleLegalTagChange = (tag: string, checked: boolean) => {
-    const legalTags = data.legalTags || [];
+    const legalTags = safeData.legalTags;
     const newTags = checked
       ? [...legalTags, tag]
       : legalTags.filter(t => t !== tag);
     
-    onChange({ ...data, legalTags: newTags });
+    onChange({ ...safeData, legalTags: newTags });
   };
 
   const emergencyDisclaimer = "Seek immediate emergency care if you experience severe worsening of symptoms, loss of bowel/bladder control, progressive weakness, or any concerning neurological changes.";
@@ -144,22 +158,22 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
           <div className="grid grid-cols-2 gap-3 mb-4">
             {treatmentOptions.map((treatment) => (
               <div key={treatment} className="flex items-center space-x-2">
-                <Checkbox
-                  id={treatment}
-                  checked={(data.treatments || []).includes(treatment)}
-                  onCheckedChange={(checked) => handleTreatmentChange(treatment, checked as boolean)}
-                />
-                <Label htmlFor={treatment} className="text-sm">{treatment}</Label>
-              </div>
-            ))}
-          </div>
-          
-          <div>
-            <Label htmlFor="customTreatment" className="text-sm mb-2 block">Additional Treatment Notes</Label>
-            <Textarea
-              id="customTreatment"
-              value={data.customTreatment}
-              onChange={(e) => onChange({ ...data, customTreatment: e.target.value })}
+                 <Checkbox
+                   id={treatment}
+                   checked={safeData.treatments.includes(treatment)}
+                   onCheckedChange={(checked) => handleTreatmentChange(treatment, checked as boolean)}
+                 />
+                 <Label htmlFor={treatment} className="text-sm">{treatment}</Label>
+               </div>
+             ))}
+           </div>
+           
+           <div>
+             <Label htmlFor="customTreatment" className="text-sm mb-2 block">Additional Treatment Notes</Label>
+             <Textarea
+               id="customTreatment"
+               value={safeData.customTreatment}
+               onChange={(e) => onChange({ ...safeData, customTreatment: e.target.value })}
               placeholder="Specify frequency, duration, or additional treatment details..."
               rows={3}
             />
@@ -189,7 +203,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
           </div>
           
           <div className="space-y-4">
-            {(data.medications || []).map((medication, index) => (
+            {safeData.medications.map((medication, index) => (
               <div key={index} className="p-4 border border-border rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -278,7 +292,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
                 </div>
               </div>
             ))}
-            {(data.medications || []).length === 0 && (
+            {safeData.medications.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No medications prescribed</p>
             )}
           </div>
@@ -293,8 +307,8 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
             <div>
               <Label className="text-sm mb-2 block">Return Visit</Label>
               <Select
-                value={data.followUpPeriod}
-                onValueChange={(value) => onChange({ ...data, followUpPeriod: value })}
+                value={safeData.followUpPeriod}
+                onValueChange={(value) => onChange({ ...safeData, followUpPeriod: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select follow-up period" />
@@ -308,12 +322,12 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
                 </SelectContent>
               </Select>
             </div>
-            {data.followUpPeriod === 'custom' && (
+            {safeData.followUpPeriod === 'custom' && (
               <div>
                 <Label className="text-sm mb-2 block">Custom Follow-up</Label>
                 <Input
-                  value={data.customFollowUp}
-                  onChange={(e) => onChange({ ...data, customFollowUp: e.target.value })}
+                  value={safeData.customFollowUp}
+                  onChange={(e) => onChange({ ...safeData, customFollowUp: e.target.value })}
                   placeholder="Specify custom follow-up schedule"
                 />
               </div>
@@ -330,14 +344,14 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
             <div className="flex items-center space-x-2">
               <Switch
                 id="emergency-disclaimer"
-                checked={data.hasEmergencyDisclaimer}
-                onCheckedChange={(checked) => onChange({ ...data, hasEmergencyDisclaimer: checked })}
+                checked={safeData.hasEmergencyDisclaimer}
+                onCheckedChange={(checked) => onChange({ ...safeData, hasEmergencyDisclaimer: checked })}
               />
               <Label htmlFor="emergency-disclaimer" className="text-sm">Include disclaimer</Label>
             </div>
           </div>
           
-          {data.hasEmergencyDisclaimer && (
+          {safeData.hasEmergencyDisclaimer && (
             <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
@@ -357,7 +371,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
               <div key={tag} className="flex items-center space-x-2">
                 <Checkbox
                   id={tag}
-                  checked={(data.legalTags || []).includes(tag)}
+                  checked={safeData.legalTags.includes(tag)}
                   onCheckedChange={(checked) => handleLegalTagChange(tag, checked as boolean)}
                 />
                 <Label htmlFor={tag} className="text-sm">{tag}</Label>
@@ -365,9 +379,9 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
             ))}
           </div>
           
-           {(data.legalTags || []).length > 0 && (
+           {safeData.legalTags.length > 0 && (
              <div className="flex flex-wrap gap-2">
-               {(data.legalTags || []).map((tag) => (
+               {safeData.legalTags.map((tag) => (
                  <Badge key={tag} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                    {tag}
                  </Badge>
@@ -386,8 +400,8 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
           </p>
           <Textarea
             id="additionalInstructions"
-            value={data.additionalInstructions}
-            onChange={(e) => onChange({ ...data, additionalInstructions: e.target.value })}
+            value={safeData.additionalInstructions}
+            onChange={(e) => onChange({ ...safeData, additionalInstructions: e.target.value })}
             placeholder="Patient education provided regarding proper lifting mechanics, posture awareness, and activity modifications. Avoid heavy lifting >20 lbs for 2 weeks..."
             rows={4}
           />
@@ -399,16 +413,16 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Treatments:</span>
-              <p className="font-medium">{(data.treatments || []).length} selected</p>
+              <p className="font-medium">{safeData.treatments.length} selected</p>
             </div>
             <div>
               <span className="text-muted-foreground">Medications:</span>
-              <p className="font-medium">{(data.medications || []).length} prescribed</p>
+              <p className="font-medium">{safeData.medications.length} prescribed</p>
             </div>
             <div>
               <span className="text-muted-foreground">Follow-up:</span>
               <p className="font-medium">
-                {data.followUpPeriod ? followUpOptions.find(opt => opt.value === data.followUpPeriod)?.label || data.customFollowUp : 'Not scheduled'}
+                {safeData.followUpPeriod ? followUpOptions.find(opt => opt.value === safeData.followUpPeriod)?.label || safeData.customFollowUp : 'Not scheduled'}
               </p>
             </div>
           </div>
