@@ -1,162 +1,346 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Zap, Target, Activity } from "lucide-react";
-
-interface Template {
-  id: string;
-  name: string;
-  complaint: string;
-  description: string;
-  icon: React.ReactNode;
-  commonSymptoms: string[];
-  commonDiagnoses: string[];
-  recommendedTests: string[];
-}
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Search, Brain, Lightbulb, Filter } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  medicalTemplates, 
+  medicalTemplateCategories,
+  getTemplatesByCategory,
+  searchTemplates,
+  type MedicalTemplate 
+} from '@/data/medicalTemplates';
 
 interface SmartTemplatesProps {
-  onApplyTemplate: (template: Template) => void;
+  onApplyTemplate: (template: MedicalTemplate) => void;
   chiefComplaint: string;
 }
 
-const templates: Template[] = [
-  {
-    id: "lower-back-pain",
-    name: "Lower Back Pain",
-    complaint: "Lower back pain",
-    description: "Comprehensive template for lower back pain assessment",
-    icon: <Activity className="w-4 h-4" />,
-    commonSymptoms: ["Back pain", "Muscle stiffness", "Limited range of motion", "Pain radiating to legs"],
-    commonDiagnoses: ["M54.5 - Low back pain", "M51.2 - Other intervertebral disc displacement"],
-    recommendedTests: ["Straight leg raise", "Patrick's test", "Lumbar spine X-ray"]
-  },
-  {
-    id: "neck-pain",
-    name: "Neck Pain",
-    complaint: "Neck pain and stiffness",
-    description: "Structured assessment for cervical spine complaints",
-    icon: <Target className="w-4 h-4" />,
-    commonSymptoms: ["Neck pain", "Headache", "Shoulder tension", "Limited neck mobility"],
-    commonDiagnoses: ["M54.2 - Cervicalgia", "M50.2 - Other cervical disc displacement"],
-    recommendedTests: ["Spurling's test", "Distraction test", "Cervical spine X-ray"]
-  },
-  {
-    id: "shoulder-pain",
-    name: "Shoulder Pain",
-    complaint: "Shoulder pain and weakness",
-    description: "Complete shoulder examination protocol",
-    icon: <Zap className="w-4 h-4" />,
-    commonSymptoms: ["Shoulder pain", "Weakness", "Limited range of motion", "Night pain"],
-    commonDiagnoses: ["M75.3 - Calcific tendinitis of shoulder", "M75.1 - Rotator cuff tear"],
-    recommendedTests: ["Empty can test", "Hawkins test", "Shoulder MRI"]
-  },
-  {
-    id: "general-pain",
-    name: "General Assessment",
-    complaint: "General musculoskeletal complaint",
-    description: "Basic template for general complaints",
-    icon: <Lightbulb className="w-4 h-4" />,
-    commonSymptoms: ["Pain", "Stiffness", "Decreased function"],
-    commonDiagnoses: ["M79.3 - Panniculitis unspecified"],
-    recommendedTests: ["Range of motion assessment", "Strength testing"]
-  }
-];
+interface AIInsights {
+  possibleDiagnoses: string[];
+  recommendedQuestions: string[];
+  clinicalNotes: string;
+  urgencyLevel: 'low' | 'medium' | 'high';
+}
+
+interface GeminiResponse {
+  suggestedTemplates: string[];
+  aiInsights: AIInsights;
+  autocompletions: {
+    subjective?: string;
+    objective?: string;
+    assessment?: string;
+    plan?: string;
+  };
+}
 
 export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplatesProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { toast } = useToast();
 
-  // Suggest templates based on chief complaint
+  // Get AI insights when chief complaint changes
+  useEffect(() => {
+    if (chiefComplaint && chiefComplaint.length > 10) {
+      analyzeChiefComplaint();
+    }
+  }, [chiefComplaint]);
+
+  const analyzeChiefComplaint = async () => {
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gemini-smart-templates', {
+        body: {
+          action: 'analyze',
+          chiefComplaint,
+        }
+      });
+
+      if (error) throw error;
+
+      const response: GeminiResponse = data;
+      setAiInsights(response.aiInsights);
+      
+      if (response.aiInsights.urgencyLevel === 'high') {
+        toast({
+          title: "High Urgency Alert",
+          description: "This presentation may require immediate attention.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error analyzing chief complaint:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const getSuggestedTemplates = () => {
-    const complaint = chiefComplaint.toLowerCase();
+    if (!chiefComplaint) return [];
     
-    if (complaint.includes("back") || complaint.includes("lumbar")) {
-      return templates.filter(t => t.id === "lower-back-pain");
-    }
-    if (complaint.includes("neck") || complaint.includes("cervical")) {
-      return templates.filter(t => t.id === "neck-pain");
-    }
-    if (complaint.includes("shoulder")) {
-      return templates.filter(t => t.id === "shoulder-pain");
+    const keywords = chiefComplaint.toLowerCase().split(' ');
+    return medicalTemplates.filter(template => 
+      keywords.some(keyword => 
+        template.keywords.some(templateKeyword => 
+          templateKeyword.toLowerCase().includes(keyword) ||
+          keyword.includes(templateKeyword.toLowerCase())
+        )
+      )
+    ).slice(0, 6);
+  };
+
+  const getFilteredTemplates = () => {
+    let filtered = medicalTemplates;
+    
+    if (selectedCategory !== 'all') {
+      filtered = getTemplatesByCategory(selectedCategory);
     }
     
-    return templates.slice(0, 2); // Show first 2 as general suggestions
+    if (searchQuery) {
+      filtered = searchTemplates(searchQuery);
+    }
+    
+    return filtered;
+  };
+
+  const handleApplyTemplate = (template: MedicalTemplate) => {
+    onApplyTemplate(template);
+    toast({
+      title: "Template Applied",
+      description: `${template.name} template has been applied.`,
+    });
   };
 
   const suggestedTemplates = getSuggestedTemplates();
+  const filteredTemplates = getFilteredTemplates();
 
   return (
-    <Card className="border-dashed border-medical-blue">
-      <CardHeader className="pb-3">
-        <div className="flex items-center space-x-2">
-          <Lightbulb className="w-5 h-5 text-medical-blue" />
-          <CardTitle className="text-base">Smart Templates</CardTitle>
-          {suggestedTemplates.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {suggestedTemplates.length} suggested
-            </Badge>
-          )}
-        </div>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Brain className="h-5 w-5 text-primary" />
+          Smart Templates
+          {isAnalyzing && <Loader2 className="h-4 w-4 animate-spin" />}
+        </CardTitle>
+        <CardDescription>
+          AI-powered template suggestions and clinical insights
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {(suggestedTemplates.length > 0 ? suggestedTemplates : templates.slice(0, 3)).map((template) => (
-          <div
-            key={template.id}
-            className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
-              selectedTemplate === template.id
-                ? "border-medical-blue bg-medical-blue-light"
-                : "border-border hover:border-medical-blue/50"
-            }`}
-            onClick={() => setSelectedTemplate(template.id)}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                {template.icon}
-                <div>
-                  <h4 className="font-medium text-sm">{template.name}</h4>
-                  <p className="text-xs text-muted-foreground">{template.description}</p>
+      <CardContent className="space-y-4">
+        {/* Search and Filter Controls */}
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search templates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {medicalTemplateCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Tabs defaultValue="suggestions" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+            <TabsTrigger value="insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="browse">Browse All</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="suggestions" className="space-y-4 mt-4">
+            {suggestedTemplates.length > 0 ? (
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  Suggested for "{chiefComplaint}"
+                </h4>
+                <div className="space-y-2">
+                  {suggestedTemplates.map((template) => (
+                    <TemplateCard
+                      key={template.id}
+                      template={template}
+                      isSelected={selectedTemplate === template.id}
+                      onSelect={setSelectedTemplate}
+                      onApply={handleApplyTemplate}
+                    />
+                  ))}
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onApplyTemplate(template);
-                }}
-                className="text-xs"
-              >
-                Apply
-              </Button>
-            </div>
-            
-            {selectedTemplate === template.id && (
-              <div className="mt-3 space-y-2 text-xs">
-                <div>
-                  <span className="font-medium">Common symptoms:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {template.commonSymptoms.map((symptom, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs py-0">
-                        {symptom}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <span className="font-medium">Typical diagnoses:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {template.commonDiagnoses.map((diagnosis, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs py-0">
-                        {diagnosis}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>Enter a chief complaint to get AI-powered suggestions</p>
               </div>
             )}
-          </div>
-        ))}
+          </TabsContent>
+
+          <TabsContent value="insights" className="space-y-4 mt-4">
+            {aiInsights ? (
+              <div className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h5 className="font-medium mb-2 flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${
+                        aiInsights.urgencyLevel === 'high' ? 'bg-red-500' :
+                        aiInsights.urgencyLevel === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                      }`} />
+                      Urgency Level: {aiInsights.urgencyLevel.toUpperCase()}
+                    </h5>
+                    <p className="text-sm text-muted-foreground">{aiInsights.clinicalNotes}</p>
+                  </div>
+
+                  {aiInsights.possibleDiagnoses.length > 0 && (
+                    <div>
+                      <h5 className="font-medium mb-2">Possible Diagnoses</h5>
+                      <div className="flex flex-wrap gap-1">
+                        {aiInsights.possibleDiagnoses.map((diagnosis, index) => (
+                          <Badge key={index} variant="secondary">
+                            {diagnosis}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {aiInsights.recommendedQuestions.length > 0 && (
+                    <div>
+                      <h5 className="font-medium mb-2">Recommended Questions</h5>
+                      <ul className="space-y-1">
+                        {aiInsights.recommendedQuestions.map((question, index) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <span className="text-primary">•</span>
+                            {question}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>AI insights will appear here after analyzing your chief complaint</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="browse" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              {filteredTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  isSelected={selectedTemplate === template.id}
+                  onSelect={setSelectedTemplate}
+                  onApply={handleApplyTemplate}
+                />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
+  );
+}
+
+interface TemplateCardProps {
+  template: MedicalTemplate;
+  isSelected: boolean;
+  onSelect: (id: string | null) => void;
+  onApply: (template: MedicalTemplate) => void;
+}
+
+function TemplateCard({ template, isSelected, onSelect, onApply }: TemplateCardProps) {
+  return (
+    <div
+      className={`p-3 rounded-lg border transition-all duration-200 ${
+        isSelected
+          ? 'border-primary bg-primary/5'
+          : 'border-border hover:border-primary/50 hover:bg-muted/50'
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">{template.icon}</span>
+            <h5 className="font-medium text-sm">{template.name}</h5>
+            <Badge variant="outline" className="text-xs">
+              {template.category}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mb-2">
+            {template.description}
+          </p>
+          
+          {isSelected && (
+            <div className="space-y-2 text-xs">
+              <div className="flex flex-wrap gap-1">
+                <Badge variant="secondary" className="text-xs">
+                  {template.urgencyLevel} urgency
+                </Badge>
+                {template.ageGroups.map((age) => (
+                  <Badge key={age} variant="outline" className="text-xs">
+                    {age}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div>
+                <span className="font-medium">Keywords:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {template.keywords.slice(0, 5).map((keyword, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col gap-1 ml-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onSelect(isSelected ? null : template.id)}
+            className="text-xs h-7"
+          >
+            {isSelected ? 'Hide' : 'View'}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => onApply(template)}
+            className="text-xs h-7"
+          >
+            Apply
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
