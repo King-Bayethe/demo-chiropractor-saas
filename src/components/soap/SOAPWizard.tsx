@@ -314,10 +314,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     
     setWizardData(prev => ({
       ...prev,
-      overview: {
-        ...prev.overview,
-        chiefComplaint: template.template?.subjective?.chiefComplaint || template.chiefComplaint || prev.overview.chiefComplaint
-      },
+      chiefComplaint: template.template?.subjective?.chiefComplaint || template.chiefComplaint || prev.chiefComplaint,
       subjective: chiropracticData?.subjective ? {
         ...prev.subjective,
         mainComplaints: chiropracticData.subjective.mainComplaints || prev.subjective.mainComplaints,
@@ -383,7 +380,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     }));
     
     toast({
-      title: "Template Applied",
+      title: "Template Applied", 
       description: `${template.name} template has been applied to the form.`,
     });
   };

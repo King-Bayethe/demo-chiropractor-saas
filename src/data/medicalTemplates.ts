@@ -898,38 +898,92 @@ export const medicalTemplates: MedicalTemplate[] = [
     chiropracticTemplate: {
       subjective: {
         mainComplaints: ['Shoulder'],
-        painAssessment: {
-          rating: 7,
-          descriptions: ['Sharp', 'Achy'],
-          frequency: 'Intermittent',
-          radiation: 'No radiation',
-          triggers: ['Overhead reaching', 'Lifting']
-        },
-        problemHistory: {
-          onset: 'Gradual',
-          mechanism: 'Repetitive overhead activity',
-          aggravatingFactors: ['Overhead activities', 'Sleeping on affected side'],
-          alleviatingFactors: ['Rest', 'Ice', 'Anti-inflammatories']
-        },
+        otherComplaint: '',
+        problemStart: '1 month ago',
+        problemBegin: 'Gradual',
+        painRating: [7],
+        painBetter: 'Rest, ice, anti-inflammatories',
+        painWorse: 'Overhead activities, sleeping on affected side',
+        painDescriptions: ['Sharp', 'Achy'],
+        painRadiate: 'No radiation',
+        painFrequency: ['Intermittent'],
+        otherSymptoms: 'Shoulder stiffness, weakness with overhead activities',
+        medications: 'Ibuprofen 400mg twice daily',
         reviewOfSystems: {
-          musculoskeletal: ['Shoulder stiffness', 'Weakness with overhead activities']
+          neurological: { 'Headaches': 'no', 'Dizziness': 'no', 'Numbness': 'no', 'Weakness': 'yes', 'Tremors': 'no', 'Memory issues': 'no' },
+          cardiovascular: { 'Chest pain': 'no', 'Palpitations': 'no', 'Swelling': 'no', 'Shortness of breath': 'no', 'High blood pressure': 'no' },
+          respiratory: { 'Cough': 'no', 'Wheezing': 'no', 'Breathing difficulties': 'no', 'Asthma': 'no' },
+          musculoskeletal: { 'Joint pain': 'yes', 'Stiffness': 'yes', 'Swelling': 'no', 'Muscle weakness': 'yes', 'Previous injuries': 'no' },
+          gastrointestinal: { 'Poor appetite': 'no', 'Nausea': 'no', 'Bowel changes': 'no', 'Abdominal pain': 'no' },
+          genitourinary: { 'Frequent urination': 'no', 'Urgency': 'no', 'Pain with urination': 'no', 'Reproductive issues': 'no' },
+          endocrine: { 'Fatigue': 'no', 'Weight changes': 'no', 'Temperature sensitivity': 'no', 'Excessive thirst': 'no' },
+          skinImmune: { 'Rashes': 'no', 'Allergies': 'no', 'Frequent infections': 'no', 'Poor healing': 'no' },
+          mentalHealth: { 'Mood changes': 'no', 'Sleep problems': 'no', 'Anxiety': 'no', 'High stress levels': 'no' },
+          notes: {
+            neurological: 'Weakness with overhead activities',
+            cardiovascular: '',
+            respiratory: '',
+            musculoskeletal: 'Shoulder stiffness and weakness with overhead activities',
+            gastrointestinal: '',
+            genitourinary: '',
+            endocrine: '',
+            skinImmune: '',
+            mentalHealth: ''
+          }
         }
       },
       objective: {
         posture: ['Rounded Shoulders'],
         gait: ['Normal'],
-        rangeOfMotion: {},
-        orthopedicTests: [
-          { name: 'Hawkins-Kennedy Test', result: 'Positive', notes: 'Pain with impingement' },
-          { name: 'Neer\'s Test', result: 'Positive', notes: 'Reproduces shoulder pain' },
-          { name: 'Empty Can Test', result: 'Weak', notes: 'Supraspinatus weakness' }
-        ],
-        neurologicalFindings: {
-          reflexes: { 'Biceps': 'Normal', 'Triceps': 'Normal' },
-          sensation: { 'Deltoid': 'Intact', 'Lateral arm': 'Intact' },
-          strength: { 'Supraspinatus': 'Weak', 'Infraspinatus': 'Normal', 'Deltoid': 'Normal' }
+        gaitOther: '',
+        muscleTone: 'Normal',
+        tenderness: 'Subacromial space, greater tuberosity',
+        triggerPoints: 'None noted',
+        jointFixation: 'Posterior capsule tightness',
+        edema: 'Mild',
+        edemaLocation: 'Right shoulder',
+        reflexes: 'Normal and symmetrical',
+        sensation: 'Intact',
+        sensationLocation: '',
+        strength: '4/5 shoulder abduction and external rotation',
+        strengthMuscle: 'Rotator cuff muscles',
+        vitalSigns: {
+          bp: '',
+          hr: '',
+          resp: '',
+          temp: '',
+          height: '',
+          weight: '',
+          oxygenSaturation: ''
         },
-        clinicalFindings: ['Subacromial tenderness', 'Restricted shoulder abduction']
+        rangeOfMotion: {
+          cervical: {
+            flexion: '',
+            extension: '',
+            rotation: '',
+            lateralFlexion: ''
+          },
+          thoracic: {
+            rotation: '',
+            flexionExtension: ''
+          },
+          lumbar: {
+            flexion: '',
+            extension: '',
+            lateralFlexion: '',
+            rotation: ''
+          }
+        },
+        orthopedicTests: {
+          slr: '',
+          slrAngle: '',
+          kemps: '',
+          kempsSide: '',
+          faber: '',
+          faberSide: '',
+          yeoman: '',
+          otherTests: 'Hawkins-Kennedy: positive, Neer\'s: positive, Empty can: weak'
+        }
       }
     },
     redFlags: ['Complete loss of function', 'Signs of massive rotator cuff tear', 'Neurovascular compromise'],
