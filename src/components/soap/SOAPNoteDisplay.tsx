@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -236,7 +235,7 @@ export function SOAPNoteDisplay({ note, patientName }: SOAPNoteDisplayProps) {
               <div className="flex flex-wrap gap-2">
                 {planData.treatments.map((treatment, index) => (
                   <Badge key={index} variant="outline">
-                    {typeof treatment === 'string' ? treatment : treatment.treatment || 'Unknown Treatment'}
+                    {typeof treatment === 'string' ? treatment : (treatment as any)?.treatment || (treatment as any)?.name || 'Unknown Treatment'}
                   </Badge>
                 ))}
               </div>
