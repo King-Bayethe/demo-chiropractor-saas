@@ -81,9 +81,10 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
   const [showEPrescribing, setShowEPrescribing] = useState(false);
 
   const handleTreatmentChange = (treatment: string, checked: boolean) => {
+    const treatments = data.treatments || [];
     const newTreatments = checked
-      ? [...data.treatments, treatment]
-      : data.treatments.filter(t => t !== treatment);
+      ? [...treatments, treatment]
+      : treatments.filter(t => t !== treatment);
     
     onChange({ ...data, treatments: newTreatments });
   };
@@ -91,7 +92,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
   const addMedication = () => {
     onChange({
       ...data,
-      medications: [...data.medications, {
+      medications: [...(data.medications || []), {
         genericName: '',
         brandName: '',
         strength: '',
@@ -105,7 +106,8 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
   };
 
   const updateMedication = (index: number, updates: Partial<Medication>) => {
-    const newMedications = data.medications.map((med, i) => 
+    const medications = data.medications || [];
+    const newMedications = medications.map((med, i) => 
       i === index ? { ...med, ...updates } : med
     );
     onChange({ ...data, medications: newMedications });
@@ -114,14 +116,15 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
   const removeMedication = (index: number) => {
     onChange({
       ...data,
-      medications: data.medications.filter((_, i) => i !== index)
+      medications: (data.medications || []).filter((_, i) => i !== index)
     });
   };
 
   const handleLegalTagChange = (tag: string, checked: boolean) => {
+    const legalTags = data.legalTags || [];
     const newTags = checked
-      ? [...data.legalTags, tag]
-      : data.legalTags.filter(t => t !== tag);
+      ? [...legalTags, tag]
+      : legalTags.filter(t => t !== tag);
     
     onChange({ ...data, legalTags: newTags });
   };
@@ -143,7 +146,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
               <div key={treatment} className="flex items-center space-x-2">
                 <Checkbox
                   id={treatment}
-                  checked={data.treatments.includes(treatment)}
+                  checked={(data.treatments || []).includes(treatment)}
                   onCheckedChange={(checked) => handleTreatmentChange(treatment, checked as boolean)}
                 />
                 <Label htmlFor={treatment} className="text-sm">{treatment}</Label>
@@ -186,7 +189,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
           </div>
           
           <div className="space-y-4">
-            {data.medications.map((medication, index) => (
+            {(data.medications || []).map((medication, index) => (
               <div key={index} className="p-4 border border-border rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -275,7 +278,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
                 </div>
               </div>
             ))}
-            {data.medications.length === 0 && (
+            {(data.medications || []).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No medications prescribed</p>
             )}
           </div>
@@ -354,7 +357,7 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
               <div key={tag} className="flex items-center space-x-2">
                 <Checkbox
                   id={tag}
-                  checked={data.legalTags.includes(tag)}
+                  checked={(data.legalTags || []).includes(tag)}
                   onCheckedChange={(checked) => handleLegalTagChange(tag, checked as boolean)}
                 />
                 <Label htmlFor={tag} className="text-sm">{tag}</Label>
@@ -362,9 +365,9 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
             ))}
           </div>
           
-           {data.legalTags.length > 0 && (
+           {(data.legalTags || []).length > 0 && (
              <div className="flex flex-wrap gap-2">
-               {data.legalTags.map((tag) => (
+               {(data.legalTags || []).map((tag) => (
                  <Badge key={tag} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                    {tag}
                  </Badge>
@@ -396,11 +399,11 @@ export function PlanSection({ data, onChange }: PlanSectionProps) {
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Treatments:</span>
-              <p className="font-medium">{data.treatments.length} selected</p>
+              <p className="font-medium">{(data.treatments || []).length} selected</p>
             </div>
             <div>
               <span className="text-muted-foreground">Medications:</span>
-              <p className="font-medium">{data.medications.length} prescribed</p>
+              <p className="font-medium">{(data.medications || []).length} prescribed</p>
             </div>
             <div>
               <span className="text-muted-foreground">Follow-up:</span>
