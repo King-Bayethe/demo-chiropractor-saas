@@ -9,8 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { PatientProfileHeader } from "./PatientProfileHeader";
-import { SubjectiveSection, SubjectiveData } from "./SubjectiveSection";
-import { ObjectiveSection, ObjectiveData } from "./ObjectiveSection";
+import { ChiropracticSubjectiveSection, ChiropracticSubjectiveData } from "./ChiropracticSubjectiveSection";
+import { ChiropracticObjectiveSection, ChiropracticObjectiveData } from "./ChiropracticObjectiveSection";
 import { AssessmentSection, AssessmentData } from "./AssessmentSection";
 import { PlanSection, PlanData } from "./PlanSection";
 import { SmartTemplates } from "./SmartTemplates";
@@ -45,8 +45,8 @@ interface WizardData {
   dateCreated: Date;
   chiefComplaint: string;
   isQuickNote: boolean;
-  subjective: SubjectiveData;
-  objective: ObjectiveData;
+  subjective: ChiropracticSubjectiveData;
+  objective: ChiropracticObjectiveData;
   assessment: AssessmentData;
   plan: PlanData;
 }
@@ -73,22 +73,94 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     chiefComplaint: "",
     isQuickNote: false,
     subjective: {
-      symptoms: [],
-      painScale: null,
-      painDescription: "",
+      mainComplaints: [],
+      otherComplaint: "",
+      problemStart: "",
+      problemBegin: "",
+      painRating: [5],
+      painBetter: "",
+      painWorse: "",
+      painDescriptions: [],
+      painRadiate: "",
+      painFrequency: [],
       otherSymptoms: "",
+      medications: "",
+      reviewOfSystems: {
+        neurological: {},
+        cardiovascular: {},
+        respiratory: {},
+        musculoskeletal: {},
+        gastrointestinal: {},
+        genitourinary: {},
+        endocrine: {},
+        skinImmune: {},
+        mentalHealth: {},
+        notes: {
+          neurological: "",
+          cardiovascular: "",
+          respiratory: "",
+          musculoskeletal: "",
+          gastrointestinal: "",
+          genitourinary: "",
+          endocrine: "",
+          skinImmune: "",
+          mentalHealth: "",
+        }
+      },
       isRefused: false,
       isWithinNormalLimits: false
     },
     objective: {
+      posture: [],
+      gait: [],
+      gaitOther: "",
+      muscleTone: "",
+      tenderness: "",
+      triggerPoints: "",
+      jointFixation: "",
+      edema: "",
+      edemaLocation: "",
+      reflexes: "",
+      sensation: "",
+      sensationLocation: "",
+      strength: "",
+      strengthMuscle: "",
       vitalSigns: {
+        bp: "",
+        hr: "",
+        resp: "",
+        temp: "",
         height: "",
         weight: "",
-        bloodPressure: "",
-        heartRate: "",
-        temperature: "",
         oxygenSaturation: "",
-        respiratoryRate: ""
+      },
+      rangeOfMotion: {
+        cervical: {
+          flexion: "",
+          extension: "",
+          rotation: "",
+          lateralFlexion: "",
+        },
+        thoracic: {
+          rotation: "",
+          flexionExtension: "",
+        },
+        lumbar: {
+          flexion: "",
+          extension: "",
+          lateralFlexion: "",
+          rotation: "",
+        },
+      },
+      orthopedicTests: {
+        slr: "",
+        slrAngle: "",
+        kemps: "",
+        kempsSide: "",
+        faber: "",
+        faberSide: "",
+        yeoman: "",
+        otherTests: "",
       },
       systemExams: [],
       specialTests: [],
@@ -188,12 +260,16 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
       case 0: // Overview
         return !!wizardData.chiefComplaint.trim();
       case 1: // Subjective
-        return wizardData.subjective.symptoms.length > 0 || 
-               !!wizardData.subjective.painDescription || 
+        return wizardData.subjective.mainComplaints.length > 0 || 
+               !!wizardData.subjective.otherComplaint ||
+               !!wizardData.subjective.problemStart ||
                wizardData.subjective.isRefused || 
                wizardData.subjective.isWithinNormalLimits;
       case 2: // Objective
         return Object.values(wizardData.objective.vitalSigns).some(v => v) || 
+               wizardData.objective.posture.length > 0 ||
+               wizardData.objective.gait.length > 0 ||
+               Object.values(wizardData.objective.rangeOfMotion.cervical).some(v => v) ||
                wizardData.objective.systemExams.length > 0;
       case 3: // Assessment
         return wizardData.assessment.diagnoses.length > 0 || 
@@ -238,8 +314,8 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
       chiefComplaint: template.chiefComplaint || template.complaint || prev.chiefComplaint,
       subjective: {
         ...prev.subjective,
-        symptoms: template.subjectiveTemplate?.symptoms || template.commonSymptoms || prev.subjective.symptoms,
-        painDescription: template.subjectiveTemplate?.painDescription || prev.subjective.painDescription,
+        mainComplaints: template.subjectiveTemplate?.symptoms || template.commonSymptoms || prev.subjective.mainComplaints,
+        painDescriptions: template.subjectiveTemplate?.painDescriptions || prev.subjective.painDescriptions,
         otherSymptoms: template.subjectiveTemplate?.otherSymptoms || prev.subjective.otherSymptoms
       },
       objective: {
@@ -328,7 +404,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         
       case 1: // Subjective
         return (
-          <SubjectiveSection
+          <ChiropracticSubjectiveSection
             data={wizardData.subjective}
             onChange={(data) => setWizardData(prev => ({ ...prev, subjective: data }))}
           />
@@ -336,7 +412,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         
       case 2: // Objective
         return (
-          <ObjectiveSection
+          <ChiropracticObjectiveSection
             data={wizardData.objective}
             onChange={(data) => setWizardData(prev => ({ ...prev, objective: data }))}
           />
