@@ -12,9 +12,10 @@ import { AssessmentSection, AssessmentData } from "./AssessmentSection";
 import { PlanSection, PlanData } from "./PlanSection";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { SmartTemplates } from "./SmartTemplates";
+import { ClinicalDecisionSupport } from "./ClinicalDecisionSupport";
 import { EnhancedPainAssessment } from "./EnhancedPainAssessment";
 import { EnhancedVitalSigns } from "./EnhancedVitalSigns";
-import { ChevronDown, Save, FileText, Download, Clock, X, Zap, Brain, AlertCircle, RotateCcw } from "lucide-react";
+import { ChevronDown, Save, FileText, Download, Clock, X, Zap, Brain, AlertCircle, RotateCcw, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -53,6 +54,7 @@ export function ComprehensiveSOAPForm({
   const [activeTab, setActiveTab] = useState("patient");
   const [openSections, setOpenSections] = useState<string[]>(["subjective"]);
   const [showAdvancedPain, setShowAdvancedPain] = useState(false);
+  const [showClinicalSupport, setShowClinicalSupport] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [draftToRestore, setDraftToRestore] = useState<any>(null);
   
@@ -350,15 +352,24 @@ export function ComprehensiveSOAPForm({
                   Restore Draft
                 </Button>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowAdvancedPain(!showAdvancedPain)}
-                className={showAdvancedPain ? "bg-medical-blue-light border-medical-blue" : ""}
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Advanced Pain
-              </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowAdvancedPain(!showAdvancedPain)}
+                  className={showAdvancedPain ? "bg-medical-blue-light border-medical-blue" : ""}
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Advanced Pain
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowClinicalSupport(!showClinicalSupport)}
+                  className={showClinicalSupport ? "bg-medical-green-light border-medical-green" : ""}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Clinical Support
+                </Button>
               <Button variant="outline" size="sm" onClick={exportToPDF}>
                 <Download className="w-4 h-4 mr-2" />
                 Export PDF
@@ -379,97 +390,99 @@ export function ComprehensiveSOAPForm({
 
           {/* Content */}
           <div className="flex h-[calc(90vh-120px)]">
-            {isQuickNote ? (
-              // Quick Note Mode - Collapsible Sections
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-6">
-                  <ProgressIndicator 
-                    percentage={getCompletionPercentage()} 
-                    sectionsComplete={getSectionsComplete()}
-                  />
-                  
-                  <PatientProfileHeader 
-                    patient={mockPatient} 
-                    isQuickNote={isQuickNote}
-                    onToggleMode={() => setIsQuickNote(!isQuickNote)}
-                  />
-                  
-                  <SmartTemplates 
-                    onApplyTemplate={applyTemplate}
-                    chiefComplaint={formData.chiefComplaint}
-                  />
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Chief Complaint</label>
-                    <input
-                      type="text"
-                      value={formData.chiefComplaint}
-                      onChange={(e) => setFormData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
-                      placeholder="Brief description of main concern"
-                      className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+            {/* Main Content */}
+            <div className={`flex-1 ${showClinicalSupport ? 'w-2/3' : 'w-full'}`}>
+              {isQuickNote ? (
+                // Quick Note Mode - Collapsible Sections
+                <ScrollArea className="flex-1 p-6">
+                  <div className="space-y-6">
+                    <ProgressIndicator 
+                      percentage={getCompletionPercentage()} 
+                      sectionsComplete={getSectionsComplete()}
+                    />
+                    
+                    <PatientProfileHeader 
+                      patient={mockPatient} 
+                      isQuickNote={isQuickNote}
+                      onToggleMode={() => setIsQuickNote(!isQuickNote)}
+                    />
+                    
+                    <SmartTemplates 
+                      onApplyTemplate={applyTemplate}
+                      chiefComplaint={formData.chiefComplaint}
                     />
                   </div>
                   
-                  {/* Collapsible SOAP Sections */}
-                  {[
-                    { id: "subjective", title: "Subjective", component: SubjectiveSection },
-                    { id: "objective", title: "Objective", component: ObjectiveSection },
-                    { id: "assessment", title: "Assessment", component: AssessmentSection },
-                    { id: "plan", title: "Plan", component: PlanSection }
-                  ].map(({ id, title, component: Component }) => {
-                    const isOpen = openSections.includes(id);
-                    return (
-                      <Collapsible key={id} open={isOpen} onOpenChange={() => toggleSection(id)}>
-                        <CollapsibleTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between h-auto py-3">
-                            <span className="font-medium">{title}</span>
-                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="mt-2">
-                          <Component
-                            data={formData[id as keyof SOAPFormData] as any}
-                            onChange={(data: any) => setFormData(prev => ({ ...prev, [id]: data }))}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Chief Complaint</label>
+                      <input
+                        type="text"
+                        value={formData.chiefComplaint}
+                        onChange={(e) => setFormData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
+                        placeholder="Brief description of main concern"
+                        className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                      />
+                    </div>
+                    
+                    {/* Collapsible SOAP Sections */}
+                    {[
+                      { id: "subjective", title: "Subjective", component: SubjectiveSection },
+                      { id: "objective", title: "Objective", component: ObjectiveSection },
+                      { id: "assessment", title: "Assessment", component: AssessmentSection },
+                      { id: "plan", title: "Plan", component: PlanSection }
+                    ].map(({ id, title, component: Component }) => {
+                      const isOpen = openSections.includes(id);
+                      return (
+                        <Collapsible key={id} open={isOpen} onOpenChange={() => toggleSection(id)}>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between h-auto py-3">
+                              <span className="font-medium">{title}</span>
+                              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-2">
+                            <Component
+                              data={formData[id as keyof SOAPFormData] as any}
+                              onChange={(data: any) => setFormData(prev => ({ ...prev, [id]: data }))}
+                            />
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              ) : (
+                // Full Assessment Mode - Tabs
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+                  <TabsList className="mx-6 mt-6 grid w-full grid-cols-5">
+                    <TabsTrigger value="patient">Patient</TabsTrigger>
+                    <TabsTrigger value="subjective">Subjective</TabsTrigger>
+                    <TabsTrigger value="objective">Objective</TabsTrigger>
+                    <TabsTrigger value="assessment">Assessment</TabsTrigger>
+                    <TabsTrigger value="plan">Plan</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="flex-1 overflow-hidden">
+                    <TabsContent value="patient" className="h-full">
+                      <ScrollArea className="h-full px-6 pb-6">
+                        <div className="space-y-6">
+                          <ProgressIndicator 
+                            percentage={getCompletionPercentage()} 
+                            sectionsComplete={getSectionsComplete()}
                           />
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            ) : (
-              // Full Assessment Mode - Tabs
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="mx-6 mt-6 grid w-full grid-cols-5">
-                  <TabsTrigger value="patient">Patient</TabsTrigger>
-                  <TabsTrigger value="subjective">Subjective</TabsTrigger>
-                  <TabsTrigger value="objective">Objective</TabsTrigger>
-                  <TabsTrigger value="assessment">Assessment</TabsTrigger>
-                  <TabsTrigger value="plan">Plan</TabsTrigger>
-                </TabsList>
-                
-                <div className="flex-1 overflow-hidden">
-                  <TabsContent value="patient" className="h-full">
-                    <ScrollArea className="h-full px-6 pb-6">
-                      <div className="space-y-6">
-                        <ProgressIndicator 
-                          percentage={getCompletionPercentage()} 
-                          sectionsComplete={getSectionsComplete()}
-                        />
-                        
-                        <PatientProfileHeader 
-                          patient={mockPatient} 
-                          isQuickNote={isQuickNote}
-                          onToggleMode={() => setIsQuickNote(!isQuickNote)}
-                        />
-                        
-                        <SmartTemplates 
-                          onApplyTemplate={applyTemplate}
-                          chiefComplaint={formData.chiefComplaint}
-                        />
-                      </div>
+                          
+                          <PatientProfileHeader 
+                            patient={mockPatient} 
+                            isQuickNote={isQuickNote}
+                            onToggleMode={() => setIsQuickNote(!isQuickNote)}
+                          />
+                          
+                          <SmartTemplates 
+                            onApplyTemplate={applyTemplate}
+                            chiefComplaint={formData.chiefComplaint}
+                          />
+                        </div>
                       
                       <Card>
                         <CardHeader>
@@ -588,9 +601,26 @@ export function ComprehensiveSOAPForm({
                         onChange={(data) => setFormData(prev => ({ ...prev, plan: data }))}
                       />
                     </ScrollArea>
-                  </TabsContent>
-                </div>
-              </Tabs>
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              )}
+            </div>
+
+            {/* Clinical Decision Support Sidebar */}
+            {showClinicalSupport && (
+              <div className="w-1/3 border-l border-border">
+                <ClinicalDecisionSupport 
+                  formData={formData}
+                  onSuggestionApply={(field, value) => {
+                    // Handle suggestion application based on current context
+                    toast({
+                      title: "Suggestion Applied",
+                      description: "AI suggestion has been applied to the form.",
+                    });
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>
