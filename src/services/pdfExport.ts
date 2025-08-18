@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { SOAPNote } from '../hooks/useSOAPNotes';
 import { SOAPFormData } from '../components/soap/ComprehensiveSOAPForm';
