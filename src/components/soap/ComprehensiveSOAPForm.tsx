@@ -278,13 +278,32 @@ export function ComprehensiveSOAPForm({
   };
 
   const applyTemplate = (template: any) => {
-    // Auto-fill chief complaint
+    // Auto-fill form fields from template
     setFormData(prev => ({
       ...prev,
-      chiefComplaint: template.complaint,
+      chiefComplaint: template.chiefComplaint || template.complaint || '',
       subjective: {
         ...prev.subjective,
-        symptoms: template.commonSymptoms || []
+        symptoms: template.subjectiveTemplate?.symptoms || template.commonSymptoms || [],
+        painDescription: template.subjectiveTemplate?.painDescription || '',
+        otherSymptoms: template.subjectiveTemplate?.otherSymptoms || ''
+      },
+      objective: {
+        ...prev.objective,
+        systemExams: template.objectiveTemplate?.systemExams || [],
+        specialTests: template.objectiveTemplate?.specialTests || []
+      },
+      assessment: {
+        ...prev.assessment,
+        diagnoses: template.assessmentTemplate?.diagnoses || [],
+        clinicalImpression: template.assessmentTemplate?.clinicalImpression || ''
+      },
+      plan: {
+        ...prev.plan,
+        treatments: template.planTemplate?.treatments || [],
+        medications: template.planTemplate?.medications || [],
+        followUpPeriod: template.planTemplate?.followUpPeriod || '',
+        additionalInstructions: template.planTemplate?.additionalInstructions || ''
       }
     }));
     
