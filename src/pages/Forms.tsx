@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
+import { ChiropracticSOAPQuestionnaire } from "@/components/ChiropracticSOAPQuestionnaire";
 import { toast } from "sonner";
 import { 
   FileText, 
@@ -19,7 +20,9 @@ import {
   CheckCircle,
   Clock,
   Download,
-  Filter
+  Filter,
+  Plus,
+  Stethoscope
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +44,7 @@ export default function Forms() {
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [showSOAPQuestionnaire, setShowSOAPQuestionnaire] = useState(false);
 
   useEffect(() => {
     fetchSubmissions();
@@ -106,6 +110,8 @@ export default function Forms() {
         return { name: 'LOP Form', icon: FileText, color: 'bg-green-500/10 text-green-700' };
       case 'cash':
         return { name: 'Cash Patient Form', icon: Users, color: 'bg-purple-500/10 text-purple-700' };
+      case 'soap_questionnaire':
+        return { name: 'Chiropractic SOAP Questionnaire', icon: Stethoscope, color: 'bg-medical-teal/10 text-medical-teal' };
       default:
         return { name: type, icon: FileText, color: 'bg-gray-500/10 text-gray-700' };
     }
@@ -251,12 +257,37 @@ export default function Forms() {
     return sections;
   };
 
+  const handleSOAPQuestionnaireSubmit = async (data: any) => {
+    try {
+      const { error } = await supabase
+        .from('form_submissions')
+        .insert({
+          form_type: 'soap_questionnaire',
+          form_data: data,
+          patient_name: data.patientName,
+          patient_email: data.patientEmail || null,
+          patient_phone: data.patientPhone || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast.success("SOAP Questionnaire submitted successfully");
+      setShowSOAPQuestionnaire(false);
+      fetchSubmissions(); // Refresh the list
+    } catch (error) {
+      console.error('Error submitting SOAP questionnaire:', error);
+      toast.error("Failed to submit SOAP questionnaire");
+    }
+  };
+
   const stats = {
     total: submissions.length,
     pending: submissions.filter(s => s.status === 'pending').length,
     pip: submissions.filter(s => s.form_type === 'pip').length,
     lop: submissions.filter(s => s.form_type === 'lop').length,
     cash: submissions.filter(s => s.form_type === 'cash').length,
+    soap: submissions.filter(s => s.form_type === 'soap_questionnaire').length,
   };
 
   if (loading) {
@@ -283,10 +314,17 @@ export default function Forms() {
               <h1 className="text-3xl font-bold text-foreground">Form Submissions</h1>
               <p className="text-muted-foreground">View and manage patient form submissions</p>
             </div>
+            <Button 
+              onClick={() => setShowSOAPQuestionnaire(true)}
+              className="bg-medical-teal hover:bg-medical-teal/80"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New SOAP Questionnaire
+            </Button>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary">{stats.total}</div>
@@ -317,6 +355,12 @@ export default function Forms() {
                 <div className="text-sm text-muted-foreground">Cash Forms</div>
               </CardContent>
             </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-medical-teal">{stats.soap}</div>
+                <div className="text-sm text-muted-foreground">SOAP Forms</div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Filters */}
@@ -340,6 +384,7 @@ export default function Forms() {
                       <SelectItem value="pip">PIP Forms</SelectItem>
                       <SelectItem value="lop">LOP Forms</SelectItem>
                       <SelectItem value="cash">Cash Forms</SelectItem>
+                      <SelectItem value="soap_questionnaire">SOAP Questionnaires</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -487,6 +532,13 @@ export default function Forms() {
               )}
             </CardContent>
           </Card>
+
+          {/* SOAP Questionnaire Modal */}
+          <ChiropracticSOAPQuestionnaire
+            isOpen={showSOAPQuestionnaire}
+            onClose={() => setShowSOAPQuestionnaire(false)}
+            onSave={handleSOAPQuestionnaireSubmit}
+          />
         </div>
       </Layout>
     </AuthGuard>
