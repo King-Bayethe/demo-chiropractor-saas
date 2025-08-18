@@ -14,8 +14,10 @@ import { ProgressIndicator } from "./ProgressIndicator";
 import { SmartTemplates } from "./SmartTemplates";
 import { EnhancedPainAssessment } from "./EnhancedPainAssessment";
 import { EnhancedVitalSigns } from "./EnhancedVitalSigns";
-import { ChevronDown, Save, FileText, Download, Clock, X, Zap, Brain } from "lucide-react";
+import { ChevronDown, Save, FileText, Download, Clock, X, Zap, Brain, AlertCircle, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface ComprehensiveSOAPFormProps {
   isOpen: boolean;
@@ -51,6 +53,8 @@ export function ComprehensiveSOAPForm({
   const [activeTab, setActiveTab] = useState("patient");
   const [openSections, setOpenSections] = useState<string[]>(["subjective"]);
   const [showAdvancedPain, setShowAdvancedPain] = useState(false);
+  const [showDraftDialog, setShowDraftDialog] = useState(false);
+  const [draftToRestore, setDraftToRestore] = useState<any>(null);
   
   const [formData, setFormData] = useState<SOAPFormData>({
     patientId: patient?.id || "",
@@ -99,6 +103,15 @@ export function ComprehensiveSOAPForm({
     }
   });
 
+  // Auto-save functionality
+  const draftKey = `soap_note_${patient?.id || 'new'}`;
+  const { loadDraft, clearDraft, saveNow, hasDraft } = useAutoSave({
+    key: draftKey,
+    data: formData,
+    interval: 30000, // 30 seconds
+    enabled: isOpen
+  });
+
   // Sample patient data for demo
   const mockPatient = {
     id: patient?.id || "pat-001",
@@ -117,6 +130,23 @@ export function ComprehensiveSOAPForm({
       relationship: "Spouse"
     }
   };
+
+  // Check for existing draft when component opens
+  useEffect(() => {
+    if (isOpen && !initialData) {
+      const draft = loadDraft();
+      if (draft && draft.data) {
+        const draftAge = new Date().getTime() - draft.timestamp.getTime();
+        const hoursOld = draftAge / (1000 * 60 * 60);
+        
+        // Only show draft dialog if it's less than 24 hours old
+        if (hoursOld < 24) {
+          setDraftToRestore(draft);
+          setShowDraftDialog(true);
+        }
+      }
+    }
+  }, [isOpen, initialData, loadDraft]);
 
   useEffect(() => {
     if (initialData) {
@@ -144,6 +174,8 @@ export function ComprehensiveSOAPForm({
   const handleSave = () => {
     try {
       onSave(formData);
+      // Clear draft after successful save
+      clearDraft();
       toast({
         title: "SOAP Note Saved",
         description: `${formData.isQuickNote ? 'Quick note' : 'Comprehensive SOAP note'} saved successfully.`,
@@ -156,6 +188,26 @@ export function ComprehensiveSOAPForm({
         variant: "destructive",
       });
     }
+  };
+
+  const handleRestoreDraft = () => {
+    if (draftToRestore) {
+      setFormData(draftToRestore.data);
+      setShowDraftDialog(false);
+      toast({
+        title: "Draft Restored",
+        description: "Your previous draft has been restored.",
+      });
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    clearDraft();
+    setShowDraftDialog(false);
+    toast({
+      title: "Draft Discarded",
+      description: "Previous draft has been discarded.",
+    });
   };
 
   const exportToPDF = () => {
@@ -268,6 +320,17 @@ export function ComprehensiveSOAPForm({
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              {hasDraft() && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowDraftDialog(true)}
+                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Restore Draft
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -280,6 +343,10 @@ export function ComprehensiveSOAPForm({
               <Button variant="outline" size="sm" onClick={exportToPDF}>
                 <Download className="w-4 h-4 mr-2" />
                 Export PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={saveNow}>
+                <Clock className="w-4 h-4 mr-2" />
+                Save Draft
               </Button>
               <Button size="sm" onClick={handleSave}>
                 <Save className="w-4 h-4 mr-2" />
@@ -509,6 +576,36 @@ export function ComprehensiveSOAPForm({
           </div>
         </div>
       </div>
+
+      {/* Draft Recovery Dialog */}
+      <AlertDialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center">
+              <AlertCircle className="w-5 h-5 mr-2 text-orange-500" />
+              Draft Found
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              We found a previous draft for this patient from{' '}
+              {draftToRestore && (
+                <span className="font-medium">
+                  {new Date(draftToRestore.timestamp).toLocaleString()}
+                </span>
+              )}
+              . Would you like to restore it or start fresh?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDiscardDraft}>
+              Start Fresh
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestoreDraft}>
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Restore Draft
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
