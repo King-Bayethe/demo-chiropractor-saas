@@ -114,23 +114,60 @@ export function ComprehensiveSOAPForm({
     enabled: isOpen
   });
 
-  // Sample patient data for demo
-  const mockPatient = {
-    id: patient?.id || "pat-001",
-    name: patient?.name || "John Doe",
-    dateOfBirth: "1985-06-15",
-    age: 38,
-    gender: "Male",
-    email: "john.doe@email.com",
-    phone: "(555) 123-4567",
-    address: "123 Main St, Anytown, ST 12345",
-    medicalHistory: ["Hypertension", "Previous lower back injury (2019)"],
-    allergies: ["Penicillin", "Latex"],
-    emergencyContact: {
-      name: "Jane Doe",
-      phone: "(555) 123-4568",
-      relationship: "Spouse"
+  // Transform patient data for PatientProfileHeader
+  const getPatientDisplayData = () => {
+    if (!patient) {
+      return {
+        id: "new-patient",
+        name: "New Patient",
+        dateOfBirth: new Date().toISOString().split('T')[0],
+        age: 0,
+        gender: "Unknown",
+        email: "",
+        phone: "",
+        address: "",
+        medicalHistory: [],
+        allergies: [],
+        emergencyContact: undefined
+      };
     }
+
+    const fullName = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Unknown Patient';
+    const fullAddress = [patient.address, patient.city, patient.state, patient.zip_code]
+      .filter(Boolean)
+      .join(', ');
+
+    const calculateAge = (dateOfBirth: string) => {
+      if (!dateOfBirth) return 0;
+      const birthDate = new Date(dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      return age;
+    };
+
+    return {
+      id: patient.id,
+      name: fullName,
+      dateOfBirth: patient.date_of_birth || new Date().toISOString().split('T')[0],
+      age: calculateAge(patient.date_of_birth || ''),
+      gender: patient.gender || "Unknown",
+      email: patient.email || "",
+      phone: patient.phone || "",
+      address: fullAddress || "",
+      medicalHistory: patient.tags || [],
+      allergies: [], // Could be extracted from tags or separate field
+      emergencyContact: patient.emergency_contact_name && patient.emergency_contact_phone ? {
+        name: patient.emergency_contact_name,
+        phone: patient.emergency_contact_phone,
+        relationship: "Emergency Contact"
+      } : undefined
+    };
   };
 
   // Check for existing draft when component opens
@@ -402,7 +439,7 @@ export function ComprehensiveSOAPForm({
                     />
                     
                     <PatientProfileHeader 
-                      patient={mockPatient} 
+                      patient={getPatientDisplayData()} 
                       isQuickNote={isQuickNote}
                       onToggleMode={() => setIsQuickNote(!isQuickNote)}
                     />
@@ -473,7 +510,7 @@ export function ComprehensiveSOAPForm({
                           />
                           
                           <PatientProfileHeader 
-                            patient={mockPatient} 
+                            patient={getPatientDisplayData()} 
                             isQuickNote={isQuickNote}
                             onToggleMode={() => setIsQuickNote(!isQuickNote)}
                           />
