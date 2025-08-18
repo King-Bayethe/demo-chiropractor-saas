@@ -80,27 +80,22 @@ export default function NewSOAPNote() {
 
       console.log('Raw wizard data received:', data);
 
-      // Import the converter function
-      const { convertChiropracticToStandardSOAP, validateSOAPData } = await import('@/utils/soapDataConverter');
+      // Create SOAP note data in the unified format
+      const soapNoteData = {
+        patient_id: data.patientId,
+        provider_name: data.providerName,
+        date_of_service: data.dateCreated,
+        chief_complaint: data.chiefComplaint,
+        subjective_data: data.subjective,
+        objective_data: data.objective,
+        assessment_data: data.assessment,
+        plan_data: data.plan,
+        is_draft: data.isQuickNote || false
+      };
 
-      // Convert chiropractic data structure to standard SOAP data structure
-      const standardData = convertChiropracticToStandardSOAP(data);
+      console.log('Sending unified data to createSOAPNote:', soapNoteData);
 
-      // Validate the converted data
-      const validation = validateSOAPData(standardData);
-      if (!validation.isValid) {
-        console.error('Data validation failed:', validation.errors);
-        toast({
-          title: "Validation Error",
-          description: `Please complete required fields: ${validation.errors.join(', ')}`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Sending standardized data to createSOAPNote:', standardData);
-
-      const result = await createSOAPNote(standardData);
+      const result = await createSOAPNote(soapNoteData);
 
       if (result) {
         toast({

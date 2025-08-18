@@ -9,8 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { PatientProfileHeader } from "./PatientProfileHeader";
-import { ChiropracticSubjectiveSection, ChiropracticSubjectiveData } from "./ChiropracticSubjectiveSection";
-import { ChiropracticObjectiveSection, ChiropracticObjectiveData } from "./ChiropracticObjectiveSection";
+import { SubjectiveSection, SubjectiveData } from "./SubjectiveSection";
+import { ObjectiveSection, ObjectiveData } from "./ObjectiveSection";
 import { AssessmentSection, AssessmentData } from "./AssessmentSection";
 import { PlanSection, PlanData } from "./PlanSection";
 import { SmartTemplates } from "./SmartTemplates";
@@ -45,8 +45,8 @@ interface WizardData {
   dateCreated: Date;
   chiefComplaint: string;
   isQuickNote: boolean;
-  subjective: ChiropracticSubjectiveData;
-  objective: ChiropracticObjectiveData;
+  subjective: SubjectiveData;
+  objective: ObjectiveData;
   assessment: AssessmentData;
   plan: PlanData;
 }
@@ -73,6 +73,12 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     chiefComplaint: "",
     isQuickNote: false,
     subjective: {
+      symptoms: [],
+      painScale: null,
+      painDescription: "",
+      otherSymptoms: "",
+      isRefused: false,
+      isWithinNormalLimits: false,
       mainComplaints: [],
       otherComplaint: "",
       problemStart: "",
@@ -83,7 +89,6 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
       painDescriptions: [],
       painRadiate: "",
       painFrequency: [],
-      otherSymptoms: "",
       medications: "",
       reviewOfSystems: {
         neurological: {},
@@ -106,66 +111,39 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
           skinImmune: "",
           mentalHealth: "",
         }
-      },
-      isRefused: false,
-      isWithinNormalLimits: false
+      }
     },
     objective: {
+      vitalSigns: {
+        height: "",
+        weight: "",
+        bloodPressure: "",
+        heartRate: "",
+        temperature: "",
+        oxygenSaturation: "",
+        respiratoryRate: ""
+      },
+      systemExams: [],
+      specialTests: [],
+      imagingLabs: [],
+      procedures: [],
       posture: [],
       gait: [],
       gaitOther: "",
       muscleTone: "",
       tenderness: "",
-      triggerPoints: "",
-      jointFixation: "",
-      edema: "",
-      edemaLocation: "",
-      reflexes: "",
-      sensation: "",
-      sensationLocation: "",
-      strength: "",
-      strengthMuscle: "",
-      vitalSigns: {
-        bp: "",
-        hr: "",
-        resp: "",
-        temp: "",
-        height: "",
-        weight: "",
-        oxygenSaturation: "",
-      },
-      rangeOfMotion: {
-        cervical: {
-          flexion: "",
-          extension: "",
-          rotation: "",
-          lateralFlexion: "",
-        },
-        thoracic: {
-          rotation: "",
-          flexionExtension: "",
-        },
-        lumbar: {
-          flexion: "",
-          extension: "",
-          lateralFlexion: "",
-          rotation: "",
-        },
-      },
-      orthopedicTests: {
-        slr: "",
-        slrAngle: "",
-        kemps: "",
-        kempsSide: "",
-        faber: "",
-        faberSide: "",
-        yeoman: "",
-        otherTests: "",
-      },
-      systemExams: [],
-      specialTests: [],
-      imagingLabs: [],
-      procedures: []
+      spasm: "",
+      swelling: "",
+      rangeOfMotion: [],
+      orthopedicTests: [],
+      neurologicalAssessment: {
+        cranialNerves: "",
+        motorFunction: "",
+        sensoryFunction: "",
+        reflexes: "",
+        coordination: "",
+        notes: ""
+      }
     },
     assessment: {
       diagnoses: [],
@@ -269,7 +247,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         return Object.values(wizardData.objective.vitalSigns).some(v => v) || 
                wizardData.objective.posture.length > 0 ||
                wizardData.objective.gait.length > 0 ||
-               Object.values(wizardData.objective.rangeOfMotion.cervical).some(v => v) ||
+               wizardData.objective.rangeOfMotion.length > 0 ||
                wizardData.objective.systemExams.length > 0;
       case 3: // Assessment
         return wizardData.assessment.diagnoses.length > 0 || 
@@ -343,15 +321,8 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         gaitOther: chiropracticData.objective.gaitOther || prev.objective.gaitOther,
         muscleTone: chiropracticData.objective.muscleTone || prev.objective.muscleTone,
         tenderness: chiropracticData.objective.tenderness || prev.objective.tenderness,
-        triggerPoints: chiropracticData.objective.triggerPoints || prev.objective.triggerPoints,
-        jointFixation: chiropracticData.objective.jointFixation || prev.objective.jointFixation,
-        edema: chiropracticData.objective.edema || prev.objective.edema,
-        edemaLocation: chiropracticData.objective.edemaLocation || prev.objective.edemaLocation,
-        reflexes: chiropracticData.objective.reflexes || prev.objective.reflexes,
-        sensation: chiropracticData.objective.sensation || prev.objective.sensation,
-        sensationLocation: chiropracticData.objective.sensationLocation || prev.objective.sensationLocation,
-        strength: chiropracticData.objective.strength || prev.objective.strength,
-        strengthMuscle: chiropracticData.objective.strengthMuscle || prev.objective.strengthMuscle,
+        spasm: chiropracticData.objective.spasm || prev.objective.spasm,
+        swelling: chiropracticData.objective.swelling || prev.objective.swelling,
         vitalSigns: chiropracticData.objective.vitalSigns || prev.objective.vitalSigns,
         rangeOfMotion: chiropracticData.objective.rangeOfMotion || prev.objective.rangeOfMotion,
         orthopedicTests: chiropracticData.objective.orthopedicTests || prev.objective.orthopedicTests
@@ -446,17 +417,19 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         
       case 1: // Subjective
         return (
-          <ChiropracticSubjectiveSection
+          <SubjectiveSection
             data={wizardData.subjective}
             onChange={(data) => setWizardData(prev => ({ ...prev, subjective: data }))}
+            specialty="chiropractic"
           />
         );
         
       case 2: // Objective
         return (
-          <ChiropracticObjectiveSection
+          <ObjectiveSection
             data={wizardData.objective}
             onChange={(data) => setWizardData(prev => ({ ...prev, objective: data }))}
+            specialty="chiropractic"
           />
         );
         

@@ -14,6 +14,7 @@ import { ChevronDown, Plus, X } from "lucide-react";
 interface ObjectiveSectionProps {
   data: ObjectiveData;
   onChange: (data: ObjectiveData) => void;
+  specialty?: 'chiropractic' | 'general';
 }
 
 export interface VitalSigns {
@@ -54,11 +55,46 @@ export interface Procedure {
 }
 
 export interface ObjectiveData {
+  // Standard fields
   vitalSigns: VitalSigns;
   systemExams: SystemExam[];
   specialTests: SpecialTest[];
   imagingLabs: ImagingLab[];
   procedures: Procedure[];
+  
+  // Enhanced chiropractic fields (optional for backward compatibility)
+  posture?: string[];
+  gait?: string[];
+  gaitOther?: string;
+  muscleTone?: string;
+  tenderness?: string;
+  spasm?: string;
+  swelling?: string;
+  rangeOfMotion?: Array<{
+    joint: string;
+    flexion: string;
+    extension: string;
+    leftLateralFlexion: string;
+    rightLateralFlexion: string;
+    leftRotation: string;
+    rightRotation: string;
+    notes: string;
+  }>;
+  orthopedicTests?: Array<{
+    name: string;
+    result: string;
+    notes: string;
+  }>;
+  neurologicalAssessment?: {
+    cranialNerves: string;
+    motorFunction: string;
+    sensoryFunction: string;
+    reflexes: string;
+    coordination: string;
+    notes: string;
+  };
+  isWithinNormalLimits?: boolean;
+  isRefused?: boolean;
 }
 
 const systemsList = [

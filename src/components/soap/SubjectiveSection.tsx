@@ -12,15 +12,52 @@ import { Badge } from "@/components/ui/badge";
 interface SubjectiveSectionProps {
   data: SubjectiveData;
   onChange: (data: SubjectiveData) => void;
+  specialty?: 'chiropractic' | 'general';
 }
 
 export interface SubjectiveData {
+  // Standard fields
   symptoms: string[];
   painScale: number | null;
   painDescription: string;
   otherSymptoms: string;
   isRefused: boolean;
   isWithinNormalLimits: boolean;
+  
+  // Enhanced chiropractic fields (optional for backward compatibility)
+  mainComplaints?: string[];
+  otherComplaint?: string;
+  problemStart?: string;
+  problemBegin?: string;
+  painRating?: number[];
+  painBetter?: string;
+  painWorse?: string;
+  painDescriptions?: string[];
+  painRadiate?: string;
+  painFrequency?: string[];
+  medications?: string;
+  reviewOfSystems?: {
+    neurological?: any;
+    cardiovascular?: any;
+    respiratory?: any;
+    musculoskeletal?: any;
+    gastrointestinal?: any;
+    genitourinary?: any;
+    endocrine?: any;
+    skinImmune?: any;
+    mentalHealth?: any;
+    notes?: {
+      neurological?: string;
+      cardiovascular?: string;
+      respiratory?: string;
+      musculoskeletal?: string;
+      gastrointestinal?: string;
+      genitourinary?: string;
+      endocrine?: string;
+      skinImmune?: string;
+      mentalHealth?: string;
+    };
+  };
 }
 
 const commonSymptoms = [
