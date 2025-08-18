@@ -505,7 +505,7 @@ export function ComprehensiveSOAPForm({
                 </ScrollArea>
               ) : (
                 // Full Assessment Mode - Tabs
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                   <TabsList className="mx-6 mt-6 grid w-full grid-cols-5 flex-shrink-0">
                     <TabsTrigger value="patient">Patient</TabsTrigger>
                     <TabsTrigger value="subjective">Subjective</TabsTrigger>
@@ -514,10 +514,10 @@ export function ComprehensiveSOAPForm({
                     <TabsTrigger value="plan">Plan</TabsTrigger>
                   </TabsList>
                   
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <TabsContent value="patient" className="h-full m-0">
-                      <ScrollArea className="h-full px-6 pb-6">
-                        <div className="space-y-6 pt-6">
+                  <div className="flex-1 min-h-0">
+                    <TabsContent value="patient" className="flex-1 m-0 h-full">
+                      <ScrollArea className="h-full">
+                        <div className="space-y-6 p-6 pb-20">
                           <ProgressIndicator 
                             percentage={getCompletionPercentage()} 
                             sectionsComplete={getSectionsComplete()}
@@ -576,9 +576,9 @@ export function ComprehensiveSOAPForm({
                       </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="subjective" className="h-full m-0">
-                    <ScrollArea className="h-full px-6 pb-6">
-                      <div className="space-y-6 pt-6">
+                  <TabsContent value="subjective" className="flex-1 m-0 h-full">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-6 p-6 pb-20">
                         {showAdvancedPain && (
                           <EnhancedPainAssessment
                             data={{
@@ -614,9 +614,9 @@ export function ComprehensiveSOAPForm({
                     </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="objective" className="h-full m-0">
-                    <ScrollArea className="h-full px-6 pb-6">
-                      <div className="space-y-6 pt-6">
+                  <TabsContent value="objective" className="flex-1 m-0 h-full">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-6 p-6 pb-20">
                         <EnhancedVitalSigns
                           data={formData.objective.vitalSigns}
                           onChange={(vitalSigns) => setFormData(prev => ({
@@ -636,9 +636,9 @@ export function ComprehensiveSOAPForm({
                     </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="assessment" className="h-full m-0">
-                    <ScrollArea className="h-full px-6 pb-6">
-                      <div className="space-y-6 pt-6">
+                  <TabsContent value="assessment" className="flex-1 m-0 h-full">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-6 p-6 pb-20">
                         <AssessmentSection
                           data={formData.assessment}
                           onChange={(data) => setFormData(prev => ({ ...prev, assessment: data }))}
@@ -647,9 +647,9 @@ export function ComprehensiveSOAPForm({
                     </ScrollArea>
                   </TabsContent>
                   
-                  <TabsContent value="plan" className="h-full m-0">
-                    <ScrollArea className="h-full px-6 pb-6">
-                      <div className="space-y-6 pt-6">
+                  <TabsContent value="plan" className="flex-1 m-0 h-full">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-6 p-6 pb-20">
                         <PlanSection
                           data={formData.plan}
                           onChange={(data) => setFormData(prev => ({ ...prev, plan: data }))}
