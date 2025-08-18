@@ -30,6 +30,9 @@ export default function CreateSOAPNote() {
   // Load patient and note data
   useEffect(() => {
     const loadData = async () => {
+      if (isEditMode && !editId) return;
+      if (!isEditMode && !patientId) return;
+      
       setIsLoading(true);
       
       try {
@@ -41,27 +44,49 @@ export default function CreateSOAPNote() {
             const patient = patients.find(p => p.id === note.patient_id);
             if (patient) {
               setSelectedPatient(patient);
+              
+              // Convert note data to form format with patient name
+              const patientName = getPatientName(patient);
+              setInitialData({
+                patientId: note.patient_id,
+                patientName: patientName,
+                providerId: "dr-silverman",
+                providerName: note.provider_name,
+                dateCreated: new Date(note.date_of_service),
+                chiefComplaint: note.chief_complaint,
+                isQuickNote: note.is_draft,
+                subjective: note.subjective_data || {},
+                objective: note.objective_data || { vitalSigns: note.vital_signs || {} },
+                assessment: note.assessment_data || {},
+                plan: note.plan_data || {}
+              });
+            } else {
+              // Patient not found in current patient list, but still load the note
+              setInitialData({
+                patientId: note.patient_id,
+                patientName: 'Unknown Patient',
+                providerId: "dr-silverman", 
+                providerName: note.provider_name,
+                dateCreated: new Date(note.date_of_service),
+                chiefComplaint: note.chief_complaint,
+                isQuickNote: note.is_draft,
+                subjective: note.subjective_data || {},
+                objective: note.objective_data || { vitalSigns: note.vital_signs || {} },
+                assessment: note.assessment_data || {},
+                plan: note.plan_data || {}
+              });
             }
-            
-            // Convert note data to form format
-            const patientName = getPatientName(patient);
-            setInitialData({
-              patientId: note.patient_id,
-              patientName: patientName,
-              providerId: "dr-silverman",
-              providerName: note.provider_name,
-              dateCreated: new Date(note.date_of_service),
-              chiefComplaint: note.chief_complaint,
-              isQuickNote: note.is_draft,
-              subjective: note.subjective_data || {},
-              objective: note.objective_data || { vitalSigns: note.vital_signs || {} },
-              assessment: note.assessment_data || {},
-              plan: note.plan_data || {}
+          } else {
+            toast({
+              title: "Error",
+              description: "SOAP note not found.",
+              variant: "destructive",
             });
+            navigate('/soap-notes');
           }
         }
         // If creating with a specific patient
-        else if (patientId) {
+        else if (patientId && patients.length > 0) {
           const patient = patients.find(p => p.id === patientId);
           if (patient) {
             setSelectedPatient(patient);
@@ -79,10 +104,11 @@ export default function CreateSOAPNote() {
       }
     };
 
-    if (patients.length > 0) {
+    // Only run if we have patients loaded or we're in edit mode
+    if (patients.length > 0 || isEditMode) {
       loadData();
     }
-  }, [editId, patientId, patients, getSOAPNote, isEditMode, toast]);
+  }, [editId, patientId, patients, getSOAPNote, isEditMode, toast, navigate]);
 
   const handleSave = async (data: SOAPFormData) => {
     try {
@@ -164,7 +190,7 @@ export default function CreateSOAPNote() {
     return fullName || patient.email || 'Unknown Patient';
   };
 
-  // Show patient selection if no patient is selected and not in edit mode
+  // Show patient selection if no patient is selected and not in edit mode and not loading
   if (!selectedPatient && !isEditMode && !isLoading) {
     return (
       <AuthGuard>
@@ -206,6 +232,7 @@ export default function CreateSOAPNote() {
     );
   }
 
+  // Show loading state while loading data
   if (isLoading) {
     return (
       <AuthGuard>
