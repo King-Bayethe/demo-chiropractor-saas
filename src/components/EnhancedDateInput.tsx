@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { EnhancedCalendar } from "@/components/ui/enhanced-calendar";
 import { cn } from "@/lib/utils";
 import { format, parse, isValid, differenceInYears } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -134,7 +134,7 @@ export function EnhancedDateInput({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <CalendarComponent
+            <EnhancedCalendar
               mode="single"
               selected={value}
               onSelect={handleCalendarSelect}
