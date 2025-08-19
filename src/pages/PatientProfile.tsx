@@ -38,6 +38,9 @@ import {
   BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { EnhancedDateInput } from "@/components/EnhancedDateInput";
+import { PatientNotes } from "@/components/PatientNotes";
+import { PatientFiles } from "@/components/PatientFiles";
 
 
 // Form schema for the main patient profile
@@ -47,6 +50,7 @@ const patientFormSchema = z.object({
   email: z.string().email("Invalid email address").optional().or(z.literal('')),
   phone: z.string().min(10, "Phone number must be at least 10 digits").regex(/^[\d\-\(\)\+\s]+$/, "Invalid phone number format"),
   dateOfBirth: z.date().optional(),
+  preferredLanguage: z.string().optional(),
   streetAddress: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
@@ -81,6 +85,20 @@ const appointmentFormSchema = z.object({
 });
 type AppointmentFormData = z.infer<typeof appointmentFormSchema>;
 
+
+// Language options
+const LANGUAGE_OPTIONS = [
+  { value: 'English', label: 'English' },
+  { value: 'Spanish', label: 'Spanish' },
+  { value: 'French', label: 'French' },
+  { value: 'Portuguese', label: 'Portuguese' },
+  { value: 'Mandarin', label: 'Mandarin' },
+  { value: 'Arabic', label: 'Arabic' },
+  { value: 'Russian', label: 'Russian' },
+  { value: 'German', label: 'German' },
+  { value: 'Italian', label: 'Italian' },
+  { value: 'Other', label: 'Other' },
+];
 
 // Helper to find custom field value by its unique ID
 const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
@@ -290,6 +308,7 @@ export default function PatientProfile() {
         email: patientData.email || "",
         phone: patientData.phone || patientData.cell_phone || "",
         dateOfBirth: patientData.date_of_birth ? new Date(patientData.date_of_birth) : undefined,
+        preferredLanguage: patientData.preferred_language || 'English',
         streetAddress: patientData.address || "",
         city: patientData.city || "",
         state: patientData.state || "",
@@ -311,6 +330,7 @@ export default function PatientProfile() {
         medicaidMedicareId: patientData.medicaid_medicare_id || "",
         maritalStatus: patientData.marital_status || "",
         licenseState: patientData.drivers_license_state || "",
+        caseType: patientData.case_type || "",
       });
 
       // Load patient's SOAP notes - this will be handled by the enhanced hook now
@@ -897,14 +917,14 @@ export default function PatientProfile() {
 
             <div className="lg:col-span-2">
               <Tabs defaultValue="appointments" className="w-full">
-                <TabsList className="grid w-full grid-cols-6">
-                  <TabsTrigger value="appointments">Appointments</TabsTrigger>
-                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                  <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
-                  <TabsTrigger value="forms">Forms</TabsTrigger>
-                  <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                  <TabsTrigger value="files">Files</TabsTrigger>
-                </TabsList>
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
+                <TabsTrigger value="files">Files</TabsTrigger>
+                <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                <TabsTrigger value="forms">Forms</TabsTrigger>
+              </TabsList>
                 <TabsContent value="appointments">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -1029,9 +1049,15 @@ export default function PatientProfile() {
                  <TabsContent value="invoices">
                    <Card><CardHeader><CardTitle>Invoices</CardTitle></CardHeader><CardContent className="space-y-2">{invoices.map(inv => <div key={inv.id} className="flex justify-between items-center p-2 border-b"><div><p>{inv.id} - {inv.description}</p><p className="text-sm text-muted-foreground">{formatCurrency(inv.amount)}</p></div><Badge variant="secondary" className={getStatusColor(inv.status)}>{inv.status}</Badge></div>)}</CardContent></Card>
                 </TabsContent>
-                 <TabsContent value="files">
-                   <Card><CardHeader><CardTitle>Files</CardTitle></CardHeader><CardContent className="space-y-2">{files.map(file => <div key={file.id} className="flex justify-between items-center p-2 border-b"><p>{file.name}</p><div className="flex gap-2"><Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button><Button variant="ghost" size="icon"><Download className="h-4 w-4" /></Button></div></div>)}</CardContent></Card>
-                </TabsContent>
+              {/* Notes Tab */}
+              <TabsContent value="notes" className="space-y-6">
+                <PatientNotes patientId={patient.id} />
+              </TabsContent>
+
+              {/* Files Tab */}
+              <TabsContent value="files" className="space-y-6">
+                <PatientFiles patientId={patient.id} />
+              </TabsContent>
               </Tabs>
             </div>
           </div>

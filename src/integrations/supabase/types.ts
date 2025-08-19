@@ -479,6 +479,94 @@ export type Database = {
           },
         ]
       }
+      patient_files: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          patient_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          patient_id: string
+          uploaded_by: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          patient_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_files_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_notes: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          patient_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          patient_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          patient_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           accident_date: string | null
@@ -530,6 +618,7 @@ export type Database = {
           person_type: string | null
           phone: string | null
           pip_form_submitted_at: string | null
+          preferred_language: string | null
           signature_date: string | null
           social_security_number: string | null
           state: string | null
@@ -592,6 +681,7 @@ export type Database = {
           person_type?: string | null
           phone?: string | null
           pip_form_submitted_at?: string | null
+          preferred_language?: string | null
           signature_date?: string | null
           social_security_number?: string | null
           state?: string | null
@@ -654,6 +744,7 @@ export type Database = {
           person_type?: string | null
           phone?: string | null
           pip_form_submitted_at?: string | null
+          preferred_language?: string | null
           signature_date?: string | null
           social_security_number?: string | null
           state?: string | null
