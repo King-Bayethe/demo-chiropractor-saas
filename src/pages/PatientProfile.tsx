@@ -17,9 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { usePatients } from "@/hooks/usePatients";
-import { useSOAPNotes } from "@/hooks/useSOAPNotes";
-import { SOAPNoteCard } from "@/components/soap/SOAPNoteCard";
+import { useEnhancedSOAPNotes } from "@/hooks/useEnhancedSOAPNotes";
 import { SOAPNoteTimeline } from "@/components/soap/SOAPNoteTimeline";
+import { SOAPNoteSearch } from "@/components/soap/SOAPNoteSearch";
+import { SOAPNoteBulkActions } from "@/components/soap/SOAPNoteBulkActions";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -117,7 +118,6 @@ export default function PatientProfile() {
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
-  const [patientSOAPNotes, setPatientSOAPNotes] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [files, setFiles] = useState<any[]>([]);
   const [forms, setForms] = useState<any[]>([]);
@@ -133,32 +133,40 @@ export default function PatientProfile() {
 
   const { updatePatient } = usePatients();
   
-  // Load patient's SOAP notes when patientSOAPNotes changes
-  const { soapNotes, fetchSOAPNotes, deleteSOAPNote } = useSOAPNotes();
+  // Enhanced SOAP notes hook with search, pagination, and bulk operations
+  const {
+    notes: soapNotes,
+    filteredNotes,
+    loading: soapNotesLoading,
+    searchQuery,
+    filters,
+    handleSearch,
+    handleFilterChange,
+    paginationState,
+    loadMore,
+    selectedNotes,
+    handleSelectionChange,
+    selectAll,
+    clearSelection,
+    deleteSOAPNote,
+    bulkDelete,
+    bulkExport,
+    stats
+  } = useEnhancedSOAPNotes({ 
+    patientId: patient?.id,
+    pageSize: 20
+  });
   
-  useEffect(() => {
-    if (patient?.id && soapNotes.length >= 0) {
-      // Filter SOAP notes for this patient
-      const patientNotes = soapNotes.filter(note => note.patient_id === patient.id);
-      setPatientSOAPNotes(patientNotes);
-    }
-  }, [patient?.id, soapNotes]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
 
   const handleNewSOAPNote = () => {
     navigate(`/soap-notes/new?patientId=${patient?.id}`);
   };
 
-  const handleDeleteSOAPNote = async (noteId: string) => {
-    const success = await deleteSOAPNote(noteId);
-    if (success) {
-      setPatientSOAPNotes(prev => prev.filter(note => note.id !== noteId));
-    }
-  };
-
   const handleExportSOAPNote = async (noteId: string) => {
     try {
       const { exportSOAPNoteToPDF } = await import('@/services/pdfExport');
-      const note = patientSOAPNotes.find(n => n.id === noteId);
+      const note = soapNotes.find(n => n.id === noteId);
       if (note && patient) {
         const patientName = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient';
         exportSOAPNoteToPDF(note, patientName);
@@ -305,8 +313,8 @@ export default function PatientProfile() {
         licenseState: patientData.drivers_license_state || "",
       });
 
-      // Load patient's SOAP notes
-      await fetchSOAPNotes({ patientId: patientData.id });
+      // Load patient's SOAP notes - this will be handled by the enhanced hook now
+      // await fetchSOAPNotes({ patientId: patientData.id });
       setInvoices([
         { id: "INV-PIP-001", date: new Date("2025-05-22"), amount: 350.00, description: "Initial PIP Exam & X-Rays", status: "pending" },
         { id: "INV-PIP-002", date: new Date("2025-06-15"), amount: 150.00, description: "Chiropractic Adjustment", status: "pending" },
@@ -935,27 +943,70 @@ export default function PatientProfile() {
                     </CardContent>
                   </Card>
                 </TabsContent>
-                 <TabsContent value="soap-notes">
-                   <Card>
-                     <CardHeader className="flex flex-row items-center justify-between">
-                       <CardTitle className="flex items-center gap-2">
-                         <FileText className="w-5 h-5" />
-                         SOAP Notes
-                       </CardTitle>
-                       <Button onClick={handleNewSOAPNote} className="bg-primary">
-                         <Plus className="w-4 h-4 mr-2" />
-                         New SOAP Note
-                       </Button>
-                     </CardHeader>
-                      <CardContent>
+                  <TabsContent value="soap-notes">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          SOAP Notes
+                          {stats.total > 0 && (
+                            <Badge variant="secondary" className="ml-2">
+                              {stats.total}
+                            </Badge>
+                          )}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowBulkActions(!showBulkActions)}
+                          >
+                            {showBulkActions ? 'Hide Selection' : 'Select Multiple'}
+                          </Button>
+                          <Button onClick={handleNewSOAPNote} className="bg-primary">
+                            <Plus className="w-4 h-4 mr-2" />
+                            New SOAP Note
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Search and Filters */}
+                        <SOAPNoteSearch
+                          searchQuery={searchQuery}
+                          filters={filters}
+                          onSearchChange={handleSearch}
+                          onFilterChange={handleFilterChange}
+                          totalNotes={stats.total}
+                          filteredNotes={stats.displayed}
+                        />
+
+                        {/* Bulk Actions */}
+                        {showBulkActions && (
+                          <SOAPNoteBulkActions
+                            soapNotes={soapNotes}
+                            selectedNotes={selectedNotes}
+                            onSelectionChange={handleSelectionChange}
+                            onBulkDelete={bulkDelete}
+                            onBulkExport={bulkExport}
+                            disabled={soapNotesLoading}
+                          />
+                        )}
+
+                        {/* Timeline */}
                         <SOAPNoteTimeline
-                          soapNotes={patientSOAPNotes}
-                          onDelete={handleDeleteSOAPNote}
+                          soapNotes={soapNotes}
+                          onDelete={deleteSOAPNote}
                           onExport={handleExportSOAPNote}
+                          selectedNotes={selectedNotes}
+                          onSelectionChange={showBulkActions ? handleSelectionChange : undefined}
+                          showSelection={showBulkActions}
+                          loading={soapNotesLoading}
+                          hasMore={paginationState.hasMore}
+                          onLoadMore={loadMore}
                         />
                       </CardContent>
-                   </Card>
-                 </TabsContent>
+                    </Card>
+                  </TabsContent>
                 <TabsContent value="forms">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between">

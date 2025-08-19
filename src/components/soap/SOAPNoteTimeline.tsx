@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SOAPNote } from "@/hooks/useSOAPNotes";
 import { 
   FileText, 
@@ -12,20 +13,35 @@ import {
   Clock,
   User,
   Stethoscope,
-  Calendar
+  Calendar,
+  Loader2,
+  ChevronDown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface SOAPNoteTimelineProps {
   soapNotes: SOAPNote[];
   onDelete?: (noteId: string) => void;
   onExport?: (noteId: string) => void;
+  selectedNotes?: string[];
+  onSelectionChange?: (noteIds: string[]) => void;
+  showSelection?: boolean;
+  loading?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 export function SOAPNoteTimeline({ 
   soapNotes, 
   onDelete, 
-  onExport 
+  onExport,
+  selectedNotes = [],
+  onSelectionChange,
+  showSelection = false,
+  loading = false,
+  hasMore = false,
+  onLoadMore
 }: SOAPNoteTimelineProps) {
   const navigate = useNavigate();
 
@@ -41,6 +57,18 @@ export function SOAPNoteTimeline({
   const handleEdit = (noteId: string) => {
     navigate(`/soap-notes/${noteId}/edit`);
   };
+
+  const handleNoteSelection = (noteId: string, checked: boolean) => {
+    if (!onSelectionChange) return;
+    
+    if (checked) {
+      onSelectionChange([...selectedNotes, noteId]);
+    } else {
+      onSelectionChange(selectedNotes.filter(id => id !== noteId));
+    }
+  };
+
+  const isNoteSelected = (noteId: string) => selectedNotes.includes(noteId);
 
   const getStatusColor = (isDraft: boolean) => {
     return isDraft 
@@ -64,30 +92,64 @@ export function SOAPNoteTimeline({
       <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border"></div>
       
       <div className="space-y-6">
-        {sortedNotes.map((note, index) => (
-          <div key={note.id} className="relative flex gap-4">
-            {/* Timeline dot */}
-            <div className="relative z-10 flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-primary border-4 border-background shadow-sm"></div>
-            </div>
-            
-            {/* Timeline content */}
-            <Card className="flex-1 hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                {/* Header with date and status */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <time className="font-semibold text-foreground">
-                      {format(new Date(note.date_of_service), 'PPP')}
-                    </time>
-                    <Badge 
-                      variant="secondary" 
-                      className={getStatusColor(note.is_draft)}
-                    >
-                      {note.is_draft ? 'Draft' : 'Complete'}
-                    </Badge>
-                  </div>
+        {sortedNotes.map((note, index) => {
+          const isSelected = isNoteSelected(note.id);
+          
+          return (
+            <div key={note.id} className="relative flex gap-4">
+              {/* Timeline dot */}
+              <div className="relative z-10 flex-shrink-0">
+                <div className={cn(
+                  "w-4 h-4 rounded-full border-4 border-background shadow-sm transition-colors",
+                  isSelected ? "bg-primary ring-2 ring-primary/20" : "bg-primary"
+                )}></div>
+              </div>
+              
+              {/* Timeline content */}
+              <Card className={cn(
+                "flex-1 hover:shadow-md transition-all duration-200",
+                isSelected && "ring-2 ring-primary/20 shadow-md"
+              )}>
+                <CardContent className="p-4">
+                  {/* Header with date and status */}
+                  <div className="flex items-start justify-between mb-3">
+                    {showSelection ? (
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => handleNoteSelection(note.id, checked as boolean)}
+                          className="mt-1"
+                          aria-label={`Select SOAP note from ${format(new Date(note.date_of_service), 'PPP')}`}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <time className="font-semibold text-foreground">
+                              {format(new Date(note.date_of_service), 'PPP')}
+                            </time>
+                            <Badge 
+                              variant="secondary" 
+                              className={getStatusColor(note.is_draft)}
+                            >
+                              {note.is_draft ? 'Draft' : 'Complete'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <time className="font-semibold text-foreground">
+                          {format(new Date(note.date_of_service), 'PPP')}
+                        </time>
+                        <Badge 
+                          variant="secondary" 
+                          className={getStatusColor(note.is_draft)}
+                        >
+                          {note.is_draft ? 'Draft' : 'Complete'}
+                        </Badge>
+                      </div>
+                    )}
                   
                   {/* Actions */}
                   <div className="flex gap-1">
@@ -96,6 +158,7 @@ export function SOAPNoteTimeline({
                       size="sm"
                       onClick={() => handleView(note.id)}
                       className="h-8 w-8 p-0"
+                      title="View note"
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -104,6 +167,7 @@ export function SOAPNoteTimeline({
                       size="sm"
                       onClick={() => handleEdit(note.id)}
                       className="h-8 w-8 p-0"
+                      title="Edit note"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -113,16 +177,18 @@ export function SOAPNoteTimeline({
                         size="sm"
                         onClick={() => onExport(note.id)}
                         className="h-8 w-8 p-0"
+                        title="Export to PDF"
                       >
                         <Download className="w-4 h-4" />
                       </Button>
                     )}
-                    {onDelete && (
+                    {onDelete && !showSelection && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(note.id)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        title="Delete note"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -141,14 +207,16 @@ export function SOAPNoteTimeline({
                 </div>
 
                 {/* Provider and metadata */}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground mb-3">
                   <div className="flex items-center gap-1">
                     <Stethoscope className="w-3 h-3" />
                     <span>{note.provider_name}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    <span>Last updated {format(new Date(note.updated_at), 'p')}</span>
+                    <span className="hidden sm:inline">Last updated</span>
+                    <span className="sm:hidden">Updated</span>
+                    <span>{format(new Date(note.updated_at), 'p')}</span>
                   </div>
                 </div>
 
@@ -211,13 +279,49 @@ export function SOAPNoteTimeline({
                     onClick={() => handleView(note.id)}
                     className="text-xs"
                   >
-                    View Full Note
+                    <span className="hidden sm:inline">View Full Note</span>
+                    <span className="sm:hidden">View</span>
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })}
+        
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <Button 
+              variant="outline" 
+              onClick={onLoadMore}
+              disabled={loading}
+              className="min-w-32"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Load More Notes
+                </>
+              )}
+            </Button>
           </div>
-        ))}
+        )}
+
+        {/* Loading Indicator */}
+        {loading && !hasMore && (
+          <div className="flex justify-center mt-6">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Loading notes...</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
