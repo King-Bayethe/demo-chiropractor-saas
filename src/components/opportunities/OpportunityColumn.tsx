@@ -4,7 +4,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OpportunityCard } from "./OpportunityCard";
-import { Opportunity } from "@/pages/Opportunities";
+import { Opportunity } from "@/hooks/useOpportunities";
 
 interface OpportunityColumnProps {
   stage: {
@@ -20,7 +20,7 @@ export function OpportunityColumn({ stage, opportunities }: OpportunityColumnPro
     id: stage.id,
   });
 
-  const totalValue = opportunities.reduce((sum, opp) => sum + (opp.monetaryValue || 0), 0);
+  const totalValue = opportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
 
   return (
     <div

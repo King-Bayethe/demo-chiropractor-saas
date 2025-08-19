@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, DollarSign, Calendar, GripVertical, MoreHorizontal } from "lucide-react";
-import { Opportunity } from "@/pages/Opportunities";
+import { Opportunity } from "@/hooks/useOpportunities";
 import { cn } from "@/lib/utils";
 
 interface OpportunityCardProps {
@@ -66,9 +66,9 @@ export function OpportunityCard({ opportunity, isDragging = false }: Opportunity
               </Avatar>
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-medium truncate">{opportunity.name}</h4>
-                {opportunity.assignedTo && (
+                {opportunity.assigned_provider_name && (
                   <p className="text-xs text-muted-foreground truncate">
-                    Assigned to {opportunity.assignedTo}
+                    Assigned to {opportunity.assigned_provider_name}
                   </p>
                 )}
               </div>
@@ -89,27 +89,27 @@ export function OpportunityCard({ opportunity, isDragging = false }: Opportunity
           </div>
 
           {/* Value */}
-          {opportunity.monetaryValue && opportunity.monetaryValue > 0 && (
+          {opportunity.estimated_value && opportunity.estimated_value > 0 && (
             <div className="flex items-center space-x-1 text-green-600">
               <DollarSign className="h-3 w-3" />
               <span className="text-sm font-medium">
-                ${opportunity.monetaryValue.toLocaleString()}
+                ${opportunity.estimated_value.toLocaleString()}
               </span>
             </div>
           )}
 
           {/* Contact Info */}
           <div className="space-y-1">
-            {opportunity.contact?.phone && (
+            {opportunity.patient_phone && (
               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <Phone className="h-3 w-3" />
-                <span className="truncate">{opportunity.contact.phone}</span>
+                <span className="truncate">{opportunity.patient_phone}</span>
               </div>
             )}
-            {opportunity.contact?.email && (
+            {opportunity.patient_email && (
               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <Mail className="h-3 w-3" />
-                <span className="truncate">{opportunity.contact.email}</span>
+                <span className="truncate">{opportunity.patient_email}</span>
               </div>
             )}
           </div>
@@ -140,7 +140,7 @@ export function OpportunityCard({ opportunity, isDragging = false }: Opportunity
           {/* Last Activity */}
           <div className="flex items-center space-x-1 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
-            <span>Last activity: {formatDate(opportunity.lastActivity)}</span>
+            <span>Last activity: {formatDate(opportunity.last_contact_date || opportunity.updated_at)}</span>
           </div>
         </div>
       </CardContent>
