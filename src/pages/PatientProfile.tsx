@@ -95,10 +95,10 @@ const CUSTOM_FIELD_IDS = {
   healthInsuranceId: 'tCxf5IqN97TJev00wzkO',
   medicaidMedicareId: 'Y7PjcJSaTjDsmwxHLtpe',
   maritalStatus: 'YX017UhulJCX03IMTWYg',
-  // NOTE: These IDs are not visible in the log, please find them in your GHL settings
-  dateOfAccident: 'REPLACE_WITH_REAL_ID_FROM_GHL',
-  didGoToHospital: 'REPLACE_WITH_REAL_ID_FROM_GHL',
-  hospitalName: 'REPLACE_WITH_REAL_ID_FROM_GHL',
+  // These IDs will need to be updated when integrated with actual GHL custom fields
+  dateOfAccident: 'date-of-accident-field-id',
+  didGoToHospital: 'hospital-visit-field-id', 
+  hospitalName: 'hospital-name-field-id',
 };
 
 export default function PatientProfile() {
@@ -553,18 +553,30 @@ export default function PatientProfile() {
                           <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                           <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>)} />
                           <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Marital Status</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                          <FormField control={form.control} name="licenseState" render={({ field }) => (<FormItem><FormLabel>License State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                          <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="licenseState" render={({ field }) => (<FormItem><FormLabel>License State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <div className="col-span-2">
+                             <FormField control={form.control} name="streetAddress" render={({ field }) => (<FormItem><FormLabel>Street Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           </div>
+                           <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="zipCode" render={({ field }) => (<FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                         </>
                       ) : (
-                        <>
-                          <InfoField label="Full Name" value={patientName} />
-                          <InfoField label="Date of Birth" value={form.getValues("dateOfBirth") ? format(form.getValues("dateOfBirth")!, 'PPP') : 'N/A'} />
-                          <div className="col-span-2"><InfoField label="Address" value={form.getValues("streetAddress")} /></div>
-                          {sensitiveDataVisible && <InfoField label="Emergency Contact" value={form.getValues("emergencyContactName")} />}
-                          {sensitiveDataVisible && <InfoField label="Marital Status" value={form.getValues("maritalStatus")} />}
-                          {sensitiveDataVisible && <InfoField label="License State" value={form.getValues("licenseState")} />}
-                        </>
+                         <>
+                           <InfoField label="Full Name" value={patientName} />
+                           <InfoField label="Date of Birth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, 'PPP') : 'N/A'} />
+                           <InfoField label="Phone" value={form.watch("phone")} />
+                           <InfoField label="Email" value={form.watch("email")} />
+                           <div className="col-span-2">
+                             <InfoField label="Address" value={`${form.watch("streetAddress") || ''} ${form.watch("city") || ''} ${form.watch("state") || ''} ${form.watch("zipCode") || ''}`.trim() || 'N/A'} />
+                           </div>
+                           {sensitiveDataVisible && <InfoField label="Emergency Contact" value={form.watch("emergencyContactName")} />}
+                           {sensitiveDataVisible && <InfoField label="Marital Status" value={form.watch("maritalStatus")} />}
+                           {sensitiveDataVisible && <InfoField label="License State" value={form.watch("licenseState")} />}
+                         </>
                       )}
                     </CardContent>
                   </Card>
@@ -604,10 +616,10 @@ export default function PatientProfile() {
                                 )} />
                              </>
                            ) : (
-                             <>
-                                <InfoField label="Went to Hospital?" value={form.getValues("didGoToHospital")} />
-                                <InfoField label="Hospital Name" value={form.getValues("hospitalName")} />
-                             </>
+                              <>
+                                 <InfoField label="Went to Hospital?" value={form.watch("didGoToHospital") === "yes" ? "Yes" : form.watch("didGoToHospital") === "no" ? "No" : "N/A"} />
+                                 <InfoField label="Hospital Name" value={form.watch("hospitalName")} />
+                              </>
                            )}
                         </CardContent>
                       </Card>
@@ -720,16 +732,16 @@ export default function PatientProfile() {
                                 </>
                             ) : (
                                 <>
-                                    <InfoField label="Date of Accident" value={form.getValues("dateOfAccident") ? format(form.getValues("dateOfAccident")!, 'PPP') : null} />
-                                    <InfoField label="Claim #" value={form.getValues("claimNumber")} />
-                                    <InfoField label="Policy #" value={form.getValues("policyNumber")} />
-                                    <InfoField label="Auto Insurance" value={form.getValues("autoInsuranceCompany")} />
-                                    <InfoField label="Health Insurance" value={form.getValues("healthInsurance")} />
-                                    <InfoField label="Health Insurance ID" value={form.getValues("healthInsuranceId")} />
-                                    <InfoField label="Group #" value={form.getValues("groupNumber")} />
-                                    <InfoField label="Medicaid/Medicare ID" value={form.getValues("medicaidMedicareId")} />
-                                    <InfoField label="Adjuster's Name" value={form.getValues("adjustersName")} />
-                                    <InfoField label="Insurance Phone #" value={form.getValues("insurancePhoneNumber")} />
+                                    <InfoField label="Date of Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'PPP') : null} />
+                                    <InfoField label="Claim #" value={form.watch("claimNumber")} />
+                                    <InfoField label="Policy #" value={form.watch("policyNumber")} />
+                                    <InfoField label="Auto Insurance" value={form.watch("autoInsuranceCompany")} />
+                                    <InfoField label="Health Insurance" value={form.watch("healthInsurance")} />
+                                    <InfoField label="Health Insurance ID" value={form.watch("healthInsuranceId")} />
+                                    <InfoField label="Group #" value={form.watch("groupNumber")} />
+                                    <InfoField label="Medicaid/Medicare ID" value={form.watch("medicaidMedicareId")} />
+                                    <InfoField label="Adjuster's Name" value={form.watch("adjustersName")} />
+                                    <InfoField label="Insurance Phone #" value={form.watch("insurancePhoneNumber")} />
                                 </>
                             )}
                         </CardContent>
@@ -761,8 +773,8 @@ export default function PatientProfile() {
                                 </>
                             ) : (
                                 <>
-                                    <InfoField label="Attorney Name" value={form.getValues("attorneyName")} />
-                                    <InfoField label="Attorney Phone" value={form.getValues("attorneyPhone")} />
+                                    <InfoField label="Attorney Name" value={form.watch("attorneyName")} />
+                                    <InfoField label="Attorney Phone" value={form.watch("attorneyPhone")} />
                                 </>
                             )}
                         </CardContent>
