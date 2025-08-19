@@ -34,14 +34,14 @@ const patientFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal('')),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits").regex(/^[\d\-\(\)\+\s]+$/, "Invalid phone number format"),
   dateOfBirth: z.date().optional(),
   streetAddress: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  zipCode: z.string().optional(),
+  zipCode: z.string().optional().refine((val) => !val || /^\d{5}(-\d{4})?$/.test(val), "Invalid ZIP code format"),
   emergencyContactName: z.string().optional(),
-  didGoToHospital: z.string().optional(),
+  didGoToHospital: z.enum(["yes", "no", ""]).optional(),
   hospitalName: z.string().optional(),
   dateOfAccident: z.date().optional(),
   claimNumber: z.string().optional(),
@@ -50,9 +50,9 @@ const patientFormSchema = z.object({
   healthInsurance: z.string().optional(),
   healthInsuranceId: z.string().optional(),
   attorneyName: z.string().optional(),
-  attorneyPhone: z.string().optional(),
+  attorneyPhone: z.string().optional().refine((val) => !val || /^[\d\-\(\)\+\s]+$/.test(val), "Invalid phone number format"),
   adjustersName: z.string().optional(),
-  insurancePhoneNumber: z.string().optional(),
+  insurancePhoneNumber: z.string().optional().refine((val) => !val || /^[\d\-\(\)\+\s]+$/.test(val), "Invalid phone number format"),
   groupNumber: z.string().optional(),
   medicaidMedicareId: z.string().optional(),
   maritalStatus: z.string().optional(),
@@ -176,7 +176,7 @@ export default function PatientProfile() {
         state: patientData.state || "",
         zipCode: patientData.zip_code || "",
         emergencyContactName: patientData.emergency_contact_name || "",
-        didGoToHospital: patientData.did_go_to_hospital ? "yes" : "no",
+        didGoToHospital: patientData.did_go_to_hospital === true ? "yes" : patientData.did_go_to_hospital === false ? "no" : "",
         hospitalName: patientData.hospital_name || "",
         dateOfAccident: patientData.accident_date ? new Date(patientData.accident_date) : undefined,
         claimNumber: patientData.claim_number || "",
@@ -279,7 +279,7 @@ export default function PatientProfile() {
         insurance_phone_number: data.insurancePhoneNumber?.trim() || null,
         health_insurance_id: data.healthInsuranceId?.trim() || null,
         medicaid_medicare_id: data.medicaidMedicareId?.trim() || null,
-        did_go_to_hospital: data.didGoToHospital === "yes",
+        did_go_to_hospital: data.didGoToHospital === "yes" ? true : data.didGoToHospital === "no" ? false : null,
         hospital_name: data.hospitalName?.trim() || null,
         marital_status: data.maritalStatus?.trim() || null,
         drivers_license_state: data.licenseState?.trim() || null,
@@ -375,11 +375,14 @@ export default function PatientProfile() {
     }
   };
 
-  const patientName = useMemo(() => `${form.getValues("firstName")} ${form.getValues("lastName")}`, [form.watch("firstName"), form.watch("lastName")]);
+  const firstName = form.watch("firstName");
+  const lastName = form.watch("lastName");
+  const dateOfBirth = form.watch("dateOfBirth");
+
+  const patientName = useMemo(() => `${firstName || ""} ${lastName || ""}`.trim(), [firstName, lastName]);
   const patientAge = useMemo(() => {
-    const dob = form.getValues("dateOfBirth");
-    return dob ? differenceInYears(new Date(), dob) : null;
-  }, [form.watch("dateOfBirth")]);
+    return dateOfBirth ? differenceInYears(new Date(), dateOfBirth) : null;
+  }, [dateOfBirth]);
 
   const InfoField = ({ label, value }: { label: string, value: any }) => (
     <div>
@@ -455,17 +458,17 @@ export default function PatientProfile() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-3xl font-bold">{patientName}</h2>
-                    <div className="flex items-center gap-4 text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" /> {form.getValues("email") || 'N/A'}</span>
-                      <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> {form.getValues("phone") || 'N/A'}</span>
-                    </div>
+                      <div className="flex items-center gap-4 text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" /> {form.watch("email") || 'N/A'}</span>
+                        <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> {form.watch("phone") || 'N/A'}</span>
+                      </div>
                   </div>
                    <Badge variant="outline" className="border-green-500 text-green-600">Active PIP Case</Badge>
                 </div>
                 <div className="border-t my-4"></div>
                 <div className="grid grid-cols-4 gap-4 text-sm">
                    <InfoField label="Age" value={patientAge} />
-                   <InfoField label="Accident" value={form.getValues("dateOfAccident") ? format(form.getValues("dateOfAccident")!, 'MMM d, yyyy') : null} />
+                   <InfoField label="Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'MMM d, yyyy') : null} />
                    <InfoField label="Last Visit" value={appointments[0] ? format(new Date(appointments[0].startTime), 'MMM d, yyyy') : 'N/A'} />
                    <InfoField label="Balance" value={<span className="text-destructive">{formatCurrency(invoices.reduce((sum, inv) => sum + inv.amount, 0))}</span>} />
                 </div>
@@ -509,8 +512,32 @@ export default function PatientProfile() {
                         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                            {isEditing ? (
                              <>
-                                <FormField control={form.control} name="didGoToHospital" render={({ field }) => (<FormItem><FormLabel>Went to Hospital?</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                <FormField control={form.control} name="hospitalName" render={({ field }) => (<FormItem><FormLabel>Hospital Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                <FormField control={form.control} name="didGoToHospital" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Went to Hospital?</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select an option" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="yes">Yes</SelectItem>
+                                        <SelectItem value="no">No</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <FormField control={form.control} name="hospitalName" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Hospital Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
                              </>
                            ) : (
                              <>
@@ -526,16 +553,106 @@ export default function PatientProfile() {
                         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {isEditing ? (
                                 <>
-                                    <FormField control={form.control} name="dateOfAccident" render={({ field }) => (<FormItem><FormLabel>Date of Accident</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus /></PopoverContent></Popover></FormItem>)} />
-                                    <FormField control={form.control} name="claimNumber" render={({ field }) => (<FormItem><FormLabel>Claim #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="policyNumber" render={({ field }) => (<FormItem><FormLabel>Policy #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="autoInsuranceCompany" render={({ field }) => (<FormItem><FormLabel>Auto Insurance</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="healthInsurance" render={({ field }) => (<FormItem><FormLabel>Health Insurance</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="healthInsuranceId" render={({ field }) => (<FormItem><FormLabel>Health Insurance ID</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="groupNumber" render={({ field }) => (<FormItem><FormLabel>Group #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="medicaidMedicareId" render={({ field }) => (<FormItem><FormLabel>Medicaid/Medicare ID</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="adjustersName" render={({ field }) => (<FormItem><FormLabel>Adjuster's Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="insurancePhoneNumber" render={({ field }) => (<FormItem><FormLabel>Insurance Phone #</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="dateOfAccident" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Date of Accident</FormLabel>
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <FormControl>
+                                              <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                              </Button>
+                                            </FormControl>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0" align="start">
+                                            <CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                          </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="claimNumber" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Claim #</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="policyNumber" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Policy #</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="autoInsuranceCompany" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Auto Insurance</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="healthInsurance" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Health Insurance</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="healthInsuranceId" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Health Insurance ID</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="groupNumber" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Group #</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="medicaidMedicareId" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Medicaid/Medicare ID</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="adjustersName" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Adjuster's Name</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="insurancePhoneNumber" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Insurance Phone #</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
                                 </>
                             ) : (
                                 <>
@@ -559,8 +676,24 @@ export default function PatientProfile() {
                         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {isEditing ? (
                                 <>
-                                    <FormField control={form.control} name="attorneyName" render={({ field }) => (<FormItem><FormLabel>Attorney Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                    <FormField control={form.control} name="attorneyPhone" render={({ field }) => (<FormItem><FormLabel>Attorney Phone</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                    <FormField control={form.control} name="attorneyName" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Attorney Name</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="attorneyPhone" render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Attorney Phone</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
                                 </>
                             ) : (
                                 <>
