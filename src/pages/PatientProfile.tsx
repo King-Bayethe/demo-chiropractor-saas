@@ -196,6 +196,7 @@ export default function PatientProfile() {
       medicaidMedicareId: patient.medicaid_medicare_id || "",
       maritalStatus: patient.marital_status || "",
       licenseState: patient.drivers_license_state || "",
+      caseType: patient.case_type || "",
     });
   };
   
@@ -594,14 +595,14 @@ export default function PatientProfile() {
                                      <SelectValue placeholder="Select case type" />
                                    </SelectTrigger>
                                  </FormControl>
-                                 <SelectContent>
-                                   <SelectItem value="PIP">PIP</SelectItem>
-                                   <SelectItem value="Insurance">Insurance</SelectItem>
-                                   <SelectItem value="Slip and Fall">Slip and Fall</SelectItem>
-                                   <SelectItem value="Workers Compensation">Workers Compensation</SelectItem>
-                                   <SelectItem value="Cash Plan">Cash Plan</SelectItem>
-                                   <SelectItem value="Attorney Only">Attorney Only</SelectItem>
-                                 </SelectContent>
+                                  <SelectContent className="bg-background border shadow-lg z-50">
+                                    <SelectItem value="PIP">PIP</SelectItem>
+                                    <SelectItem value="Insurance">Insurance</SelectItem>
+                                    <SelectItem value="Slip and Fall">Slip and Fall</SelectItem>
+                                    <SelectItem value="Workers Compensation">Workers Compensation</SelectItem>
+                                    <SelectItem value="Cash Plan">Cash Plan</SelectItem>
+                                    <SelectItem value="Attorney Only">Attorney Only</SelectItem>
+                                  </SelectContent>
                                </Select>
                                <FormMessage />
                              </FormItem>
@@ -614,9 +615,10 @@ export default function PatientProfile() {
                            <InfoField label="Phone" value={form.watch("phone")} />
                            <InfoField label="Email" value={form.watch("email")} />
                            <div className="col-span-2">
-                             <InfoField label="Address" value={`${form.watch("streetAddress") || ''} ${form.watch("city") || ''} ${form.watch("state") || ''} ${form.watch("zipCode") || ''}`.trim() || 'N/A'} />
-                           </div>
-                           {sensitiveDataVisible && <InfoField label="Emergency Contact" value={form.watch("emergencyContactName")} />}
+                            <InfoField label="Address" value={`${form.watch("streetAddress") || ''} ${form.watch("city") || ''} ${form.watch("state") || ''} ${form.watch("zipCode") || ''}`.trim() || 'N/A'} />
+                          </div>
+                          {sensitiveDataVisible && <InfoField label="Case Type" value={form.watch("caseType") || 'N/A'} />}
+                          {sensitiveDataVisible && <InfoField label="Emergency Contact" value={form.watch("emergencyContactName")} />}
                            {sensitiveDataVisible && <InfoField label="Marital Status" value={form.watch("maritalStatus")} />}
                            {sensitiveDataVisible && <InfoField label="License State" value={form.watch("licenseState")} />}
                          </>
@@ -640,10 +642,10 @@ export default function PatientProfile() {
                                           <SelectValue placeholder="Select an option" />
                                         </SelectTrigger>
                                       </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="yes">Yes</SelectItem>
-                                        <SelectItem value="no">No</SelectItem>
-                                      </SelectContent>
+                                       <SelectContent className="bg-background border shadow-lg z-50">
+                                         <SelectItem value="yes">Yes</SelectItem>
+                                         <SelectItem value="no">No</SelectItem>
+                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
                                   </FormItem>

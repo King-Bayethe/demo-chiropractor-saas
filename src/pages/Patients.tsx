@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useNavigate } from "react-router-dom";
-import { mapSupabasePatientToListItem, getPatientType, getPatientTypeVariant } from "@/utils/patientMapping";
+import { mapSupabasePatientToListItem, getPatientType, getCaseTypeVariant, getCaseTypeDisplayName } from "@/utils/patientMapping";
 import { 
   Search, 
   Filter, 
@@ -27,6 +27,7 @@ import {
   Clock,
   Activity
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Patients() {
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
@@ -86,7 +87,7 @@ export default function Patients() {
     if (selectedType !== "all") {
       filtered = filtered.filter((patient: Patient) => {
         const patientType = getPatientType(patient);
-        return patientType.toLowerCase().includes(selectedType.toLowerCase());
+        return patientType === selectedType;
       });
     }
 
@@ -207,10 +208,14 @@ export default function Patients() {
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="All Types" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border shadow-lg z-50">
                         <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="pip">PIP Patients</SelectItem>
-                        <SelectItem value="general">General Patients</SelectItem>
+                        <SelectItem value="PIP">PIP Patients</SelectItem>
+                        <SelectItem value="Insurance">Insurance Patients</SelectItem>
+                        <SelectItem value="Slip and Fall">Slip & Fall</SelectItem>
+                        <SelectItem value="Workers Compensation">Workers Comp</SelectItem>
+                        <SelectItem value="Cash Plan">Cash Plan</SelectItem>
+                        <SelectItem value="Attorney Only">Attorney Only</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -218,7 +223,7 @@ export default function Patients() {
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border shadow-lg z-50">
                         <SelectItem value="all">All Status</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="inactive">Inactive</SelectItem>
@@ -228,11 +233,11 @@ export default function Patients() {
 
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary">Total: {patients.length}</Badge>
-                    <Badge variant="outline" className="bg-medical-teal/10 text-medical-teal">
-                      PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP Patient').length}
+                    <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
+                      PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP').length}
                     </Badge>
-                    <Badge variant="outline" className="bg-primary/10 text-primary">
-                      General: {filteredPatients.filter((p: any) => getPatientType(p) === 'General Patient').length}
+                    <Badge variant="outline" className="bg-case-insurance/10 text-case-insurance">
+                      Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Insurance').length}
                     </Badge>
                   </div>
                 </div>
@@ -267,6 +272,8 @@ export default function Patients() {
                        ) : (
                         currentPatients.map((patient: Patient) => {
                           const patientType = getPatientType(patient);
+                          const caseTypeDisplay = getCaseTypeDisplayName(patientType);
+                          const caseTypeVariant = getCaseTypeVariant(patientType);
                           const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
                           return (
                             <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
@@ -302,8 +309,8 @@ export default function Patients() {
                                 </div>
                               </td>
                               <td className="p-4">
-                                <Badge variant="secondary" className={getPatientTypeVariant(patientType)}>
-                                  {patientType}
+                                <Badge className={cn("border", caseTypeVariant)}>
+                                  {caseTypeDisplay}
                                 </Badge>
                               </td>
                             <td className="p-4">
