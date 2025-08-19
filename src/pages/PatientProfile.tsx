@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePatients } from "@/hooks/usePatients";
 import { useSOAPNotes } from "@/hooks/useSOAPNotes";
 import { SOAPNoteCard } from "@/components/soap/SOAPNoteCard";
+import { SOAPNoteTimeline } from "@/components/soap/SOAPNoteTimeline";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -946,31 +947,13 @@ export default function PatientProfile() {
                          New SOAP Note
                        </Button>
                      </CardHeader>
-                     <CardContent>
-                       {patientSOAPNotes.length > 0 ? (
-                         <div className="space-y-2">
-                           {patientSOAPNotes.map(note => (
-                             <SOAPNoteCard
-                               key={note.id}
-                               note={note}
-                               compact={true}
-                               showPatientName={false}
-                               onDelete={handleDeleteSOAPNote}
-                               onExport={handleExportSOAPNote}
-                             />
-                           ))}
-                         </div>
-                       ) : (
-                         <div className="text-center py-8">
-                           <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                           <p className="text-muted-foreground mb-4">No SOAP notes found for this patient.</p>
-                           <Button onClick={handleNewSOAPNote} variant="outline">
-                             <Plus className="w-4 h-4 mr-2" />
-                             Create First SOAP Note
-                           </Button>
-                         </div>
-                       )}
-                     </CardContent>
+                      <CardContent>
+                        <SOAPNoteTimeline
+                          soapNotes={patientSOAPNotes}
+                          onDelete={handleDeleteSOAPNote}
+                          onExport={handleExportSOAPNote}
+                        />
+                      </CardContent>
                    </Card>
                  </TabsContent>
                 <TabsContent value="forms">
