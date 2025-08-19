@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -120,7 +121,7 @@ export default function PatientProfile() {
   const [loadingSensitive, setLoadingSensitive] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  const { patients, updatePatient } = usePatients();
+  const { updatePatient } = usePatients();
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -130,18 +131,73 @@ export default function PatientProfile() {
     resolver: zodResolver(appointmentFormSchema),
   });
 
+  // Load individual patient directly from database
+  const loadIndividualPatient = async (id: string) => {
+    try {
+      // Try to find patient by GHL contact ID first, then by Supabase ID as fallback
+      const { data: patientData, error } = await supabase
+        .from('patients')
+        .select('*')
+        .or(`ghl_contact_id.eq.${id},id.eq.${id}`)
+        .eq('is_active', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        throw error;
+      }
+
+      return patientData;
+    } catch (error) {
+      console.error('Error loading individual patient:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (patientId) {
       loadPatientData();
     }
-  }, [patientId, patients]);
+  }, [patientId]); // Removed patients dependency to fix race condition
+  
+  const resetFormToPatientData = () => {
+    if (!patient) return;
+    
+    form.reset({
+      firstName: patient.first_name || "",
+      lastName: patient.last_name || "",
+      email: patient.email || "",
+      phone: patient.phone || patient.cell_phone || "",
+      dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth) : undefined,
+      streetAddress: patient.address || "",
+      city: patient.city || "",
+      state: patient.state || "",
+      zipCode: patient.zip_code || "",
+      emergencyContactName: patient.emergency_contact_name || "",
+      didGoToHospital: patient.did_go_to_hospital === true ? "yes" : patient.did_go_to_hospital === false ? "no" : "",
+      hospitalName: patient.hospital_name || "",
+      dateOfAccident: patient.accident_date ? new Date(patient.accident_date) : undefined,
+      claimNumber: patient.claim_number || "",
+      policyNumber: patient.auto_policy_number || "",
+      autoInsuranceCompany: patient.auto_insurance_company || "",
+      healthInsurance: patient.health_insurance || "",
+      healthInsuranceId: patient.health_insurance_id || "",
+      attorneyName: patient.attorney_name || "",
+      attorneyPhone: patient.attorney_phone || "",
+      adjustersName: patient.adjuster_name || "",
+      insurancePhoneNumber: patient.insurance_phone_number || "",
+      groupNumber: patient.group_number || "",
+      medicaidMedicareId: patient.medicaid_medicare_id || "",
+      maritalStatus: patient.marital_status || "",
+      licenseState: patient.drivers_license_state || "",
+    });
+  };
   
   const loadPatientData = async () => {
     setLoading(true);
     setSensitiveDataVisible(false); 
     try {
-      // Try to find patient by GHL contact ID first, then by Supabase ID as fallback
-      const patientData = patients.find(p => p.ghl_contact_id === patientId || p.id === patientId);
+      const patientData = await loadIndividualPatient(patientId);
+      
       if (!patientData) {
         console.error("Patient not found with ID:", patientId);
         toast({ 
@@ -312,15 +368,18 @@ export default function PatientProfile() {
 
       console.log('Updating patient with data:', updateData);
       
-      await updatePatient(patient.id, updateData);
+      const updatedPatient = await updatePatient(patient.id, updateData);
+      
+      // Update local patient state with returned data
+      if (updatedPatient) {
+        setPatient(updatedPatient);
+      }
+      
       setIsEditing(false);
       toast({ 
         title: "Success", 
         description: "Patient information updated successfully" 
       });
-      
-      // Reload patient data to reflect changes
-      await loadPatientData();
     } catch (error: any) {
       console.error('Failed to update patient:', error);
       const errorMessage = error?.message || "Failed to update patient information";
@@ -329,12 +388,17 @@ export default function PatientProfile() {
         description: errorMessage, 
         variant: "destructive" 
       });
+      // Reset form to original values on error
+      resetFormToPatientData();
     } finally {
       setSaving(false);
     }
   };
   const handleEdit = () => setIsEditing(true);
-  const handleCancel = () => { setIsEditing(false); loadPatientData(); };
+  const handleCancel = () => { 
+    resetFormToPatientData();
+    setIsEditing(false); 
+  };
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "confirmed":
