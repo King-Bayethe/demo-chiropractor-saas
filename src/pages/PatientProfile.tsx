@@ -140,8 +140,19 @@ export default function PatientProfile() {
     setLoading(true);
     setSensitiveDataVisible(false); 
     try {
-      const patientData = patients.find(p => p.id === patientId);
-      if (!patientData) throw new Error("Patient not found.");
+      // Try to find patient by GHL contact ID first, then by Supabase ID as fallback
+      const patientData = patients.find(p => p.ghl_contact_id === patientId || p.id === patientId);
+      if (!patientData) {
+        console.error("Patient not found with ID:", patientId);
+        toast({ 
+          title: "Patient Not Found", 
+          description: "This patient may not have been synced from the intake form yet.", 
+          variant: "destructive" 
+        });
+        setPatient(null);
+        setLoading(false);
+        return;
+      }
       setPatient(patientData);
       
       // Mock data for appointments and tasks
@@ -284,7 +295,34 @@ export default function PatientProfile() {
   );
 
   if (loading) { return <div className="flex justify-center items-center h-full"><Clock className="animate-spin h-8 w-8" /></div>; }
-  if (!patient) { return <div className="text-center p-8">Patient not found.</div>; }
+  if (!patient) { 
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <Button variant="outline" size="icon" onClick={() => navigate('/patients')}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-2xl font-bold text-foreground">Patient Profile</h1>
+            </div>
+            <Card className="text-center p-8">
+              <CardContent>
+                <User className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Patient Not Found</h3>
+                <p className="text-muted-foreground mb-4">
+                  This patient may not have completed the intake form yet or the data hasn't been synced.
+                </p>
+                <Button onClick={() => navigate('/patients')}>
+                  Return to Patients
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
 
   return (
     <AuthGuard>
