@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle, Brain, CheckCircle, Code, DollarSign, Info, Pill, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAI } from '@/contexts/AIContext';
 
 interface ClinicalDecisionSupportProps {
   formData: any;
@@ -45,6 +46,7 @@ interface RealtimeSuggestion {
 
 export function ClinicalDecisionSupport({ formData, onSuggestionApply }: ClinicalDecisionSupportProps) {
   const { toast } = useToast();
+  const { isAIEnabled, setQuotaExceeded } = useAI();
   const [drugInteractions, setDrugInteractions] = useState<DrugInteraction[]>([]);
   const [complianceWarnings, setComplianceWarnings] = useState<ComplianceWarning[]>([]);
   const [billingCodes, setBillingCodes] = useState<BillingCode[]>([]);
@@ -104,6 +106,8 @@ export function ClinicalDecisionSupport({ formData, onSuggestionApply }: Clinica
 
   // Drug interaction checking
   const checkDrugInteractions = useCallback(async () => {
+    if (!isAIEnabled('clinicalDecisionSupport')) return;
+    
     const medications = getMedications();
     if (medications.length < 2) {
       setDrugInteractions([]);
@@ -119,8 +123,12 @@ export function ClinicalDecisionSupport({ formData, onSuggestionApply }: Clinica
         }
       });
 
-      if (error && !data?.quotaExceeded) throw error;
-      if (data?.quotaExceeded) return; // Silently skip if quota exceeded
+      if (error) {
+        if (error.message?.includes('quota') || error.message?.includes('429')) {
+          setQuotaExceeded(true);
+        }
+        throw error;
+      }
 
       setDrugInteractions(data.interactions || []);
       
@@ -286,8 +294,19 @@ export function ClinicalDecisionSupport({ formData, onSuggestionApply }: Clinica
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
           Clinical Decision Support
+          {!isAIEnabled('clinicalDecisionSupport') && (
+            <Badge variant="secondary">AI Disabled</Badge>
+          )}
           {isAnalyzing && <Zap className="h-4 w-4 animate-pulse text-yellow-500" />}
         </CardTitle>
+        {!isAIEnabled('clinicalDecisionSupport') && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Clinical Decision Support is disabled. Enable AI features in Settings to get safety checks and recommendations.
+            </AlertDescription>
+          </Alert>
+        )}
         <CardDescription>
           AI-powered clinical insights and safety checks
         </CardDescription>

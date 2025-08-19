@@ -4,6 +4,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { MyProfileSection } from "@/components/MyProfileSection";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
+import { AISettings } from "@/components/settings/AISettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Settings() {
@@ -26,6 +27,8 @@ export default function Settings() {
         );
       case "notifications":
         return <NotificationSettings />;
+      case "ai":
+        return <AISettings />;
       case "language":
         return (
           <Card>

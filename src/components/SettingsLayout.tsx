@@ -8,7 +8,8 @@ import {
   Bell,
   Globe,
   Puzzle,
-  Shield
+  Shield,
+  Brain
 } from "lucide-react";
 
 interface SettingsLayoutProps {
@@ -32,6 +33,11 @@ const settingsSections = [
     id: "notifications",
     label: "Notifications",
     icon: Bell
+  },
+  {
+    id: "ai",
+    label: "AI Features",
+    icon: Brain
   },
   {
     id: "language",

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Search, Brain, Lightbulb, Filter, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAI } from '@/contexts/AIContext';
 import { 
   medicalTemplates, 
   medicalTemplateCategories,
@@ -47,13 +48,14 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
+  const { isAIEnabled, setQuotaExceeded } = useAI();
 
   // Get AI insights when chief complaint changes
   useEffect(() => {
-    if (chiefComplaint && chiefComplaint.length > 10) {
+    if (chiefComplaint && chiefComplaint.length > 10 && isAIEnabled('smartTemplates')) {
       analyzeChiefComplaint();
     }
-  }, [chiefComplaint]);
+  }, [chiefComplaint, isAIEnabled]);
 
   const analyzeChiefComplaint = async () => {
     if (isAnalyzing) return; // Prevent duplicate calls
@@ -70,6 +72,7 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
       if (error) {
         // Handle quota exceeded error gracefully
         if (error.message?.includes('quota') || data?.quotaExceeded) {
+          setQuotaExceeded(true);
           toast({
             title: "AI Analysis Unavailable",
             description: "AI features are temporarily limited due to quota. You can continue creating SOAP notes manually.",
@@ -204,7 +207,9 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
         <Tabs defaultValue="suggestions" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
-            <TabsTrigger value="insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="insights" disabled={!isAIEnabled('aiInsights')}>
+              AI Insights
+            </TabsTrigger>
             <TabsTrigger value="browse">Browse All</TabsTrigger>
           </TabsList>
 
