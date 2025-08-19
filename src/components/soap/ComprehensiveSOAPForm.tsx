@@ -71,6 +71,7 @@ export function ComprehensiveSOAPForm({
   const [showClinicalSupport, setShowClinicalSupport] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [draftToRestore, setDraftToRestore] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   const [formData, setFormData] = useState<SOAPFormData>({
     patientId: patient?.id || "",
@@ -229,9 +230,12 @@ export function ComprehensiveSOAPForm({
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (isSaving) return; // Prevent multiple saves
+    
+    setIsSaving(true);
     try {
-      onSave(formData);
+      await onSave(formData);
       // Clear draft after successful save
       clearDraft();
       toast({
@@ -240,11 +244,14 @@ export function ComprehensiveSOAPForm({
       });
       onClose();
     } catch (error) {
+      console.error('Save error:', error);
       toast({
         title: "Error",
         description: "Failed to save SOAP note. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -450,9 +457,23 @@ export function ComprehensiveSOAPForm({
                 <Clock className="w-4 h-4 mr-2" />
                 Save Draft
               </Button>
-              <Button size="sm" onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Save className="w-4 h-4 mr-2" />
-                Save Note
+              <Button 
+                size="sm" 
+                onClick={handleSave} 
+                disabled={isSaving}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Note
+                  </>
+                )}
               </Button>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="w-4 h-4" />
