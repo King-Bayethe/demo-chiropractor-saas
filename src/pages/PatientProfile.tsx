@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { usePatients } from "@/hooks/usePatients";
+import { useSOAPNotes } from "@/hooks/useSOAPNotes";
+import { SOAPNoteCard } from "@/components/soap/SOAPNoteCard";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -114,7 +116,7 @@ export default function PatientProfile() {
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
-  const [soapNotes, setSoapNotes] = useState<any[]>([]);
+  const [patientSOAPNotes, setPatientSOAPNotes] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [files, setFiles] = useState<any[]>([]);
   const [forms, setForms] = useState<any[]>([]);
@@ -129,6 +131,50 @@ export default function PatientProfile() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const { updatePatient } = usePatients();
+  
+  // Load patient's SOAP notes when patientSOAPNotes changes
+  const { soapNotes, fetchSOAPNotes, deleteSOAPNote } = useSOAPNotes();
+  
+  useEffect(() => {
+    if (patient?.id && soapNotes.length >= 0) {
+      // Filter SOAP notes for this patient
+      const patientNotes = soapNotes.filter(note => note.patient_id === patient.id);
+      setPatientSOAPNotes(patientNotes);
+    }
+  }, [patient?.id, soapNotes]);
+
+  const handleNewSOAPNote = () => {
+    navigate(`/soap-notes/new?patientId=${patient?.id}`);
+  };
+
+  const handleDeleteSOAPNote = async (noteId: string) => {
+    const success = await deleteSOAPNote(noteId);
+    if (success) {
+      setPatientSOAPNotes(prev => prev.filter(note => note.id !== noteId));
+    }
+  };
+
+  const handleExportSOAPNote = async (noteId: string) => {
+    try {
+      const { exportSOAPNoteToPDF } = await import('@/services/pdfExport');
+      const note = patientSOAPNotes.find(n => n.id === noteId);
+      if (note && patient) {
+        const patientName = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient';
+        exportSOAPNoteToPDF(note, patientName);
+        toast({
+          title: "Success",
+          description: "SOAP note exported successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to export SOAP note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to export SOAP note.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -258,10 +304,8 @@ export default function PatientProfile() {
         licenseState: patientData.drivers_license_state || "",
       });
 
-      setSoapNotes([
-         { id: "soap-1", date: new Date("2025-05-22"), provider: "Dr. Silverman", chiefComplaint: "Neck and back pain post-MVA", appointmentId: "apt-1" },
-         { id: "soap-2", date: new Date("2025-06-15"), provider: "Dr. Silverman", chiefComplaint: "Follow-up on cervical spine", appointmentId: "apt-2" }
-      ]);
+      // Load patient's SOAP notes
+      await fetchSOAPNotes({ patientId: patientData.id });
       setInvoices([
         { id: "INV-PIP-001", date: new Date("2025-05-22"), amount: 350.00, description: "Initial PIP Exam & X-Rays", status: "pending" },
         { id: "INV-PIP-002", date: new Date("2025-06-15"), amount: 150.00, description: "Chiropractic Adjustment", status: "pending" },
@@ -891,8 +935,44 @@ export default function PatientProfile() {
                   </Card>
                 </TabsContent>
                  <TabsContent value="soap-notes">
-                   <Card><CardHeader><CardTitle>SOAP Notes</CardTitle></CardHeader><CardContent className="space-y-2">{soapNotes.map(note => <div key={note.id} className="flex justify-between items-center p-2 border-b"><p>{note.chiefComplaint} - {format(note.date, 'PPP')}</p><Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button></div>)}</CardContent></Card>
-                </TabsContent>
+                   <Card>
+                     <CardHeader className="flex flex-row items-center justify-between">
+                       <CardTitle className="flex items-center gap-2">
+                         <FileText className="w-5 h-5" />
+                         SOAP Notes
+                       </CardTitle>
+                       <Button onClick={handleNewSOAPNote} className="bg-primary">
+                         <Plus className="w-4 h-4 mr-2" />
+                         New SOAP Note
+                       </Button>
+                     </CardHeader>
+                     <CardContent>
+                       {patientSOAPNotes.length > 0 ? (
+                         <div className="space-y-2">
+                           {patientSOAPNotes.map(note => (
+                             <SOAPNoteCard
+                               key={note.id}
+                               note={note}
+                               compact={true}
+                               showPatientName={false}
+                               onDelete={handleDeleteSOAPNote}
+                               onExport={handleExportSOAPNote}
+                             />
+                           ))}
+                         </div>
+                       ) : (
+                         <div className="text-center py-8">
+                           <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                           <p className="text-muted-foreground mb-4">No SOAP notes found for this patient.</p>
+                           <Button onClick={handleNewSOAPNote} variant="outline">
+                             <Plus className="w-4 h-4 mr-2" />
+                             Create First SOAP Note
+                           </Button>
+                         </div>
+                       )}
+                     </CardContent>
+                   </Card>
+                 </TabsContent>
                 <TabsContent value="forms">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between">

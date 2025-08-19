@@ -30,7 +30,7 @@ export function useSOAPNotes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSOAPNotes = async (options?: { limit?: number; offset?: number; search?: string; }) => {
+  const fetchSOAPNotes = async (options?: { limit?: number; offset?: number; search?: string; patientId?: string; }) => {
     try {
       setLoading(true);
       setError(null);
@@ -43,7 +43,8 @@ export function useSOAPNotes() {
         body: {
           limit: options?.limit || 50,
           offset: options?.offset || 0,
-          search: options?.search || ''
+          search: options?.search || '',
+          patientId: options?.patientId || ''
         }
       });
 

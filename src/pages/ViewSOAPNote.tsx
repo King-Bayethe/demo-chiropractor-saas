@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes, SOAPNote } from "@/hooks/useSOAPNotes";
 import { ArrowLeft, Edit, Download, Eye, Calendar, User } from "lucide-react";
+import { PatientContextHeader } from "@/components/soap/PatientContextHeader";
+import { SOAPNoteBreadcrumb } from "@/components/soap/SOAPNoteBreadcrumb";
 import { format } from "date-fns";
 
 export default function ViewSOAPNote() {
@@ -17,6 +19,7 @@ export default function ViewSOAPNote() {
   const { toast } = useToast();
   
   const [soapNote, setSoapNote] = useState<SOAPNote | null>(null);
+  const [patient, setPatient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   const { getSOAPNote } = useSOAPNotes();
@@ -60,6 +63,12 @@ export default function ViewSOAPNote() {
 
   const handleEdit = () => {
     navigate(`/soap-notes/edit/${id}`);
+  };
+
+  const handleViewPatientProfile = () => {
+    if (soapNote?.patient_id) {
+      navigate(`/patients/${soapNote.patient_id}`);
+    }
   };
 
   const handleExportPDF = () => {
@@ -185,6 +194,16 @@ export default function ViewSOAPNote() {
               </div>
               
               <div className="flex items-center space-x-2">
+                {soapNote?.patient_id && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleViewPatientProfile}
+                    className="hover:bg-primary/10"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    View Patient Profile
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
                   onClick={handleExportPDF}
