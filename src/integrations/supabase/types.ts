@@ -362,6 +362,123 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunities: {
+        Row: {
+          assigned_provider_name: string | null
+          assigned_to: string | null
+          attorney_contact: string | null
+          attorney_name: string | null
+          attorney_referred: boolean | null
+          case_type: string | null
+          consultation_scheduled_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_value: number | null
+          expected_close_date: string | null
+          form_submission_id: string | null
+          id: string
+          insurance_coverage_amount: number | null
+          last_contact_date: string | null
+          name: string
+          next_follow_up_date: string | null
+          notes: string | null
+          patient_email: string | null
+          patient_id: string | null
+          patient_name: string | null
+          patient_phone: string | null
+          pipeline_stage: string
+          priority: string | null
+          referral_source: string | null
+          source: string | null
+          status: string
+          tags: string[] | null
+          treatment_start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_provider_name?: string | null
+          assigned_to?: string | null
+          attorney_contact?: string | null
+          attorney_name?: string | null
+          attorney_referred?: boolean | null
+          case_type?: string | null
+          consultation_scheduled_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_value?: number | null
+          expected_close_date?: string | null
+          form_submission_id?: string | null
+          id?: string
+          insurance_coverage_amount?: number | null
+          last_contact_date?: string | null
+          name: string
+          next_follow_up_date?: string | null
+          notes?: string | null
+          patient_email?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          pipeline_stage?: string
+          priority?: string | null
+          referral_source?: string | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
+          treatment_start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_provider_name?: string | null
+          assigned_to?: string | null
+          attorney_contact?: string | null
+          attorney_name?: string | null
+          attorney_referred?: boolean | null
+          case_type?: string | null
+          consultation_scheduled_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_value?: number | null
+          expected_close_date?: string | null
+          form_submission_id?: string | null
+          id?: string
+          insurance_coverage_amount?: number | null
+          last_contact_date?: string | null
+          name?: string
+          next_follow_up_date?: string | null
+          notes?: string | null
+          patient_email?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          pipeline_stage?: string
+          priority?: string | null
+          referral_source?: string | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
+          treatment_start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_form_submission_id_fkey"
+            columns: ["form_submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           accident_date: string | null
