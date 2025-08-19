@@ -38,7 +38,7 @@ export function PatientNotes({ patientId }: PatientNotesProps) {
   const [notes, setNotes] = useState<PatientNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<PatientNote | null>(null);
   
@@ -195,7 +195,7 @@ export function PatientNotes({ patientId }: PatientNotesProps) {
   const filteredNotes = notes.filter(note => {
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          note.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || note.category === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || note.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -226,7 +226,7 @@ export function PatientNotes({ patientId }: PatientNotesProps) {
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="all">All categories</SelectItem>
               {NOTE_CATEGORIES.map((category) => (
                 <SelectItem key={category.value} value={category.value}>
                   <div className="flex items-center gap-2">
@@ -308,15 +308,15 @@ export function PatientNotes({ patientId }: PatientNotesProps) {
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {searchTerm || selectedCategory ? 'No matching notes found' : 'No notes yet'}
+                {searchTerm || selectedCategory !== "all" ? 'No matching notes found' : 'No notes yet'}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || selectedCategory 
+                {searchTerm || (selectedCategory !== "all") 
                   ? 'Try adjusting your search or filter criteria'
                   : 'Start by adding the first note for this patient'
                 }
               </p>
-              {!searchTerm && !selectedCategory && (
+              {!searchTerm && selectedCategory === "all" && (
                 <Button onClick={handleNewNote}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add First Note

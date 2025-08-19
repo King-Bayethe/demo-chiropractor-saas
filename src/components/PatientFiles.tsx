@@ -59,7 +59,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
   const [files, setFiles] = useState<PatientFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   
   // Upload form state
@@ -314,7 +314,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (file.description && file.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !selectedCategory || file.category === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || file.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -345,7 +345,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="all">All categories</SelectItem>
               {FILE_CATEGORIES.map((category) => (
                 <SelectItem key={category.value} value={category.value}>
                   {category.label}
@@ -493,12 +493,12 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
                   {searchTerm || selectedCategory ? 'No matching files found' : 'No files uploaded yet'}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchTerm || selectedCategory 
+                  {searchTerm || (selectedCategory !== "all") 
                     ? 'Try adjusting your search or filter criteria'
                     : 'Start by uploading the first file for this patient'
                   }
                 </p>
-                {!searchTerm && !selectedCategory && (
+                {!searchTerm && selectedCategory === "all" && (
                   <Button onClick={() => setIsUploadDialogOpen(true)}>
                     <Upload className="h-4 w-4 mr-2" />
                     Upload First File
