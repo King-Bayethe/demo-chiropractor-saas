@@ -111,49 +111,28 @@ export const usePatients = () => {
     }
   };
 
-  const findOrCreatePatient = async (formData: {
-    patient_name?: string;
-    patient_email?: string;
-    patient_phone?: string;
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-    phone?: string;
+  const createPatient = async (patientData: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
     preferred_language?: string;
     case_type?: string;
     attorney_name?: string;
     insurance_provider?: string;
-    tags?: string[];
   }) => {
     try {
-      // Try to find existing patient by email or phone
-      const { data: existingPatient } = await supabase
-        .from('patients')
-        .select('*')
-        .or(`email.eq.${formData.patient_email || formData.email},phone.eq.${formData.patient_phone || formData.phone}`)
-        .single();
-
-      if (existingPatient) {
-        return existingPatient;
-      }
-
-      // Create new patient if not found
-      const nameParts = formData.patient_name?.split(' ') || [];
-      const firstName = formData.first_name || nameParts[0] || '';
-      const lastName = formData.last_name || nameParts.slice(1).join(' ') || '';
-
       const { data: newPatient, error: createError } = await supabase
         .from('patients')
         .insert({
-          first_name: firstName,
-          last_name: lastName,
-          email: formData.patient_email || formData.email,
-          phone: formData.patient_phone || formData.phone,
-          preferred_language: formData.preferred_language,
-          case_type: formData.case_type,
-          attorney_name: formData.attorney_name,
-          insurance_provider: formData.insurance_provider,
-          tags: formData.tags || [],
+          first_name: patientData.first_name,
+          last_name: patientData.last_name,
+          email: patientData.email,
+          phone: patientData.phone,
+          preferred_language: patientData.preferred_language,
+          case_type: patientData.case_type,
+          attorney_name: patientData.attorney_name,
+          insurance_provider: patientData.insurance_provider,
         })
         .select()
         .single();
@@ -197,7 +176,7 @@ export const usePatients = () => {
     error,
     fetchPatients,
     syncWithGHL,
-    findOrCreatePatient,
+    createPatient,
     updatePatient,
   };
 };

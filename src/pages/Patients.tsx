@@ -40,7 +40,7 @@ export default function Patients() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
-  const { patients, loading, error, findOrCreatePatient } = usePatients();
+  const { patients, loading, error, fetchPatients, syncWithGHL, createPatient, updatePatient } = usePatients();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -127,9 +127,6 @@ export default function Patients() {
     setIsSubmitting(true);
     try {
       const patientData = {
-        patient_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
-        patient_email: formData.email.trim() || undefined,
-        patient_phone: formData.phone.trim(),
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         email: formData.email.trim() || undefined,
@@ -138,16 +135,9 @@ export default function Patients() {
         case_type: formData.caseType || undefined,
         attorney_name: formData.referredBy || undefined,
         insurance_provider: formData.insuranceName || undefined,
-        tags: [
-          formData.caseType,
-          formData.referredBy ? 'Attorney Referral' : null,
-          formData.insuranceName ? 'Has Insurance' : null,
-          formData.language && formData.language !== 'English' ? formData.language : null,
-          'New Patient'
-        ].filter(Boolean)
       };
       
-      await findOrCreatePatient(patientData);
+      await createPatient(patientData);
       
       toast({ title: "Success", description: "Patient added successfully!" });
       setIsAddPatientOpen(false);
