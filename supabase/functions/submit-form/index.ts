@@ -34,61 +34,210 @@ serve(async (req) => {
       })
     }
 
-    // Extract patient information based on form type
+    // Extract patient information and handle different form types
     let patientName = ''
     let patientEmail = ''
     let patientPhone = ''
-
-    if (formData.firstName && formData.lastName) {
-      patientName = `${formData.firstName} ${formData.lastName}`.trim()
-    }
-    
-    if (formData.email) {
-      patientEmail = formData.email
-    }
-    
-    if (formData.cellPhone) {
-      patientPhone = formData.cellPhone
-    }
-
-    // Find or create patient record
     let patientId = null;
-    
-    try {
-      // Try to find existing patient by email or phone
-      const { data: existingPatient } = await supabase
-        .from('patients')
-        .select('id')
-        .or(`email.eq.${patientEmail || ''},phone.eq.${patientPhone || ''}`)
-        .single();
 
-      if (existingPatient) {
-        patientId = existingPatient.id;
-      } else if (patientName || patientEmail || patientPhone) {
-        // Create new patient if not found
-        const nameParts = patientName?.split(' ') || [];
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
-
-        const { data: newPatient, error: patientError } = await supabase
-          .from('patients')
-          .insert({
-            first_name: firstName,
-            last_name: lastName,
-            email: patientEmail || null,
-            phone: patientPhone || null,
-          })
-          .select('id')
-          .single();
-
-        if (patientError) {
-          console.warn('Could not create patient record:', patientError);
-        } else {
-          patientId = newPatient.id;
-        }
+    if (formType === 'pip') {
+      // Handle comprehensive PIP form data
+      if (formData.firstName && formData.lastName) {
+        patientName = `${formData.firstName} ${formData.lastName}`.trim()
       }
-    } catch (patientLookupError) {
-      console.warn('Could not find/create patient record:', patientLookupError);
+      
+      if (formData.email) {
+        patientEmail = formData.email
+      }
+      
+      if (formData.cellPhone) {
+        patientPhone = formData.cellPhone
+      }
+
+      try {
+        // Try to find existing patient by email or any phone number
+        let existingPatient = null;
+        
+        if (patientEmail || formData.cellPhone || formData.homePhone || formData.workPhone) {
+          const { data } = await supabase
+            .from('patients')
+            .select('*')
+            .or(`email.eq.${patientEmail || ''},cell_phone.eq.${formData.cellPhone || ''},home_phone.eq.${formData.homePhone || ''},work_phone.eq.${formData.workPhone || ''},phone.eq.${patientPhone || ''}`)
+            .maybeSingle();
+
+          existingPatient = data;
+        }
+
+        if (existingPatient) {
+          // Update existing patient with comprehensive PIP data
+          const { data: updatedPatient, error: updateError } = await supabase
+            .from('patients')
+            .update({
+              first_name: formData.firstName || existingPatient.first_name,
+              last_name: formData.lastName || existingPatient.last_name,
+              email: patientEmail || existingPatient.email,
+              cell_phone: formData.cellPhone,
+              home_phone: formData.homePhone,
+              work_phone: formData.workPhone,
+              address: formData.address,
+              city: formData.city,
+              state: formData.state,
+              zip_code: formData.zip,
+              date_of_birth: formData.dob || null,
+              gender: formData.sex,
+              age: formData.age ? parseInt(formData.age) : null,
+              emergency_contact_name: formData.emergencyContact,
+              emergency_contact_phone: formData.emergencyPhone,
+              drivers_license: formData.driversLicense,
+              drivers_license_state: formData.driversLicenseState,
+              social_security_number: formData.ssn,
+              marital_status: formData.maritalStatus,
+              employment_status: formData.employmentStatus,
+              employer_name: formData.employerName,
+              employer_address: formData.employerAddress,
+              student_status: formData.studentStatus,
+              auto_insurance_company: formData.autoInsuranceCo,
+              auto_policy_number: formData.policyNumber,
+              claim_number: formData.claimNumber,
+              adjuster_name: formData.adjusterName,
+              health_insurance: formData.healthInsurance,
+              group_number: formData.groupNumber,
+              attorney_name: formData.attorneyName,
+              attorney_phone: formData.attorneyPhone,
+              accident_date: formData.accidentDate || null,
+              accident_time: formData.accidentTime || null,
+              accident_description: formData.accidentDescription,
+              person_type: formData.personType,
+              weather_conditions: formData.weather,
+              street_surface: formData.streetSurface,
+              body_part_hit: formData.bodyPart,
+              what_body_hit: formData.whatItHit,
+              medical_systems_review: formData.systems || {},
+              pip_form_submitted_at: new Date().toISOString(),
+              consent_acknowledgement: formData.consentAcknowledgement || false,
+              patient_signature: formData.signature,
+              signature_date: formData.date || null,
+              last_synced_at: new Date().toISOString(),
+            })
+            .eq('id', existingPatient.id)
+            .select('id')
+            .single();
+
+          if (!updateError) {
+            patientId = updatedPatient.id;
+          }
+        } else {
+          // Create new patient with comprehensive PIP data
+          const { data: newPatient, error: createError } = await supabase
+            .from('patients')
+            .insert({
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              email: patientEmail,
+              cell_phone: formData.cellPhone,
+              home_phone: formData.homePhone,
+              work_phone: formData.workPhone,
+              address: formData.address,
+              city: formData.city,
+              state: formData.state,
+              zip_code: formData.zip,
+              date_of_birth: formData.dob || null,
+              gender: formData.sex,
+              age: formData.age ? parseInt(formData.age) : null,
+              emergency_contact_name: formData.emergencyContact,
+              emergency_contact_phone: formData.emergencyPhone,
+              drivers_license: formData.driversLicense,
+              drivers_license_state: formData.driversLicenseState,
+              social_security_number: formData.ssn,
+              marital_status: formData.maritalStatus,
+              employment_status: formData.employmentStatus,
+              employer_name: formData.employerName,
+              employer_address: formData.employerAddress,
+              student_status: formData.studentStatus,
+              auto_insurance_company: formData.autoInsuranceCo,
+              auto_policy_number: formData.policyNumber,
+              claim_number: formData.claimNumber,
+              adjuster_name: formData.adjusterName,
+              health_insurance: formData.healthInsurance,
+              group_number: formData.groupNumber,
+              attorney_name: formData.attorneyName,
+              attorney_phone: formData.attorneyPhone,
+              accident_date: formData.accidentDate || null,
+              accident_time: formData.accidentTime || null,
+              accident_description: formData.accidentDescription,
+              person_type: formData.personType,
+              weather_conditions: formData.weather,
+              street_surface: formData.streetSurface,
+              body_part_hit: formData.bodyPart,
+              what_body_hit: formData.whatItHit,
+              medical_systems_review: formData.systems || {},
+              pip_form_submitted_at: new Date().toISOString(),
+              consent_acknowledgement: formData.consentAcknowledgement || false,
+              patient_signature: formData.signature,
+              signature_date: formData.date || null,
+              tags: ['patient', 'pip'],
+              is_active: true,
+            })
+            .select('id')
+            .single();
+
+          if (!createError) {
+            patientId = newPatient.id;
+          }
+        }
+      } catch (error) {
+        console.warn('Error handling PIP patient data:', error);
+      }
+    } else {
+      // Handle other form types (existing logic)
+      if (formData.patient_name) {
+        patientName = formData.patient_name
+      }
+      
+      if (formData.patient_email) {
+        patientEmail = formData.patient_email
+      }
+      
+      if (formData.patient_phone) {
+        patientPhone = formData.patient_phone
+      }
+
+      try {
+        // Try to find existing patient by email or phone
+        const { data: existingPatient } = await supabase
+          .from('patients')
+          .select('id')
+          .or(`email.eq.${patientEmail || ''},phone.eq.${patientPhone || ''}`)
+          .maybeSingle();
+
+        if (existingPatient) {
+          patientId = existingPatient.id;
+        } else if (patientName || patientEmail || patientPhone) {
+          // Create new patient if not found
+          const nameParts = patientName?.split(' ') || [];
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+
+          const { data: newPatient, error: patientError } = await supabase
+            .from('patients')
+            .insert({
+              first_name: firstName,
+              last_name: lastName,
+              email: patientEmail || null,
+              phone: patientPhone || null,
+            })
+            .select('id')
+            .single();
+
+          if (patientError) {
+            console.warn('Could not create patient record:', patientError);
+          } else {
+            patientId = newPatient.id;
+          }
+        }
+      } catch (patientLookupError) {
+        console.warn('Could not find/create patient record:', patientLookupError);
+      }
     }
 
     // Insert form submission
