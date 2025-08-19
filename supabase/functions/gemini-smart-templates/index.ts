@@ -224,6 +224,20 @@ Provide:
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Gemini API error:', errorText);
+      
+      // Handle quota exceeded error gracefully
+      if (response.status === 429) {
+        const quotaMessage = 'AI analysis temporarily unavailable due to quota limits. Please try again later or continue without AI assistance.';
+        return new Response(JSON.stringify({ 
+          error: quotaMessage,
+          quotaExceeded: true,
+          fallbackAvailable: true
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       throw new Error(`Gemini API request failed: ${response.status}`);
     }
 

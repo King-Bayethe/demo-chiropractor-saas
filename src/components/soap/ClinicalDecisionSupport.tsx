@@ -119,7 +119,8 @@ export function ClinicalDecisionSupport({ formData, onSuggestionApply }: Clinica
         }
       });
 
-      if (error) throw error;
+      if (error && !data?.quotaExceeded) throw error;
+      if (data?.quotaExceeded) return; // Silently skip if quota exceeded
 
       setDrugInteractions(data.interactions || []);
       

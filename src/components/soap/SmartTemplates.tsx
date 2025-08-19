@@ -67,7 +67,18 @@ export function SmartTemplates({ onApplyTemplate, chiefComplaint }: SmartTemplat
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle quota exceeded error gracefully
+        if (error.message?.includes('quota') || data?.quotaExceeded) {
+          toast({
+            title: "AI Analysis Unavailable",
+            description: "AI features are temporarily limited due to quota. You can continue creating SOAP notes manually.",
+            variant: "default",
+          });
+          return;
+        }
+        throw error;
+      }
 
       // API returns flat structure, not nested under aiInsights
       const response: GeminiAnalysisResponse = data;
