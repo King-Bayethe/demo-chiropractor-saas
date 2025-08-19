@@ -56,6 +56,7 @@ export interface Patient {
   consent_acknowledgement?: boolean;
   patient_signature?: string;
   signature_date?: string;
+  case_type?: string;
   tags?: string[];
   is_active: boolean;
   last_synced_at?: string;

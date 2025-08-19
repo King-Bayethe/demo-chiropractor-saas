@@ -73,6 +73,14 @@ export default {
 					pending: 'hsl(var(--pending-indicator))',
 					refused: 'hsl(var(--refused-indicator))'
 				},
+				'case': {
+					pip: 'hsl(var(--case-pip))',
+					insurance: 'hsl(var(--case-insurance))',
+					'slip-fall': 'hsl(var(--case-slip-fall))',
+					'workers-comp': 'hsl(var(--case-workers-comp))',
+					'cash-plan': 'hsl(var(--case-cash-plan))',
+					'attorney-only': 'hsl(var(--case-attorney-only))'
+				},
 				'medical-blue': 'hsl(var(--medical-blue))',
 				'medical-blue-light': 'hsl(var(--medical-blue-light))',
 				'medical-blue-dark': 'hsl(var(--medical-blue-dark))',

@@ -375,6 +375,7 @@ export type Database = {
           auto_insurance_company: string | null
           auto_policy_number: string | null
           body_part_hit: string | null
+          case_type: string | null
           cell_phone: string | null
           city: string | null
           claim_number: string | null
@@ -436,6 +437,7 @@ export type Database = {
           auto_insurance_company?: string | null
           auto_policy_number?: string | null
           body_part_hit?: string | null
+          case_type?: string | null
           cell_phone?: string | null
           city?: string | null
           claim_number?: string | null
@@ -497,6 +499,7 @@ export type Database = {
           auto_insurance_company?: string | null
           auto_policy_number?: string | null
           body_part_hit?: string | null
+          case_type?: string | null
           cell_phone?: string | null
           city?: string | null
           claim_number?: string | null

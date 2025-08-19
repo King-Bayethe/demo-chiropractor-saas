@@ -340,14 +340,53 @@ export default function Forms() {
 
   const handleLeadIntakeSubmit = async (data: any) => {
     try {
+      // Create/update patient with case type information
+      const patientData = {
+        first_name: data.firstName || '',
+        last_name: data.lastName || '',
+        email: data.email || null,
+        phone: data.phone || null,
+        case_type: data.caseType || null,
+        tags: data.caseType ? [data.caseType.toLowerCase().replace(/ /g, '-')] : [],
+      };
+
+      let patientId = null;
+
+      // Try to find existing patient
+      if (data.email || data.phone) {
+        const { data: existingPatient } = await supabase
+          .from('patients')
+          .select('id')
+          .or(`email.eq.${data.email || ''},phone.eq.${data.phone || ''}`)
+          .maybeSingle();
+
+        if (existingPatient) {
+          // Update existing patient
+          await supabase
+            .from('patients')
+            .update(patientData)
+            .eq('id', existingPatient.id);
+          patientId = existingPatient.id;
+        } else {
+          // Create new patient
+          const { data: newPatient } = await supabase
+            .from('patients')
+            .insert(patientData)
+            .select('id')
+            .single();
+          patientId = newPatient?.id;
+        }
+      }
+
       const { error } = await supabase
         .from('form_submissions')
         .insert({
           form_type: 'lead_intake',
           form_data: data,
-          patient_name: data.patientName,
-          patient_email: data.patientEmail || null,
-          patient_phone: data.patientPhone || null,
+          patient_id: patientId,
+          patient_name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+          patient_email: data.email || null,
+          patient_phone: data.phone || null,
           status: 'pending'
         });
 

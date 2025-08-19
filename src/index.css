@@ -59,6 +59,14 @@ All colors MUST be HSL.
     --sidebar-hover: 210 100% 45%;
     --sidebar-active: 210 100% 55%;
 
+    /* Case type colors */
+    --case-pip: 180 65% 50%;
+    --case-insurance: 210 100% 50%;
+    --case-slip-fall: 15 85% 55%;
+    --case-workers-comp: 270 70% 50%;
+    --case-cash-plan: 145 85% 47%;
+    --case-attorney-only: 210 8% 46%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
@@ -136,6 +144,14 @@ All colors MUST be HSL.
     --sidebar-text: 0 0% 100%;
     --sidebar-hover: 210 100% 35%;
     --sidebar-active: 210 100% 50%;
+
+    /* Case type colors - dark mode */
+    --case-pip: 180 65% 60%;
+    --case-insurance: 210 100% 60%;
+    --case-slip-fall: 15 85% 65%;
+    --case-workers-comp: 270 70% 60%;
+    --case-cash-plan: 145 85% 55%;
+    --case-attorney-only: 210 20% 65%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;

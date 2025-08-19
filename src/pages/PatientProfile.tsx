@@ -22,6 +22,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, differenceInYears, setHours, setMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
+import { 
+  mapSupabasePatientToProfileHeader, 
+  getPatientType, 
+  getCaseTypeDisplayName, 
+  getCaseTypeVariant 
+} from "@/utils/patientMapping";
 import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle,
@@ -58,6 +64,7 @@ const patientFormSchema = z.object({
   medicaidMedicareId: z.string().optional(),
   maritalStatus: z.string().optional(),
   licenseState: z.string().optional(),
+  caseType: z.string().optional(),
 });
 type PatientFormData = z.infer<typeof patientFormSchema>;
 
@@ -340,6 +347,7 @@ export default function PatientProfile() {
         marital_status: data.maritalStatus?.trim() || null,
         drivers_license_state: data.licenseState?.trim() || null,
         group_number: data.groupNumber?.trim() || null,
+        case_type: data.caseType?.trim() || null,
       };
 
       // Handle date of birth with proper validation
@@ -448,6 +456,18 @@ export default function PatientProfile() {
     return dateOfBirth ? differenceInYears(new Date(), dateOfBirth) : null;
   }, [dateOfBirth]);
 
+  const patientType = useMemo(() => {
+    return patient ? getPatientType(patient) : '';
+  }, [patient]);
+
+  const caseTypeDisplay = useMemo(() => {
+    return getCaseTypeDisplayName(patientType);
+  }, [patientType]);
+
+  const caseTypeVariant = useMemo(() => {
+    return getCaseTypeVariant(patientType);
+  }, [patientType]);
+
   const InfoField = ({ label, value }: { label: string, value: any }) => (
     <div>
         <Label className="text-sm text-muted-foreground">{label}</Label>
@@ -527,7 +547,9 @@ export default function PatientProfile() {
                         <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> {form.watch("phone") || 'N/A'}</span>
                       </div>
                   </div>
-                   <Badge variant="outline" className="border-green-500 text-green-600">Active PIP Case</Badge>
+                   <Badge className={cn("border", caseTypeVariant)}>
+                     {caseTypeDisplay}
+                   </Badge>
                 </div>
                 <div className="border-t my-4"></div>
                 <div className="grid grid-cols-4 gap-4 text-sm">
@@ -563,6 +585,27 @@ export default function PatientProfile() {
                            <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                            <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                            <FormField control={form.control} name="zipCode" render={({ field }) => (<FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="caseType" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Case Type</FormLabel>
+                               <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                 <FormControl>
+                                   <SelectTrigger>
+                                     <SelectValue placeholder="Select case type" />
+                                   </SelectTrigger>
+                                 </FormControl>
+                                 <SelectContent>
+                                   <SelectItem value="PIP">PIP</SelectItem>
+                                   <SelectItem value="Insurance">Insurance</SelectItem>
+                                   <SelectItem value="Slip and Fall">Slip and Fall</SelectItem>
+                                   <SelectItem value="Workers Compensation">Workers Compensation</SelectItem>
+                                   <SelectItem value="Cash Plan">Cash Plan</SelectItem>
+                                   <SelectItem value="Attorney Only">Attorney Only</SelectItem>
+                                 </SelectContent>
+                               </Select>
+                               <FormMessage />
+                             </FormItem>
+                           )} />
                         </>
                       ) : (
                          <>

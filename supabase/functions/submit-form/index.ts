@@ -113,6 +113,7 @@ serve(async (req) => {
               body_part_hit: formData.bodyPart,
               what_body_hit: formData.whatItHit,
               medical_systems_review: formData.systems || {},
+              case_type: formData.caseType || 'PIP',
               pip_form_submitted_at: new Date().toISOString(),
               consent_acknowledgement: formData.consentAcknowledgement || false,
               patient_signature: formData.signature,
@@ -175,6 +176,7 @@ serve(async (req) => {
               consent_acknowledgement: formData.consentAcknowledgement || false,
               patient_signature: formData.signature,
               signature_date: formData.date || null,
+              case_type: formData.caseType || 'PIP',
               tags: ['patient', 'pip'],
               is_active: true,
             })

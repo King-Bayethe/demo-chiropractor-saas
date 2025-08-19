@@ -81,34 +81,68 @@ export const mapSupabasePatientToListItem = (patient: Patient) => {
   };
 };
 
-// Determines patient type based on tags or form submission
+// Determines patient type based on case_type field, tags, or form submission
 export const getPatientType = (patient: Patient) => {
+  // Use case_type field as primary source
+  if (patient.case_type) {
+    return patient.case_type;
+  }
+  
   const tags = patient.tags || [];
   
   if (tags.some((tag: string) => tag.toLowerCase().includes('pip'))) {
-    return 'PIP Patient';
+    return 'PIP';
   }
   
   if (tags.some((tag: string) => tag.toLowerCase().includes('general'))) {
-    return 'General Patient';
+    return 'Insurance';
   }
   
   // Check if they submitted a PIP form
   if (patient.pip_form_submitted_at) {
-    return 'PIP Patient';
+    return 'PIP';
   }
   
-  return 'Patient';
+  return 'Insurance';
 };
 
-// Get patient type variant for badges
-export const getPatientTypeVariant = (patientType: string) => {
-  switch (patientType) {
-    case 'PIP Patient':
-      return 'bg-medical-teal/10 text-medical-teal';
-    case 'General Patient':
-      return 'bg-primary/10 text-primary';
+// Get case type display name
+export const getCaseTypeDisplayName = (caseType: string) => {
+  const caseTypeMap: Record<string, string> = {
+    'PIP': 'PIP Patient',
+    'Insurance': 'Insurance Patient',
+    'Slip and Fall': 'Slip & Fall Patient',
+    'Workers Compensation': 'Workers Comp Patient', 
+    'Cash Plan': 'Cash Plan Patient',
+    'Attorney Only': 'Attorney Only Patient'
+  };
+  
+  return caseTypeMap[caseType] || caseType || 'Patient';
+};
+
+// Get case type variant for badges and styling
+export const getCaseTypeVariant = (caseType: string) => {
+  switch (caseType) {
+    case 'PIP':
+      return 'bg-case-pip/10 text-case-pip border-case-pip/20';
+    case 'Insurance':
+      return 'bg-case-insurance/10 text-case-insurance border-case-insurance/20';
+    case 'Slip and Fall':
+      return 'bg-case-slip-fall/10 text-case-slip-fall border-case-slip-fall/20';
+    case 'Workers Compensation':
+      return 'bg-case-workers-comp/10 text-case-workers-comp border-case-workers-comp/20';
+    case 'Cash Plan':
+      return 'bg-case-cash-plan/10 text-case-cash-plan border-case-cash-plan/20';
+    case 'Attorney Only':
+      return 'bg-case-attorney-only/10 text-case-attorney-only border-case-attorney-only/20';
     default:
-      return 'bg-secondary/10 text-secondary-foreground';
+      return 'bg-secondary/10 text-secondary-foreground border-secondary/20';
   }
+};
+
+// Get patient type variant for badges (backwards compatibility)
+export const getPatientTypeVariant = (patientType: string) => {
+  // Map old format to new format
+  const normalizedType = patientType.replace(' Patient', '');
+  return getCaseTypeVariant(normalizedType);
 };
