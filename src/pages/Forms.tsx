@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChiropracticSOAPQuestionnaire } from "@/components/ChiropracticSOAPQuestionnaire";
+import { LeadIntakeForm } from "@/components/LeadIntakeForm";
 import { toast } from "sonner";
 import { 
   FileText, 
@@ -22,7 +23,8 @@ import {
   Download,
   Filter,
   Plus,
-  Stethoscope
+  Stethoscope,
+  UserPlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,6 +47,7 @@ export default function Forms() {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [showSOAPQuestionnaire, setShowSOAPQuestionnaire] = useState(false);
+  const [showLeadIntakeForm, setShowLeadIntakeForm] = useState(false);
 
   useEffect(() => {
     fetchSubmissions();
@@ -112,6 +115,8 @@ export default function Forms() {
         return { name: 'Cash Patient Form', icon: Users, color: 'bg-purple-500/10 text-purple-700' };
       case 'soap_questionnaire':
         return { name: 'Chiropractic SOAP Questionnaire', icon: Stethoscope, color: 'bg-medical-teal/10 text-medical-teal' };
+      case 'lead_intake':
+        return { name: 'Lead Intake Form', icon: UserPlus, color: 'bg-orange-500/10 text-orange-700' };
       default:
         return { name: type, icon: FileText, color: 'bg-gray-500/10 text-gray-700' };
     }
@@ -254,6 +259,58 @@ export default function Forms() {
       }
     }
 
+    // Lead Intake Form Data
+    if (formType === 'lead_intake') {
+      sections.push(
+        <div key="lead-info" className="space-y-3">
+          <h4 className="font-semibold text-primary">Lead Information</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {formData.leadSource && (
+              <div>
+                <span className="font-medium">Lead Source:</span> {formData.leadSource}
+              </div>
+            )}
+            {formData.referredBy && (
+              <div>
+                <span className="font-medium">Referred By:</span> {formData.referredBy}
+              </div>
+            )}
+            {formData.affiliateOffice && (
+              <div className="col-span-2">
+                <span className="font-medium">Affiliate Office:</span> {formData.affiliateOffice}
+              </div>
+            )}
+            {formData.caseType && (
+              <div>
+                <span className="font-medium">Case Type:</span> {formData.caseType}
+              </div>
+            )}
+            {formData.insuranceName && (
+              <div>
+                <span className="font-medium">Insurance:</span> {formData.insuranceName}
+              </div>
+            )}
+            {formData.biLimit && (
+              <div>
+                <span className="font-medium">BI Limit:</span> {formData.biLimit}
+              </div>
+            )}
+            {formData.language && (
+              <div>
+                <span className="font-medium">Language:</span> {formData.language}
+              </div>
+            )}
+          </div>
+          {formData.other && (
+            <div className="mt-3">
+              <span className="font-medium">Additional Notes:</span>
+              <p className="mt-1 p-2 bg-muted rounded text-sm">{formData.other}</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return sections;
   };
 
@@ -281,6 +338,30 @@ export default function Forms() {
     }
   };
 
+  const handleLeadIntakeSubmit = async (data: any) => {
+    try {
+      const { error } = await supabase
+        .from('form_submissions')
+        .insert({
+          form_type: 'lead_intake',
+          form_data: data,
+          patient_name: data.patientName,
+          patient_email: data.patientEmail || null,
+          patient_phone: data.patientPhone || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast.success("Lead Intake Form submitted successfully");
+      setShowLeadIntakeForm(false);
+      fetchSubmissions(); // Refresh the list
+    } catch (error) {
+      console.error('Error submitting lead intake form:', error);
+      toast.error("Failed to submit lead intake form");
+    }
+  };
+
   const stats = {
     total: submissions.length,
     pending: submissions.filter(s => s.status === 'pending').length,
@@ -288,6 +369,7 @@ export default function Forms() {
     lop: submissions.filter(s => s.form_type === 'lop').length,
     cash: submissions.filter(s => s.form_type === 'cash').length,
     soap: submissions.filter(s => s.form_type === 'soap_questionnaire').length,
+    lead: submissions.filter(s => s.form_type === 'lead_intake').length,
   };
 
   if (loading) {
@@ -314,17 +396,26 @@ export default function Forms() {
               <h1 className="text-3xl font-bold text-foreground">Form Submissions</h1>
               <p className="text-muted-foreground">View and manage patient form submissions</p>
             </div>
-            <Button 
-              onClick={() => setShowSOAPQuestionnaire(true)}
-              className="bg-medical-teal hover:bg-medical-teal/80"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New SOAP Questionnaire
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => setShowLeadIntakeForm(true)}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                New Lead Intake
+              </Button>
+              <Button 
+                onClick={() => setShowSOAPQuestionnaire(true)}
+                className="bg-medical-teal hover:bg-medical-teal/80"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New SOAP Questionnaire
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary">{stats.total}</div>
@@ -361,6 +452,12 @@ export default function Forms() {
                 <div className="text-sm text-muted-foreground">SOAP Forms</div>
               </CardContent>
             </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600">{stats.lead}</div>
+                <div className="text-sm text-muted-foreground">Lead Intake</div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Filters */}
@@ -385,6 +482,7 @@ export default function Forms() {
                       <SelectItem value="lop">LOP Forms</SelectItem>
                       <SelectItem value="cash">Cash Forms</SelectItem>
                       <SelectItem value="soap_questionnaire">SOAP Questionnaires</SelectItem>
+                      <SelectItem value="lead_intake">Lead Intake Forms</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -539,6 +637,24 @@ export default function Forms() {
             onClose={() => setShowSOAPQuestionnaire(false)}
             onSave={handleSOAPQuestionnaireSubmit}
           />
+
+          {/* Lead Intake Form Modal */}
+          {showLeadIntakeForm && (
+            <Dialog open={showLeadIntakeForm} onOpenChange={setShowLeadIntakeForm}>
+              <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Lead Intake Form</DialogTitle>
+                  <DialogDescription>
+                    Collect lead information for new potential patients
+                  </DialogDescription>
+                </DialogHeader>
+                <LeadIntakeForm 
+                  onSubmit={handleLeadIntakeSubmit}
+                  onCancel={() => setShowLeadIntakeForm(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </Layout>
     </AuthGuard>
