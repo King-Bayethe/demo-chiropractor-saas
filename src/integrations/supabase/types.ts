@@ -381,6 +381,7 @@ export type Database = {
           consent_acknowledgement: boolean | null
           created_at: string
           date_of_birth: string | null
+          did_go_to_hospital: boolean | null
           drivers_license: string | null
           drivers_license_state: string | null
           email: string | null
@@ -394,14 +395,18 @@ export type Database = {
           ghl_contact_id: string | null
           group_number: string | null
           health_insurance: string | null
+          health_insurance_id: string | null
           home_phone: string | null
+          hospital_name: string | null
           id: string
+          insurance_phone_number: string | null
           insurance_policy_number: string | null
           insurance_provider: string | null
           is_active: boolean | null
           last_name: string | null
           last_synced_at: string | null
           marital_status: string | null
+          medicaid_medicare_id: string | null
           medical_systems_review: Json | null
           patient_signature: string | null
           person_type: string | null
@@ -437,6 +442,7 @@ export type Database = {
           consent_acknowledgement?: boolean | null
           created_at?: string
           date_of_birth?: string | null
+          did_go_to_hospital?: boolean | null
           drivers_license?: string | null
           drivers_license_state?: string | null
           email?: string | null
@@ -450,14 +456,18 @@ export type Database = {
           ghl_contact_id?: string | null
           group_number?: string | null
           health_insurance?: string | null
+          health_insurance_id?: string | null
           home_phone?: string | null
+          hospital_name?: string | null
           id?: string
+          insurance_phone_number?: string | null
           insurance_policy_number?: string | null
           insurance_provider?: string | null
           is_active?: boolean | null
           last_name?: string | null
           last_synced_at?: string | null
           marital_status?: string | null
+          medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
           patient_signature?: string | null
           person_type?: string | null
@@ -493,6 +503,7 @@ export type Database = {
           consent_acknowledgement?: boolean | null
           created_at?: string
           date_of_birth?: string | null
+          did_go_to_hospital?: boolean | null
           drivers_license?: string | null
           drivers_license_state?: string | null
           email?: string | null
@@ -506,14 +517,18 @@ export type Database = {
           ghl_contact_id?: string | null
           group_number?: string | null
           health_insurance?: string | null
+          health_insurance_id?: string | null
           home_phone?: string | null
+          hospital_name?: string | null
           id?: string
+          insurance_phone_number?: string | null
           insurance_policy_number?: string | null
           insurance_provider?: string | null
           is_active?: boolean | null
           last_name?: string | null
           last_synced_at?: string | null
           marital_status?: string | null
+          medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
           patient_signature?: string | null
           person_type?: string | null

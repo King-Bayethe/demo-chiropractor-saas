@@ -35,6 +35,11 @@ export interface Patient {
   claim_number?: string;
   adjuster_name?: string;
   health_insurance?: string;
+  health_insurance_id?: string;
+  medicaid_medicare_id?: string;
+  insurance_phone_number?: string;
+  did_go_to_hospital?: boolean;
+  hospital_name?: string;
   group_number?: string;
   attorney_name?: string;
   attorney_phone?: string;
