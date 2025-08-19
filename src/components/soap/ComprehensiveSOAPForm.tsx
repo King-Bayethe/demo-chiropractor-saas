@@ -129,60 +129,68 @@ export function ComprehensiveSOAPForm({
     enabled: isOpen
   });
 
-  // Transform patient data for PatientProfileHeader
+  // Return patient data directly for PatientProfileHeader
   const getPatientDisplayData = () => {
     if (!patient) {
+      // Return a mock Supabase Patient for new patients
       return {
         id: "new-patient",
-        name: "New Patient",
-        dateOfBirth: new Date().toISOString().split('T')[0],
-        age: 0,
-        gender: "Unknown",
-        email: "",
-        phone: "",
-        address: "",
-        medicalHistory: [],
-        allergies: [],
-        emergencyContact: undefined
+        first_name: "New",
+        last_name: "Patient", 
+        email: null,
+        phone: null,
+        date_of_birth: null,
+        gender: null,
+        address: null,
+        city: null,
+        state: null,
+        zip_code: null,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ghl_contact_id: null,
+        cell_phone: null,
+        home_phone: null,
+        work_phone: null,
+        emergency_contact_name: null,
+        emergency_contact_phone: null,
+        medical_systems_review: null,
+        tags: null,
+        age: null,
+        accident_date: null,
+        accident_time: null,
+        insurance_policy_number: null,
+        insurance_provider: null,
+        accident_description: null,
+        street_surface: null,
+        weather_conditions: null,
+        person_type: null,
+        pip_form_submitted_at: null,
+        consent_acknowledgement: null,
+        signature_date: null,
+        employer_name: null,
+        employment_status: null,
+        body_part_hit: null,
+        marital_status: null,
+        social_security_number: null,
+        group_number: null,
+        attorney_name: null,
+        attorney_phone: null,
+        what_body_hit: null,
+        drivers_license_state: null,
+        drivers_license: null,
+        patient_signature: null,
+        health_insurance: null,
+        adjuster_name: null,
+        claim_number: null,
+        auto_policy_number: null,
+        auto_insurance_company: null,
+        student_status: null,
+        employer_address: null,
+        last_synced_at: null,
       };
     }
-
-    const fullName = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Unknown Patient';
-    const fullAddress = [patient.address, patient.city, patient.state, patient.zip_code]
-      .filter(Boolean)
-      .join(', ');
-
-    const calculateAge = (dateOfBirth: string) => {
-      if (!dateOfBirth) return 0;
-      const birthDate = new Date(dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      
-      return age;
-    };
-
-    return {
-      id: patient.id,
-      name: fullName,
-      dateOfBirth: patient.date_of_birth || new Date().toISOString().split('T')[0],
-      age: calculateAge(patient.date_of_birth || ''),
-      gender: patient.gender || "Unknown",
-      email: patient.email || "",
-      phone: patient.phone || "",
-      address: fullAddress || "",
-      medicalHistory: patient.tags || [],
-      allergies: [], // Could be extracted from tags or separate field
-      emergencyContact: patient.emergency_contact_name && patient.emergency_contact_phone ? {
-        name: patient.emergency_contact_name,
-        phone: patient.emergency_contact_phone,
-        relationship: "Emergency Contact"
-      } : undefined
-    };
+    return patient;
   };
 
   // Check for existing draft when component opens

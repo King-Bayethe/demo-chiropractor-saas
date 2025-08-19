@@ -11,8 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useGHLApi } from "@/hooks/useGHLApi";
+import { usePatients, Patient } from "@/hooks/usePatients";
 import { useNavigate } from "react-router-dom";
+import { mapSupabasePatientToListItem, getPatientType, getPatientTypeVariant } from "@/utils/patientMapping";
 import { 
   Search, 
   Filter, 
@@ -28,17 +29,15 @@ import {
 } from "lucide-react";
 
 export default function Patients() {
-  const [patients, setPatients] = useState([]);
-  const [filteredPatients, setFilteredPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   
   const [currentPage, setCurrentPage] = useState(1);
   const [patientsPerPage, setPatientsPerPage] = useState(20);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -49,52 +48,33 @@ export default function Patients() {
     patientType: 'general',
     notes: ''
   });
-  const { toast } = useToast();
-  const ghlApi = useGHLApi();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    loadPatients();
-  }, []);
+  const { toast } = useToast();
+  const { patients, loading, error, findOrCreatePatient } = usePatients();
+  const navigate = useNavigate();
 
   useEffect(() => {
     filterPatients();
   }, [patients, searchTerm, selectedType, selectedStatus]);
 
-  const loadPatients = async () => {
-    try {
-      setLoading(true);
-      const response = await ghlApi.contacts.getAll();
-      const allContacts = response.contacts || [];
-
-      const patientContacts = allContacts.filter((contact: any) => 
-        contact.tags?.some((tag: string) => 
-          tag.toLowerCase().includes('patient') || 
-          tag.toLowerCase().includes('treatment')
-        ) || !contact.tags?.length
-      );
-      setPatients(patientContacts);
-    } catch (error) {
-      console.error('Failed to load patients:', error);
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Error",
-        description: "Failed to load patient data from GoHighLevel API.",
+        description: "Failed to load patient data.",
         variant: "destructive",
       });
-      setPatients([]);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [error, toast]);
 
   const filterPatients = () => {
     let filtered = [...patients];
 
     if (searchTerm) {
-      filtered = filtered.filter((patient: any) => {
-        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.toLowerCase();
+      filtered = filtered.filter((patient: Patient) => {
+        const name = `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase();
         const email = (patient.email || '').toLowerCase();
-        const phone = (patient.phone || '').toLowerCase();
+        const phone = (patient.phone || patient.cell_phone || patient.home_phone || '').toLowerCase();
         const searchLower = searchTerm.toLowerCase();
         
         return name.includes(searchLower) || 
@@ -104,7 +84,7 @@ export default function Patients() {
     }
 
     if (selectedType !== "all") {
-      filtered = filtered.filter((patient: any) => {
+      filtered = filtered.filter((patient: Patient) => {
         const patientType = getPatientType(patient);
         return patientType.toLowerCase().includes(selectedType.toLowerCase());
       });
@@ -112,7 +92,9 @@ export default function Patients() {
 
     if (selectedStatus !== "all") {
       if (selectedStatus === "inactive") {
-        filtered = [];
+        filtered = filtered.filter((patient: Patient) => !patient.is_active);
+      } else if (selectedStatus === "active") {
+        filtered = filtered.filter((patient: Patient) => patient.is_active !== false);
       }
     }
 
@@ -120,22 +102,33 @@ export default function Patients() {
     setCurrentPage(1);
   };
 
-  const handlePatientSelect = (patient: any) => navigate(`/patients/${patient.id}`);
-  const handleMessagePatient = (patient: any) => toast({ title: "Message Feature", description: `Opening conversation with ${patient.firstName || patient.name}` });
-  const handleBookAppointment = (patient: any) => toast({ title: "Appointment Booking", description: `Opening appointment booking for ${patient.firstName || patient.name}` });
-  
-  const getPatientType = (patient: any) => {
-    const tags = patient.tags || [];
-    if (tags.some((tag: string) => tag.toLowerCase().includes('pip'))) return 'PIP Patient';
-    if (tags.some((tag: string) => tag.toLowerCase().includes('general'))) return 'General Patient';
-    return 'Patient';
-  };
+  const handlePatientSelect = (patient: Patient) => navigate(`/patients/${patient.id}`);
+  const handleMessagePatient = (patient: Patient) => toast({ 
+    title: "Message Feature", 
+    description: `Opening conversation with ${patient.first_name || 'Unknown Patient'}` 
+  });
+  const handleBookAppointment = (patient: Patient) => toast({ 
+    title: "Appointment Booking", 
+    description: `Opening appointment booking for ${patient.first_name || 'Unknown Patient'}` 
+  });
 
-  const getLastAppointment = (patient: any) => {
-    const mockDates = ['Last week', '3 days ago', 'Yesterday', '2 weeks ago', 'Last month'];
-    return mockDates[Math.floor(Math.random() * mockDates.length)];
+  const getLastAppointment = (patient: Patient) => {
+    if (patient.updated_at) {
+      const date = new Date(patient.updated_at);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.ceil(diffDays / 7)} week${diffDays > 13 ? 's' : ''} ago`;
+      return `${Math.ceil(diffDays / 30)} month${diffDays > 60 ? 's' : ''} ago`;
+    }
+    return 'No recent appointments';
   };
-  const getTotalVisits = (patient: any) => {
+  
+  const getTotalVisits = (patient: Patient) => {
+    // TODO: Implement actual visit count from appointments/soap_notes
     return Math.floor(Math.random() * 20) + 1;
   };
   const handleAddPatient = () => setIsAddPatientOpen(true);
@@ -148,19 +141,17 @@ export default function Patients() {
     }
     setIsSubmitting(true);
     try {
-      const contactData = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim() || undefined,
-        phone: formData.phone.trim(),
-        type: formData.type,
-        tags: formData.patientType === 'pip' ? ['patient', 'pip'] : ['patient', 'general'],
+      const patientData = {
+        patient_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+        patient_email: formData.email.trim() || undefined,
+        patient_phone: formData.phone.trim(),
       };
-      await ghlApi.contacts.create(contactData);
+      
+      await findOrCreatePatient(patientData);
+      
       toast({ title: "Success", description: "Patient added successfully!" });
       setFormData({ firstName: '', lastName: '', email: '', phone: '', type: 'lead', patientType: 'general', notes: '' });
       setIsAddPatientOpen(false);
-      loadPatients();
     } catch (error) {
       console.error('Failed to add patient:', error);
       toast({ title: "Error", description: "Failed to add patient. Please try again.", variant: "destructive" });
@@ -273,45 +264,48 @@ export default function Patients() {
                         <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr>
                       ) : currentPatients.length === 0 ? (
                         <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr>
-                      ) : (
-                        currentPatients.map((patient: any) => (
-                          <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
-                            <td className="p-4">
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
-                                    {`${patient.firstName?.[0]?.toUpperCase() || ''}${patient.lastName?.[0]?.toUpperCase() || ''}` || patient.name?.[0] || 'P'}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-sm cursor-pointer hover:text-medical-blue" onClick={() => handlePatientSelect(patient)}>
-                                    {patient.firstName && patient.lastName ? `${patient.firstName} ${patient.lastName}` : patient.name || "Unknown Patient"}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">GHL ID: {patient.id}</p>
+                       ) : (
+                        currentPatients.map((patient: Patient) => {
+                          const patientType = getPatientType(patient);
+                          const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
+                          return (
+                            <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
+                              <td className="p-4">
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
+                                      {`${patient.first_name?.[0]?.toUpperCase() || ''}${patient.last_name?.[0]?.toUpperCase() || ''}` || 'P'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium text-sm cursor-pointer hover:text-medical-blue" onClick={() => handlePatientSelect(patient)}>
+                                      {[patient.first_name, patient.last_name].filter(Boolean).join(' ') || "Unknown Patient"}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">ID: {patient.id.slice(-8)}</p>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="space-y-1">
-                                {patient.phone && (
-                                  <div className="flex items-center space-x-2">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm">{patient.phone}</span>
-                                  </div>
-                                )}
-                                {patient.email && (
-                                  <div className="flex items-center space-x-2">
-                                    <Mail className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm text-medical-blue">{patient.email}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <Badge variant="secondary" className={getPatientType(patient) === 'PIP Patient' ? "bg-medical-teal/10 text-medical-teal" : "bg-primary/10 text-primary"}>
-                                {getPatientType(patient)}
-                              </Badge>
-                            </td>
+                              </td>
+                              <td className="p-4">
+                                <div className="space-y-1">
+                                  {displayPhone && (
+                                    <div className="flex items-center space-x-2">
+                                      <Phone className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-sm">{displayPhone}</span>
+                                    </div>
+                                  )}
+                                  {patient.email && (
+                                    <div className="flex items-center space-x-2">
+                                      <Mail className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-sm text-medical-blue">{patient.email}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <Badge variant="secondary" className={getPatientTypeVariant(patientType)}>
+                                  {patientType}
+                                </Badge>
+                              </td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
                                 <Clock className="w-4 h-4 text-muted-foreground" />
@@ -330,9 +324,10 @@ export default function Patients() {
                                 <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
                                 <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
                               </div>
-                            </td>
-                          </tr>
-                        ))
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
