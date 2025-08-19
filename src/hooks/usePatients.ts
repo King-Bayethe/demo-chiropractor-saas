@@ -115,13 +115,22 @@ export const usePatients = () => {
     patient_name?: string;
     patient_email?: string;
     patient_phone?: string;
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    phone?: string;
+    preferred_language?: string;
+    case_type?: string;
+    attorney_name?: string;
+    insurance_provider?: string;
+    tags?: string[];
   }) => {
     try {
       // Try to find existing patient by email or phone
       const { data: existingPatient } = await supabase
         .from('patients')
         .select('*')
-        .or(`email.eq.${formData.patient_email},phone.eq.${formData.patient_phone}`)
+        .or(`email.eq.${formData.patient_email || formData.email},phone.eq.${formData.patient_phone || formData.phone}`)
         .single();
 
       if (existingPatient) {
@@ -130,16 +139,21 @@ export const usePatients = () => {
 
       // Create new patient if not found
       const nameParts = formData.patient_name?.split(' ') || [];
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const firstName = formData.first_name || nameParts[0] || '';
+      const lastName = formData.last_name || nameParts.slice(1).join(' ') || '';
 
       const { data: newPatient, error: createError } = await supabase
         .from('patients')
         .insert({
           first_name: firstName,
           last_name: lastName,
-          email: formData.patient_email,
-          phone: formData.patient_phone,
+          email: formData.patient_email || formData.email,
+          phone: formData.patient_phone || formData.phone,
+          preferred_language: formData.preferred_language,
+          case_type: formData.case_type,
+          attorney_name: formData.attorney_name,
+          insurance_provider: formData.insurance_provider,
+          tags: formData.tags || [],
         })
         .select()
         .single();
