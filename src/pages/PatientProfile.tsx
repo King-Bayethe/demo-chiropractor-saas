@@ -232,38 +232,90 @@ export default function PatientProfile() {
         throw new Error("Patient ID not found");
       }
 
-      // Map form data to patient update format
-      const updateData = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        cell_phone: data.phone, // Set both phone fields
-        date_of_birth: data.dateOfBirth?.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        address: data.streetAddress,
-        city: data.city,
-        state: data.state,
-        zip_code: data.zipCode,
-        emergency_contact_name: data.emergencyContactName,
-        claim_number: data.claimNumber,
-        auto_policy_number: data.policyNumber,
-        auto_insurance_company: data.autoInsuranceCompany,
-        health_insurance: data.healthInsurance,
-        attorney_name: data.attorneyName,
-        attorney_phone: data.attorneyPhone,
-        adjuster_name: data.adjustersName,
-        marital_status: data.maritalStatus,
+      // Validate required fields
+      if (!data.firstName?.trim()) {
+        form.setError("firstName", { message: "First name is required" });
+        setSaving(false);
+        return;
+      }
+      if (!data.lastName?.trim()) {
+        form.setError("lastName", { message: "Last name is required" });
+        setSaving(false);
+        return;
+      }
+      if (!data.phone?.trim()) {
+        form.setError("phone", { message: "Phone number is required" });
+        setSaving(false);
+        return;
+      }
+
+      // Map form data to patient update format with proper handling of optional fields
+      const updateData: any = {
+        first_name: data.firstName.trim(),
+        last_name: data.lastName.trim(),
+        phone: data.phone.trim(),
+        cell_phone: data.phone.trim(), // Set both phone fields for consistency
+        email: data.email?.trim() || null,
+        address: data.streetAddress?.trim() || null,
+        city: data.city?.trim() || null,
+        state: data.state?.trim() || null,
+        zip_code: data.zipCode?.trim() || null,
+        emergency_contact_name: data.emergencyContactName?.trim() || null,
+        claim_number: data.claimNumber?.trim() || null,
+        auto_policy_number: data.policyNumber?.trim() || null,
+        auto_insurance_company: data.autoInsuranceCompany?.trim() || null,
+        health_insurance: data.healthInsurance?.trim() || null,
+        attorney_name: data.attorneyName?.trim() || null,
+        attorney_phone: data.attorneyPhone?.trim() || null,
+        adjuster_name: data.adjustersName?.trim() || null,
+        marital_status: data.maritalStatus?.trim() || null,
+        drivers_license_state: data.licenseState?.trim() || null,
+        group_number: data.groupNumber?.trim() || null,
       };
 
+      // Handle date of birth with proper validation
+      if (data.dateOfBirth) {
+        try {
+          updateData.date_of_birth = format(data.dateOfBirth, 'yyyy-MM-dd');
+        } catch (dateError) {
+          console.error('Date formatting error:', dateError);
+          form.setError("dateOfBirth", { message: "Invalid date format" });
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Handle accident date if provided
+      if (data.dateOfAccident) {
+        try {
+          updateData.accident_date = format(data.dateOfAccident, 'yyyy-MM-dd');
+        } catch (dateError) {
+          console.error('Accident date formatting error:', dateError);
+          form.setError("dateOfAccident", { message: "Invalid date format" });
+          setSaving(false);
+          return;
+        }
+      }
+
+      console.log('Updating patient with data:', updateData);
+      
       await updatePatient(patient.id, updateData);
       setIsEditing(false);
-      toast({ title: "Success", description: "Patient information updated successfully" });
+      toast({ 
+        title: "Success", 
+        description: "Patient information updated successfully" 
+      });
       
       // Reload patient data to reflect changes
       await loadPatientData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update patient:', error);
-      toast({ title: "Error", description: "Failed to update patient information", variant: "destructive" });
+      const errorMessage = error?.message || "Failed to update patient information";
+      toast({ 
+        title: "Update Failed", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }
@@ -417,12 +469,12 @@ export default function PatientProfile() {
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {isEditing ? (
                         <>
-                          <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                          <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                          <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover></FormItem>)} />
-                          <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Marital Status</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                          <FormField control={form.control} name="licenseState" render={({ field }) => (<FormItem><FormLabel>License State</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                          <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                          <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                          <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                          <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>)} />
+                          <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Marital Status</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                          <FormField control={form.control} name="licenseState" render={({ field }) => (<FormItem><FormLabel>License State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                          <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                         </>
                       ) : (
                         <>
