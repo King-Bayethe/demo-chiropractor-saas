@@ -120,7 +120,7 @@ export default function PatientProfile() {
   const [loadingSensitive, setLoadingSensitive] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  const { patients } = usePatients();
+  const { patients, updatePatient } = usePatients();
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -228,9 +228,38 @@ export default function PatientProfile() {
   const handleSave = async (data: PatientFormData) => {
     setSaving(true);
     try {
-      // For now, just show success - patient updates will be implemented separately
+      if (!patient?.id) {
+        throw new Error("Patient ID not found");
+      }
+
+      // Map form data to patient update format
+      const updateData = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        cell_phone: data.phone, // Set both phone fields
+        date_of_birth: data.dateOfBirth?.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        address: data.streetAddress,
+        city: data.city,
+        state: data.state,
+        zip_code: data.zipCode,
+        emergency_contact_name: data.emergencyContactName,
+        claim_number: data.claimNumber,
+        auto_policy_number: data.policyNumber,
+        auto_insurance_company: data.autoInsuranceCompany,
+        health_insurance: data.healthInsurance,
+        attorney_name: data.attorneyName,
+        attorney_phone: data.attorneyPhone,
+        adjuster_name: data.adjustersName,
+        marital_status: data.maritalStatus,
+      };
+
+      await updatePatient(patient.id, updateData);
       setIsEditing(false);
       toast({ title: "Success", description: "Patient information updated successfully" });
+      
+      // Reload patient data to reflect changes
       await loadPatientData();
     } catch (error) {
       console.error('Failed to update patient:', error);
