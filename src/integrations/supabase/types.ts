@@ -364,72 +364,171 @@ export type Database = {
       }
       patients: {
         Row: {
+          accident_date: string | null
+          accident_description: string | null
+          accident_time: string | null
           address: string | null
+          adjuster_name: string | null
+          age: number | null
+          attorney_name: string | null
+          attorney_phone: string | null
+          auto_insurance_company: string | null
+          auto_policy_number: string | null
+          body_part_hit: string | null
+          cell_phone: string | null
           city: string | null
+          claim_number: string | null
+          consent_acknowledgement: boolean | null
           created_at: string
           date_of_birth: string | null
+          drivers_license: string | null
+          drivers_license_state: string | null
           email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          employer_address: string | null
+          employer_name: string | null
+          employment_status: string | null
           first_name: string | null
           gender: string | null
           ghl_contact_id: string | null
+          group_number: string | null
+          health_insurance: string | null
+          home_phone: string | null
           id: string
           insurance_policy_number: string | null
           insurance_provider: string | null
           is_active: boolean | null
           last_name: string | null
           last_synced_at: string | null
+          marital_status: string | null
+          medical_systems_review: Json | null
+          patient_signature: string | null
+          person_type: string | null
           phone: string | null
+          pip_form_submitted_at: string | null
+          signature_date: string | null
+          social_security_number: string | null
           state: string | null
+          street_surface: string | null
+          student_status: string | null
           tags: string[] | null
           updated_at: string
+          weather_conditions: string | null
+          what_body_hit: string | null
+          work_phone: string | null
           zip_code: string | null
         }
         Insert: {
+          accident_date?: string | null
+          accident_description?: string | null
+          accident_time?: string | null
           address?: string | null
+          adjuster_name?: string | null
+          age?: number | null
+          attorney_name?: string | null
+          attorney_phone?: string | null
+          auto_insurance_company?: string | null
+          auto_policy_number?: string | null
+          body_part_hit?: string | null
+          cell_phone?: string | null
           city?: string | null
+          claim_number?: string | null
+          consent_acknowledgement?: boolean | null
           created_at?: string
           date_of_birth?: string | null
+          drivers_license?: string | null
+          drivers_license_state?: string | null
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          employer_address?: string | null
+          employer_name?: string | null
+          employment_status?: string | null
           first_name?: string | null
           gender?: string | null
           ghl_contact_id?: string | null
+          group_number?: string | null
+          health_insurance?: string | null
+          home_phone?: string | null
           id?: string
           insurance_policy_number?: string | null
           insurance_provider?: string | null
           is_active?: boolean | null
           last_name?: string | null
           last_synced_at?: string | null
+          marital_status?: string | null
+          medical_systems_review?: Json | null
+          patient_signature?: string | null
+          person_type?: string | null
           phone?: string | null
+          pip_form_submitted_at?: string | null
+          signature_date?: string | null
+          social_security_number?: string | null
           state?: string | null
+          street_surface?: string | null
+          student_status?: string | null
           tags?: string[] | null
           updated_at?: string
+          weather_conditions?: string | null
+          what_body_hit?: string | null
+          work_phone?: string | null
           zip_code?: string | null
         }
         Update: {
+          accident_date?: string | null
+          accident_description?: string | null
+          accident_time?: string | null
           address?: string | null
+          adjuster_name?: string | null
+          age?: number | null
+          attorney_name?: string | null
+          attorney_phone?: string | null
+          auto_insurance_company?: string | null
+          auto_policy_number?: string | null
+          body_part_hit?: string | null
+          cell_phone?: string | null
           city?: string | null
+          claim_number?: string | null
+          consent_acknowledgement?: boolean | null
           created_at?: string
           date_of_birth?: string | null
+          drivers_license?: string | null
+          drivers_license_state?: string | null
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          employer_address?: string | null
+          employer_name?: string | null
+          employment_status?: string | null
           first_name?: string | null
           gender?: string | null
           ghl_contact_id?: string | null
+          group_number?: string | null
+          health_insurance?: string | null
+          home_phone?: string | null
           id?: string
           insurance_policy_number?: string | null
           insurance_provider?: string | null
           is_active?: boolean | null
           last_name?: string | null
           last_synced_at?: string | null
+          marital_status?: string | null
+          medical_systems_review?: Json | null
+          patient_signature?: string | null
+          person_type?: string | null
           phone?: string | null
+          pip_form_submitted_at?: string | null
+          signature_date?: string | null
+          social_security_number?: string | null
           state?: string | null
+          street_surface?: string | null
+          student_status?: string | null
           tags?: string[] | null
           updated_at?: string
+          weather_conditions?: string | null
+          what_body_hit?: string | null
+          work_phone?: string | null
           zip_code?: string | null
         }
         Relationships: []
