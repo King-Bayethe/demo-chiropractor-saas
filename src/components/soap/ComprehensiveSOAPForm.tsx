@@ -450,7 +450,7 @@ export function ComprehensiveSOAPForm({
                 <Clock className="w-4 h-4 mr-2" />
                 Save Draft
               </Button>
-              <Button size="sm" onClick={handleSave}>
+              <Button size="sm" onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Save className="w-4 h-4 mr-2" />
                 Save Note
               </Button>
