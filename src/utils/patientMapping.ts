@@ -82,7 +82,12 @@ export const mapSupabasePatientToListItem = (patient: Patient) => {
 };
 
 // Determines patient type based on case_type field, tags, or form submission
-export const getPatientType = (patient: Patient) => {
+export const getPatientType = (patient: Patient | null | undefined) => {
+  // Handle null/undefined patient
+  if (!patient) {
+    return 'Insurance'; // Default case type
+  }
+  
   // Use case_type field as primary source
   if (patient.case_type) {
     return patient.case_type;

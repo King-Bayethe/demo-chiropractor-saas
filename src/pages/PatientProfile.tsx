@@ -531,7 +531,7 @@ export default function PatientProfile() {
   }, [patient?.case_type]);
 
   const caseType = useMemo(() => {
-    return getPatientType(patient as any);
+    return getPatientType(patient);
   }, [patient]);
 
   const getCaseTypeGradient = (caseType: string) => {
