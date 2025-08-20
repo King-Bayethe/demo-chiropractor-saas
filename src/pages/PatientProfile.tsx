@@ -98,6 +98,16 @@ const LANGUAGE_OPTIONS = [
   { value: 'Other', label: 'Other' },
 ];
 
+// Case type options
+const CASE_TYPE_OPTIONS = [
+  { value: 'PIP', label: 'PIP (Personal Injury Protection)' },
+  { value: 'Insurance', label: 'Insurance Claim' },
+  { value: 'Slip and Fall', label: 'Slip and Fall' },
+  { value: 'Workers Compensation', label: 'Workers Compensation' },
+  { value: 'Cash Plan', label: 'Cash Plan' },
+  { value: 'Attorney Only', label: 'Attorney Only' },
+];
+
 // Helper to find custom field value by its unique ID
 const getCustomFieldValueById = (customFields: any[], fieldId: string): any => {
     if (!Array.isArray(customFields)) return undefined;
@@ -925,7 +935,31 @@ export default function PatientProfile() {
                                         <FormMessage />
                                       </FormItem>
                                     )}
-                                  />
+                                   />
+                                   <FormField 
+                                     control={form.control} 
+                                     name="caseType" 
+                                     render={({ field }) => (
+                                       <FormItem>
+                                         <FormLabel>Case Type</FormLabel>
+                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                           <FormControl>
+                                             <SelectTrigger>
+                                               <SelectValue placeholder="Select case type" />
+                                             </SelectTrigger>
+                                           </FormControl>
+                                           <SelectContent>
+                                             {CASE_TYPE_OPTIONS.map((caseType) => (
+                                               <SelectItem key={caseType.value} value={caseType.value}>
+                                                 {caseType.label}
+                                               </SelectItem>
+                                             ))}
+                                           </SelectContent>
+                                         </Select>
+                                         <FormMessage />
+                                       </FormItem>
+                                     )}
+                                   />
                                 </div>
                               ) : (
                                 <div className="space-y-4">
@@ -935,7 +969,8 @@ export default function PatientProfile() {
                                   <InfoField label="Date of Birth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, 'PPP') : 'N/A'} />
                                   <InfoField label="Age" value={patientAge} />
                                   <InfoField label="Preferred Language" value={form.watch("preferredLanguage") || 'N/A'} />
-                                  <InfoField label="Marital Status" value={form.watch("maritalStatus") || 'N/A'} />
+                                   <InfoField label="Marital Status" value={form.watch("maritalStatus") || 'N/A'} />
+                                   <InfoField label="Case Type" value={form.watch("caseType") ? CASE_TYPE_OPTIONS.find(option => option.value === form.watch("caseType"))?.label || form.watch("caseType") : 'N/A'} />
                                 </div>
                               )}
                             </div>
