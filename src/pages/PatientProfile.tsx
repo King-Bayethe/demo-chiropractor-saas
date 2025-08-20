@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
-import { PatientNotes } from "@/components/PatientNotes";
+import { PatientNotesFixed } from "@/components/PatientNotesFixed";
 import { PatientFiles } from "@/components/PatientFiles";
 
 
@@ -636,7 +636,7 @@ export default function PatientProfile() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1 space-y-6">
               <Form {...form}>
                 <form className="space-y-6" onSubmit={form.handleSubmit(handleSave)}>
@@ -929,10 +929,9 @@ export default function PatientProfile() {
 
             <div className="lg:col-span-2">
               <Tabs defaultValue="appointments" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="appointments">Appointments</TabsTrigger>
                 <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
-                <TabsTrigger value="notes">Notes</TabsTrigger>
                 <TabsTrigger value="files">Files</TabsTrigger>
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="forms">Forms</TabsTrigger>
@@ -1061,9 +1060,11 @@ export default function PatientProfile() {
                  <TabsContent value="invoices">
                    <Card><CardHeader><CardTitle>Invoices</CardTitle></CardHeader><CardContent className="space-y-2">{invoices.map(inv => <div key={inv.id} className="flex justify-between items-center p-2 border-b"><div><p>{inv.id} - {inv.description}</p><p className="text-sm text-muted-foreground">{formatCurrency(inv.amount)}</p></div><Badge variant="secondary" className={getStatusColor(inv.status)}>{inv.status}</Badge></div>)}</CardContent></Card>
                 </TabsContent>
-              {/* Notes Tab */}
+              {/* Notes Tab - Now moved to fixed section */}
               <TabsContent value="notes" className="space-y-6">
-                <PatientNotes patientId={patient.id} />
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Notes have been moved to the fixed panel on the right →</p>
+                </div>
               </TabsContent>
 
               {/* Files Tab */}
@@ -1071,6 +1072,11 @@ export default function PatientProfile() {
                 <PatientFiles patientId={patient.id} />
               </TabsContent>
               </Tabs>
+            </div>
+          
+            {/* Fixed Notes Panel - Takes up 1/4 of width on large screens */}
+            <div className="lg:col-span-1">
+              <PatientNotesFixed patientId={patient.id} />
             </div>
           </div>
         </div>
