@@ -839,6 +839,93 @@ export default function PatientProfile() {
                                       </FormItem>
                                     )} 
                                   />
+                                  <FormField 
+                                    control={form.control} 
+                                    name="dateOfBirth" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Date of Birth</FormLabel>
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <FormControl>
+                                              <Button
+                                                variant="outline"
+                                                className={cn(
+                                                  "w-full pl-3 text-left font-normal",
+                                                  !field.value && "text-muted-foreground"
+                                                )}
+                                              >
+                                                {field.value ? (
+                                                  format(field.value, "PPP")
+                                                ) : (
+                                                  <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                              </Button>
+                                            </FormControl>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0" align="start">
+                                            <CalendarComponent
+                                              mode="single"
+                                              selected={field.value}
+                                              onSelect={field.onChange}
+                                              disabled={(date) => date > new Date()}
+                                              initialFocus
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField 
+                                    control={form.control} 
+                                    name="preferredLanguage" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Preferred Language</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue placeholder="Select language" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {LANGUAGE_OPTIONS.map((lang) => (
+                                              <SelectItem key={lang.value} value={lang.value}>
+                                                {lang.label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField 
+                                    control={form.control} 
+                                    name="maritalStatus" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Marital Status</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue placeholder="Select status" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            <SelectItem value="single">Single</SelectItem>
+                                            <SelectItem value="married">Married</SelectItem>
+                                            <SelectItem value="divorced">Divorced</SelectItem>
+                                            <SelectItem value="widowed">Widowed</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
                                 </div>
                               ) : (
                                 <div className="space-y-4">
@@ -846,6 +933,9 @@ export default function PatientProfile() {
                                   <InfoField label="Phone" value={form.watch("phone")} />
                                   <InfoField label="Email" value={form.watch("email")} />
                                   <InfoField label="Date of Birth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, 'PPP') : 'N/A'} />
+                                  <InfoField label="Age" value={patientAge} />
+                                  <InfoField label="Preferred Language" value={form.watch("preferredLanguage") || 'N/A'} />
+                                  <InfoField label="Marital Status" value={form.watch("maritalStatus") || 'N/A'} />
                                 </div>
                               )}
                             </div>
@@ -918,6 +1008,351 @@ export default function PatientProfile() {
                                 </div>
                               )}
                             </div>
+                          </div>
+
+                          {/* Emergency Contact Section */}
+                          <div className="border-t pt-6 mt-6">
+                            <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
+                            {isEditing ? (
+                              <FormField 
+                                control={form.control} 
+                                name="emergencyContactName" 
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Emergency Contact Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} 
+                              />
+                            ) : (
+                              <InfoField label="Emergency Contact" value={form.watch("emergencyContactName") || 'N/A'} />
+                            )}
+                          </div>
+
+                          {/* Sensitive Information Section */}
+                          <div className="border-t pt-6 mt-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold flex items-center gap-2">
+                                <Shield className="h-5 w-5 text-orange-500" />
+                                Sensitive Information
+                              </h3>
+                              {!sensitiveDataVisible ? (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={loadSensitiveData}
+                                  disabled={loadingSensitive}
+                                  className="border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-300 dark:hover:bg-orange-950"
+                                >
+                                  {loadingSensitive ? (
+                                    <>
+                                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+                                      Loading...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Sensitive Data
+                                    </>
+                                  )}
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setSensitiveDataVisible(false)}
+                                  className="border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
+                                >
+                                  <Lock className="h-4 w-4 mr-2" />
+                                  Hide Sensitive Data
+                                </Button>
+                              )}
+                            </div>
+
+                            {sensitiveDataVisible ? (
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 bg-orange-50/50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                                <div className="space-y-4">
+                                  <h4 className="font-medium text-orange-800 dark:text-orange-200">Insurance Information</h4>
+                                  {isEditing ? (
+                                    <div className="space-y-4">
+                                      <FormField 
+                                        control={form.control} 
+                                        name="healthInsurance" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Health Insurance Provider</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="healthInsuranceId" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Health Insurance ID</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="groupNumber" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Group Number</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="medicaidMedicareId" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Medicaid/Medicare ID</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="autoInsuranceCompany" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Auto Insurance Company</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="policyNumber" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Auto Policy Number</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="claimNumber" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Claim Number</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      <InfoField label="Health Insurance" value={form.watch("healthInsurance") || 'N/A'} />
+                                      <InfoField label="Health Insurance ID" value={form.watch("healthInsuranceId") || 'N/A'} />
+                                      <InfoField label="Group Number" value={form.watch("groupNumber") || 'N/A'} />
+                                      <InfoField label="Medicaid/Medicare ID" value={form.watch("medicaidMedicareId") || 'N/A'} />
+                                      <InfoField label="Auto Insurance" value={form.watch("autoInsuranceCompany") || 'N/A'} />
+                                      <InfoField label="Auto Policy Number" value={form.watch("policyNumber") || 'N/A'} />
+                                      <InfoField label="Claim Number" value={form.watch("claimNumber") || 'N/A'} />
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="space-y-4">
+                                  <h4 className="font-medium text-orange-800 dark:text-orange-200">Legal & Medical Information</h4>
+                                  {isEditing ? (
+                                    <div className="space-y-4">
+                                      <FormField 
+                                        control={form.control} 
+                                        name="attorneyName" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Attorney Name</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="attorneyPhone" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Attorney Phone</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="adjustersName" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Insurance Adjuster</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="insurancePhoneNumber" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Insurance Phone</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="licenseState" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Driver's License State</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )} 
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="dateOfAccident" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Date of Accident</FormLabel>
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <FormControl>
+                                                  <Button
+                                                    variant="outline"
+                                                    className={cn(
+                                                      "w-full pl-3 text-left font-normal",
+                                                      !field.value && "text-muted-foreground"
+                                                    )}
+                                                  >
+                                                    {field.value ? (
+                                                      format(field.value, "PPP")
+                                                    ) : (
+                                                      <span>Pick a date</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                  </Button>
+                                                </FormControl>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-auto p-0" align="start">
+                                                <CalendarComponent
+                                                  mode="single"
+                                                  selected={field.value}
+                                                  onSelect={field.onChange}
+                                                  disabled={(date) => date > new Date()}
+                                                  initialFocus
+                                                />
+                                              </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      <FormField 
+                                        control={form.control} 
+                                        name="didGoToHospital" 
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Visited Hospital</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                              <FormControl>
+                                                <SelectTrigger>
+                                                  <SelectValue placeholder="Select option" />
+                                                </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent>
+                                                <SelectItem value="yes">Yes</SelectItem>
+                                                <SelectItem value="no">No</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      {form.watch("didGoToHospital") === "yes" && (
+                                        <FormField 
+                                          control={form.control} 
+                                          name="hospitalName" 
+                                          render={({ field }) => (
+                                            <FormItem>
+                                              <FormLabel>Hospital Name</FormLabel>
+                                              <FormControl>
+                                                <Input {...field} />
+                                              </FormControl>
+                                              <FormMessage />
+                                            </FormItem>
+                                          )} 
+                                        />
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      <InfoField label="Attorney Name" value={form.watch("attorneyName") || 'N/A'} />
+                                      <InfoField label="Attorney Phone" value={form.watch("attorneyPhone") || 'N/A'} />
+                                      <InfoField label="Insurance Adjuster" value={form.watch("adjustersName") || 'N/A'} />
+                                      <InfoField label="Insurance Phone" value={form.watch("insurancePhoneNumber") || 'N/A'} />
+                                      <InfoField label="Driver's License State" value={form.watch("licenseState") || 'N/A'} />
+                                      <InfoField label="Date of Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'PPP') : 'N/A'} />
+                                      <InfoField label="Hospital Visit" value={form.watch("didGoToHospital") === "yes" ? "Yes" : form.watch("didGoToHospital") === "no" ? "No" : 'N/A'} />
+                                      {form.watch("didGoToHospital") === "yes" && (
+                                        <InfoField label="Hospital Name" value={form.watch("hospitalName") || 'N/A'} />
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <Card className="p-6 bg-muted/30">
+                                <div className="text-center text-muted-foreground">
+                                  <Shield className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                                  <p className="text-sm">Sensitive patient information is protected.</p>
+                                  <p className="text-xs mt-1">Click "View Sensitive Data" to access insurance, legal, and medical details.</p>
+                                </div>
+                              </Card>
+                            )}
                           </div>
                         </Form>
                       </TabsContent>
