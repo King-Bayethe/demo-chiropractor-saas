@@ -209,10 +209,10 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
   }
 
   return (
-    <Card className="h-[500px] flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
+    <Card className="h-[600px] flex flex-col shadow-sm">
+      <CardHeader className="pb-3 flex-shrink-0 border-b">
         <CardTitle className="text-lg flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+          <FileText className="h-5 w-5 text-primary" />
           Patient Notes
           <Badge variant="secondary" className="ml-auto">
             {notes.length}
@@ -222,9 +222,9 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
       
       <CardContent className="flex-1 flex flex-col p-4 space-y-4">
         {/* Quick Add Section */}
-        <div className="space-y-2 flex-shrink-0">
+        <div className="space-y-3 flex-shrink-0 bg-muted/30 p-3 rounded-lg">
           <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
+            <Avatar className="h-7 w-7">
               <AvatarFallback className={cn("text-xs text-white", user?.id ? getUserColor(user.id) : 'bg-gray-500')}>
                 {user?.id ? getUserInitials(user.id) : '?'}
               </AvatarFallback>
@@ -236,7 +236,7 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
             placeholder="Type your note here..."
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
-            className="min-h-[60px] resize-none"
+            className="min-h-[70px] resize-none border-dashed"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
@@ -244,8 +244,8 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
               }
             }}
           />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1">
               {NOTE_CATEGORIES.map((category) => {
                 const CategoryIcon = category.icon;
                 return (
@@ -254,7 +254,7 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
                     variant={newNoteCategory === category.value ? "default" : "outline"}
                     size="sm"
                     onClick={() => setNewNoteCategory(category.value)}
-                    className="h-7 px-2"
+                    className="h-7 px-2 text-xs"
                   >
                     <CategoryIcon className="h-3 w-3 mr-1" />
                     {category.label}
@@ -266,9 +266,10 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
               onClick={handleAddNote}
               disabled={!newNoteContent.trim() || saving}
               size="sm"
+              className="w-full sm:w-auto"
             >
               {saving ? <Save className="h-3 w-3 mr-1 animate-pulse" /> : <Plus className="h-3 w-3 mr-1" />}
-              Add
+              Add Note
             </Button>
           </div>
         </div>
@@ -277,10 +278,12 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
         <ScrollArea className="flex-1">
           <div className="space-y-3 pr-4">
             {notes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No notes yet. Add the first note above.</p>
-              </div>
+              <Card className="p-6 border-dashed">
+                <div className="text-center text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No notes yet. Add the first note above.</p>
+                </div>
+              </Card>
             ) : (
               notes.map((note) => {
                 const categoryConfig = getCategoryConfig(note.category);
@@ -288,14 +291,14 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
                 const isEditing = editingId === note.id;
                 
                 return (
-                  <div key={note.id} className="bg-muted/30 rounded-lg p-3 space-y-2 hover:bg-muted/50 transition-colors">
+                  <div key={note.id} className="bg-card border rounded-lg p-3 space-y-3 hover:shadow-sm transition-all">
                     {/* Note Header */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              <Avatar className="h-6 w-6">
+                              <Avatar className="h-6 w-6 flex-shrink-0">
                                 <AvatarFallback className={cn("text-xs text-white", getUserColor(note.created_by))}>
                                   {getUserInitials(note.created_by)}
                                 </AvatarFallback>
@@ -307,14 +310,16 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
                           </Tooltip>
                         </TooltipProvider>
                         
-                        <Badge variant="secondary" className={cn("text-xs", categoryConfig.color)}>
-                          <CategoryIcon className="h-3 w-3 mr-1" />
-                          {note.category}
-                        </Badge>
-                        
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
-                        </span>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 flex-1">
+                          <Badge variant="secondary" className={cn("text-xs w-fit", categoryConfig.color)}>
+                            <CategoryIcon className="h-3 w-3 mr-1" />
+                            {note.category}
+                          </Badge>
+                          
+                          <span className="text-xs text-muted-foreground truncate">
+                            {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
                       </div>
                       
                       <div className="flex items-center gap-1">

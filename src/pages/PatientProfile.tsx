@@ -26,11 +26,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, differenceInYears, setHours, setMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
-import { 
-  mapSupabasePatientToProfileHeader, 
-  getPatientType, 
-  getCaseTypeDisplayName, 
-  getCaseTypeVariant 
+import {
+  mapSupabasePatientToProfileHeader,
+  getPatientType,
+  getCaseTypeDisplayName,
+  getCaseTypeVariant
 } from "@/utils/patientMapping";
 import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
@@ -41,7 +41,6 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
 import { PatientNotesFixed } from "@/components/PatientNotesFixed";
 import { PatientFiles } from "@/components/PatientFiles";
-
 
 // Form schema for the main patient profile
 const patientFormSchema = z.object({
@@ -84,7 +83,6 @@ const appointmentFormSchema = z.object({
     notes: z.string().optional(),
 });
 type AppointmentFormData = z.infer<typeof appointmentFormSchema>;
-
 
 // Language options
 const LANGUAGE_OPTIONS = [
@@ -174,7 +172,6 @@ export default function PatientProfile() {
     patientId: patient?.id,
     pageSize: 20
   });
-  
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   const handleNewSOAPNote = () => {
@@ -416,163 +413,152 @@ export default function PatientProfile() {
         insurance_phone_number: data.insurancePhoneNumber?.trim() || null,
         health_insurance_id: data.healthInsuranceId?.trim() || null,
         medicaid_medicare_id: data.medicaidMedicareId?.trim() || null,
-        did_go_to_hospital: data.didGoToHospital === "yes" ? true : data.didGoToHospital === "no" ? false : null,
-        hospital_name: data.hospitalName?.trim() || null,
         marital_status: data.maritalStatus?.trim() || null,
         drivers_license_state: data.licenseState?.trim() || null,
-        group_number: data.groupNumber?.trim() || null,
         case_type: data.caseType?.trim() || null,
+        group_number: data.groupNumber?.trim() || null,
+        preferred_language: data.preferredLanguage?.trim() || null,
+        
+        // Handle date fields
+        date_of_birth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : null,
+        accident_date: data.dateOfAccident ? data.dateOfAccident.toISOString().split('T')[0] : null,
+        
+        // Handle boolean fields
+        did_go_to_hospital: data.didGoToHospital === "yes" ? true : data.didGoToHospital === "no" ? false : null,
+        hospital_name: data.hospitalName?.trim() || null,
       };
 
-      // Handle date of birth with proper validation
-      if (data.dateOfBirth) {
-        try {
-          updateData.date_of_birth = format(data.dateOfBirth, 'yyyy-MM-dd');
-        } catch (dateError) {
-          console.error('Date formatting error:', dateError);
-          form.setError("dateOfBirth", { message: "Invalid date format" });
-          setSaving(false);
-          return;
-        }
-      }
+      // Update patient using the hook
+      await updatePatient(patient.id, updateData);
 
-      // Handle accident date if provided
-      if (data.dateOfAccident) {
-        try {
-          updateData.accident_date = format(data.dateOfAccident, 'yyyy-MM-dd');
-        } catch (dateError) {
-          console.error('Accident date formatting error:', dateError);
-          form.setError("dateOfAccident", { message: "Invalid date format" });
-          setSaving(false);
-          return;
-        }
-      }
-
-      console.log('Updating patient with data:', updateData);
-      
-      const updatedPatient = await updatePatient(patient.id, updateData);
-      
-      // Update local patient state with returned data
-      if (updatedPatient) {
-        setPatient(updatedPatient);
-      }
-      
+      // Update local state
+      setPatient(prev => ({ ...prev, ...updateData }));
       setIsEditing(false);
-      toast({ 
-        title: "Success", 
-        description: "Patient information updated successfully" 
+      
+      toast({
+        title: "Success",
+        description: "Patient information updated successfully.",
       });
-    } catch (error: any) {
-      console.error('Failed to update patient:', error);
-      const errorMessage = error?.message || "Failed to update patient information";
-      toast({ 
-        title: "Update Failed", 
-        description: errorMessage, 
-        variant: "destructive" 
+
+    } catch (error) {
+      console.error('Failed to save patient:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to save patient information.",
+        variant: "destructive"
       });
-      // Reset form to original values on error
-      resetFormToPatientData();
     } finally {
       setSaving(false);
     }
   };
-  const handleEdit = () => setIsEditing(true);
-  const handleCancel = () => { 
+
+  const handleEdit = () => {
+    setIsEditing(true);
     resetFormToPatientData();
-    setIsEditing(false); 
   };
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "confirmed":
-      case "completed":
-        return "bg-green-500/10 text-green-600";
-      case "scheduled":
-      case "pending":
-        return "bg-blue-500/10 text-blue-600";
-      case "cancelled": return "bg-red-500/10 text-red-600";
-      case "noshow": return "bg-gray-500/10 text-gray-600";
-      default: return "bg-muted text-muted-foreground";
-    }
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    resetFormToPatientData();
   };
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
   const handleCreateAppointment = async (data: AppointmentFormData) => {
-    setSaving(true);
     try {
-        const appointmentData = {
-            calendarId: data.calendarId,
-            contactId: patientId,
-            title: data.title,
-            startTime: data.startTime.toISOString(),
-            notes: data.notes,
-            appointmentStatus: 'confirmed',
-        };
-        // Mock appointment creation since appointments API is not available
-        console.log('Would create appointment:', appointmentData);
-        toast({ title: "Success", description: "Appointment booked successfully." });
-        setIsBookingModalOpen(false);
-        appointmentForm.reset();
-        await loadPatientData();
+      // Mock calendar booking since GHL API is not available
+      const mockAppointment = {
+        id: `mock-${Date.now()}`,
+        title: data.title,
+        start_time: data.startTime.toISOString(),
+        end_time: setHours(setMinutes(data.startTime, data.startTime.getMinutes() + 60), data.startTime.getHours()).toISOString(),
+        patient_id: patient?.id,
+        patient_name: `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim(),
+        patient_email: patient?.email,
+        patient_phone: patient?.phone,
+        notes: data.notes || "",
+        status: "scheduled",
+        calendar_id: data.calendarId,
+        provider_name: "Dr. Silverman"
+      };
+
+      setAppointments(prev => [mockAppointment, ...prev]);
+      setIsBookingModalOpen(false);
+      appointmentForm.reset();
+      
+      toast({
+        title: "Success",
+        description: "Appointment scheduled successfully!",
+      });
     } catch (error) {
-        console.error("Failed to create appointment:", error);
-        toast({ title: "Error", description: "Failed to book appointment.", variant: "destructive" });
-    } finally {
-        setSaving(false);
+      toast({
+        title: "Error",
+        description: "Failed to schedule appointment.",
+        variant: "destructive",
+      });
     }
   };
 
-  const firstName = form.watch("firstName");
-  const lastName = form.watch("lastName");
-  const dateOfBirth = form.watch("dateOfBirth");
-
-  const patientName = useMemo(() => `${firstName || ""} ${lastName || ""}`.trim(), [firstName, lastName]);
-  const patientAge = useMemo(() => {
-    return dateOfBirth ? differenceInYears(new Date(), dateOfBirth) : null;
-  }, [dateOfBirth]);
-
-  const patientType = useMemo(() => {
-    return patient ? getPatientType(patient) : '';
-  }, [patient]);
-
-  const caseTypeDisplay = useMemo(() => {
-    return getCaseTypeDisplayName(patientType);
-  }, [patientType]);
-
-  const caseTypeVariant = useMemo(() => {
-    return getCaseTypeVariant(patientType);
-  }, [patientType]);
-
-  const InfoField = ({ label, value }: { label: string, value: any }) => (
-    <div>
-        <Label className="text-sm text-muted-foreground">{label}</Label>
-        <p className="font-semibold">{value || <span className="text-gray-400 font-normal">N/A</span>}</p>
+  // Helper component for displaying info fields
+  const InfoField = ({ label, value }: { label: string; value?: any }) => (
+    <div className="space-y-1">
+      <Label className="text-xs text-muted-foreground font-medium">{label}</Label>
+      <p className="text-sm text-foreground">{value || 'N/A'}</p>
     </div>
   );
 
-  if (loading) { return <div className="flex justify-center items-center h-full"><Clock className="animate-spin h-8 w-8" /></div>; }
-  if (!patient) { 
+  // Format currency helper
+  const formatCurrency = (amount: number) => 
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+  // Patient name helper
+  const patientName = useMemo(() => {
+    if (!patient) return 'Loading...';
+    return `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient';
+  }, [patient]);
+
+  // Patient age helper
+  const patientAge = useMemo(() => {
+    if (!patient?.date_of_birth) return 'N/A';
+    return `${differenceInYears(new Date(), new Date(patient.date_of_birth))} years old`;
+  }, [patient?.date_of_birth]);
+
+  // Case type helpers
+  const caseTypeDisplay = useMemo(() => {
+    return getCaseTypeDisplayName(patient?.case_type || '');
+  }, [patient?.case_type]);
+
+  const caseTypeVariant = useMemo(() => {
+    return getCaseTypeVariant(patient?.case_type || '');
+  }, [patient?.case_type]);
+
+  if (loading) {
     return (
       <AuthGuard>
         <Layout>
-          <div className="p-6">
-            <div className="flex items-center gap-4 mb-6">
-              <Button variant="outline" size="icon" onClick={() => navigate('/patients')}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold text-foreground">Patient Profile</h1>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span>Loading patient information...</span>
             </div>
-            <Card className="text-center p-8">
-              <CardContent>
-                <User className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Patient Not Found</h3>
-                <p className="text-muted-foreground mb-4">
-                  This patient may not have completed the intake form yet or the data hasn't been synced.
-                </p>
-                <Button onClick={() => navigate('/patients')}>
-                  Return to Patients
-                </Button>
-              </CardContent>
-            </Card>
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+            <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+            <h1 className="text-2xl font-bold mb-2">Patient Not Found</h1>
+            <p className="text-muted-foreground mb-4">
+              This patient may not have been synced from the intake form yet.
+            </p>
+            <Button onClick={() => navigate('/patients')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Patients
+            </Button>
           </div>
         </Layout>
       </AuthGuard>
@@ -582,580 +568,600 @@ export default function PatientProfile() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={() => navigate('/patients')}><ArrowLeft className="h-4 w-4" /></Button>
-              <h1 className="text-2xl font-bold text-foreground">Patient Profile</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              {!isEditing ? (
-                <>
-                  <Button variant="outline" onClick={handleEdit}><Edit className="w-4 h-4 mr-2" /> Edit</Button>
-                  <Button onClick={() => {}}><MessageSquare className="w-4 h-4 mr-2" /> Message</Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={handleCancel} disabled={saving}><X className="w-4 h-4 mr-2" /> Cancel</Button>
-                  <Button onClick={form.handleSubmit(handleSave)} disabled={saving}>
-                    {saving ? <Clock className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                    Save Changes
-                  </Button>
-                </>
-              )}
+        <div className="min-h-screen bg-background">
+          {/* Header with Back Navigation */}
+          <div className="border-b bg-card/50">
+            <div className="container mx-auto px-6 py-4">
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate('/patients')}
+                  className="hover:bg-muted"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Patients
+                </Button>
+                <div className="h-6 w-px bg-border" />
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-lg font-semibold">
+                    {patient ? `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient' : 'Loading...'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <Card className="shadow-md">
-            <CardContent className="p-6 flex items-center gap-6">
-              <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-                <AvatarImage src={patient.profilePictureUrl || ''} alt={patientName} />
-                <AvatarFallback className="text-3xl font-semibold">{patient.first_name?.[0]}{patient.last_name?.[0]}</AvatarFallback>
-              </Avatar>
-              <div className="flex-grow">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-3xl font-bold">{patientName}</h2>
-                      <div className="flex items-center gap-4 text-muted-foreground mt-1">
-                        <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" /> {form.watch("email") || 'N/A'}</span>
-                        <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> {form.watch("phone") || 'N/A'}</span>
-                      </div>
-                  </div>
-                   <Badge className={cn("border", caseTypeVariant)}>
-                     {caseTypeDisplay}
-                   </Badge>
-                </div>
-                <div className="border-t my-4"></div>
-                <div className="grid grid-cols-4 gap-4 text-sm">
-                   <InfoField label="Age" value={patientAge} />
-                   <InfoField label="Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'MMM d, yyyy') : null} />
-                   <InfoField label="Last Visit" value={appointments[0] ? format(new Date(appointments[0].startTime), 'MMM d, yyyy') : 'N/A'} />
-                   <InfoField label="Balance" value={<span className="text-destructive">{formatCurrency(invoices.reduce((sum, inv) => sum + inv.amount, 0))}</span>} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-1 space-y-6">
-              <Form {...form}>
-                <form className="space-y-6" onSubmit={form.handleSubmit(handleSave)}>
-                  <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><User className="text-primary" /> Demographics</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {isEditing ? (
-                        <>
-                          <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                          <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
-                             <FormItem>
-                               <EnhancedDateInput
-                                 label="Date of Birth"
-                                 value={field.value}
-                                 onChange={field.onChange}
-                                 showAge={true}
-                                 maxDate={new Date()}
-                                 minDate={new Date("1900-01-01")}
-                                 error={form.formState.errors.dateOfBirth?.message}
-                               />
-                             </FormItem>
-                           )} />
-                          <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Marital Status</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="licenseState" render={({ field }) => (<FormItem><FormLabel>License State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <div className="col-span-2">
-                             <FormField control={form.control} name="streetAddress" render={({ field }) => (<FormItem><FormLabel>Street Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           </div>
-                           <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="zipCode" render={({ field }) => (<FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="caseType" render={({ field }) => (
-                             <FormItem>
-                               <FormLabel>Case Type</FormLabel>
-                               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                 <FormControl>
-                                   <SelectTrigger>
-                                     <SelectValue placeholder="Select case type" />
-                                   </SelectTrigger>
-                                 </FormControl>
-                                  <SelectContent className="bg-background border shadow-lg z-50">
-                                    <SelectItem value="PIP">PIP</SelectItem>
-                                    <SelectItem value="Insurance">Insurance</SelectItem>
-                                    <SelectItem value="Slip and Fall">Slip and Fall</SelectItem>
-                                    <SelectItem value="Workers Compensation">Workers Compensation</SelectItem>
-                                    <SelectItem value="Cash Plan">Cash Plan</SelectItem>
-                                    <SelectItem value="Attorney Only">Attorney Only</SelectItem>
-                                  </SelectContent>
-                               </Select>
-                               <FormMessage />
-                             </FormItem>
-                           )} />
-                        </>
-                      ) : (
-                         <>
-                           <InfoField label="Full Name" value={patientName} />
-                           <InfoField label="Date of Birth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, 'PPP') : 'N/A'} />
-                           <InfoField label="Phone" value={form.watch("phone")} />
-                           <InfoField label="Email" value={form.watch("email")} />
-                           <div className="col-span-2">
-                            <InfoField label="Address" value={`${form.watch("streetAddress") || ''} ${form.watch("city") || ''} ${form.watch("state") || ''} ${form.watch("zipCode") || ''}`.trim() || 'N/A'} />
+          {/* Main Content */}
+          <div className="container mx-auto p-6">
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+              {/* Left Column - Patient Profile (3/5 width) */}
+              <div className="xl:col-span-3 space-y-6">
+                {/* Main Patient Information Card */}
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16 ring-2 ring-border">
+                          <AvatarImage src={patient?.avatar_url} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+                            {patient ? `${patient.first_name?.[0] || ''}${patient.last_name?.[0] || ''}` : '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-2">
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                            <h1 className="text-2xl font-bold">
+                              {patient ? `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient' : 'Loading...'}
+                            </h1>
+                            {patient?.case_type && (
+                              <Badge variant="secondary" className="w-fit">
+                                {getCaseTypeDisplayName(patient.case_type)}
+                              </Badge>
+                            )}
                           </div>
-                          {sensitiveDataVisible && <InfoField label="Case Type" value={form.watch("caseType") || 'N/A'} />}
-                          {sensitiveDataVisible && <InfoField label="Emergency Contact" value={form.watch("emergencyContactName")} />}
-                           {sensitiveDataVisible && <InfoField label="Marital Status" value={form.watch("maritalStatus")} />}
-                           {sensitiveDataVisible && <InfoField label="License State" value={form.watch("licenseState")} />}
-                         </>
-                      )}
-                    </CardContent>
-                  </Card>
-                  
-                  {sensitiveDataVisible ? (
-                    <>
-                      <Card>
-                        <CardHeader><CardTitle className="flex items-center gap-2"><HeartPulse className="text-red-500" /> Medical Info</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           {isEditing ? (
-                             <>
-                                <FormField control={form.control} name="didGoToHospital" render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Went to Hospital?</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                      <FormControl>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select an option" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                       <SelectContent className="bg-background border shadow-lg z-50">
-                                         <SelectItem value="yes">Yes</SelectItem>
-                                         <SelectItem value="no">No</SelectItem>
-                                       </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-                                <FormField control={form.control} name="hospitalName" render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Hospital Name</FormLabel>
-                                    <FormControl>
-                                      <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-                             </>
-                           ) : (
-                              <>
-                                 <InfoField label="Went to Hospital?" value={form.watch("didGoToHospital") === "yes" ? "Yes" : form.watch("didGoToHospital") === "no" ? "No" : "N/A"} />
-                                 <InfoField label="Hospital Name" value={form.watch("hospitalName")} />
-                              </>
-                           )}
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="text-blue-500" /> Insurance & Case Info</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {isEditing ? (
-                                <>
-                                    <FormField control={form.control} name="dateOfAccident" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Date of Accident</FormLabel>
-                                        <Popover>
-                                          <PopoverTrigger asChild>
-                                            <FormControl>
-                                              <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                              </Button>
-                                            </FormControl>
-                                          </PopoverTrigger>
-                                          <PopoverContent className="w-auto p-0" align="start">
-                                            <CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                          </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="claimNumber" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Claim #</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="policyNumber" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Policy #</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="autoInsuranceCompany" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Auto Insurance</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="healthInsurance" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Health Insurance</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="healthInsuranceId" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Health Insurance ID</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="groupNumber" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Group #</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="medicaidMedicareId" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Medicaid/Medicare ID</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="adjustersName" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Adjuster's Name</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="insurancePhoneNumber" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Insurance Phone #</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                </>
-                            ) : (
-                                <>
-                                    <InfoField label="Date of Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'PPP') : null} />
-                                    <InfoField label="Claim #" value={form.watch("claimNumber")} />
-                                    <InfoField label="Policy #" value={form.watch("policyNumber")} />
-                                    <InfoField label="Auto Insurance" value={form.watch("autoInsuranceCompany")} />
-                                    <InfoField label="Health Insurance" value={form.watch("healthInsurance")} />
-                                    <InfoField label="Health Insurance ID" value={form.watch("healthInsuranceId")} />
-                                    <InfoField label="Group #" value={form.watch("groupNumber")} />
-                                    <InfoField label="Medicaid/Medicare ID" value={form.watch("medicaidMedicareId")} />
-                                    <InfoField label="Adjuster's Name" value={form.watch("adjustersName")} />
-                                    <InfoField label="Insurance Phone #" value={form.watch("insurancePhoneNumber")} />
-                                </>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-muted-foreground">
+                            {patient?.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4" />
+                                <span>{patient.phone}</span>
+                              </div>
                             )}
-                        </CardContent>
-                      </Card>
-                      
-                      <Card>
-                        <CardHeader><CardTitle className="flex items-center gap-2"><Gavel className="text-amber-600" /> Legal Representation</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {isEditing ? (
-                                <>
-                                    <FormField control={form.control} name="attorneyName" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Attorney Name</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="attorneyPhone" render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Attorney Phone</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )} />
-                                </>
-                            ) : (
-                                <>
-                                    <InfoField label="Attorney Name" value={form.watch("attorneyName")} />
-                                    <InfoField label="Attorney Phone" value={form.watch("attorneyPhone")} />
-                                </>
+                            {patient?.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4" />
+                                <span className="truncate">{patient.email}</span>
+                              </div>
                             )}
-                        </CardContent>
-                      </Card>
-                    </>
-                  ) : (
-                    <Card className="border-dashed border-yellow-500 bg-yellow-500/5">
-                        <CardContent className="p-6 text-center">
-                           <Lock className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-                            <h3 className="text-lg font-semibold">Sensitive Information</h3>
-                            <p className="text-sm text-muted-foreground mb-4">Medical, Insurance, and Legal details are protected.</p>
-                            <Button onClick={loadSensitiveData} disabled={loadingSensitive}>
-                                {loadingSensitive ? <Clock className="animate-spin h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                                View Sensitive Info
-                            </Button>
-                        </CardContent>
-                    </Card>
-                  )}
-                </form>
-              </Form>
-            </div>
-
-            <div className="lg:col-span-2">
-              <Tabs defaultValue="appointments" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="appointments">Appointments</TabsTrigger>
-                <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
-                <TabsTrigger value="files">Files</TabsTrigger>
-                <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                <TabsTrigger value="forms">Forms</TabsTrigger>
-              </TabsList>
-                <TabsContent value="appointments">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Appointment History</CardTitle>
-                        <Button onClick={() => setIsBookingModalOpen(true)}><Plus className="w-4 h-4 mr-2" /> Book Appointment</Button>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {appointments.length > 0 ? appointments.map(apt => (
-                            <div key={apt.id} className="flex justify-between items-center p-2 border-b">
-                                <div>
-                                    <p className="font-semibold">{apt.title || 'Appointment'}</p>
-                                    <p className="text-sm text-muted-foreground">{format(new Date(apt.startTime), 'PPP p')}</p>
-                                </div>
-                                <Badge variant="secondary" className={getStatusColor(apt.status)}>{apt.status}</Badge>
+                            {patient?.date_of_birth && (
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                <span>Age {differenceInYears(new Date(), new Date(patient.date_of_birth))}</span>
+                              </div>
+                            )}
+                          </div>
+                          {patient?.accident_date && (
+                            <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                              <Car className="h-4 w-4" />
+                              <span>Accident: {format(new Date(patient.accident_date), 'MMM dd, yyyy')}</span>
                             </div>
-                        )) : <p className="text-center text-muted-foreground p-4">No appointments found.</p>}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="tasks">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Tasks</CardTitle>
-                        <Button><Plus className="w-4 h-4 mr-2" /> Add Task</Button>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {tasks.length > 0 ? tasks.map(task => (
-                            <div key={task.id} className="flex justify-between items-center p-2 border-b">
-                                <div>
-                                    <p className="font-semibold">{task.title || 'Task'}</p>
-                                    <p className="text-sm text-muted-foreground">Due: {format(new Date(task.dueDate), 'PPP')}</p>
-                                </div>
-                                <Badge variant="secondary" className={getStatusColor(task.status)}>{task.status}</Badge>
-                            </div>
-                        )) : <p className="text-center text-muted-foreground p-4">No tasks found.</p>}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                  <TabsContent value="soap-notes">
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          <FileText className="w-5 h-5" />
-                          SOAP Notes
-                          {stats.total > 0 && (
-                            <Badge variant="secondary" className="ml-2">
-                              {stats.total}
-                            </Badge>
                           )}
-                        </CardTitle>
-                        <div className="flex items-center gap-2">
-                          <Button
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        {!isEditing ? (
+                          <Button 
+                            onClick={handleEdit}
                             variant="outline"
                             size="sm"
-                            onClick={() => setShowBulkActions(!showBulkActions)}
+                            className="w-full sm:w-auto"
                           >
-                            {showBulkActions ? 'Hide Selection' : 'Select Multiple'}
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Profile
                           </Button>
-                          <Button onClick={handleNewSOAPNote} className="bg-primary">
-                            <Plus className="w-4 h-4 mr-2" />
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button 
+                              onClick={handleCancel}
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 sm:flex-initial"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              onClick={form.handleSubmit(handleSave)}
+                              disabled={saving}
+                              size="sm"
+                              className="flex-1 sm:flex-initial"
+                            >
+                              {saving ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-foreground" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Save Changes
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => setIsBookingModalOpen(true)}
+                          size="sm"
+                          className="w-full sm:w-auto"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Book Appointment
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="p-6">
+                    <Tabs defaultValue="demographics" className="w-full">
+                      <TabsList className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 w-full h-auto p-1">
+                        <TabsTrigger value="demographics" className="text-xs lg:text-sm py-2">Demographics</TabsTrigger>
+                        <TabsTrigger value="appointments" className="text-xs lg:text-sm py-2">
+                          Appointments <Badge variant="secondary" className="ml-1 text-xs">{appointments.length}</Badge>
+                        </TabsTrigger>
+                        <TabsTrigger value="soap-notes" className="text-xs lg:text-sm py-2">
+                          SOAP Notes <Badge variant="secondary" className="ml-1 text-xs">{filteredNotes.length}</Badge>
+                        </TabsTrigger>
+                        <TabsTrigger value="files" className="text-xs lg:text-sm py-2">
+                          Files <Badge variant="secondary" className="ml-1 text-xs">{files.length}</Badge>
+                        </TabsTrigger>
+                        <TabsTrigger value="invoices" className="text-xs lg:text-sm py-2">
+                          Invoices <Badge variant="secondary" className="ml-1 text-xs">{invoices.length}</Badge>
+                        </TabsTrigger>
+                        <TabsTrigger value="forms" className="text-xs lg:text-sm py-2">
+                          Forms <Badge variant="secondary" className="ml-1 text-xs">{forms.length}</Badge>
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="demographics" className="space-y-6 mt-6">
+                        <Form {...form}>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold">Basic Information</h3>
+                              {isEditing ? (
+                                <div className="space-y-4">
+                                  <FormField 
+                                    control={form.control} 
+                                    name="firstName" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>First Name</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} 
+                                  />
+                                  <FormField 
+                                    control={form.control} 
+                                    name="lastName" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Last Name</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} 
+                                  />
+                                  <FormField 
+                                    control={form.control} 
+                                    name="phone" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Phone Number</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} 
+                                  />
+                                  <FormField 
+                                    control={form.control} 
+                                    name="email" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} 
+                                  />
+                                </div>
+                              ) : (
+                                <div className="space-y-4">
+                                  <InfoField label="Full Name" value={patientName} />
+                                  <InfoField label="Phone" value={form.watch("phone")} />
+                                  <InfoField label="Email" value={form.watch("email")} />
+                                  <InfoField label="Date of Birth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, 'PPP') : 'N/A'} />
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold">Address</h3>
+                              {isEditing ? (
+                                <div className="space-y-4">
+                                  <FormField 
+                                    control={form.control} 
+                                    name="streetAddress" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Street Address</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} 
+                                  />
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <FormField 
+                                      control={form.control} 
+                                      name="city" 
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>City</FormLabel>
+                                          <FormControl>
+                                            <Input {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )} 
+                                    />
+                                    <FormField 
+                                      control={form.control} 
+                                      name="state" 
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>State</FormLabel>
+                                          <FormControl>
+                                            <Input {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )} 
+                                    />
+                                  </div>
+                                  <FormField 
+                                    control={form.control} 
+                                    name="zipCode" 
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>ZIP Code</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} 
+                                  />
+                                </div>
+                              ) : (
+                                <div className="space-y-4">
+                                  <InfoField 
+                                    label="Address" 
+                                    value={`${form.watch("streetAddress") || ''} ${form.watch("city") || ''} ${form.watch("state") || ''} ${form.watch("zipCode") || ''}`.trim() || 'N/A'} 
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Form>
+                      </TabsContent>
+
+                      <TabsContent value="appointments" className="space-y-4 mt-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                          <h3 className="text-lg font-semibold">Appointments</h3>
+                          <Button 
+                            onClick={() => setIsBookingModalOpen(true)}
+                            size="sm"
+                            className="w-full sm:w-auto"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Book New Appointment
+                          </Button>
+                        </div>
+                        {appointments.length === 0 ? (
+                          <Card className="p-8">
+                            <div className="text-center text-muted-foreground">
+                              <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                              <p className="text-lg mb-2">No appointments scheduled</p>
+                              <p className="text-sm mb-4">Schedule the first appointment for this patient.</p>
+                              <Button onClick={() => setIsBookingModalOpen(true)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Book Appointment
+                              </Button>
+                            </div>
+                          </Card>
+                        ) : (
+                          <div className="grid gap-4">
+                            {appointments.map((appointment) => (
+                              <Card key={appointment.id} className="p-4 hover:shadow-md transition-shadow">
+                                <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold">{appointment.title}</h4>
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 text-sm text-muted-foreground mt-2">
+                                      <div className="flex items-center gap-2">
+                                        <CalendarIcon className="h-4 w-4" />
+                                        {format(new Date(appointment.start_time), 'PPP')}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        {format(new Date(appointment.start_time), 'p')} - {format(new Date(appointment.end_time), 'p')}
+                                      </div>
+                                      {appointment.location && (
+                                        <div className="flex items-center gap-2">
+                                          <MapPin className="h-4 w-4" />
+                                          {appointment.location}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Badge variant={appointment.status === 'confirmed' ? 'default' : 'secondary'}>
+                                    {appointment.status}
+                                  </Badge>
+                                </div>
+                                {appointment.notes && (
+                                  <p className="text-sm text-muted-foreground mt-3 p-3 bg-muted/50 rounded-md">{appointment.notes}</p>
+                                )}
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="soap-notes" className="space-y-4 mt-6">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold">SOAP Notes</h3>
+                          <Button onClick={handleNewSOAPNote} size="sm">
+                            <Plus className="h-4 w-4 mr-2" />
                             New SOAP Note
                           </Button>
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Search and Filters */}
-                        <SOAPNoteSearch
-                          searchQuery={searchQuery}
-                          filters={filters}
-                          onSearchChange={handleSearch}
-                          onFilterChange={handleFilterChange}
-                          totalNotes={stats.total}
-                          filteredNotes={stats.displayed}
-                        />
-
-                        {/* Bulk Actions */}
-                        {showBulkActions && (
-                          <SOAPNoteBulkActions
-                            soapNotes={soapNotes}
-                            selectedNotes={selectedNotes}
-                            onSelectionChange={handleSelectionChange}
-                            onBulkDelete={bulkDelete}
-                            onBulkExport={bulkExport}
-                            disabled={soapNotesLoading}
-                          />
-                        )}
-
-                        {/* Timeline */}
-                        <SOAPNoteTimeline
-                          soapNotes={soapNotes}
-                          onDelete={deleteSOAPNote}
-                          onExport={handleExportSOAPNote}
-                          selectedNotes={selectedNotes}
-                          onSelectionChange={showBulkActions ? handleSelectionChange : undefined}
-                          showSelection={showBulkActions}
-                          loading={soapNotesLoading}
-                          hasMore={paginationState.hasMore}
-                          onLoadMore={loadMore}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                <TabsContent value="forms">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Form Submissions</CardTitle>
-                        <Button><Plus className="w-4 h-4 mr-2" /> Send Form</Button>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {forms.length > 0 ? forms.map(form => (
-                            <div key={form.id} className="flex justify-between items-center p-2 border-b">
-                                <div>
-                                    <p className="font-semibold">{form.name}</p>
-                                    <p className="text-sm text-muted-foreground">Submitted: {format(form.submissionDate, 'PPP')}</p>
-                                </div>
-                                <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                        
+                        {soapNotesLoading ? (
+                          <div className="text-center py-8">Loading SOAP notes...</div>
+                        ) : filteredNotes.length === 0 ? (
+                          <Card className="p-8">
+                            <div className="text-center text-muted-foreground">
+                              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                              <p className="text-lg mb-2">No SOAP notes found</p>
+                              <p className="text-sm mb-4">Create the first SOAP note for this patient.</p>
+                              <Button onClick={handleNewSOAPNote}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                New SOAP Note
+                              </Button>
                             </div>
-                        )) : <p className="text-center text-muted-foreground p-4">No form submissions found.</p>}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                 <TabsContent value="invoices">
-                   <Card><CardHeader><CardTitle>Invoices</CardTitle></CardHeader><CardContent className="space-y-2">{invoices.map(inv => <div key={inv.id} className="flex justify-between items-center p-2 border-b"><div><p>{inv.id} - {inv.description}</p><p className="text-sm text-muted-foreground">{formatCurrency(inv.amount)}</p></div><Badge variant="secondary" className={getStatusColor(inv.status)}>{inv.status}</Badge></div>)}</CardContent></Card>
-                </TabsContent>
-              {/* Notes Tab - Now moved to fixed section */}
-              <TabsContent value="notes" className="space-y-6">
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Notes have been moved to the fixed panel on the right →</p>
-                </div>
-              </TabsContent>
+                          </Card>
+                        ) : (
+                          <div className="grid gap-4">
+                            {filteredNotes.map((note) => (
+                              <Card key={note.id} className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-semibold">{note.chief_complaint || 'SOAP Note'}</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {format(new Date(note.date_of_service), 'PPP')} - {note.provider_name}
+                                    </p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => navigate(`/soap-notes/view/${note.id}`)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleExportSOAPNote(note.id)}
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </TabsContent>
 
-              {/* Files Tab */}
-              <TabsContent value="files" className="space-y-6">
-                <PatientFiles patientId={patient.id} />
-              </TabsContent>
-              </Tabs>
-            </div>
-          
-            {/* Fixed Notes Panel - Takes up 1/4 of width on large screens */}
-            <div className="lg:col-span-1">
-              <PatientNotesFixed patientId={patient.id} />
+                      <TabsContent value="files" className="space-y-4 mt-6">
+                        <PatientFiles patientId={patient?.id || ""} />
+                      </TabsContent>
+
+                      <TabsContent value="invoices" className="space-y-4 mt-6">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold">Invoices</h3>
+                          <Badge variant="outline">${invoices.reduce((sum, inv) => sum + inv.amount, 0).toFixed(2)} total</Badge>
+                        </div>
+                        <div className="grid gap-4">
+                          {invoices.map((invoice) => (
+                            <Card key={invoice.id} className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-semibold">{invoice.id}</h4>
+                                  <p className="text-sm text-muted-foreground">{invoice.description}</p>
+                                  <p className="text-sm text-muted-foreground">{format(invoice.date, 'PPP')}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold">{formatCurrency(invoice.amount)}</p>
+                                  <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
+                                    {invoice.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="forms" className="space-y-4 mt-6">
+                        <h3 className="text-lg font-semibold">Submitted Forms</h3>
+                        <div className="grid gap-4">
+                          {forms.map((form) => (
+                            <Card key={form.id} className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-semibold">{form.name}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    Submitted: {format(form.submissionDate, 'PPP')}
+                                  </p>
+                                </div>
+                                <Badge variant={form.status === 'completed' ? 'default' : 'secondary'}>
+                                  {form.status}
+                                </Badge>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Column - Fixed Notes Panel (2/5 width) */}
+              <div className="xl:col-span-2">
+                {patient?.id && <PatientNotesFixed patientId={patient.id} />}
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Appointment Booking Dialog */}
         <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Book New Appointment</DialogTitle>
-                    <DialogDescription>
-                        Schedule a new appointment for {patientName}.
-                    </DialogDescription>
-                </DialogHeader>
-                <Form {...appointmentForm}>
-                    <form onSubmit={appointmentForm.handleSubmit(handleCreateAppointment)} className="space-y-4">
-                        <FormField control={appointmentForm.control} name="calendarId" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Calendar</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a calendar" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {calendars.map(cal => <SelectItem key={cal.id} value={cal.id}>{cal.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={appointmentForm.control} name="title" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Title / Service</FormLabel>
-                                <FormControl><Input placeholder="e.g., Chiropractic Adjustment" {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={appointmentForm.control} name="startTime" render={({ field }) => (
-                             <FormItem className="flex flex-col">
-                                <FormLabel>Date & Time</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                {field.value ? format(field.value, "PPP p") : <span>Pick a date</span>}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                        <div className="p-3 border-t border-border">
-                                            <div className="flex items-center gap-2">
-                                                <Label>Time:</Label>
-                                                <Input type="time" defaultValue={field.value ? format(field.value, "HH:mm") : ""} onChange={e => {
-                                                    const [hours, minutes] = e.target.value.split(':').map(Number);
-                                                    const newDate = setMinutes(setHours(field.value || new Date(), hours), minutes);
-                                                    field.onChange(newDate);
-                                                }} />
-                                            </div>
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                         <FormField control={appointmentForm.control} name="notes" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl><Textarea placeholder="Add any notes for the appointment..." {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)}>Cancel</Button>
-                            <Button type="submit" disabled={saving}>
-                                {saving ? <Clock className="animate-spin h-4 w-4 mr-2" /> : null}
-                                Book Appointment
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Book New Appointment</DialogTitle>
+              <DialogDescription>
+                Schedule a new appointment for {patientName}
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...appointmentForm}>
+              <form onSubmit={appointmentForm.handleSubmit(handleCreateAppointment)} className="space-y-4">
+                <FormField
+                  control={appointmentForm.control}
+                  name="calendarId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Calendar</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select calendar" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {calendars.map((calendar) => (
+                            <SelectItem key={calendar.id} value={calendar.id}>
+                              {calendar.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={appointmentForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Appointment title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={appointmentForm.control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date & Time</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP HH:mm")
+                              ) : (
+                                <span>Pick date and time</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
-            </DialogContent>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={appointmentForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Additional notes for the appointment"
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Book Appointment
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
         </Dialog>
       </Layout>
     </AuthGuard>
