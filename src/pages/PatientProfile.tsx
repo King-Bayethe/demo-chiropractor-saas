@@ -746,33 +746,33 @@ export default function PatientProfile() {
 
                   <CardContent className="p-6">
                     <Tabs defaultValue="demographics" className="w-full">
-                      <div className="w-full overflow-hidden">
-                        <TabsList className="flex justify-start w-full min-w-fit">
-                          <TabsTrigger value="demographics" className="flex items-center gap-2">
+                      <div className="w-full overflow-x-auto scrollbar-hide">
+                        <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
+                          <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap">
                             <User className="h-4 w-4" />
                             Demographics
                           </TabsTrigger>
-                          <TabsTrigger value="appointments" className="flex items-center gap-2">
+                          <TabsTrigger value="appointments" className="flex items-center gap-2 whitespace-nowrap">
                             <CalendarIcon className="h-4 w-4" />
                             Appointments 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{appointments.length}</Badge>
                           </TabsTrigger>
-                          <TabsTrigger value="soap-notes" className="flex items-center gap-2">
+                          <TabsTrigger value="soap-notes" className="flex items-center gap-2 whitespace-nowrap">
                             <FileText className="h-4 w-4" />
                             SOAP Notes 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{filteredNotes.length}</Badge>
                           </TabsTrigger>
-                          <TabsTrigger value="files" className="flex items-center gap-2">
+                          <TabsTrigger value="files" className="flex items-center gap-2 whitespace-nowrap">
                             <Upload className="h-4 w-4" />
                             Files 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{files.length}</Badge>
                           </TabsTrigger>
-                          <TabsTrigger value="invoices" className="flex items-center gap-2">
+                          <TabsTrigger value="invoices" className="flex items-center gap-2 whitespace-nowrap">
                             <DollarSign className="h-4 w-4" />
                             Invoices 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{invoices.length}</Badge>
                           </TabsTrigger>
-                          <TabsTrigger value="forms" className="flex items-center gap-2">
+                          <TabsTrigger value="forms" className="flex items-center gap-2 whitespace-nowrap">
                             <CheckSquare className="h-4 w-4" />
                             Forms 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{forms.length}</Badge>
