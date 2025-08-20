@@ -530,6 +530,48 @@ export default function PatientProfile() {
     return getCaseTypeVariant(patient?.case_type || '');
   }, [patient?.case_type]);
 
+  const caseType = useMemo(() => {
+    return getPatientType(patient as any);
+  }, [patient]);
+
+  const getCaseTypeGradient = (caseType: string) => {
+    switch (caseType) {
+      case 'PIP':
+        return 'from-case-pip/10 to-case-pip/5';
+      case 'Insurance':
+        return 'from-case-insurance/10 to-case-insurance/5';
+      case 'Slip and Fall':
+        return 'from-case-slip-fall/10 to-case-slip-fall/5';
+      case 'Workers Compensation':
+        return 'from-case-workers-comp/10 to-case-workers-comp/5';
+      case 'Cash Plan':
+        return 'from-case-cash-plan/10 to-case-cash-plan/5';
+      case 'Attorney Only':
+        return 'from-case-attorney-only/10 to-case-attorney-only/5';
+      default:
+        return 'from-secondary/10 to-secondary/5';
+    }
+  };
+
+  const getCaseTypeBorder = (caseType: string) => {
+    switch (caseType) {
+      case 'PIP':
+        return 'border-case-pip/30';
+      case 'Insurance':
+        return 'border-case-insurance/30';
+      case 'Slip and Fall':
+        return 'border-case-slip-fall/30';
+      case 'Workers Compensation':
+        return 'border-case-workers-comp/30';
+      case 'Cash Plan':
+        return 'border-case-cash-plan/30';
+      case 'Attorney Only':
+        return 'border-case-attorney-only/30';
+      default:
+        return 'border-secondary/30';
+    }
+  };
+
   if (loading) {
     return (
       <AuthGuard>
@@ -570,7 +612,7 @@ export default function PatientProfile() {
       <Layout>
         <div className="min-h-screen bg-background">
           {/* Header with Back Navigation */}
-          <div className="border-b bg-card/50">
+          <div className={`border-b bg-gradient-to-r ${getCaseTypeGradient(caseType)} backdrop-blur-sm border-border/50`}>
             <div className="container mx-auto px-6 py-4">
               <div className="flex items-center gap-4">
                 <Button 
@@ -599,13 +641,13 @@ export default function PatientProfile() {
               {/* Left Column - Patient Profile (3/5 width) */}
               <div className="xl:col-span-3 space-y-6">
                 {/* Main Patient Information Card */}
-                <Card className="shadow-sm">
+                <Card className={`shadow-lg backdrop-blur-sm bg-gradient-to-br ${getCaseTypeGradient(caseType)} border-2 ${getCaseTypeBorder(caseType)}`}>
                   <CardHeader className="pb-4">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16 ring-2 ring-border">
+                        <Avatar className={`h-16 w-16 ring-2 ${getCaseTypeBorder(caseType)} ring-offset-2`}>
                           <AvatarImage src={patient?.avatar_url} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+                          <AvatarFallback className={`bg-gradient-to-br ${getCaseTypeGradient(caseType)} text-foreground text-lg font-semibold border ${getCaseTypeBorder(caseType)}`}>
                             {patient ? `${patient.first_name?.[0] || ''}${patient.last_name?.[0] || ''}` : '?'}
                           </AvatarFallback>
                         </Avatar>
@@ -615,7 +657,7 @@ export default function PatientProfile() {
                               {patient ? `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient' : 'Loading...'}
                             </h1>
                             {patient?.case_type && (
-                              <Badge variant="secondary" className="w-fit">
+                              <Badge className={`w-fit ${caseTypeVariant} border shadow-sm`}>
                                 {getCaseTypeDisplayName(patient.case_type)}
                               </Badge>
                             )}
@@ -704,26 +746,41 @@ export default function PatientProfile() {
 
                   <CardContent className="p-6">
                     <Tabs defaultValue="demographics" className="w-full">
-                      <TabsList className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 w-full h-auto p-1">
-                        <TabsTrigger value="demographics" className="text-xs lg:text-sm py-2">Demographics</TabsTrigger>
-                        <TabsTrigger value="appointments" className="text-xs lg:text-sm py-2">
-                          Appointments <Badge variant="secondary" className="ml-1 text-xs">{appointments.length}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="soap-notes" className="text-xs lg:text-sm py-2">
-                          SOAP Notes <Badge variant="secondary" className="ml-1 text-xs">{filteredNotes.length}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="files" className="text-xs lg:text-sm py-2">
-                          Files <Badge variant="secondary" className="ml-1 text-xs">{files.length}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="invoices" className="text-xs lg:text-sm py-2">
-                          Invoices <Badge variant="secondary" className="ml-1 text-xs">{invoices.length}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="forms" className="text-xs lg:text-sm py-2">
-                          Forms <Badge variant="secondary" className="ml-1 text-xs">{forms.length}</Badge>
-                        </TabsTrigger>
-                      </TabsList>
+                      <div className="w-full overflow-hidden">
+                        <TabsList className="flex justify-start w-full min-w-fit">
+                          <TabsTrigger value="demographics" className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Demographics
+                          </TabsTrigger>
+                          <TabsTrigger value="appointments" className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4" />
+                            Appointments 
+                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{appointments.length}</Badge>
+                          </TabsTrigger>
+                          <TabsTrigger value="soap-notes" className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            SOAP Notes 
+                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{filteredNotes.length}</Badge>
+                          </TabsTrigger>
+                          <TabsTrigger value="files" className="flex items-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            Files 
+                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{files.length}</Badge>
+                          </TabsTrigger>
+                          <TabsTrigger value="invoices" className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            Invoices 
+                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{invoices.length}</Badge>
+                          </TabsTrigger>
+                          <TabsTrigger value="forms" className="flex items-center gap-2">
+                            <CheckSquare className="h-4 w-4" />
+                            Forms 
+                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{forms.length}</Badge>
+                          </TabsTrigger>
+                        </TabsList>
+                      </div>
 
-                      <TabsContent value="demographics" className="space-y-6 mt-6">
+                      <TabsContent value="demographics" className="space-y-6 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <Form {...form}>
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="space-y-4">
@@ -865,7 +922,7 @@ export default function PatientProfile() {
                         </Form>
                       </TabsContent>
 
-                      <TabsContent value="appointments" className="space-y-4 mt-6">
+                      <TabsContent value="appointments" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                           <h3 className="text-lg font-semibold">Appointments</h3>
                           <Button 
@@ -926,7 +983,7 @@ export default function PatientProfile() {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="soap-notes" className="space-y-4 mt-6">
+                      <TabsContent value="soap-notes" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <div className="flex justify-between items-center">
                           <h3 className="text-lg font-semibold">SOAP Notes</h3>
                           <Button onClick={handleNewSOAPNote} size="sm">
@@ -983,11 +1040,11 @@ export default function PatientProfile() {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="files" className="space-y-4 mt-6">
+                      <TabsContent value="files" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <PatientFiles patientId={patient?.id || ""} />
                       </TabsContent>
 
-                      <TabsContent value="invoices" className="space-y-4 mt-6">
+                      <TabsContent value="invoices" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <div className="flex justify-between items-center">
                           <h3 className="text-lg font-semibold">Invoices</h3>
                           <Badge variant="outline">${invoices.reduce((sum, inv) => sum + inv.amount, 0).toFixed(2)} total</Badge>
@@ -1013,7 +1070,7 @@ export default function PatientProfile() {
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="forms" className="space-y-4 mt-6">
+                      <TabsContent value="forms" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <h3 className="text-lg font-semibold">Submitted Forms</h3>
                         <div className="grid gap-4">
                           {forms.map((form) => (
