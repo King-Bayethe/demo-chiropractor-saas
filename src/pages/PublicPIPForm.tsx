@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Upload, IdCard, CreditCard } from "lucide-react";
 
 const PublicPIPForm = () => {
   const [formData, setFormData] = useState({
@@ -81,6 +81,35 @@ const PublicPIPForm = () => {
     signature: "",
     date: "",
   });
+
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, string>>({});
+
+  const handleFileUpload = async (file: File, documentType: string) => {
+    if (!file) return;
+
+    setUploading(prev => ({ ...prev, [documentType]: true }));
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${documentType}-${Date.now()}.${fileExt}`;
+      const filePath = `form-documents/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      setUploadedFiles(prev => ({ ...prev, [documentType]: fileName }));
+      toast.success(`${documentType} uploaded successfully`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(`Failed to upload ${documentType}`);
+    } finally {
+      setUploading(prev => ({ ...prev, [documentType]: false }));
+    }
+  };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -290,6 +319,65 @@ const PublicPIPForm = () => {
                   onChange={(e) => handleInputChange("driversLicenseState", e.target.value)}
                   className="w-full"
                 />
+                
+                {/* ID Upload Buttons */}
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Driver's License Front / Frente de Licencia</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading['id-front']}
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleFileUpload(file, 'id-front');
+                          };
+                          input.click();
+                        }}
+                      >
+                        <IdCard className="h-4 w-4" />
+                        {uploading['id-front'] ? 'Uploading...' : 'Upload ID Front'}
+                      </Button>
+                      {uploadedFiles['id-front'] && (
+                        <span className="text-sm text-green-600">✓ Uploaded</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Driver's License Back / Reverso de Licencia</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading['id-back']}
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleFileUpload(file, 'id-back');
+                          };
+                          input.click();
+                        }}
+                      >
+                        <IdCard className="h-4 w-4" />
+                        {uploading['id-back'] ? 'Uploading...' : 'Upload ID Back'}
+                      </Button>
+                      {uploadedFiles['id-back'] && (
+                        <span className="text-sm text-green-600">✓ Uploaded</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <Input 
                   placeholder="Emergency Contact / Contacto de Emergencia" 
                   value={formData.emergencyContact}
@@ -443,13 +531,72 @@ const PublicPIPForm = () => {
                 onChange={(e) => handleInputChange("attorneyName", e.target.value)}
                 className="w-full"
               />
-              <Input 
-                type="tel" 
-                placeholder="Attorney's Phone / Teléfono del Abogado" 
-                value={formData.attorneyPhone}
-                onChange={(e) => handleInputChange("attorneyPhone", e.target.value)}
-                className="w-full"
-              />
+                <Input 
+                  type="tel" 
+                  placeholder="Attorney's Phone / Teléfono del Abogado" 
+                  value={formData.attorneyPhone}
+                  onChange={(e) => handleInputChange("attorneyPhone", e.target.value)}
+                  className="w-full"
+                />
+                
+                {/* Insurance Upload Buttons */}
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Insurance Card Front / Frente de Tarjeta de Seguro</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading['insurance-front']}
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleFileUpload(file, 'insurance-front');
+                          };
+                          input.click();
+                        }}
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        {uploading['insurance-front'] ? 'Uploading...' : 'Upload Insurance Front'}
+                      </Button>
+                      {uploadedFiles['insurance-front'] && (
+                        <span className="text-sm text-green-600">✓ Uploaded</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Insurance Card Back / Reverso de Tarjeta de Seguro</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading['insurance-back']}
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleFileUpload(file, 'insurance-back');
+                          };
+                          input.click();
+                        }}
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        {uploading['insurance-back'] ? 'Uploading...' : 'Upload Insurance Back'}
+                      </Button>
+                      {uploadedFiles['insurance-back'] && (
+                        <span className="text-sm text-green-600">✓ Uploaded</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
             </div>
           </details>
 
