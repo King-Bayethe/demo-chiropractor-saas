@@ -581,37 +581,55 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string
+          ghl_delivered_at: string | null
           ghl_message_id: string | null
+          ghl_read_at: string | null
+          ghl_sent_at: string | null
           id: string
+          last_retry_at: string | null
           message_type: string
           metadata: Json | null
+          retry_count: number | null
           sender_id: string | null
           sender_type: string
           status: string
+          sync_status: string | null
         }
         Insert: {
           content: string
           conversation_id: string
           created_at?: string
+          ghl_delivered_at?: string | null
           ghl_message_id?: string | null
+          ghl_read_at?: string | null
+          ghl_sent_at?: string | null
           id?: string
+          last_retry_at?: string | null
           message_type?: string
           metadata?: Json | null
+          retry_count?: number | null
           sender_id?: string | null
           sender_type: string
           status?: string
+          sync_status?: string | null
         }
         Update: {
           content?: string
           conversation_id?: string
           created_at?: string
+          ghl_delivered_at?: string | null
           ghl_message_id?: string | null
+          ghl_read_at?: string | null
+          ghl_sent_at?: string | null
           id?: string
+          last_retry_at?: string | null
           message_type?: string
           metadata?: Json | null
+          retry_count?: number | null
           sender_id?: string | null
           sender_type?: string
           status?: string
+          sync_status?: string | null
         }
         Relationships: [
           {
