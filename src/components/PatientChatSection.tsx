@@ -139,7 +139,12 @@ export const PatientChatSection = () => {
       <div className="flex items-center justify-center h-[600px]">
         <div className="text-center">
           <p className="text-destructive mb-2">Error loading conversations</p>
-          <p className="text-sm text-muted-foreground">{error}</p>
+          <p className="text-sm text-muted-foreground">
+            {error.includes('access') ? 
+              'You do not have access to patient conversations. Please contact your administrator to assign you to patients.' : 
+              error
+            }
+          </p>
         </div>
       </div>
     );

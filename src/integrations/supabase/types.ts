@@ -682,6 +682,64 @@ export type Database = {
           },
         ]
       }
+      patient_providers: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          patient_id: string
+          provider_id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          patient_id: string
+          provider_id: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          patient_id?: string
+          provider_id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_providers_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "patient_providers_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_providers_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           accident_date: string | null
@@ -1305,6 +1363,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_patient_to_provider: {
+        Args: {
+          patient_id_param: string
+          provider_id_param: string
+          role_param?: string
+        }
+        Returns: string
+      }
       get_soap_notes_with_patient_info: {
         Args: { limit_count?: number; offset_count?: number }
         Returns: {
@@ -1328,6 +1394,10 @@ export type Database = {
       }
       is_chat_admin: {
         Args: { chat_id_to_check: string; user_id_to_check: string }
+        Returns: boolean
+      }
+      unassign_patient_from_provider: {
+        Args: { patient_id_param: string; provider_id_param: string }
         Returns: boolean
       }
     }

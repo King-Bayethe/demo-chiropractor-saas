@@ -49,7 +49,7 @@ export function usePatientConversations() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  // Fetch conversations with patient data
+  // Fetch conversations with patient data (only for assigned patients)
   const fetchConversations = async () => {
     try {
       setLoading(true);
@@ -57,21 +57,31 @@ export function usePatientConversations() {
         .from('patient_conversations')
         .select(`
           *,
-          patient:patients (
+          patient:patients!inner (
             id,
             first_name,
             last_name,
             email,
-            phone
+            phone,
+            ghl_contact_id,
+            patient_providers!inner (
+              provider_id,
+              is_active
+            )
           )
         `)
         .eq('status', 'active')
+        .eq('patient.patient_providers.is_active', true)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
       setConversations(data || []);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error fetching conversations:', err);
+      setError(err.message.includes('permission denied') ? 
+        'You do not have access to patient conversations. Please contact your administrator.' : 
+        err.message
+      );
     } finally {
       setLoading(false);
     }
@@ -234,11 +244,24 @@ export function usePatientConversations() {
     }
   };
 
-  // Create a new conversation
+  // Create a new conversation (only for assigned patients)
   const createConversation = async (patientId: string, title?: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      // Check if user has access to this patient via patient_providers
+      const { data: providerCheck, error: providerError } = await supabase
+        .from('patient_providers')
+        .select('id')
+        .eq('patient_id', patientId)
+        .eq('provider_id', user.id)
+        .eq('is_active', true)
+        .single();
+
+      if (providerError || !providerCheck) {
+        throw new Error('You do not have access to create conversations for this patient');
+      }
+
       const { data, error } = await supabase
         .from('patient_conversations')
         .insert({

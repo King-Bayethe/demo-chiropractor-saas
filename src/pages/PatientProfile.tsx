@@ -41,6 +41,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
 import { PatientNotesFixed } from "@/components/PatientNotesFixed";
 import { PatientFiles } from "@/components/PatientFiles";
+import { PatientAssignment } from "@/components/PatientAssignment";
 
 // Form schema for the main patient profile
 const patientFormSchema = z.object({
@@ -887,6 +888,10 @@ export default function PatientProfile() {
                             Forms 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{forms.length}</Badge>
                           </TabsTrigger>
+                          <TabsTrigger value="providers" className="flex items-center gap-2 whitespace-nowrap">
+                            <User className="h-4 w-4" />
+                            Providers
+                          </TabsTrigger>
                         </TabsList>
                       </div>
 
@@ -1713,6 +1718,19 @@ export default function PatientProfile() {
                             </Card>
                           ))}
                         </div>
+                      </TabsContent>
+
+                      <TabsContent value="providers" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
+                        <PatientAssignment 
+                          patientId={patient?.id || ""} 
+                          onAssignmentChange={() => {
+                            // Refresh conversations when assignment changes
+                            toast({
+                              title: "Success",
+                              description: "Provider assignment updated. Patient conversations have been refreshed.",
+                            });
+                          }}
+                        />
                       </TabsContent>
                     </Tabs>
                   </CardContent>
