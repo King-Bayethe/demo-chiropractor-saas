@@ -75,7 +75,7 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
     "Evan M. Feldman", "Gladys A. Cardenas", "Craig A. Dernis", "John Ruiz", "Julio Marrero",
     "Eric Taverdi", "Rima C. Bardawil", "Scott A. Ferris",
     "De Cardenas, Freixas, Stein & Zachary", "Joseph Madalon", "Robert Dixon",
-    "Robert Behar", "Julio C. Acosta", "Rebecca Nachlas, Esquire"
+    "Robert Behar", "Julio C. Acosta", "Rebecca Nachlas, Esquire", "Cornish Hernandez and Gonzalez"
   ];
 
   const affiliateOffices = [
