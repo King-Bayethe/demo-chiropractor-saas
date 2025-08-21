@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
-import { PatientNotesFixed } from "@/components/PatientNotesFixed";
+import { PatientNotes } from "@/components/PatientNotes";
 import { PatientFiles } from "@/components/PatientFiles";
 import { PatientAssignment } from "@/components/PatientAssignment";
 
@@ -1739,7 +1739,7 @@ export default function PatientProfile() {
 
               {/* Right Column - Fixed Notes Panel (2/5 width) */}
               <div className="xl:col-span-2">
-                {patient?.id && <PatientNotesFixed patientId={patient.id} />}
+                {patient?.id && <PatientNotes patientId={patient.id} />}
               </div>
             </div>
           </div>
