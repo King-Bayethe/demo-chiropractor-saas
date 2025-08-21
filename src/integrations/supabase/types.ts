@@ -479,6 +479,56 @@ export type Database = {
           },
         ]
       }
+      patient_conversations: {
+        Row: {
+          conversation_type: string
+          created_at: string
+          created_by: string | null
+          ghl_conversation_id: string | null
+          id: string
+          last_message_at: string | null
+          patient_id: string
+          status: string
+          title: string | null
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          conversation_type?: string
+          created_at?: string
+          created_by?: string | null
+          ghl_conversation_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          patient_id: string
+          status?: string
+          title?: string | null
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          conversation_type?: string
+          created_at?: string
+          created_by?: string | null
+          ghl_conversation_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          patient_id?: string
+          status?: string
+          title?: string | null
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_conversations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_files: {
         Row: {
           category: string | null
@@ -522,6 +572,53 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          ghl_message_id: string | null
+          id: string
+          message_type: string
+          metadata: Json | null
+          sender_id: string | null
+          sender_type: string
+          status: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          ghl_message_id?: string | null
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          sender_id?: string | null
+          sender_type: string
+          status?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          ghl_message_id?: string | null
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          sender_id?: string | null
+          sender_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "patient_conversations"
             referencedColumns: ["id"]
           },
         ]
