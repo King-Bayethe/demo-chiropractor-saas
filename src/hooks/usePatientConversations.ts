@@ -361,6 +361,33 @@ export function usePatientConversations() {
     };
   }, []);
 
+  // Sync conversations from GHL
+  const syncGHLConversations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase.functions.invoke('ghl-conversation-sync');
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('GHL sync result:', data);
+      
+      // Refresh conversations after sync
+      await fetchConversations();
+      
+      return data;
+    } catch (err: any) {
+      console.error('Failed to sync GHL conversations:', err);
+      setError('Failed to sync with GoHighLevel. Please try again.');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     conversations,
     messages,
@@ -370,6 +397,7 @@ export function usePatientConversations() {
     fetchMessages,
     sendMessage,
     createConversation,
-    markAsRead
+    markAsRead,
+    syncGHLConversations
   };
 }

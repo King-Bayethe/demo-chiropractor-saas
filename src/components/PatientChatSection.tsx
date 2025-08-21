@@ -35,7 +35,8 @@ export const PatientChatSection = () => {
     fetchMessages,
     sendMessage,
     createConversation,
-    markAsRead
+    markAsRead,
+    syncGHLConversations
   } = usePatientConversations();
   
   const { patients } = usePatients();
@@ -91,6 +92,16 @@ export const PatientChatSection = () => {
       }
     } else {
       toast.error("No patients available to start a conversation with");
+    }
+  };
+
+  const handleSyncGHL = async () => {
+    try {
+      const result = await syncGHLConversations();
+      toast.success(`Synced ${result.conversationsSynced} conversations and ${result.messagesImported} messages from GHL`);
+    } catch (error) {
+      console.error('Failed to sync GHL conversations:', error);
+      toast.error("Failed to sync with GoHighLevel");
     }
   };
 
@@ -161,10 +172,16 @@ export const PatientChatSection = () => {
                 <MessageSquare className="w-5 h-5" />
                 <span>Patient Conversations</span>
               </CardTitle>
-              <Button size="sm" onClick={handleCreateConversation}>
-                <Plus className="w-4 h-4 mr-1" />
-                New
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={handleSyncGHL}>
+                  <MessageSquare className="w-4 h-4 mr-1" />
+                  Sync GHL
+                </Button>
+                <Button size="sm" onClick={handleCreateConversation}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  New
+                </Button>
+              </div>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />

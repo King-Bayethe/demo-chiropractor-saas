@@ -41,6 +41,7 @@ const FILE_CATEGORIES = [
   { value: 'Lab Results', label: 'Lab Results' },
   { value: 'Imaging', label: 'Imaging/X-rays' },
   { value: 'Forms', label: 'Patient Forms' },
+  { value: 'Identification', label: 'Identification' },
 ];
 
 const ACCEPTED_FILE_TYPES = {

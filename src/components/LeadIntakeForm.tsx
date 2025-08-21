@@ -48,48 +48,47 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
   });
 
   const attorneys = [
-    "Scott Bennett", "John Leon", "Marcelo Saenz", "Adrian Reyes", "Jimmy De la Espriella",
-    "Fernando Pomares", "Emilio Pastor", "Gallardo Jimenez & Hart", "Theodore Enfield",
-    "Kirshner, Groff & Diaz", "Gilbert Lacayo Law Firm", "Charles Mustell", "Robert Rubenstein",
-    "Ralph Lopez", "Jany Martinez-Ward", "Goldberg & Rosen", "Brianna Wolfson",
-    "Robert W. Rodriguez", "Theodore A. Swaebe", "Hector Piedra", "Jay London", "Victor Gorn",
-    "Katiana Fleites", "Morgan & Morgan", "Jose E. Gallego", "Gal Sinclair", "Nuel & Polsky",
-    "Gimenez & Carrillo", "Lawlor & Zigler", "Edward J. Abramson", "Todd D. Rosen",
-    "J. Erick Santana", "Daniel Sagie", "People's Law Center", "Scott Jay Senft",
-    "Florida Advocates", "Hess & Llarena", "Hector Garcia", "Donald M. Kreke",
-    "Steven E. Slootsky", "Jerome Pivnik", "David A. Helfand", "Peter De Primo",
-    "Andrew Kleid", "Carl Palomino", "Dos Santos & Shirazi", "Paul Schrier",
-    "Frank Gonzalez", "Luis A. Torrens", "Gross & Telisman", "The Berman Group",
-    "The Soffer Firm, PLLC", "Klemick & Gampel", "Friedman, Rodman & Frank",
-    "Tacher & Profeta", "Bernstein & Maryanoff", "Anidjar & Levine", "Pinto & Pelosi",
-    "The Funes Law Firm", "Andres Berrio", "Elio Vazquez", "Gallardo Law Firm",
-    "Betsy Alvarez-Zane", "Jose L. Lago", "Canor Pato Law Firm", "Feingold & Posner",
-    "Daniel Izquierdo", "Ariel Furst", "David Farber", "Engelbert H. Pacheco",
-    "Nathan J. Avrunin", "Aric N. Williams", "Ruben Spinrad", "Gonzalez & Associates",
-    "Schiller, Kessler & Gomez, PLC", "Mark Tudino", "Theodore Z. Deutsch",
-    "Shutter & Saben LLC.", "Alvin J. Rosenfarb", "Stokes & Gonzalez", "Kenneth B. Schurr",
-    "Brian N. Greenspoon", "Sharmila D. Bhagwandeen", "Jamie L. Allen",
-    "Berman & Tsombanakis", "Steve S. Farbman", "Jackson Lainez", "Stabinski & Funt",
-    "Paul E. Suss", "James Jean-Francois", "Denzle G Latty", "Eltringham Law Group",
-    "Rina Kaplan", "Irwin Ast, P.A", "Dell & Schaefer", "Jose E. Perdomo", "Jaime Suarez",
-    "Evan M. Feldman", "Gladys A. Cardenas", "Craig A. Dernis", "John Ruiz", "Julio Marrero",
-    "Eric Taverdi", "Rima C. Bardawil", "Scott A. Ferris",
-    "De Cardenas, Freixas, Stein & Zachary", "Joseph Madalon", "Robert Dixon",
-    "Robert Behar", "Julio C. Acosta", "Rebecca Nachlas, Esquire", "Cornish Hernandez and Gonzalez"
-  ];
+    "Adrian Reyes", "Alvin J. Rosenfarb", "Andres Berrio", "Andrew Kleid", "Anidjar & Levine", 
+    "Aric N. Williams", "Ariel Furst", "Berman & Tsombanakis", "Bernstein & Maryanoff", 
+    "Betsy Alvarez-Zane", "Brianna Wolfson", "Brian N. Greenspoon", "Canor Pato Law Firm", 
+    "Carl Palomino", "Charles Mustell", "Cornish Hernandez & Gonzalez", "Craig A. Dernis", 
+    "Daniel Izquierdo", "Daniel Sagie", "David A. Helfand", "David Farber", 
+    "De Cardenas, Freixas, Stein & Zachary", "Dell & Schaefer", "Denzle G Latty", 
+    "Dos Santos & Shirazi", "Edward J. Abramson", "Elio Vazquez", "Eltringham Law Group", 
+    "Emilio Pastor", "Engelbert H. Pacheco", "Eric Taverdi", "Evan M. Feldman", 
+    "Feingold & Posner", "Fernando Pomares", "Florida Advocates", "Frank Gonzalez", 
+    "Friedman, Rodman & Frank", "Gal Sinclair", "Gallardo Jimenez & Hart", "Gallardo Law Firm", 
+    "Gilbert Lacayo Law Firm", "Gimenez & Carrillo", "Gladys A. Cardenas", "Goldberg & Rosen", 
+    "Gonzalez & Associates", "Gross & Telisman", "Hector Garcia", "Hector Piedra", 
+    "Hess & Llarena", "Irwin Ast, P.A", "J. Erick Santana", "Jackson Lainez", 
+    "James Jean-Francois", "Jamie L. Allen", "Jany Martinez-Ward", "Jay London", 
+    "Jerome Pivnik", "Jimmy De la Espriella", "John Leon", "John Ruiz", "Jose E. Gallego", 
+    "Jose E. Perdomo", "Jose L. Lago", "Joseph Madalon", "Julio C. Acosta", "Julio Marrero", 
+    "Katiana Fleites", "Kenneth B. Schurr", "Kirshner, Groff & Diaz", "Klemick & Gampel", 
+    "Lawlor & Zigler", "Luis A. Torrens", "Marcelo Saenz", "Mark Tudino", "Morgan & Morgan", 
+    "Nathan J. Avrunin", "Nuel & Polsky", "Paul E. Suss", "Paul Schrier", "People's Law Center", 
+    "Peter De Primo", "Pinto & Pelosi", "Ralph Lopez", "Rebecca Nachlas, Esquire", 
+    "Rima C. Bardawil", "Rina Kaplan", "Robert Behar", "Robert Dixon", "Robert Rubenstein", 
+    "Robert W. Rodriguez", "Ruben Spinrad", "Schiller, Kessler & Gomez, PLC", 
+    "Scott A. Ferris", "Scott Bennett", "Scott Jay Senft", "Sharmila D. Bhagwandeen", 
+    "Shutter & Saben LLC.", "Stabinski & Funt", "Steve S. Farbman", "Steven E. Slootsky", 
+    "Stokes & Gonzalez", "Tacher & Profeta", "The Berman Group", "The Funes Law Firm", 
+    "The Soffer Firm, PLLC", "Theodore A. Swaebe", "Theodore Enfield", "Theodore Z. Deutsch", 
+    "Todd D. Rosen", "Victor Gorn"
+  ].sort();
 
   const affiliateOffices = [
-    "CCOF Coral Springs ( Broward County )", "CCOF FT. Lauderdale ( Broward County )",
-    "CCOF Weston ( Broward County )", "CCOF Plantation ( Broward County )",
-    "CCOF Pompano ( Broward County )", "CCOF Aventura ( Miami Dade )",
-    "Avalon Medical Center ( Ft Lauderdale )", "Pacific Care Rehab ( Miami Dade )",
-    "Hollywood Medical Rehab ( Hollywood )", "Dr. Gletch ( Cape Coral )",
-    "PT and Pain Management ( Pinecrest )", "Broward Wellness ( Coral Springs )",
-    "Dynamic Healthcare ( Ft, Lauderdale )", "Dr. Gletch ( Fort Myers )",
-    "Silverman Miramar", "Silverman Hollywood", "Orlando Dr Gary Boraks",
-    "Kissimme Dr. Jordan Wolf", "CCOF Boca Raton ( Palm Beach )",
-    "CCOF Lake Worth ( Palm Beach )", "CCOF Boynton Beach ( Palm Beach )"
-  ];
+    "Avalon Medical Center ( Ft Lauderdale )", "Broward Wellness ( Coral Springs )",
+    "CCOF Aventura ( Miami Dade )", "CCOF Boca Raton ( Palm Beach )",
+    "CCOF Boynton Beach ( Palm Beach )", "CCOF Coral Springs ( Broward County )", 
+    "CCOF FT. Lauderdale ( Broward County )", "CCOF Lake Worth ( Palm Beach )",
+    "CCOF Plantation ( Broward County )", "CCOF Pompano ( Broward County )",
+    "CCOF Weston ( Broward County )", "Dr. Gletch ( Cape Coral )",
+    "Dr. Gletch ( Fort Myers )", "Dynamic Healthcare ( Ft, Lauderdale )",
+    "Hollywood Medical Rehab ( Hollywood )", "Kissimme Dr. Jordan Wolf",
+    "Orlando Dr Gary Boraks", "Pacific Care Rehab ( Miami Dade )",
+    "PT and Pain Management ( Pinecrest )", "Silverman Hollywood", "Silverman Miramar"
+  ].sort();
 
   const handleFormSubmit = (data: LeadIntakeFormData) => {
     const formData = {
