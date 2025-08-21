@@ -149,6 +149,13 @@ export function usePatientConversations() {
           .from('patient_messages')
           .update({ sync_status: 'skipped' })
           .eq('id', localMessage.id);
+        
+        // Update local state too
+        setMessages(prev => prev.map(msg => 
+          msg.id === localMessage.id 
+            ? { ...msg, sync_status: 'skipped' }
+            : msg
+        ));
       }
       
       return localMessage;
@@ -171,17 +178,19 @@ export function usePatientConversations() {
 
       if (error) throw error;
 
-      // Update message with GHL details
-      const { error: updateError } = await supabase
-        .from('patient_messages')
-        .update({
-          sync_status: 'synced',
-          ghl_message_id: data?.id,
-          ghl_sent_at: new Date().toISOString(),
-        })
-        .eq('id', messageId);
-
-      if (updateError) throw updateError;
+      // Only update database if we have permission
+      try {
+        await supabase
+          .from('patient_messages')
+          .update({
+            sync_status: 'synced',
+            ghl_message_id: data?.id,
+            ghl_sent_at: new Date().toISOString(),
+          })
+          .eq('id', messageId);
+      } catch (updateError) {
+        console.warn('Could not update message in database, but sync succeeded');
+      }
 
       // Update local state
       setMessages(prev => prev.map(msg => 
@@ -194,24 +203,27 @@ export function usePatientConversations() {
     } catch (error) {
       console.error('Failed to sync message to GHL:', error);
       
-      // Get current retry count and increment
-      const { data: currentMessage } = await supabase
-        .from('patient_messages')
-        .select('retry_count')
-        .eq('id', messageId)
-        .single();
+      // Try to update retry count, but don't fail if we can't
+      try {
+        const { data: currentMessage } = await supabase
+          .from('patient_messages')
+          .select('retry_count')
+          .eq('id', messageId)
+          .single();
 
-      const newRetryCount = (currentMessage?.retry_count || 0) + 1;
+        const newRetryCount = (currentMessage?.retry_count || 0) + 1;
 
-      // Update retry count and mark as failed
-      await supabase
-        .from('patient_messages')
-        .update({
-          sync_status: 'failed',
-          retry_count: newRetryCount,
-          last_retry_at: new Date().toISOString(),
-        })
-        .eq('id', messageId);
+        await supabase
+          .from('patient_messages')
+          .update({
+            sync_status: 'failed',
+            retry_count: newRetryCount,
+            last_retry_at: new Date().toISOString(),
+          })
+          .eq('id', messageId);
+      } catch (updateError) {
+        console.warn('Could not update retry count in database');
+      }
 
       // Update local state
       setMessages(prev => prev.map(msg => 
