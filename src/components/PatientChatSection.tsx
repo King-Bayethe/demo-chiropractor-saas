@@ -12,221 +12,99 @@ import {
   Phone, 
   Mail, 
   MessageSquare,
-  User
+  User,
+  Plus,
+  Loader2
 } from "lucide-react";
-import { useGHLApi } from "@/hooks/useGHLApi";
-import { useToast } from "@/hooks/use-toast";
-
-interface PatientContact {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  tags?: string[];
-  customFields?: Record<string, any>;
-}
-
-interface PatientConversation {
-  id: string;
-  contactId: string;
-  lastMessageBody?: string;
-  lastMessageDate?: string;
-  unreadCount?: number;
-  contact?: PatientContact;
-}
-
-interface PatientMessage {
-  id: string;
-  body: string;
-  direction: 'inbound' | 'outbound';
-  dateAdded: string;
-  messageType: string;
-}
+import { usePatientConversations, PatientConversation, PatientMessage } from "@/hooks/usePatientConversations";
+import { usePatients } from "@/hooks/usePatients";
+import { toast } from "sonner";
+import { formatDistanceToNow } from 'date-fns';
 
 export const PatientChatSection = () => {
-  const [conversations, setConversations] = useState<PatientConversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<PatientConversation | null>(null);
-  const [messages, setMessages] = useState<PatientMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [contacts, setContacts] = useState<PatientContact[]>([]);
   
-  const { conversations: ghlConversations, contacts: ghlContacts } = useGHLApi();
-  const { toast } = useToast();
+  const {
+    conversations,
+    messages,
+    loading,
+    error,
+    fetchMessages,
+    sendMessage,
+    createConversation,
+    markAsRead
+  } = usePatientConversations();
+  
+  const { patients } = usePatients();
 
-  // Mock data for now since we need to integrate with GHL conversations
-  const mockConversations: PatientConversation[] = [
-    {
-      id: "conv1",
-      contactId: "contact1",
-      lastMessageBody: "Thank you for the appointment reminder.",
-      lastMessageDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 0,
-      contact: {
-        id: "contact1",
-        firstName: "Vito",
-        lastName: "Silveiro",
-        email: "designerprintingusa@gmail.com",
-        phone: "(786) 806-9212",
-        tags: ["PIP Patient", "Active"]
-      }
-    },
-    {
-      id: "conv2",
-      contactId: "contact2",
-      lastMessageBody: "¿Puedo reprogramar mi cita?",
-      lastMessageDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 2,
-      contact: {
-        id: "contact2",
-        firstName: "Islen",
-        lastName: "Martinez",
-        phone: "(786) 726-5877",
-        tags: ["General Patient"]
-      }
-    },
-    {
-      id: "conv3",
-      contactId: "contact3",
-      lastMessageBody: "I need copies of my treatment records.",
-      lastMessageDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 1,
-      contact: {
-        id: "contact3",
-        firstName: "Bayethe",
-        lastName: "Rowell",
-        email: "bayethe.rowell@gmail.com",
-        phone: "(330) 722-7379",
-        tags: ["PIP Patient", "Follow-up"]
-      }
-    }
-  ];
-
-  const mockMessages: PatientMessage[] = [
-    {
-      id: "msg1",
-      body: "Hi, I need to reschedule my appointment for tomorrow.",
-      direction: "inbound",
-      dateAdded: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      messageType: "SMS"
-    },
-    {
-      id: "msg2",
-      body: "Of course! What time works better for you?",
-      direction: "outbound",
-      dateAdded: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-      messageType: "SMS"
-    },
-    {
-      id: "msg3",
-      body: "Would Friday at 2 PM be available?",
-      direction: "inbound",
-      dateAdded: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-      messageType: "SMS"
-    },
-    {
-      id: "msg4",
-      body: "Let me check... Yes, Friday at 2 PM is available. I'll reschedule you now.",
-      direction: "outbound",
-      dateAdded: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-      messageType: "SMS"
-    },
-    {
-      id: "msg5",
-      body: "Thank you so much!",
-      direction: "inbound",
-      dateAdded: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
-      messageType: "SMS"
-    }
-  ];
-
+  // Fetch messages when a conversation is selected
   useEffect(() => {
-    // Initialize with mock data for now
-    setConversations(mockConversations);
-    setSelectedConversation(mockConversations[0]);
-    setMessages(mockMessages);
-    setLoading(false);
-
-    // TODO: Implement actual GHL API integration
-    // fetchPatientConversations();
-  }, []);
-
-  const fetchPatientConversations = async () => {
-    try {
-      setLoading(true);
-      // TODO: Use GHL conversations API
-      // const data = await ghlConversations.getAll();
-      // setConversations(data);
-    } catch (error) {
-      console.error('Error fetching patient conversations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load patient conversations",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    if (selectedConversation) {
+      fetchMessages(selectedConversation.id);
+      markAsRead(selectedConversation.id);
     }
-  };
+  }, [selectedConversation, fetchMessages, markAsRead]);
+
+  // Auto-select the first conversation when conversations load
+  useEffect(() => {
+    if (conversations.length > 0 && !selectedConversation) {
+      setSelectedConversation(conversations[0]);
+    }
+  }, [conversations, selectedConversation]);
 
   const filteredConversations = conversations.filter(conv => {
     if (!searchTerm) return true;
-    const contact = conv.contact;
-    if (!contact) return false;
+    const patient = conv.patient;
+    if (!patient) return false;
     
-    const searchString = `${contact.firstName || ''} ${contact.lastName || ''} ${contact.email || ''} ${contact.phone || ''}`.toLowerCase();
+    const searchString = `${patient.first_name || ''} ${patient.last_name || ''} ${patient.email || ''} ${patient.phone || ''}`.toLowerCase();
     return searchString.includes(searchTerm.toLowerCase());
   });
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && selectedConversation) {
       try {
-        // TODO: Use GHL conversations API to send message
-        // await ghlConversations.sendMessage({
-        //   contactId: selectedConversation.contactId,
-        //   message: newMessage,
-        //   type: 'SMS'
-        // });
-        
-        // For now, just add to local state
-        const newMsg: PatientMessage = {
-          id: Date.now().toString(),
-          body: newMessage,
-          direction: "outbound",
-          dateAdded: new Date().toISOString(),
-          messageType: "SMS"
-        };
-        setMessages(prev => [...prev, newMsg]);
+        await sendMessage(selectedConversation.id, newMessage);
         setNewMessage("");
         
-        toast({
-          title: "Message sent",
-          description: "Your message has been sent to the patient",
-        });
+        toast.success("Message sent successfully");
       } catch (error) {
         console.error('Error sending message:', error);
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive",
-        });
+        toast.error("Failed to send message");
       }
     }
   };
 
-  const getContactDisplayName = (contact?: PatientContact) => {
-    if (!contact) return 'Unknown Contact';
-    return contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unknown Contact';
+  const handleCreateConversation = async () => {
+    // For demo, create a conversation with the first patient
+    if (patients.length > 0) {
+      try {
+        const newConversation = await createConversation(patients[0].id);
+        setSelectedConversation(newConversation);
+        toast.success("New conversation created");
+      } catch (error) {
+        console.error('Error creating conversation:', error);
+        toast.error("Failed to create conversation");
+      }
+    } else {
+      toast.error("No patients available to start a conversation with");
+    }
   };
 
-  const getContactAvatar = (contact?: PatientContact) => {
-    if (!contact) return 'UC';
-    const firstName = contact.firstName || contact.name?.split(' ')[0] || '';
-    const lastName = contact.lastName || contact.name?.split(' ')[1] || '';
-    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'UC';
+  const getPatientDisplayName = (conversation: PatientConversation) => {
+    const patient = conversation.patient;
+    if (!patient) return 'Unknown Patient';
+    return `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient';
+  };
+
+  const getPatientAvatar = (conversation: PatientConversation) => {
+    const patient = conversation.patient;
+    if (!patient) return 'UP';
+    const firstName = patient.first_name || '';
+    const lastName = patient.last_name || '';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'UP';
   };
 
   const formatTime = (dateString: string) => {
@@ -243,10 +121,25 @@ export const PatientChatSection = () => {
     }
   };
 
+  const getLastMessage = (conversation: PatientConversation) => {
+    return conversation.title || 'No messages yet';
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[600px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[600px]">
+        <div className="text-center">
+          <p className="text-destructive mb-2">Error loading conversations</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
       </div>
     );
   }
@@ -257,10 +150,16 @@ export const PatientChatSection = () => {
       <div className="col-span-4">
         <Card className="border border-border/50 shadow-sm h-[600px]">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <MessageSquare className="w-5 h-5" />
-              <span>Patient Conversations</span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center space-x-2">
+                <MessageSquare className="w-5 h-5" />
+                <span>Patient Conversations</span>
+              </CardTitle>
+              <Button size="sm" onClick={handleCreateConversation}>
+                <Plus className="w-4 h-4 mr-1" />
+                New
+              </Button>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
@@ -277,38 +176,46 @@ export const PatientChatSection = () => {
                 <div className="p-4 text-center text-muted-foreground">
                   <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No conversations found</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={handleCreateConversation}
+                  >
+                    Start a conversation
+                  </Button>
                 </div>
               ) : (
                 filteredConversations.map((conversation) => (
                   <div
                     key={conversation.id}
-                    className={`p-4 cursor-pointer transition-colors border-b border-border/50 hover:bg-muted/20 ${
-                      selectedConversation?.id === conversation.id ? 'bg-medical-blue/10' : ''
+                    className={`p-4 cursor-pointer transition-colors border-b border-border/50 hover:bg-muted/50 ${
+                      selectedConversation?.id === conversation.id ? 'bg-primary/10' : ''
                     }`}
                     onClick={() => setSelectedConversation(conversation)}
                   >
                     <div className="flex items-start space-x-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
-                          {getContactAvatar(conversation.contact)}
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {getPatientAvatar(conversation)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="font-medium text-sm truncate">
-                            {getContactDisplayName(conversation.contact)}
+                            {getPatientDisplayName(conversation)}
                           </p>
-                          {conversation.unreadCount && conversation.unreadCount > 0 && (
-                            <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue text-xs">
-                              {conversation.unreadCount}
+                          {conversation.unread_count > 0 && (
+                            <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                              {conversation.unread_count}
                             </Badge>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate mt-1">
-                          {conversation.lastMessageBody || 'No messages'}
+                          {getLastMessage(conversation)}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {conversation.lastMessageDate ? formatTime(conversation.lastMessageDate) : ''}
+                          {conversation.last_message_at ? formatTime(conversation.last_message_at) : formatTime(conversation.created_at)}
                         </p>
                       </div>
                     </div>
@@ -328,14 +235,17 @@ export const PatientChatSection = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium text-sm">
-                      {getContactAvatar(selectedConversation.contact)}
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
+                      {getPatientAvatar(selectedConversation)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">{getContactDisplayName(selectedConversation.contact)}</p>
-                    <p className="text-xs text-muted-foreground">{selectedConversation.contact?.phone}</p>
+                    <p className="font-medium text-sm">{getPatientDisplayName(selectedConversation)}</p>
+                    <p className="text-xs text-muted-foreground">{selectedConversation.patient?.phone}</p>
                   </div>
+                  <Badge variant="outline" className="ml-auto">
+                    {selectedConversation.conversation_type.toUpperCase()}
+                  </Badge>
                 </div>
               </CardHeader>
               <Separator />
@@ -343,27 +253,34 @@ export const PatientChatSection = () => {
               {/* Messages */}
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[80%] p-3 rounded-lg ${
-                          message.direction === 'outbound'
-                            ? 'bg-medical-blue text-white'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        <p className="text-sm">{message.body}</p>
-                        <p className={`text-xs mt-1 ${
-                          message.direction === 'outbound' ? 'text-white/70' : 'text-muted-foreground'
-                        }`}>
-                          {formatTime(message.dateAdded)}
-                        </p>
-                      </div>
+                  {messages.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No messages yet. Start the conversation!</p>
                     </div>
-                  ))}
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.sender_type === 'staff' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] p-3 rounded-lg ${
+                            message.sender_type === 'staff'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                          <p className={`text-xs mt-1 ${
+                            message.sender_type === 'staff' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                          }`}>
+                            {formatTime(message.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </ScrollArea>
 
@@ -404,52 +321,54 @@ export const PatientChatSection = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {selectedConversation?.contact ? (
+            {selectedConversation?.patient ? (
               <>
                 <div className="text-center">
                   <Avatar className="h-16 w-16 mx-auto mb-3">
-                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium text-lg">
-                      {getContactAvatar(selectedConversation.contact)}
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium text-lg">
+                      {getPatientAvatar(selectedConversation)}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg">{getContactDisplayName(selectedConversation.contact)}</h3>
+                  <h3 className="font-semibold text-lg">{getPatientDisplayName(selectedConversation)}</h3>
+                  {selectedConversation.patient.email && (
+                    <p className="text-sm text-muted-foreground">{selectedConversation.patient.email}</p>
+                  )}
                 </div>
 
                 <Separator />
 
                 <div className="space-y-3">
-                  {selectedConversation.contact.phone && (
+                  {selectedConversation.patient.phone && (
                     <div className="flex items-center space-x-2">
                       <Phone className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{selectedConversation.contact.phone}</span>
+                      <span className="text-sm">{selectedConversation.patient.phone}</span>
                       <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto">
                         <Phone className="w-3 h-3" />
                       </Button>
                     </div>
                   )}
 
-                  {selectedConversation.contact.email && (
+                  {selectedConversation.patient.email && (
                     <div className="flex items-center space-x-2">
                       <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm truncate">{selectedConversation.contact.email}</span>
+                      <span className="text-sm truncate">{selectedConversation.patient.email}</span>
                       <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto">
                         <Mail className="w-3 h-3" />
                       </Button>
                     </div>
                   )}
 
-                  {selectedConversation.contact.tags && selectedConversation.contact.tags.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-2">Tags</p>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedConversation.contact.tags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Conversation Type</p>
+                    <Badge variant="outline">{selectedConversation.conversation_type.toUpperCase()}</Badge>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
+                    <Badge variant={selectedConversation.status === 'active' ? 'default' : 'secondary'}>
+                      {selectedConversation.status}
+                    </Badge>
+                  </div>
                 </div>
 
                 <Separator />
@@ -468,7 +387,7 @@ export const PatientChatSection = () => {
             ) : (
               <div className="text-center text-muted-foreground py-8">
                 <User className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Select a conversation to view patient info</p>
+                <p className="text-sm">Select a conversation to view patient details</p>
               </div>
             )}
           </CardContent>
