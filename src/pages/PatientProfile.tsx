@@ -35,7 +35,7 @@ import {
 import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle,
-  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare
+  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare, CreditCard, IdCard
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
@@ -156,6 +156,8 @@ export default function PatientProfile() {
   const [sensitiveDataVisible, setSensitiveDataVisible] = useState(false);
   const [loadingSensitive, setLoadingSensitive] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
+  const [uploadDocumentType, setUploadDocumentType] = useState<'id-front' | 'id-back' | 'insurance-front' | 'insurance-back' | null>(null);
 
   const { updatePatient } = usePatients();
   
@@ -579,6 +581,104 @@ export default function PatientProfile() {
         return 'border-case-attorney-only/30';
       default:
         return 'border-secondary/30';
+    }
+  };
+
+  // Document upload functions
+  const handleDocumentUpload = (documentType: 'id-front' | 'id-back' | 'insurance-front' | 'insurance-back') => {
+    setUploadDocumentType(documentType);
+    setIsDocumentUploadOpen(true);
+  };
+
+  const getDocumentDetails = (type: 'id-front' | 'id-back' | 'insurance-front' | 'insurance-back') => {
+    switch (type) {
+      case 'id-front':
+        return {
+          title: 'Upload Driver\'s License - Front',
+          description: 'Upload the front side of the driver\'s license',
+          category: 'Legal',
+          fileName: 'drivers-license-front'
+        };
+      case 'id-back':
+        return {
+          title: 'Upload Driver\'s License - Back',
+          description: 'Upload the back side of the driver\'s license',
+          category: 'Legal',
+          fileName: 'drivers-license-back'
+        };
+      case 'insurance-front':
+        return {
+          title: 'Upload Insurance Card - Front',
+          description: 'Upload the front side of the insurance card',
+          category: 'Insurance',
+          fileName: 'insurance-card-front'
+        };
+      case 'insurance-back':
+        return {
+          title: 'Upload Insurance Card - Back',
+          description: 'Upload the back side of the insurance card',
+          category: 'Insurance',
+          fileName: 'insurance-card-back'
+        };
+      default:
+        return {
+          title: 'Upload Document',
+          description: 'Upload document',
+          category: 'General',
+          fileName: 'document'
+        };
+    }
+  };
+
+  const handleFileUpload = async (files: File[]) => {
+    if (!files || files.length === 0 || !uploadDocumentType || !patient) return;
+
+    const file = files[0];
+    const documentDetails = getDocumentDetails(uploadDocumentType);
+    const timestamp = new Date().toISOString().split('T')[0];
+    const fileName = `${documentDetails.fileName}-${timestamp}`;
+
+    try {
+      // Upload file to Supabase storage
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${patient.id}/${fileName}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('patient-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Save file metadata to database
+      const { error: dbError } = await supabase
+        .from('patient_files')
+        .insert({
+          patient_id: patient.id,
+          file_name: `${fileName}.${fileExt}`,
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type,
+          category: documentDetails.category,
+          description: documentDetails.description,
+          uploaded_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Success",
+        description: `${documentDetails.title} uploaded successfully.`,
+      });
+
+      setIsDocumentUploadOpen(false);
+      setUploadDocumentType(null);
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload document. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1361,22 +1461,76 @@ export default function PatientProfile() {
                                             </FormItem>
                                           )} 
                                         />
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-3">
-                                      <InfoField label="Attorney Name" value={form.watch("attorneyName") || 'N/A'} />
-                                      <InfoField label="Attorney Phone" value={form.watch("attorneyPhone") || 'N/A'} />
-                                      <InfoField label="Insurance Adjuster" value={form.watch("adjustersName") || 'N/A'} />
-                                      <InfoField label="Insurance Phone" value={form.watch("insurancePhoneNumber") || 'N/A'} />
-                                      <InfoField label="Driver's License State" value={form.watch("licenseState") || 'N/A'} />
-                                      <InfoField label="Date of Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'PPP') : 'N/A'} />
-                                      <InfoField label="Hospital Visit" value={form.watch("didGoToHospital") === "yes" ? "Yes" : form.watch("didGoToHospital") === "no" ? "No" : 'N/A'} />
-                                      {form.watch("didGoToHospital") === "yes" && (
-                                        <InfoField label="Hospital Name" value={form.watch("hospitalName") || 'N/A'} />
-                                      )}
-                                    </div>
-                                  )}
+                                       )}
+                                       
+                                       {/* Upload buttons for ID documents */}
+                                       <div className="space-y-2 pt-4 border-t border-orange-200 dark:border-orange-800">
+                                         <Label className="text-sm font-medium">Driver's License Upload</Label>
+                                         <div className="flex flex-col sm:flex-row gap-2">
+                                           <Button
+                                             type="button"
+                                             variant="outline"
+                                             size="sm"
+                                             onClick={() => handleDocumentUpload('id-front')}
+                                             className="flex items-center gap-2"
+                                           >
+                                             <IdCard className="h-4 w-4" />
+                                             Upload Front
+                                           </Button>
+                                           <Button
+                                             type="button"
+                                             variant="outline"
+                                             size="sm"
+                                             onClick={() => handleDocumentUpload('id-back')}
+                                             className="flex items-center gap-2"
+                                           >
+                                             <IdCard className="h-4 w-4" />
+                                             Upload Back
+                                           </Button>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   ) : (
+                                     <div className="space-y-3">
+                                       <InfoField label="Attorney Name" value={form.watch("attorneyName") || 'N/A'} />
+                                       <InfoField label="Attorney Phone" value={form.watch("attorneyPhone") || 'N/A'} />
+                                       <InfoField label="Insurance Adjuster" value={form.watch("adjustersName") || 'N/A'} />
+                                       <InfoField label="Insurance Phone" value={form.watch("insurancePhoneNumber") || 'N/A'} />
+                                       <InfoField label="Driver's License State" value={form.watch("licenseState") || 'N/A'} />
+                                       <InfoField label="Date of Accident" value={form.watch("dateOfAccident") ? format(form.watch("dateOfAccident")!, 'PPP') : 'N/A'} />
+                                       <InfoField label="Hospital Visit" value={form.watch("didGoToHospital") === "yes" ? "Yes" : form.watch("didGoToHospital") === "no" ? "No" : 'N/A'} />
+                                       {form.watch("didGoToHospital") === "yes" && (
+                                         <InfoField label="Hospital Name" value={form.watch("hospitalName") || 'N/A'} />
+                                       )}
+                                       
+                                       {/* Upload buttons for ID documents in read-only mode */}
+                                       <div className="space-y-2 pt-4 border-t border-orange-200 dark:border-orange-800">
+                                         <Label className="text-sm font-medium">Driver's License Upload</Label>
+                                         <div className="flex flex-col sm:flex-row gap-2">
+                                           <Button
+                                             type="button"
+                                             variant="outline"
+                                             size="sm"
+                                             onClick={() => handleDocumentUpload('id-front')}
+                                             className="flex items-center gap-2"
+                                           >
+                                             <IdCard className="h-4 w-4" />
+                                             Upload Front
+                                           </Button>
+                                           <Button
+                                             type="button"
+                                             variant="outline"
+                                             size="sm"
+                                             onClick={() => handleDocumentUpload('id-back')}
+                                             className="flex items-center gap-2"
+                                           >
+                                             <IdCard className="h-4 w-4" />
+                                             Upload Back
+                                           </Button>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   )}
                                 </div>
                               </div>
                             ) : (
@@ -1688,6 +1842,53 @@ export default function PatientProfile() {
                 </DialogFooter>
               </form>
             </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Document Upload Dialog */}
+        <Dialog open={isDocumentUploadOpen} onOpenChange={setIsDocumentUploadOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                {uploadDocumentType ? getDocumentDetails(uploadDocumentType).title : 'Upload Document'}
+              </DialogTitle>
+              <DialogDescription>
+                {uploadDocumentType ? getDocumentDetails(uploadDocumentType).description : 'Upload a document for this patient'}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Drop files here or click to browse</p>
+                  <p className="text-xs text-muted-foreground">
+                    Supports: Images (JPG, PNG, WebP), PDF files
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  accept="image/*,.pdf"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) {
+                      handleFileUpload(files);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => {
+                setIsDocumentUploadOpen(false);
+                setUploadDocumentType(null);
+              }}>
+                Cancel
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </Layout>
