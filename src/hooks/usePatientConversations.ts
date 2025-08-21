@@ -26,12 +26,18 @@ export interface PatientConversation {
 export interface PatientMessage {
   id: string;
   conversation_id: string;
-  sender_type: 'patient' | 'staff';
+  sender_type: 'patient' | 'provider';
   sender_id?: string;
   content: string;
   message_type: string;
   ghl_message_id?: string;
   status: string;
+  sync_status?: string;
+  ghl_sent_at?: string;
+  ghl_delivered_at?: string;
+  ghl_read_at?: string;
+  retry_count?: number;
+  last_retry_at?: string;
   metadata?: any;
   created_at: string;
 }
@@ -87,33 +93,132 @@ export function usePatientConversations() {
     }
   };
 
-  // Send a new message
+  // Send a new message with GHL sync
   const sendMessage = async (conversationId: string, content: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      const { data, error } = await supabase
+      // Get conversation and patient data for GHL sync
+      const { data: conversation, error: convError } = await supabase
+        .from('patient_conversations')
+        .select(`
+          id,
+          patient_id,
+          ghl_conversation_id,
+          patients!inner (
+            id,
+            ghl_contact_id,
+            first_name,
+            last_name,
+            phone,
+            email
+          )
+        `)
+        .eq('id', conversationId)
+        .single();
+
+      if (convError) throw convError;
+
+      // Insert message locally first
+      const { data: localMessage, error: messageError } = await supabase
         .from('patient_messages')
         .insert({
           conversation_id: conversationId,
-          sender_type: 'staff',
-          sender_id: user.id,
           content,
+          sender_type: 'provider',
+          sender_id: user.id,
           message_type: 'text',
-          status: 'sent'
+          status: 'sent',
+          sync_status: 'pending',
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (messageError) throw messageError;
+
+      // Add the new message to the current messages immediately
+      setMessages(prev => [...prev, localMessage as PatientMessage]);
+
+      // Send to GHL in background if patient has GHL contact ID
+      if (conversation.patients.ghl_contact_id) {
+        syncMessageToGHL(localMessage.id, conversation.patients.ghl_contact_id, content)
+          .catch(err => console.error('GHL sync failed:', err));
+      } else {
+        // Mark as skipped if no GHL contact
+        await supabase
+          .from('patient_messages')
+          .update({ sync_status: 'skipped' })
+          .eq('id', localMessage.id);
+      }
       
-      // Add the new message to the current messages
-      setMessages(prev => [...prev, data as PatientMessage]);
-      
-      return data;
+      return localMessage;
     } catch (err: any) {
       setError(err.message);
       throw err;
+    }
+  };
+
+  // Sync message to GHL
+  const syncMessageToGHL = async (messageId: string, ghlContactId: string, content: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('ghl-conversations', {
+        body: {
+          contactId: ghlContactId,
+          message: content,
+          type: 'SMS'
+        }
+      });
+
+      if (error) throw error;
+
+      // Update message with GHL details
+      const { error: updateError } = await supabase
+        .from('patient_messages')
+        .update({
+          sync_status: 'synced',
+          ghl_message_id: data?.id,
+          ghl_sent_at: new Date().toISOString(),
+        })
+        .eq('id', messageId);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, sync_status: 'synced', ghl_message_id: data?.id, ghl_sent_at: new Date().toISOString() }
+          : msg
+      ));
+
+      console.log('Message synced to GHL successfully');
+    } catch (error) {
+      console.error('Failed to sync message to GHL:', error);
+      
+      // Get current retry count and increment
+      const { data: currentMessage } = await supabase
+        .from('patient_messages')
+        .select('retry_count')
+        .eq('id', messageId)
+        .single();
+
+      const newRetryCount = (currentMessage?.retry_count || 0) + 1;
+
+      // Update retry count and mark as failed
+      await supabase
+        .from('patient_messages')
+        .update({
+          sync_status: 'failed',
+          retry_count: newRetryCount,
+          last_retry_at: new Date().toISOString(),
+        })
+        .eq('id', messageId);
+
+      // Update local state
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, sync_status: 'failed' }
+          : msg
+      ));
     }
   };
 

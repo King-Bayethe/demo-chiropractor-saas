@@ -14,7 +14,8 @@ import {
   MessageSquare,
   User,
   Plus,
-  Loader2
+  Loader2,
+  Clock
 } from "lucide-react";
 import { usePatientConversations, PatientConversation, PatientMessage } from "@/hooks/usePatientConversations";
 import { usePatients } from "@/hooks/usePatients";
@@ -262,21 +263,43 @@ export const PatientChatSection = () => {
                     messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.sender_type === 'staff' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${message.sender_type === 'provider' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
                           className={`max-w-[80%] p-3 rounded-lg ${
-                            message.sender_type === 'staff'
+                            message.sender_type === 'provider'
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}
                         >
                           <p className="text-sm">{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.sender_type === 'staff' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                          }`}>
-                            {formatTime(message.created_at)}
-                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-3 h-3 text-muted-foreground" />
+                              <span className={`text-xs ${
+                                message.sender_type === 'provider' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                              }`}>
+                                {formatTime(message.created_at)}
+                              </span>
+                            </div>
+                            {/* GHL Sync Status for Provider Messages */}
+                            {message.sender_type === 'provider' && (
+                              <div className="flex items-center space-x-1">
+                                {message.sync_status === 'pending' && (
+                                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" title="Syncing to GHL..." />
+                                )}
+                                {message.sync_status === 'synced' && (
+                                  <div className="w-2 h-2 bg-green-500 rounded-full" title="Synced to GHL" />
+                                )}
+                                {message.sync_status === 'failed' && (
+                                  <div className="w-2 h-2 bg-red-500 rounded-full" title="GHL sync failed" />
+                                )}
+                                {message.sync_status === 'skipped' && (
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full" title="GHL sync skipped" />
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))
