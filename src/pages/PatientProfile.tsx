@@ -875,8 +875,7 @@ export default function PatientProfile() {
                           </TabsTrigger>
                           <TabsTrigger value="files" className="flex items-center gap-2 whitespace-nowrap">
                             <Upload className="h-4 w-4" />
-                            Files 
-                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{files.length}</Badge>
+                            Files
                           </TabsTrigger>
                           <TabsTrigger value="invoices" className="flex items-center gap-2 whitespace-nowrap">
                             <DollarSign className="h-4 w-4" />
