@@ -40,8 +40,8 @@ serve(async (req) => {
     let patientPhone = ''
     let patientId = null;
 
-    if (formType === 'pip') {
-      // Handle comprehensive PIP form data
+    if (formType === 'pip' || formType === 'cash') {
+      // Handle comprehensive form data for both PIP and Cash forms
       if (formData.firstName && formData.lastName) {
         patientName = `${formData.firstName} ${formData.lastName}`.trim()
       }
@@ -113,7 +113,7 @@ serve(async (req) => {
               body_part_hit: formData.bodyPart,
               what_body_hit: formData.whatItHit,
               medical_systems_review: formData.systems || {},
-              case_type: formData.caseType || 'PIP',
+              case_type: formType === 'cash' ? 'Cash Plan' : (formData.caseType || 'PIP'),
               pip_form_submitted_at: new Date().toISOString(),
               consent_acknowledgement: formData.consentAcknowledgement || false,
               patient_signature: formData.signature,
@@ -176,8 +176,9 @@ serve(async (req) => {
               consent_acknowledgement: formData.consentAcknowledgement || false,
               patient_signature: formData.signature,
               signature_date: formData.date || null,
-              case_type: formData.caseType || 'PIP',
-              tags: ['patient', 'pip'],
+              case_type: formType === 'cash' ? 'Cash Plan' : (formData.caseType || 'PIP'),
+              tags: formType === 'cash' ? ['patient', 'cash'] : ['patient', 'pip'],
+              
               is_active: true,
             })
             .select('id')

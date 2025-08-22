@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.submit-form]
 verify_jwt = false
+
+[functions.create-patient-from-form]
+verify_jwt = false
