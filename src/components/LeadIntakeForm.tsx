@@ -27,6 +27,13 @@ interface LeadIntakeFormData {
   biLimit: string;
   caseType: string;
   other: string;
+  // Medical History
+  currentMedications: string;
+  allergies: string;
+  pastInjuries: string;
+  previousSurgeries: string;
+  chronicConditions: string;
+  otherMedicalHistory: string;
 }
 
 export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
@@ -44,6 +51,12 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
       biLimit: "",
       caseType: "",
       other: "",
+      currentMedications: "",
+      allergies: "",
+      pastInjuries: "",
+      previousSurgeries: "",
+      chronicConditions: "",
+      otherMedicalHistory: "",
     },
   });
 
@@ -332,6 +345,121 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 </FormItem>
               )}
             />
+
+            {/* Medical History Section */}
+            <div className="space-y-6 border-t border-border pt-6">
+              <h3 className="text-lg font-semibold">Medical History / Historial Médico</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="currentMedications"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Current Medications / Medicamentos Actuales</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="List all current medications..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="allergies"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Allergies / Alergias</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="List all known allergies..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pastInjuries"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Past Injuries / Lesiones Previas</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe any previous injuries..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="previousSurgeries"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Previous Surgeries / Cirugías Previas</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="List all previous surgeries..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="chronicConditions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Chronic Conditions / Condiciones Crónicas</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="List any chronic medical conditions..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="otherMedicalHistory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Other Medical History / Otro Historial Médico</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Any other relevant medical history..."
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             {/* Other - Full Width */}
             <FormField

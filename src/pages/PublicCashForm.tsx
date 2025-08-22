@@ -68,6 +68,15 @@ const PublicCashForm = () => {
       numbness: false,
       dizziness: false,
     },
+    
+    // Medical History
+    currentMedications: "",
+    allergies: "",
+    pastInjuries: "",
+    previousSurgeries: "",
+    chronicConditions: "",
+    otherMedicalHistory: "",
+    
     consentAcknowledgement: false,
     signature: "",
     date: "",
@@ -204,6 +213,12 @@ const PublicCashForm = () => {
           numbness: false,
           dizziness: false,
         },
+        currentMedications: "",
+        allergies: "",
+        pastInjuries: "",
+        previousSurgeries: "",
+        chronicConditions: "",
+        otherMedicalHistory: "",
         consentAcknowledgement: false,
         signature: "",
         date: "",
@@ -881,10 +896,82 @@ const PublicCashForm = () => {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Medical History Section */}
+          <Collapsible className="border border-gray-200 rounded-lg">
+            <CollapsibleTrigger className="p-4 flex justify-between items-center bg-gray-50 rounded-t-lg w-full">
+              <h2 className="text-xl font-semibold text-blue-800">6. Medical History / <span className="font-medium">HISTORIAL MÉDICO</span></h2>
+              <span className="text-blue-600">&#9654;</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <Label className="text-gray-600 font-medium mb-2 block">Current Medications / <span className="italic">Medicamentos Actuales</span></Label>
+                  <Textarea 
+                    placeholder="List all current medications including dosage / Lista todos los medicamentos actuales incluyendo la dosis"
+                    rows={3}
+                    value={formData.currentMedications}
+                    onChange={(e) => handleInputChange("currentMedications", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-600 font-medium mb-2 block">Allergies / <span className="italic">Alergias</span></Label>
+                  <Textarea 
+                    placeholder="List all known allergies (medications, foods, environmental) / Lista todas las alergias conocidas (medicamentos, alimentos, ambientales)"
+                    rows={3}
+                    value={formData.allergies}
+                    onChange={(e) => handleInputChange("allergies", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-600 font-medium mb-2 block">Past Injuries / <span className="italic">Lesiones Previas</span></Label>
+                  <Textarea 
+                    placeholder="Describe any previous injuries, accidents, or trauma / Describe cualquier lesión, accidente o trauma previo"
+                    rows={3}
+                    value={formData.pastInjuries}
+                    onChange={(e) => handleInputChange("pastInjuries", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-600 font-medium mb-2 block">Previous Surgeries / <span className="italic">Cirugías Previas</span></Label>
+                  <Textarea 
+                    placeholder="List all previous surgeries with dates / Lista todas las cirugías previas con fechas"
+                    rows={3}
+                    value={formData.previousSurgeries}
+                    onChange={(e) => handleInputChange("previousSurgeries", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-600 font-medium mb-2 block">Chronic Conditions / <span className="italic">Condiciones Crónicas</span></Label>
+                  <Textarea 
+                    placeholder="List any chronic medical conditions (diabetes, hypertension, etc.) / Lista cualquier condición médica crónica (diabetes, hipertensión, etc.)"
+                    rows={3}
+                    value={formData.chronicConditions}
+                    onChange={(e) => handleInputChange("chronicConditions", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-600 font-medium mb-2 block">Other Medical History / <span className="italic">Otro Historial Médico</span></Label>
+                  <Textarea 
+                    placeholder="Any other relevant medical history / Cualquier otro historial médico relevante"
+                    rows={3}
+                    value={formData.otherMedicalHistory}
+                    onChange={(e) => handleInputChange("otherMedicalHistory", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Authorizations & Consents */}
           <Collapsible defaultOpen className="border border-gray-200 rounded-lg">
             <CollapsibleTrigger className="p-4 flex justify-between items-center bg-gray-50 rounded-t-lg w-full">
-              <h2 className="text-xl font-semibold text-blue-800">6. Authorizations & Consents / <span className="font-medium">AUTORIZACIONES</span></h2>
+              <h2 className="text-xl font-semibold text-blue-800">7. Authorizations & Consents / <span className="font-medium">AUTORIZACIONES</span></h2>
               <span className="text-blue-600">&#9654;</span>
             </CollapsibleTrigger>
             <CollapsibleContent className="p-6 space-y-6">
