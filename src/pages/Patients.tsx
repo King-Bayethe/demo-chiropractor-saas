@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useNavigate } from "react-router-dom";
 import { mapSupabasePatientToListItem, getPatientType, getCaseTypeVariant, getCaseTypeDisplayName } from "@/utils/patientMapping";
+import { createPatientFromCashForm } from "@/utils/createCashPatient";
 import { 
   Search, 
   Filter, 
@@ -123,6 +124,24 @@ export default function Patients() {
   };
   const handleAddPatient = () => setIsAddPatientOpen(true);
   
+  const handleCreateCashPatient = async () => {
+    setIsSubmitting(true);
+    try {
+      const result = await createPatientFromCashForm();
+      if (result.success) {
+        toast({ title: "Success", description: "Cash patient created successfully!" });
+        fetchPatients(); // Refresh the patient list
+      } else {
+        toast({ title: "Error", description: "Failed to create patient from cash form.", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error('Failed to create cash patient:', error);
+      toast({ title: "Error", description: "Failed to create patient. Please try again.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   const handleSubmitPatient = async (formData: any) => {
     setIsSubmitting(true);
     try {
@@ -173,6 +192,14 @@ export default function Patients() {
                 <Button variant="outline" size="sm">
                   <FileText className="w-4 h-4 mr-2" />
                   Export Records
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={handleCreateCashPatient}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Creating..." : "Create Cash Patient"}
                 </Button>
                 <Button size="sm" onClick={handleAddPatient}>
                   <Plus className="w-4 h-4 mr-2" />
