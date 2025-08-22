@@ -35,7 +35,8 @@ import {
 import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle,
-  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare, CreditCard, IdCard
+  BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare, CreditCard, IdCard,
+  Activity, Scale, AlertCircle
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
@@ -863,41 +864,80 @@ export default function PatientProfile() {
                   </CardHeader>
 
                   <CardContent className="p-6">
-                    {/* Patient Information Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
-                      <DemographicsCard 
-                        patient={patient}
-                        isEditing={isEditing}
-                        onEdit={handleEdit}
-                        isSensitiveVisible={sensitiveDataVisible}
-                        onToggleSensitive={loadSensitiveData}
-                      />
-                      <MedicalHistoryCard 
-                        patient={patient}
-                        onEdit={handleEdit}
-                      />
-                      <InsuranceCard 
-                        patient={patient}
-                        isEditing={isEditing}
-                        onEdit={handleEdit}
-                        isSensitiveVisible={sensitiveDataVisible}
-                        onToggleSensitive={loadSensitiveData}
-                      />
-                      <LegalCard 
-                        patient={patient}
-                        isEditing={isEditing}
-                        onEdit={handleEdit}
-                        isSensitiveVisible={sensitiveDataVisible}
-                        onToggleSensitive={loadSensitiveData}
-                      />
-                      <EmergencyContactCard 
-                        patient={patient}
-                        isEditing={isEditing}
-                        onEdit={handleEdit}
-                        isSensitiveVisible={sensitiveDataVisible}
-                        onToggleSensitive={loadSensitiveData}
-                      />
-                    </div>
+                    {/* Patient Information Tabs */}
+                    <Tabs defaultValue="demographics" className="w-full mb-8">
+                      <div className="w-full overflow-x-auto scrollbar-hide">
+                        <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
+                          <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap">
+                            <User className="h-4 w-4" />
+                            Demographics
+                          </TabsTrigger>
+                          <TabsTrigger value="medical" className="flex items-center gap-2 whitespace-nowrap">
+                            <Activity className="h-4 w-4" />
+                            Medical History
+                          </TabsTrigger>
+                          <TabsTrigger value="insurance" className="flex items-center gap-2 whitespace-nowrap">
+                            <Shield className="h-4 w-4" />
+                            Insurance
+                          </TabsTrigger>
+                          <TabsTrigger value="legal" className="flex items-center gap-2 whitespace-nowrap">
+                            <Scale className="h-4 w-4" />
+                            Legal Information
+                          </TabsTrigger>
+                          <TabsTrigger value="emergency" className="flex items-center gap-2 whitespace-nowrap">
+                            <AlertCircle className="h-4 w-4" />
+                            Emergency Contact
+                          </TabsTrigger>
+                        </TabsList>
+                      </div>
+
+                      <TabsContent value="demographics" className="mt-6">
+                        <DemographicsCard 
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          isSensitiveVisible={sensitiveDataVisible}
+                          onToggleSensitive={loadSensitiveData}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="medical" className="mt-6">
+                        <MedicalHistoryCard 
+                          patient={patient}
+                          onEdit={handleEdit}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="insurance" className="mt-6">
+                        <InsuranceCard 
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          isSensitiveVisible={sensitiveDataVisible}
+                          onToggleSensitive={loadSensitiveData}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="legal" className="mt-6">
+                        <LegalCard 
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          isSensitiveVisible={sensitiveDataVisible}
+                          onToggleSensitive={loadSensitiveData}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="emergency" className="mt-6">
+                        <EmergencyContactCard 
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          isSensitiveVisible={sensitiveDataVisible}
+                          onToggleSensitive={loadSensitiveData}
+                        />
+                      </TabsContent>
+                    </Tabs>
 
                     {/* Functional Tabs */}
                     <Tabs defaultValue="appointments" className="w-full">
