@@ -272,47 +272,74 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
     
     // Smart mapping for current symptoms
     if (patient.current_symptoms) {
+      console.log('Found current_symptoms in patient data:', patient.current_symptoms);
       try {
         const symptoms = typeof patient.current_symptoms === 'string' 
           ? JSON.parse(patient.current_symptoms) 
           : patient.current_symptoms;
         
+        console.log('Parsed symptoms:', symptoms);
+        
         if (typeof symptoms === 'object' && symptoms !== null) {
-          updatedData.currentSymptoms = { ...updatedData.currentSymptoms, ...symptoms };
-          hasUpdates = true;
+          // Map symptoms from patient profile to SOAP form fields
+          Object.entries(symptoms).forEach(([key, value]) => {
+            if (value === true || value === 'true') {
+              // Direct mapping for matching field names
+              if (updatedData.currentSymptoms.hasOwnProperty(key)) {
+                updatedData.currentSymptoms[key] = true;
+                hasUpdates = true;
+                console.log(`Mapped symptom: ${key} = true`);
+              }
+              // Custom mappings for different field names
+              else if (key === 'loss_memory' && updatedData.currentSymptoms.hasOwnProperty('memory_problems')) {
+                updatedData.currentSymptoms.memory_problems = true;
+                hasUpdates = true;
+                console.log('Mapped loss_memory to memory_problems');
+              }
+              // Add more custom mappings as needed
+            }
+          });
         }
       } catch (error) {
-        console.warn('Failed to parse current symptoms:', error);
+        console.error('Error parsing current symptoms:', error);
       }
     }
-
+    
     // Smart mapping for family medical history
-    if (patient.family_medical_history) {
+    if (patient.family_medical_history || patient.family_history) {
+      console.log('Found family history in patient data:', patient.family_medical_history || patient.family_history);
+      const familyHistoryData = patient.family_medical_history || patient.family_history;
+      
       try {
-        if (typeof patient.family_medical_history === 'string') {
-          // Parse text-based family history and map to checkboxes
-          const historyText = patient.family_medical_history.toLowerCase();
-          const mappedHistory = {
-            heart_trouble: historyText.includes('heart') || historyText.includes('cardiac'),
-            stroke: historyText.includes('stroke'),
-            diabetes: historyText.includes('diabetes'),
-            cancer: historyText.includes('cancer'),
-            arthritis: historyText.includes('arthritis'),
-            high_blood_pressure: historyText.includes('hypertension') || historyText.includes('high blood pressure'),
-            kidney_disease: historyText.includes('kidney'),
-            mental_illness: historyText.includes('mental') || historyText.includes('depression') || historyText.includes('anxiety'),
-            asthma: historyText.includes('asthma'),
-            epilepsy: historyText.includes('epilepsy') || historyText.includes('seizure'),
-            other_conditions: patient.family_medical_history
-          };
-          updatedData.familyHistory = { ...updatedData.familyHistory, ...mappedHistory };
-          hasUpdates = true;
-        } else if (typeof patient.family_medical_history === 'object') {
-          updatedData.familyHistory = { ...updatedData.familyHistory, ...patient.family_medical_history };
-          hasUpdates = true;
+        if (typeof familyHistoryData === 'string') {
+          // Parse text and look for keywords
+          const text = familyHistoryData.toLowerCase();
+          const conditions = ['heart', 'stroke', 'diabetes', 'cancer', 'arthritis', 'hypertension'];
+          
+          conditions.forEach(condition => {
+            if (text.includes(condition)) {
+              const fieldName = condition === 'hypertension' ? 'high_blood_pressure' : condition;
+              if (updatedData.familyHistory.hasOwnProperty(fieldName)) {
+                updatedData.familyHistory[fieldName] = true;
+                hasUpdates = true;
+                console.log(`Mapped family history: ${fieldName} = true`);
+              }
+            }
+          });
+        } else if (typeof familyHistoryData === 'object' && familyHistoryData !== null) {
+          // Map object properties
+          Object.entries(familyHistoryData).forEach(([key, value]) => {
+            if (value === true || value === 'true') {
+              if (updatedData.familyHistory.hasOwnProperty(key)) {
+                updatedData.familyHistory[key] = true;
+                hasUpdates = true;
+                console.log(`Mapped family history: ${key} = true`);
+              }
+            }
+          });
         }
       } catch (error) {
-        console.warn('Failed to parse family medical history:', error);
+        console.error('Error parsing family history:', error);
       }
     }
     
@@ -323,11 +350,18 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
   // Autofill from patient profile when patient data is available
   useEffect(() => {
-    if (patient && (!data.currentSymptoms || Object.keys(data.currentSymptoms).length === 0) && 
-        (!data.familyHistory || Object.keys(data.familyHistory).length === 0) &&
-        (!data.medicalHistory?.medications || !data.painDescription)) {
-      console.log('Triggering autofill for patient:', patient);
+    console.log('SubjectiveSection useEffect triggered with patient:', patient);
+    console.log('Current data state:', data);
+    
+    if (patient && (
+      !data.currentSymptoms || Object.values(data.currentSymptoms || {}).every(val => !val) ||
+      !data.familyHistory || Object.values(data.familyHistory || {}).every(val => !val) ||
+      !data.medicalHistory?.medications || !data.painDescription
+    )) {
+      console.log('Conditions met for autofill, triggering mapPatientDataToSOAP');
       mapPatientDataToSOAP();
+    } else {
+      console.log('Autofill conditions not met');
     }
   }, [patient]);
 
