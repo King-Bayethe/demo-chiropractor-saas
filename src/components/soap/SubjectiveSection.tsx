@@ -45,6 +45,7 @@ export interface SubjectiveData {
     hand_pain?: boolean;
     finger_numbness?: boolean;
     arm_weakness?: boolean;
+    tingling_arms_hands?: boolean;
     
     // Back & Core
     upper_back_pain?: boolean;
@@ -63,6 +64,7 @@ export interface SubjectiveData {
     foot_pain?: boolean;
     leg_weakness?: boolean;
     leg_numbness?: boolean;
+    tingling_legs_feet?: boolean;
     
     // Neurological
     dizziness?: boolean;
@@ -79,6 +81,7 @@ export interface SubjectiveData {
     depression?: boolean;
     nausea?: boolean;
     appetite_changes?: boolean;
+    irritability?: boolean;
   };
   familyHistory?: {
     heart_trouble?: boolean;
@@ -91,6 +94,12 @@ export interface SubjectiveData {
     mental_illness?: boolean;
     asthma?: boolean;
     epilepsy?: boolean;
+    kyphosis?: boolean;
+    lung_disease?: boolean;
+    osteoporosis?: boolean;
+    migraines?: boolean;
+    scoliosis?: boolean;
+    spine_problems?: boolean;
     other_conditions?: string;
   };
   medicalHistory?: {
@@ -312,10 +321,10 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             'painArmsHands': ['arm_pain', 'hand_pain', 'shoulder_pain'],
             'loss_strength_arms': 'arm_weakness',
             'lossStrengthArms': 'arm_weakness',
-            'tingling_arms_hands': 'finger_numbness',
-            'tinglingArmsHands': 'finger_numbness',
-            'arm_tingling': 'finger_numbness',
-            'hand_tingling': 'finger_numbness',
+            'tingling_arms_hands': 'tingling_arms_hands',
+            'tinglingArmsHands': 'tingling_arms_hands',
+            'arm_tingling': 'tingling_arms_hands',
+            'hand_tingling': 'tingling_arms_hands',
             'arm_numbness': 'finger_numbness',
             'hand_numbness': 'finger_numbness',
             'shoulder_problems': 'shoulder_pain',
@@ -329,10 +338,10 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             'painLegsFeet': ['leg_pain', 'foot_pain', 'knee_pain'],
             'numbness_legs_feet': 'leg_numbness',
             'numbnessLegsFeet': 'leg_numbness',
-            'tingling_legs_feet': 'leg_numbness',
-            'tinglingLegsFeet': 'leg_numbness',
-            'leg_tingling': 'leg_numbness',
-            'foot_tingling': 'leg_numbness',
+            'tingling_legs_feet': 'tingling_legs_feet',
+            'tinglingLegsFeet': 'tingling_legs_feet',
+            'leg_tingling': 'tingling_legs_feet',
+            'foot_tingling': 'tingling_legs_feet',
             'hip_problems': 'hip_pain',
             'knee_problems': 'knee_pain',
             'ankle_problems': 'ankle_pain',
@@ -768,15 +777,16 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
               <div className="space-y-3">
                 <h5 className="text-sm font-medium text-muted-foreground">Arms & Hands</h5>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {[
-                    { key: 'arm_pain', label: 'Arm Pain' },
-                    { key: 'shoulder_pain', label: 'Shoulder Pain' },
-                    { key: 'elbow_pain', label: 'Elbow Pain' },
-                    { key: 'wrist_pain', label: 'Wrist Pain' },
-                    { key: 'hand_pain', label: 'Hand Pain' },
-                    { key: 'finger_numbness', label: 'Finger Numbness' },
-                    { key: 'arm_weakness', label: 'Arm Weakness' }
-                  ].map(({ key, label }) => (
+                   {[
+                     { key: 'arm_pain', label: 'Arm Pain' },
+                     { key: 'shoulder_pain', label: 'Shoulder Pain' },
+                     { key: 'elbow_pain', label: 'Elbow Pain' },
+                     { key: 'wrist_pain', label: 'Wrist Pain' },
+                     { key: 'hand_pain', label: 'Hand Pain' },
+                     { key: 'finger_numbness', label: 'Finger Numbness' },
+                     { key: 'arm_weakness', label: 'Arm Weakness' },
+                     { key: 'tingling_arms_hands', label: 'Tingling Arms/Hands' }
+                   ].map(({ key, label }) => (
                     <div key={key} className="flex items-center space-x-2">
                       <Checkbox
                         id={`current-${key}`}
@@ -817,16 +827,17 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
               <div className="space-y-3">
                 <h5 className="text-sm font-medium text-muted-foreground">Legs & Feet</h5>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {[
-                    { key: 'hip_pain', label: 'Hip Pain' },
-                    { key: 'thigh_pain', label: 'Thigh Pain' },
-                    { key: 'knee_pain', label: 'Knee Pain' },
-                    { key: 'leg_pain', label: 'Leg Pain' },
-                    { key: 'ankle_pain', label: 'Ankle Pain' },
-                    { key: 'foot_pain', label: 'Foot Pain' },
-                    { key: 'leg_weakness', label: 'Leg Weakness' },
-                    { key: 'leg_numbness', label: 'Leg Numbness' }
-                  ].map(({ key, label }) => (
+                   {[
+                     { key: 'hip_pain', label: 'Hip Pain' },
+                     { key: 'thigh_pain', label: 'Thigh Pain' },
+                     { key: 'knee_pain', label: 'Knee Pain' },
+                     { key: 'leg_pain', label: 'Leg Pain' },
+                     { key: 'ankle_pain', label: 'Ankle Pain' },
+                     { key: 'foot_pain', label: 'Foot Pain' },
+                     { key: 'leg_weakness', label: 'Leg Weakness' },
+                     { key: 'leg_numbness', label: 'Leg Numbness' },
+                     { key: 'tingling_legs_feet', label: 'Tingling Legs/Feet' }
+                   ].map(({ key, label }) => (
                     <div key={key} className="flex items-center space-x-2">
                       <Checkbox
                         id={`current-${key}`}
@@ -867,14 +878,15 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             <div className="space-y-3">
               <h5 className="text-sm font-medium text-muted-foreground">General</h5>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                  { key: 'fatigue', label: 'Fatigue' },
-                  { key: 'sleep_problems', label: 'Sleep Problems' },
-                  { key: 'anxiety', label: 'Anxiety' },
-                  { key: 'depression', label: 'Depression' },
-                  { key: 'nausea', label: 'Nausea' },
-                  { key: 'appetite_changes', label: 'Appetite Changes' }
-                ].map(({ key, label }) => (
+                 {[
+                   { key: 'fatigue', label: 'Fatigue' },
+                   { key: 'sleep_problems', label: 'Sleep Problems' },
+                   { key: 'anxiety', label: 'Anxiety' },
+                   { key: 'depression', label: 'Depression' },
+                   { key: 'nausea', label: 'Nausea' },
+                   { key: 'appetite_changes', label: 'Appetite Changes' },
+                   { key: 'irritability', label: 'Irritability' }
+                 ].map(({ key, label }) => (
                   <div key={key} className="flex items-center space-x-2">
                     <Checkbox
                       id={`current-${key}`}
@@ -1050,18 +1062,24 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             <div className="space-y-4">
               <h4 className="text-sm font-medium text-primary">Family Medical History</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { key: 'heart_trouble', label: 'Heart Trouble' },
-                  { key: 'stroke', label: 'Stroke' },
-                  { key: 'diabetes', label: 'Diabetes' },
-                  { key: 'cancer', label: 'Cancer' },
-                  { key: 'arthritis', label: 'Arthritis' },
-                  { key: 'high_blood_pressure', label: 'High Blood Pressure' },
-                  { key: 'kidney_disease', label: 'Kidney Disease' },
-                  { key: 'mental_illness', label: 'Mental Illness' },
-                  { key: 'asthma', label: 'Asthma' },
-                  { key: 'epilepsy', label: 'Epilepsy' }
-                ].map(({ key, label }) => (
+                 {[
+                   { key: 'heart_trouble', label: 'Heart Trouble' },
+                   { key: 'stroke', label: 'Stroke' },
+                   { key: 'diabetes', label: 'Diabetes' },
+                   { key: 'cancer', label: 'Cancer' },
+                   { key: 'arthritis', label: 'Arthritis' },
+                   { key: 'high_blood_pressure', label: 'High Blood Pressure' },
+                   { key: 'kidney_disease', label: 'Kidney Disease' },
+                   { key: 'mental_illness', label: 'Mental Illness' },
+                   { key: 'asthma', label: 'Asthma' },
+                   { key: 'epilepsy', label: 'Epilepsy' },
+                   { key: 'kyphosis', label: 'Kyphosis' },
+                   { key: 'lung_disease', label: 'Lung Disease' },
+                   { key: 'osteoporosis', label: 'Osteoporosis' },
+                   { key: 'migraines', label: 'Migraines' },
+                   { key: 'scoliosis', label: 'Scoliosis' },
+                   { key: 'spine_problems', label: 'Spine Problems' }
+                 ].map(({ key, label }) => (
                   <div key={key} className="flex items-center space-x-2">
                      <Checkbox
                        id={`family-${key}`}

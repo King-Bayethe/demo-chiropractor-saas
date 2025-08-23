@@ -83,6 +83,10 @@ const PublicPIPForm = () => {
       highBloodPressure: false,
       scoliosis: false,
       spineProblems: false,
+      kidneyDisease: false,
+      mentalIllness: false,
+      asthma: false,
+      epilepsy: false,
     },
     
     // Pain & Symptoms
@@ -101,7 +105,9 @@ const PublicPIPForm = () => {
       headache: false,
       neckPain: false,
       neckStiff: false,
-      backPain: false,
+      upperBackPain: false,
+      midBackPain: false,
+      lowerBackPain: false,
       painArmsHands: false,
       painLegsFeet: false,
       lossStrengthArms: false,

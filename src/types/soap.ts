@@ -51,6 +51,7 @@ export interface SubjectiveData {
     hand_pain?: boolean;
     finger_numbness?: boolean;
     arm_weakness?: boolean;
+    tingling_arms_hands?: boolean;
     
     // Back & Core
     upper_back_pain?: boolean;
@@ -69,6 +70,7 @@ export interface SubjectiveData {
     foot_pain?: boolean;
     leg_weakness?: boolean;
     leg_numbness?: boolean;
+    tingling_legs_feet?: boolean;
     
     // Neurological
     dizziness?: boolean;
@@ -85,6 +87,7 @@ export interface SubjectiveData {
     depression?: boolean;
     nausea?: boolean;
     appetite_changes?: boolean;
+    irritability?: boolean;
   };
   medicalHistory?: {
     previousOfficeVisit?: boolean;
@@ -106,6 +109,12 @@ export interface SubjectiveData {
     mental_illness?: boolean;
     asthma?: boolean;
     epilepsy?: boolean;
+    kyphosis?: boolean;
+    lung_disease?: boolean;
+    osteoporosis?: boolean;
+    migraines?: boolean;
+    scoliosis?: boolean;
+    spine_problems?: boolean;
     other_conditions?: string;
   }
   

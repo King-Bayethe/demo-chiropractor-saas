@@ -79,6 +79,43 @@ const PublicCashForm = () => {
     painLocation: "",
     painSeverity: "5",
     familyMedicalHistory: "",
+    familyHistory: {
+      heartTrouble: false,
+      stroke: false,
+      diabetes: false,
+      cancer: false,
+      arthritis: false,
+      highBloodPressure: false,
+      kidneyDisease: false,
+      mentalIllness: false,
+      asthma: false,
+      epilepsy: false,
+      kyphosis: false,
+      lungDisease: false,
+      osteoporosis: false,
+      migraines: false,
+      scoliosis: false,
+      spineProblems: false,
+    },
+    currentSymptoms: {
+      headache: false,
+      neckPain: false,
+      neckStiff: false,
+      upperBackPain: false,
+      midBackPain: false,
+      lowerBackPain: false,
+      painArmsHands: false,
+      painLegsFeet: false,
+      lossStrengthArms: false,
+      lossStrengthLegs: false,
+      numbnessArmsHands: false,
+      numbnessLegsFeet: false,
+      tinglingArmsHands: false,
+      tinglingLegsFeet: false,
+      dizziness: false,
+      fatigue: false,
+      irritability: false,
+    },
     smokingStatus: "",
     smokingHistory: "",
     
@@ -129,6 +166,16 @@ const PublicCashForm = () => {
       systems: {
         ...prev.systems,
         [system]: checked
+      }
+    }));
+  };
+
+  const handleNestedChange = (section: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
       }
     }));
   };
@@ -227,6 +274,43 @@ const PublicCashForm = () => {
         painLocation: "",
         painSeverity: "5",
         familyMedicalHistory: "",
+        familyHistory: {
+          heartTrouble: false,
+          stroke: false,
+          diabetes: false,
+          cancer: false,
+          arthritis: false,
+          highBloodPressure: false,
+          kidneyDisease: false,
+          mentalIllness: false,
+          asthma: false,
+          epilepsy: false,
+          kyphosis: false,
+          lungDisease: false,
+          osteoporosis: false,
+          migraines: false,
+          scoliosis: false,
+          spineProblems: false,
+        },
+        currentSymptoms: {
+          headache: false,
+          neckPain: false,
+          neckStiff: false,
+          upperBackPain: false,
+          midBackPain: false,
+          lowerBackPain: false,
+          painArmsHands: false,
+          painLegsFeet: false,
+          lossStrengthArms: false,
+          lossStrengthLegs: false,
+          numbnessArmsHands: false,
+          numbnessLegsFeet: false,
+          tinglingArmsHands: false,
+          tinglingLegsFeet: false,
+          dizziness: false,
+          fatigue: false,
+          irritability: false,
+        },
         smokingStatus: "",
         smokingHistory: "",
         consentAcknowledgement: false,
@@ -1012,14 +1096,50 @@ const PublicCashForm = () => {
 
                 {/* Family Medical History */}
                 <div className="border-t pt-6">
-                  <Label className="text-gray-600 font-medium mb-2 block">Family Medical History / <span className="italic">Historial Médico Familiar</span></Label>
+                  <Label className="text-gray-600 font-medium mb-4 block">Family Medical History / <span className="italic">Historial Médico Familiar</span></Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                    {Object.entries(formData.familyHistory).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`family-${key}`}
+                          checked={value}
+                          onCheckedChange={(checked) => handleNestedChange("familyHistory", key, checked)}
+                          className="h-4 w-4 rounded"
+                        />
+                        <Label htmlFor={`family-${key}`} className="text-sm">
+                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                   <Textarea
-                    placeholder="Any family history of medical conditions (diabetes, heart disease, cancer, etc.) / Cualquier historial familiar de condiciones médicas"
-                    rows={3}
+                    placeholder="Other family medical history / Otro historial médico familiar"
+                    rows={2}
                     value={formData.familyMedicalHistory}
                     onChange={(e) => handleInputChange("familyMedicalHistory", e.target.value)}
                     className="w-full rounded-md border-gray-300"
                   />
+                </div>
+
+                {/* Current Symptoms */}
+                <div className="border-t pt-6">
+                  <Label className="text-gray-600 font-medium mb-4 block">Current Symptoms / <span className="italic">Síntomas Actuales</span></Label>
+                  <p className="text-sm text-gray-500 mb-4">Check any symptoms you are currently experiencing / Marque cualquier síntoma que esté experimentando actualmente:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {Object.entries(formData.currentSymptoms).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`symptom-${key}`}
+                          checked={value}
+                          onCheckedChange={(checked) => handleNestedChange("currentSymptoms", key, checked)}
+                          className="h-4 w-4 rounded"
+                        />
+                        <Label htmlFor={`symptom-${key}`} className="text-sm">
+                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Smoking History */}
