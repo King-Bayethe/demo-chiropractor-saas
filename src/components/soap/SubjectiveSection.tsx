@@ -230,6 +230,21 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
         {!isDisabled && (
           <>
+            {/* Pain Description - First question */}
+            <div>
+              <Label htmlFor="painDescription" className="text-base font-semibold">Pain Description</Label>
+              <p className="text-sm text-muted-foreground mb-2">Describe the character, location, duration, and triggers</p>
+              <Textarea
+                id="painDescription"
+                value={data.painDescription}
+                onChange={(e) => onChange({ ...data, painDescription: e.target.value })}
+                placeholder="e.g., Sharp, stabbing pain in lower back, worse in morning, radiates to left leg..."
+                rows={3}
+              />
+            </div>
+
+            <Separator />
+
             {/* Pain Aggravating/Alleviating Factors */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -332,19 +347,6 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             </div>
 
             <Separator />
-
-            {/* Pain Description */}
-            <div>
-              <Label htmlFor="painDescription" className="text-base font-semibold">Pain Description</Label>
-              <p className="text-sm text-muted-foreground mb-2">Describe the character, location, duration, and triggers</p>
-              <Textarea
-                id="painDescription"
-                value={data.painDescription}
-                onChange={(e) => onChange({ ...data, painDescription: e.target.value })}
-                placeholder="e.g., Sharp, stabbing pain in lower back, worse in morning, radiates to left leg..."
-                rows={3}
-              />
-            </div>
 
             {/* Medical History */}
             <div>
