@@ -34,15 +34,21 @@ interface PatientFilesProps {
 }
 
 const FILE_CATEGORIES = [
-  { value: 'General', label: 'General' },
-  { value: 'Legal', label: 'Legal Documents' },
-  { value: 'Medical', label: 'Medical Records' },
-  { value: 'Insurance', label: 'Insurance' },
-  { value: 'Lab Results', label: 'Lab Results' },
-  { value: 'Imaging', label: 'Imaging/X-rays' },
-  { value: 'Forms', label: 'Patient Forms' },
-  { value: 'Identification', label: 'Identification' },
+  { value: 'General', label: 'General', folder: 'general' },
+  { value: 'Legal', label: 'Legal Documents', folder: 'legal' },
+  { value: 'Medical', label: 'Medical Records', folder: 'medical' },
+  { value: 'Insurance', label: 'Insurance', folder: 'insurance' },
+  { value: 'Lab Results', label: 'Lab Results', folder: 'lab-results' },
+  { value: 'Imaging', label: 'Imaging/X-rays', folder: 'imaging' },
+  { value: 'Forms', label: 'Patient Forms', folder: 'forms' },
+  { value: 'Identification', label: 'Identification', folder: 'identification' },
 ];
+
+// Function to get folder name from category
+const getCategoryFolder = (category: string) => {
+  const categoryData = FILE_CATEGORIES.find(cat => cat.value === category);
+  return categoryData?.folder || 'general';
+};
 
 const ACCEPTED_FILE_TYPES = {
   'image/*': ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'],
@@ -196,7 +202,8 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
       const uploadPromises = selectedFiles.map(async (file, index) => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `${patientId}/${fileName}`;
+        const categoryFolder = getCategoryFolder(uploadCategory);
+        const filePath = `${patientId}/${categoryFolder}/${fileName}`;
 
         // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
