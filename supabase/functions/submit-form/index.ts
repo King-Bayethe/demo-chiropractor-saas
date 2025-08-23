@@ -69,7 +69,7 @@ serve(async (req) => {
         }
 
         if (existingPatient) {
-          // Update existing patient with comprehensive PIP data
+          // Update existing patient with comprehensive PIP data - Fixed field mappings
           const { data: updatedPatient, error: updateError } = await supabase
             .from('patients')
             .update({
@@ -88,14 +88,15 @@ serve(async (req) => {
               age: formData.age ? parseInt(formData.age) : null,
               emergency_contact_name: formData.emergencyContact,
               emergency_contact_phone: formData.emergencyPhone,
-              drivers_license: formData.driversLicense,
-              drivers_license_state: formData.driversLicenseState,
+              emergency_contact_relationship: formData.emergencyRelationship,
+              drivers_license: formData.licenseNumber, // Fixed: was driversLicense
+              drivers_license_state: formData.licenseState, // Fixed: was driversLicenseState
               social_security_number: formData.ssn,
               marital_status: formData.maritalStatus,
-              employment_status: formData.employmentStatus,
+              employment_status: formData.employment, // Fixed: was employmentStatus
               employer_name: formData.employerName,
               employer_address: formData.employerAddress,
-              student_status: formData.studentStatus,
+              student_status: formData.student, // Fixed: was studentStatus
               auto_insurance_company: formData.autoInsuranceCo,
               auto_policy_number: formData.policyNumber,
               claim_number: formData.claimNumber,
@@ -107,37 +108,60 @@ serve(async (req) => {
               accident_date: formData.accidentDate || null,
               accident_time: formData.accidentTime || null,
               accident_description: formData.accidentDescription,
-              person_type: formData.personType,
-              weather_conditions: formData.weather,
+              person_type: formData.personRole, // Fixed: was personType
+              weather_conditions: formData.weather, // Fixed: needs mapping
               street_surface: formData.streetSurface,
-              body_part_hit: formData.bodyPart,
+              body_part_hit: formData.hitCarDetails, // Fixed: was bodyPart
               what_body_hit: formData.whatItHit,
-              medical_systems_review: formData.systems || {},
+              medical_systems_review: formData.systemReview || {}, // Fixed: was systems
               case_type: formType === 'cash' ? 'Cash Plan' : (formData.caseType || 'PIP'),
               pip_form_submitted_at: new Date().toISOString(),
               consent_acknowledgement: formData.consentAcknowledgement || false,
-              patient_signature: formData.signature,
-              signature_date: formData.date || null,
+              patient_signature: formData.patientSignature, // Fixed: was signature
+              signature_date: formData.finalDate || null, // Fixed: was date
               last_synced_at: new Date().toISOString(),
-              // Enhanced PIP form data
+              // Enhanced PIP form data with correct field mapping
               pain_description: formData.painDescription || {},
               current_symptoms: formData.currentSymptoms || {},
-              family_medical_history: formData.familyHistory || {},
-              systems_review: formData.systemsReview || {},
-              alcohol_consumption: formData.alcoholConsumption,
+              pain_location: formData.painLocation,
+              family_medical_history: formData.familyHistory || {}, // Fixed: was familyHistory -> JSON string conversion
+              systems_review: formData.systemReview || {},
+              alcohol_consumption: formData.drinksAlcohol, // Fixed: was alcoholConsumption
+              smoking_status: formData.smokes,
               loss_of_consciousness: formData.lossOfConsciousness,
-              consciousness_duration: formData.consciousnessDuration,
+              consciousness_duration: formData.consciousnessLength, // Fixed: was consciousnessDuration
               previous_accidents: formData.previousAccidents,
+              allergies: formData.allergies,
               alternative_communication: formData.alternativeCommunication,
               email_consent: formData.emailConsent,
-              release_information: formData.releaseInformation || {},
-              accident_impact_details: formData.accidentImpactDetails || {},
-              emergency_hospital_visit: formData.emergencyHospitalVisit || false,
-              emergency_hospital_details: formData.emergencyHospitalDetails,
-              pain_frequency: formData.painFrequency,
-              pain_quality: formData.painQuality,
-              symptom_changes: formData.symptomChanges,
-              functional_limitations: formData.functionalLimitations,
+              release_information: {
+                releasePersonOrganization: formData.releasePersonOrganization,
+                releaseAddress: formData.releaseAddress,
+                releasePhone: formData.releasePhone,
+                releaseReason: formData.releaseReason,
+                healthcareFacility: formData.healthcareFacility,
+                healthcareFacilityAddress: formData.healthcareFacilityAddress,
+                healthcareFacilityPhone: formData.healthcareFacilityPhone,
+                treatmentDates: formData.treatmentDates,
+              },
+              accident_impact_details: {
+                vehicleOwner: formData.vehicleOwner,
+                relationshipToOwner: formData.relationshipToOwner,
+                vehicleDriver: formData.vehicleDriver,
+                relationshipToDriver: formData.relationshipToDriver,
+                householdMembers: formData.householdMembers,
+                ownedVehicles: formData.ownedVehicles,
+                accidentLocation: formData.accidentLocation,
+                accidentCity: formData.accidentCity,
+                vehicleMotion: formData.vehicleMotion,
+                headPosition: formData.headPosition,
+                thrownDirection: formData.thrownDirection,
+                sawImpact: formData.sawImpact,
+                braceForImpact: formData.braceForImpact,
+                hitCar: formData.hitCar,
+              },
+              emergency_hospital_visit: formData.wentToHospital === 'yes', // Fixed: was emergencyHospitalVisit
+              hospital_name: formData.hospitalName, // Fixed: was emergency_hospital_details
             })
             .eq('id', existingPatient.id)
             .select('id')
@@ -147,7 +171,7 @@ serve(async (req) => {
             patientId = updatedPatient.id;
           }
         } else {
-          // Create new patient with comprehensive PIP data
+          // Create new patient with comprehensive PIP data - Fixed field mappings
           const { data: newPatient, error: createError } = await supabase
             .from('patients')
             .insert({
@@ -166,14 +190,15 @@ serve(async (req) => {
               age: formData.age ? parseInt(formData.age) : null,
               emergency_contact_name: formData.emergencyContact,
               emergency_contact_phone: formData.emergencyPhone,
-              drivers_license: formData.driversLicense,
-              drivers_license_state: formData.driversLicenseState,
+              emergency_contact_relationship: formData.emergencyRelationship,
+              drivers_license: formData.licenseNumber, // Fixed: was driversLicense
+              drivers_license_state: formData.licenseState, // Fixed: was driversLicenseState
               social_security_number: formData.ssn,
               marital_status: formData.maritalStatus,
-              employment_status: formData.employmentStatus,
+              employment_status: formData.employment, // Fixed: was employmentStatus
               employer_name: formData.employerName,
               employer_address: formData.employerAddress,
-              student_status: formData.studentStatus,
+              student_status: formData.student, // Fixed: was studentStatus
               auto_insurance_company: formData.autoInsuranceCo,
               auto_policy_number: formData.policyNumber,
               claim_number: formData.claimNumber,
@@ -185,37 +210,60 @@ serve(async (req) => {
               accident_date: formData.accidentDate || null,
               accident_time: formData.accidentTime || null,
               accident_description: formData.accidentDescription,
-              person_type: formData.personType,
+              person_type: formData.personRole, // Fixed: was personType
               weather_conditions: formData.weather,
               street_surface: formData.streetSurface,
-              body_part_hit: formData.bodyPart,
+              body_part_hit: formData.hitCarDetails, // Fixed: was bodyPart
               what_body_hit: formData.whatItHit,
-              medical_systems_review: formData.systems || {},
+              medical_systems_review: formData.systemReview || {}, // Fixed: was systems
               pip_form_submitted_at: new Date().toISOString(),
               consent_acknowledgement: formData.consentAcknowledgement || false,
-              patient_signature: formData.signature,
-              signature_date: formData.date || null,
+              patient_signature: formData.patientSignature, // Fixed: was signature
+              signature_date: formData.finalDate || null, // Fixed: was date
               case_type: formType === 'cash' ? 'Cash Plan' : (formData.caseType || 'PIP'),
               tags: formType === 'cash' ? ['patient', 'cash'] : ['patient', 'pip'],
-              // Enhanced PIP form data
+              // Enhanced PIP form data with correct field mapping
               pain_description: formData.painDescription || {},
               current_symptoms: formData.currentSymptoms || {},
+              pain_location: formData.painLocation,
               family_medical_history: formData.familyHistory || {},
-              systems_review: formData.systemsReview || {},
-              alcohol_consumption: formData.alcoholConsumption,
+              systems_review: formData.systemReview || {},
+              alcohol_consumption: formData.drinksAlcohol, // Fixed: was alcoholConsumption
+              smoking_status: formData.smokes,
               loss_of_consciousness: formData.lossOfConsciousness,
-              consciousness_duration: formData.consciousnessDuration,
+              consciousness_duration: formData.consciousnessLength, // Fixed: was consciousnessDuration
               previous_accidents: formData.previousAccidents,
+              allergies: formData.allergies,
               alternative_communication: formData.alternativeCommunication,
               email_consent: formData.emailConsent,
-              release_information: formData.releaseInformation || {},
-              accident_impact_details: formData.accidentImpactDetails || {},
-              emergency_hospital_visit: formData.emergencyHospitalVisit || false,
-              emergency_hospital_details: formData.emergencyHospitalDetails,
-              pain_frequency: formData.painFrequency,
-              pain_quality: formData.painQuality,
-              symptom_changes: formData.symptomChanges,
-              functional_limitations: formData.functionalLimitations,
+              release_information: {
+                releasePersonOrganization: formData.releasePersonOrganization,
+                releaseAddress: formData.releaseAddress,
+                releasePhone: formData.releasePhone,
+                releaseReason: formData.releaseReason,
+                healthcareFacility: formData.healthcareFacility,
+                healthcareFacilityAddress: formData.healthcareFacilityAddress,
+                healthcareFacilityPhone: formData.healthcareFacilityPhone,
+                treatmentDates: formData.treatmentDates,
+              },
+              accident_impact_details: {
+                vehicleOwner: formData.vehicleOwner,
+                relationshipToOwner: formData.relationshipToOwner,
+                vehicleDriver: formData.vehicleDriver,
+                relationshipToDriver: formData.relationshipToDriver,
+                householdMembers: formData.householdMembers,
+                ownedVehicles: formData.ownedVehicles,
+                accidentLocation: formData.accidentLocation,
+                accidentCity: formData.accidentCity,
+                vehicleMotion: formData.vehicleMotion,
+                headPosition: formData.headPosition,
+                thrownDirection: formData.thrownDirection,
+                sawImpact: formData.sawImpact,
+                braceForImpact: formData.braceForImpact,
+                hitCar: formData.hitCar,
+              },
+              emergency_hospital_visit: formData.wentToHospital === 'yes', // Fixed: was emergencyHospitalVisit
+              hospital_name: formData.hospitalName, // Fixed: was emergency_hospital_details
               
               is_active: true,
             })
