@@ -70,10 +70,12 @@ const patientFormSchema = z.object({
   zipCode: z.string().optional().refine((val) => !val || /^\d{5}(-\d{4})?$/.test(val), "Invalid ZIP code format"),
   gender: z.string().optional(),
   maritalStatus: z.string().optional(),
+  
   // Emergency Contact
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional().refine((val) => !val || /^[\d\-\(\)\+\s]+$/.test(val), "Invalid phone number format"),
   emergencyContactRelationship: z.string().optional(),
+  
   // Medical History
   currentMedications: z.string().optional(),
   allergies: z.string().optional(),
@@ -85,6 +87,31 @@ const patientFormSchema = z.object({
   smokingStatus: z.string().optional(),
   smokingHistory: z.string().optional(),
   otherMedicalHistory: z.string().optional(),
+  
+  // Accident Details
+  accidentDate: z.date().optional(),
+  accidentTime: z.string().optional(),
+  accidentDescription: z.string().optional(),
+  weatherConditions: z.string().optional(),
+  streetSurface: z.string().optional(),
+  bodyPartHit: z.string().optional(),
+  whatBodyHit: z.string().optional(),
+  lossOfConsciousness: z.string().optional(),
+  consciousnessDuration: z.string().optional(),
+  emergencyHospitalVisit: z.boolean().optional(),
+  emergencyHospitalDetails: z.string().optional(),
+  previousAccidents: z.string().optional(),
+  
+  // Pain Assessment
+  painFrequency: z.string().optional(),
+  painQuality: z.string().optional(),
+  symptomChanges: z.string().optional(),
+  functionalLimitations: z.string().optional(),
+  
+  // Communications
+  alternativeCommunication: z.string().optional(),
+  emailConsent: z.string().optional(),
+  
   // Insurance and Legal
   didGoToHospital: z.enum(["yes", "no", ""]).optional(),
   hospitalName: z.string().optional(),
@@ -317,6 +344,31 @@ export default function PatientProfile() {
       smokingStatus: patient.smoking_status || "",
       smokingHistory: patient.smoking_history || "",
       otherMedicalHistory: (patient as any).other_medical_history || "",
+      
+      // New PIP Form Fields - Accident Details
+      accidentDate: patient.accident_date ? new Date(patient.accident_date) : undefined,
+      accidentTime: patient.accident_time || "",
+      accidentDescription: patient.accident_description || "",
+      weatherConditions: patient.weather_conditions || "",
+      streetSurface: patient.street_surface || "",
+      bodyPartHit: patient.body_part_hit || "",
+      whatBodyHit: patient.what_body_hit || "",
+      lossOfConsciousness: patient.loss_of_consciousness || "",
+      consciousnessDuration: patient.consciousness_duration || "",
+      emergencyHospitalVisit: patient.emergency_hospital_visit || false,
+      emergencyHospitalDetails: patient.emergency_hospital_details || "",
+      previousAccidents: patient.previous_accidents || "",
+      
+      // Pain Assessment Fields
+      painFrequency: patient.pain_frequency || "",
+      painQuality: patient.pain_quality || "",
+      symptomChanges: patient.symptom_changes || "",
+      functionalLimitations: patient.functional_limitations || "",
+      
+      // Communication Fields
+      alternativeCommunication: patient.alternative_communication || "",
+      emailConsent: patient.email_consent || "",
+      
       // Insurance and Legal fields continue from here
       didGoToHospital: patient.did_go_to_hospital === true ? "yes" : patient.did_go_to_hospital === false ? "no" : "",
       hospitalName: patient.hospital_name || "",
@@ -581,12 +633,35 @@ export default function PatientProfile() {
         case_type: data.caseType?.trim() || null,
         group_number: data.groupNumber?.trim() || null,
         
+        // New PIP Form Fields - Accident Details
+        accident_time: data.accidentTime?.trim() || null,
+        accident_description: data.accidentDescription?.trim() || null,
+        weather_conditions: data.weatherConditions?.trim() || null,
+        street_surface: data.streetSurface?.trim() || null,
+        body_part_hit: data.bodyPartHit?.trim() || null,
+        what_body_hit: data.whatBodyHit?.trim() || null,
+        loss_of_consciousness: data.lossOfConsciousness?.trim() || null,
+        consciousness_duration: data.consciousnessDuration?.trim() || null,
+        previous_accidents: data.previousAccidents?.trim() || null,
+        emergency_hospital_details: data.emergencyHospitalDetails?.trim() || null,
+        
+        // Pain Assessment Fields
+        pain_frequency: data.painFrequency?.trim() || null,
+        pain_quality: data.painQuality?.trim() || null,
+        symptom_changes: data.symptomChanges?.trim() || null,
+        functional_limitations: data.functionalLimitations?.trim() || null,
+        
+        // Communication Fields
+        alternative_communication: data.alternativeCommunication?.trim() || null,
+        email_consent: data.emailConsent?.trim() || null,
+        
         // Handle date fields
         date_of_birth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : null,
-        accident_date: data.dateOfAccident ? data.dateOfAccident.toISOString().split('T')[0] : null,
+        accident_date: data.accidentDate ? data.accidentDate.toISOString().split('T')[0] : null,
         
         // Handle boolean fields
         did_go_to_hospital: data.didGoToHospital === "yes" ? true : data.didGoToHospital === "no" ? false : null,
+        emergency_hospital_visit: data.emergencyHospitalVisit || false,
         hospital_name: data.hospitalName?.trim() || null,
       };
 

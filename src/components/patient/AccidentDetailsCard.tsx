@@ -2,6 +2,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Car, 
   Edit, 
@@ -56,7 +62,306 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!hasAccidentData ? (
+        {isEditing && form ? (
+          /* Edit Mode */
+          <Form {...form}>
+            <div className="space-y-6">
+              {/* Date & Time Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <h4 className="font-medium text-foreground">Accident Date & Time</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="accidentDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Accident Date</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="date"
+                            {...field}
+                            value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="accidentTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Accident Time</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="time"
+                            {...field}
+                            placeholder="HH:MM"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Description Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <h4 className="font-medium text-foreground">Accident Description</h4>
+                <FormField
+                  control={form.control}
+                  name="accidentDescription"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Describe what happened</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Provide detailed description of the accident"
+                          className="min-h-[100px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Conditions Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="h-4 w-4 text-green-500" />
+                  <h4 className="font-medium text-foreground">Environmental Conditions</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="weatherConditions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Weather Conditions</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select weather" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="clear">Clear</SelectItem>
+                            <SelectItem value="rainy">Rainy</SelectItem>
+                            <SelectItem value="foggy">Foggy</SelectItem>
+                            <SelectItem value="snowy">Snowy</SelectItem>
+                            <SelectItem value="windy">Windy</SelectItem>
+                            <SelectItem value="cloudy">Cloudy</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="streetSurface"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Street Surface</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select surface" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="dry">Dry</SelectItem>
+                            <SelectItem value="wet">Wet</SelectItem>
+                            <SelectItem value="icy">Icy</SelectItem>
+                            <SelectItem value="debris">Debris</SelectItem>
+                            <SelectItem value="construction">Construction</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Impact Details Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Activity className="h-4 w-4 text-orange-500" />
+                  <h4 className="font-medium text-foreground">Impact Details</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="bodyPartHit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Body Part Hit</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., Head, Back, Neck" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="whatBodyHit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What Hit Body</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., Dashboard, Steering wheel" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Medical Response Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <h4 className="font-medium text-foreground">Medical Response</h4>
+                </div>
+                
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="lossOfConsciousness"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Loss of Consciousness</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select option" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">No</SelectItem>
+                            <SelectItem value="brief">Yes - Brief</SelectItem>
+                            <SelectItem value="extended">Yes - Extended</SelectItem>
+                            <SelectItem value="unknown">Unknown</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="consciousnessDuration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration (if applicable)</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., 2 minutes, 30 seconds" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emergencyHospitalVisit"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Emergency Hospital Visit</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="hospitalName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hospital Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Name of hospital or medical facility" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emergencyHospitalDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Additional Medical Details</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            {...field} 
+                            placeholder="Treatment received, tests performed, etc."
+                            className="min-h-[80px]"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Previous Accidents Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-purple-500" />
+                  <h4 className="font-medium text-foreground">Previous Accidents</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="previousAccidents"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Previous Accident History</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Describe any previous accidents or injuries"
+                          className="min-h-[80px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </Form>
+        ) : (
+          /* View Mode */
+          !hasAccidentData ? (
           <div className="text-center py-6 text-muted-foreground">
             <Car className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No accident details recorded</p>
@@ -196,7 +501,7 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
               </div>
             )}
           </div>
-        )}
+        ))}
       </CardContent>
     </Card>
   );

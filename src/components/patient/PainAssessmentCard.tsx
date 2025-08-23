@@ -2,6 +2,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Slider } from '@/components/ui/slider';
 import { 
   Activity, 
   Edit, 
@@ -99,7 +105,189 @@ export const PainAssessmentCard: React.FC<PainAssessmentCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!hasPainData ? (
+        {isEditing && form ? (
+          /* Edit Mode */
+          <Form {...form}>
+            <div className="space-y-6">
+              {/* Pain Location Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="h-4 w-4 text-red-500" />
+                  <h4 className="font-medium text-foreground">Pain Location</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="painLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Where is the pain located?</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Describe the location of pain (e.g., lower back, neck, head)"
+                          className="min-h-[80px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Pain Severity Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <BarChart3 className="h-4 w-4 text-orange-500" />
+                  <h4 className="font-medium text-foreground">Pain Severity Level</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="painSeverity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rate your pain (0-10 scale)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-4">
+                          <Slider
+                            min={0}
+                            max={10}
+                            step={1}
+                            value={[field.value || 0]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>0 - No Pain</span>
+                            <span className="font-medium text-lg">{field.value || 0}/10</span>
+                            <span>10 - Worst Pain</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Pain Characteristics Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="h-4 w-4 text-purple-500" />
+                  <h4 className="font-medium text-foreground">Pain Characteristics</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="painFrequency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pain Frequency</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="How often?" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="constant">Constant</SelectItem>
+                            <SelectItem value="intermittent">Intermittent</SelectItem>
+                            <SelectItem value="occasional">Occasional</SelectItem>
+                            <SelectItem value="rare">Rare</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="painQuality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pain Quality</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="What type?" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="sharp">Sharp</SelectItem>
+                            <SelectItem value="dull">Dull</SelectItem>
+                            <SelectItem value="burning">Burning</SelectItem>
+                            <SelectItem value="stabbing">Stabbing</SelectItem>
+                            <SelectItem value="throbbing">Throbbing</SelectItem>
+                            <SelectItem value="aching">Aching</SelectItem>
+                            <SelectItem value="cramping">Cramping</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Symptom Changes Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="h-4 w-4 text-blue-500" />
+                  <h4 className="font-medium text-foreground">Symptom Changes</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="symptomChanges"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>How have your symptoms changed since the accident?</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Describe any changes in pain, mobility, or other symptoms"
+                          className="min-h-[80px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Functional Limitations Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Activity className="h-4 w-4 text-indigo-500" />
+                  <h4 className="font-medium text-foreground">Functional Limitations</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="functionalLimitations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What activities are difficult or impossible due to your injury?</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Describe limitations in work, daily activities, sports, etc."
+                          className="min-h-[80px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </Form>
+        ) : (
+          /* View Mode */
+          !hasPainData ? (
           <div className="text-center py-6 text-muted-foreground">
             <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No pain assessment data recorded</p>
@@ -208,7 +396,7 @@ export const PainAssessmentCard: React.FC<PainAssessmentCardProps> = ({
               </div>
             )}
           </div>
-        )}
+        ))}
       </CardContent>
     </Card>
   );

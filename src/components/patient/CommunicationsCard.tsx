@@ -2,6 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { 
   MessageSquare, 
   Edit, 
@@ -80,7 +85,110 @@ export const CommunicationsCard: React.FC<CommunicationsCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!hasCommunicationData ? (
+        {isEditing && form ? (
+          /* Edit Mode */
+          <Form {...form}>
+            <div className="space-y-6">
+              {/* Language Preferences Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Languages className="h-4 w-4 text-blue-500" />
+                  <h4 className="font-medium text-foreground">Language Preferences</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="preferredLanguage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preferred Language</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select preferred language" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="English">English</SelectItem>
+                          <SelectItem value="Spanish">Spanish</SelectItem>
+                          <SelectItem value="French">French</SelectItem>
+                          <SelectItem value="German">German</SelectItem>
+                          <SelectItem value="Portuguese">Portuguese</SelectItem>
+                          <SelectItem value="Italian">Italian</SelectItem>
+                          <SelectItem value="Chinese">Chinese</SelectItem>
+                          <SelectItem value="Japanese">Japanese</SelectItem>
+                          <SelectItem value="Korean">Korean</SelectItem>
+                          <SelectItem value="Arabic">Arabic</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Alternative Communication Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Phone className="h-4 w-4 text-green-500" />
+                  <h4 className="font-medium text-foreground">Alternative Communication</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="alternativeCommunication"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Alternative Communication Methods</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Any special communication needs, interpreters, etc."
+                          className="min-h-[80px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Email Consent Section */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Mail className="h-4 w-4 text-purple-500" />
+                  <h4 className="font-medium text-foreground">Email Communication Consent</h4>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="emailConsent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Communication Permission</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select consent status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes - I consent to email communication</SelectItem>
+                          <SelectItem value="no">No - I do not consent to email communication</SelectItem>
+                          <SelectItem value="limited">Limited - Only for appointment reminders</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </Form>
+        ) : (
+          /* View Mode */
+          !hasCommunicationData ? (
           <div className="text-center py-6 text-muted-foreground">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No communication preferences recorded</p>
@@ -189,7 +297,7 @@ export const CommunicationsCard: React.FC<CommunicationsCardProps> = ({
               </div>
             )}
           </div>
-        )}
+        ))}
       </CardContent>
     </Card>
   );
