@@ -1098,65 +1098,6 @@ export default function PatientProfile() {
                                 </>
                               )}
                             </Button>
-                            <Button 
-                              onClick={() => {
-                                console.log("Debug - Current form values:", form.getValues());
-                                console.log("Debug - Form errors:", form.formState.errors);
-                                console.log("Debug - Form is valid:", form.formState.isValid);
-                                console.log("Debug - Patient data:", patient);
-                                toast({
-                                  title: "Debug Test",
-                                  description: "Toast is working! Check console for form data.",
-                                });
-                              }}
-                              variant="outline"
-                              size="sm"
-                              className="text-xs px-2"
-                            >
-                              Debug
-                            </Button>
-                            <Button 
-                              onClick={async () => {
-                                console.log("🧪 Testing direct save...");
-                                if (!patient?.id) {
-                                  toast({
-                                    title: "Test Error",
-                                    description: "No patient ID",
-                                    variant: "destructive"
-                                  });
-                                  return;
-                                }
-                                
-                                try {
-                                  const simpleUpdate = {
-                                    first_name: patient.first_name,
-                                    last_name: patient.last_name,
-                                    updated_at: new Date().toISOString()
-                                  };
-                                  
-                                  console.log("🧪 Testing updatePatient with:", simpleUpdate);
-                                  const result = await updatePatient(patient.id, simpleUpdate);
-                                  console.log("🧪 Test result:", result);
-                                  
-                                  toast({
-                                    title: "Test Success",
-                                    description: "Direct save worked!",
-                                  });
-                                } catch (error) {
-                                  console.error("🧪 Test failed:", error);
-                                  toast({
-                                    title: "Test Failed",
-                                    description: error.message,
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
-                              variant="outline"
-                              size="sm"
-                              className="text-xs px-2"
-                            >
-                              Test Save
-                            </Button>
                           </div>
                         )}
                         <Button
