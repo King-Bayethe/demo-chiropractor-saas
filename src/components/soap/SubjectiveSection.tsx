@@ -152,6 +152,8 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
   const mapPatientDataToSOAP = () => {
     if (!patient) return;
     
+    console.log('Mapping patient data to SOAP:', patient);
+    
     const updatedData = { ...data };
     let hasUpdates = false;
     
@@ -321,7 +323,10 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
   // Autofill from patient profile when patient data is available
   useEffect(() => {
-    if (patient && Object.keys(data).length === 0) {
+    if (patient && (!data.currentSymptoms || Object.keys(data.currentSymptoms).length === 0) && 
+        (!data.familyHistory || Object.keys(data.familyHistory).length === 0) &&
+        (!data.medicalHistory?.medications || !data.painDescription)) {
+      console.log('Triggering autofill for patient:', patient);
       mapPatientDataToSOAP();
     }
   }, [patient]);
