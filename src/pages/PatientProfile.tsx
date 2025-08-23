@@ -56,7 +56,7 @@ import { EmergencyContactCard } from "@/components/patient/EmergencyContactCard"
 const patientFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address").optional().or(z.literal('')),
+  email: z.union([z.string().email("Invalid email address"), z.literal("")]).optional(),
   phone: z.string().min(10, "Phone number must be at least 10 digits").regex(/^[\d\-\(\)\+\s]+$/, "Invalid phone number format"),
   dateOfBirth: z.date().optional(),
   preferredLanguage: z.string().optional(),
@@ -990,21 +990,41 @@ export default function PatientProfile() {
                                 // Check form validation first
                                 const formData = form.getValues();
                                 console.log("Current form values:", formData);
-                                console.log("Form errors:", form.formState.errors);
                                 
-                                // Trigger validation
+                                // Trigger validation and get detailed results
                                 form.trigger().then((isValid) => {
+                                  const errors = form.formState.errors;
                                   console.log("Form validation result:", isValid);
+                                  console.log("Detailed form errors:", errors);
+                                  
                                   if (isValid) {
                                     console.log("Form is valid, calling handleSave");
                                     handleSave(formData);
                                   } else {
-                                    console.log("Form validation failed:", form.formState.errors);
+                                    // Create detailed error message
+                                    const errorFields = Object.keys(errors);
+                                    const errorMessages = errorFields.map(field => {
+                                      const error = errors[field];
+                                      return `${field}: ${error?.message || 'Invalid value'}`;
+                                    });
+                                    
+                                    console.log("❌ Form validation failed for fields:", errorFields);
+                                    console.log("❌ Error details:", errorMessages);
+                                    
                                     toast({
                                       title: "Validation Error",
-                                      description: "Please check the form for errors before saving.",
+                                      description: `Please fix these fields: ${errorFields.join(', ')}`,
                                       variant: "destructive"
                                     });
+                                    
+                                    // Scroll to first error field
+                                    if (errorFields.length > 0) {
+                                      const firstErrorField = document.querySelector(`[name="${errorFields[0]}"]`);
+                                      if (firstErrorField) {
+                                        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        (firstErrorField as HTMLElement).focus();
+                                      }
+                                    }
                                   }
                                 });
                               }}
