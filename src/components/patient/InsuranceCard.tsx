@@ -19,7 +19,6 @@ import {
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 
 interface InsuranceCardProps {
   patient: any;
@@ -78,61 +77,45 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="autoInsuranceCompany"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Insurance Company (Auto)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter auto insurance company" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="autoInsuranceCompany">Insurance Company (Auto)</Label>
+                  <Input 
+                    id="autoInsuranceCompany"
+                    placeholder="Enter auto insurance company" 
+                    value={form?.watch('autoInsuranceCompany') || ''}
+                    onChange={(e) => form?.setValue('autoInsuranceCompany', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="claimNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Claim Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter claim number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="claimNumber">Claim Number</Label>
+                  <Input 
+                    id="claimNumber"
+                    placeholder="Enter claim number" 
+                    value={form?.watch('claimNumber') || ''}
+                    onChange={(e) => form?.setValue('claimNumber', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="policyNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Policy Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter policy number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="policyNumber">Policy Number</Label>
+                  <Input 
+                    id="policyNumber"
+                    placeholder="Enter policy number" 
+                    value={form?.watch('policyNumber') || ''}
+                    onChange={(e) => form?.setValue('policyNumber', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="adjustersName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Adjuster's Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter adjuster's name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="adjustersName">Adjuster's Name</Label>
+                  <Input 
+                    id="adjustersName"
+                    placeholder="Enter adjuster's name" 
+                    value={form?.watch('adjustersName') || ''}
+                    onChange={(e) => form?.setValue('adjustersName', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
@@ -144,61 +127,45 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="healthInsurance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Health Insurance</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter health insurance provider" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="healthInsurance">Health Insurance</Label>
+                  <Input 
+                    id="healthInsurance"
+                    placeholder="Enter health insurance provider" 
+                    value={form?.watch('healthInsurance') || ''}
+                    onChange={(e) => form?.setValue('healthInsurance', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="healthInsuranceId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID#</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter health insurance ID" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="healthInsuranceId">ID#</Label>
+                  <Input 
+                    id="healthInsuranceId"
+                    placeholder="Enter health insurance ID" 
+                    value={form?.watch('healthInsuranceId') || ''}
+                    onChange={(e) => form?.setValue('healthInsuranceId', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="groupNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Group #</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter group number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="groupNumber">Group #</Label>
+                  <Input 
+                    id="groupNumber"
+                    placeholder="Enter group number" 
+                    value={form?.watch('groupNumber') || ''}
+                    onChange={(e) => form?.setValue('groupNumber', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="medicaidMedicareId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Medicaid/Medicare ID #</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter Medicaid/Medicare ID" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="medicaidMedicareId">Medicaid/Medicare ID #</Label>
+                  <Input 
+                    id="medicaidMedicareId"
+                    placeholder="Enter Medicaid/Medicare ID" 
+                    value={form?.watch('medicaidMedicareId') || ''}
+                    onChange={(e) => form?.setValue('medicaidMedicareId', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
@@ -209,19 +176,15 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
                 <h4 className="font-medium text-foreground">Insurance Contact</h4>
               </div>
               
-              <FormField
-                control={form.control}
-                name="insurancePhoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Insurance Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter insurance phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <Label htmlFor="insurancePhoneNumber">Insurance Phone Number</Label>
+                <Input 
+                  id="insurancePhoneNumber"
+                  placeholder="Enter insurance phone number" 
+                  value={form?.watch('insurancePhoneNumber') || ''}
+                  onChange={(e) => form?.setValue('insurancePhoneNumber', e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Attorney Information Section */}
@@ -232,33 +195,25 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="attorneyName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Attorney's Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter attorney's name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="attorneyName">Attorney's Name</Label>
+                  <Input 
+                    id="attorneyName"
+                    placeholder="Enter attorney's name" 
+                    value={form?.watch('attorneyName') || ''}
+                    onChange={(e) => form?.setValue('attorneyName', e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="attorneyPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter attorney's phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="attorneyPhone">Phone Number</Label>
+                  <Input 
+                    id="attorneyPhone"
+                    placeholder="Enter attorney's phone number" 
+                    value={form?.watch('attorneyPhone') || ''}
+                    onChange={(e) => form?.setValue('attorneyPhone', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </div>
