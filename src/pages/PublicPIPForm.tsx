@@ -193,16 +193,21 @@ const PublicPIPForm = () => {
   };
 
   const tabs = [
-    { id: "general", label: "General", spanish: "" },
-    { id: "accident", label: "Accident", spanish: "(Accidente)" },
-    { id: "insurance", label: "Insurance", spanish: "(Seguro)" },
-    { id: "medical", label: "Medical History", spanish: "(Historial)" },
-    { id: "symptoms", label: "Symptoms", spanish: "(Síntomas)" },
-    { id: "review", label: "System Review", spanish: "(Revisión)" },
-    { id: "communications", label: "Communications", spanish: "(Comunicaciones)" },
-    { id: "release", label: "Release of Info", spanish: "" },
-    { id: "auth", label: "Authorizations", spanish: "(Autorizaciones)" }
+    // First row
+    { id: "general", label: "General", spanish: "", row: 1 },
+    { id: "accident", label: "Accident", spanish: "(Accidente)", row: 1 },
+    { id: "insurance", label: "Insurance", spanish: "(Seguro)", row: 1 },
+    { id: "medical", label: "Medical History", spanish: "(Historial)", row: 1 },
+    { id: "symptoms", label: "Symptoms", spanish: "(Síntomas)", row: 1 },
+    // Second row
+    { id: "review", label: "System Review", spanish: "(Revisión)", row: 2 },
+    { id: "communications", label: "Communications", spanish: "(Comunicaciones)", row: 2 },
+    { id: "release", label: "Release of Info", spanish: "", row: 2 },
+    { id: "auth", label: "Authorizations", spanish: "(Autorizaciones)", row: 2 }
   ];
+
+  const firstRowTabs = tabs.filter(tab => tab.row === 1);
+  const secondRowTabs = tabs.filter(tab => tab.row === 2);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -262,34 +267,52 @@ const PublicPIPForm = () => {
 
         <form onSubmit={handleSubmit}>
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <div className="w-full overflow-x-auto mb-8">
-              <TabsList className="inline-flex w-max min-w-full bg-muted p-1 rounded-lg gap-1">
-                {tabs.map((tab, index) => (
-                  <TabsTrigger
+            <div className="space-y-4 mb-8">
+              {/* First Row of Tabs */}
+              <div className="flex flex-wrap justify-center gap-4 border-b border-border pb-2">
+                {firstRowTabs.map((tab) => (
+                  <button
                     key={tab.id}
-                    value={tab.id}
-                    className="flex flex-col items-center justify-center p-2 text-xs min-w-[100px] max-w-[140px] relative border border-border rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground whitespace-nowrap"
+                    type="button"
+                    onClick={() => setCurrentTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      currentTab === tab.id
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                    }`}
                   >
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {index + 1}
-                      </span>
-                      {isSectionCompleted(tab.id) && (
-                        <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                      )}
-                      {!isSectionCompleted(tab.id) && (
-                        <Circle className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                      )}
-                    </div>
-                    <div className="text-center leading-tight">
-                      <div className="font-medium text-xs">{tab.label}</div>
-                      {tab.spanish && (
-                        <div className="text-muted-foreground text-[10px]">{tab.spanish}</div>
-                      )}
-                    </div>
-                  </TabsTrigger>
+                    {isSectionCompleted(tab.id) && (
+                      <Check className="w-4 h-4 text-green-600" />
+                    )}
+                    <span>
+                      {tab.label} {tab.spanish && <span className="text-muted-foreground">{tab.spanish}</span>}
+                    </span>
+                  </button>
                 ))}
-              </TabsList>
+              </div>
+              
+              {/* Second Row of Tabs */}
+              <div className="flex flex-wrap justify-center gap-4 border-b border-border pb-2">
+                {secondRowTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setCurrentTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      currentTab === tab.id
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                    }`}
+                  >
+                    {isSectionCompleted(tab.id) && (
+                      <Check className="w-4 h-4 text-green-600" />
+                    )}
+                    <span>
+                      {tab.label} {tab.spanish && <span className="text-muted-foreground">{tab.spanish}</span>}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* General Information Tab */}
