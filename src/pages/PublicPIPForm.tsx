@@ -262,33 +262,35 @@ const PublicPIPForm = () => {
 
         <form onSubmit={handleSubmit}>
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 w-full mb-8 bg-muted p-1 rounded-lg min-h-[80px] gap-1">
-              {tabs.map((tab, index) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm relative border border-border rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground"
-                >
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {index + 1}
-                    </span>
-                    {isSectionCompleted(tab.id) && (
-                      <Check className="w-4 h-4 text-green-600" />
-                    )}
-                    {!isSectionCompleted(tab.id) && (
-                      <Circle className="w-4 h-4 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="text-center leading-tight">
-                    <div className="font-medium">{tab.label}</div>
-                    {tab.spanish && (
-                      <div className="text-muted-foreground text-xs">{tab.spanish}</div>
-                    )}
-                  </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="w-full overflow-x-auto mb-8">
+              <TabsList className="inline-flex w-max min-w-full bg-muted p-1 rounded-lg gap-1">
+                {tabs.map((tab, index) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex flex-col items-center justify-center p-2 text-xs min-w-[100px] max-w-[140px] relative border border-border rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground whitespace-nowrap"
+                  >
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {index + 1}
+                      </span>
+                      {isSectionCompleted(tab.id) && (
+                        <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
+                      )}
+                      {!isSectionCompleted(tab.id) && (
+                        <Circle className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                      )}
+                    </div>
+                    <div className="text-center leading-tight">
+                      <div className="font-medium text-xs">{tab.label}</div>
+                      {tab.spanish && (
+                        <div className="text-muted-foreground text-[10px]">{tab.spanish}</div>
+                      )}
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
             {/* General Information Tab */}
             <TabsContent value="general">
