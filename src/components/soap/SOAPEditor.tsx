@@ -230,6 +230,7 @@ export function SOAPEditor({ patient, initialData, onSave, onCancel }: SOAPEdito
           <SubjectiveSection
             data={formData.subjective}
             onChange={(data) => setFormData(prev => ({ ...prev, subjective: data }))}
+            patient={patient}
           />
         );
         

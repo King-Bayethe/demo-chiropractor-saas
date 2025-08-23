@@ -661,6 +661,7 @@ export function ComprehensiveSOAPForm({
                         <SubjectiveSection
                           data={formData.subjective}
                           onChange={(data) => setFormData(prev => ({ ...prev, subjective: data }))}
+                          patient={patient}
                         />
                       </div>
                     </ScrollArea>

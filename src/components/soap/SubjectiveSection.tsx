@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { PatientMedicalSummary } from "./PatientMedicalSummary";
 
 interface SubjectiveSectionProps {
   data: SubjectiveData;
   onChange: (data: SubjectiveData) => void;
   specialty?: 'chiropractic' | 'general';
+  patient?: any;
 }
 
 export interface SubjectiveData {
@@ -84,7 +86,7 @@ const painFaces = [
   { value: 10, emoji: '😱', label: 'Worst Pain' }
 ];
 
-export function SubjectiveSection({ data, onChange }: SubjectiveSectionProps) {
+export function SubjectiveSection({ data, onChange, patient }: SubjectiveSectionProps) {
   const handleSymptomChange = (symptomId: string, checked: boolean) => {
     const currentSymptoms = data.symptoms || [];
     const newSymptoms = checked 
@@ -101,7 +103,9 @@ export function SubjectiveSection({ data, onChange }: SubjectiveSectionProps) {
   const isDisabled = data.isRefused || data.isWithinNormalLimits;
 
   return (
-    <Card>
+    <div className="space-y-4">
+      {patient && <PatientMedicalSummary patient={patient} />}
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -250,5 +254,6 @@ export function SubjectiveSection({ data, onChange }: SubjectiveSectionProps) {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
