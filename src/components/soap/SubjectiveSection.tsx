@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -133,6 +133,91 @@ const painFaces = [
 ];
 
 export function SubjectiveSection({ data, onChange, patient }: SubjectiveSectionProps) {
+  // Autofill from patient profile when patient data is available
+  useEffect(() => {
+    if (patient && (!data.medicalHistory?.medications && !data.medicalHistory?.allergies)) {
+      const updatedData = { ...data };
+      
+      // Autofill medical history from patient profile
+      if (!updatedData.medicalHistory) {
+        updatedData.medicalHistory = {};
+      }
+      
+      // Fill medications if not already filled
+      if (!updatedData.medicalHistory.medications && patient.current_medications) {
+        updatedData.medicalHistory.medications = patient.current_medications;
+      }
+      
+      // Fill allergies if not already filled
+      if (!updatedData.medicalHistory.allergies && patient.allergies) {
+        updatedData.medicalHistory.allergies = patient.allergies;
+      }
+      
+      // Fill previous accidents if not already filled
+      if (!updatedData.medicalHistory.previousAccidents && patient.previous_accidents) {
+        updatedData.medicalHistory.previousAccidents = patient.previous_accidents;
+      }
+      
+      // Fill trauma/injuries if not already filled
+      if (!updatedData.medicalHistory.trauma && patient.past_injuries) {
+        updatedData.medicalHistory.trauma = patient.past_injuries;
+      }
+      
+      // Fill illness if not already filled
+      if (!updatedData.medicalHistory.illness && patient.chronic_conditions) {
+        updatedData.medicalHistory.illness = patient.chronic_conditions;
+      }
+      
+      // Fill pain description from patient profile if available
+      if (!updatedData.painDescription && patient.pain_description) {
+        if (typeof patient.pain_description === 'object') {
+          updatedData.painDescription = patient.pain_description.description || '';
+        } else {
+          updatedData.painDescription = patient.pain_description;
+        }
+      }
+      
+      // Fill pain scale if available
+      if (!updatedData.painScale && patient.pain_severity) {
+        updatedData.painScale = patient.pain_severity;
+      }
+      
+      // Fill family history from patient profile
+      if (!updatedData.familyHistory) {
+        updatedData.familyHistory = {};
+      }
+      
+      // Fill family medical history
+      if (!updatedData.familyHistory.conditions && patient.family_medical_history) {
+        // Parse family medical history text to match conditions
+        const familyHistory = patient.family_medical_history.toLowerCase();
+        const matchedConditions: string[] = [];
+        
+        familyHistoryConditions.forEach(condition => {
+          if (familyHistory.includes(condition.label.toLowerCase())) {
+            matchedConditions.push(condition.id);
+          }
+        });
+        
+        if (matchedConditions.length > 0) {
+          updatedData.familyHistory.conditions = matchedConditions;
+        }
+      }
+      
+      // Fill smoking status
+      if (updatedData.familyHistory.smoking === undefined && patient.smoking_status) {
+        updatedData.familyHistory.smoking = patient.smoking_status !== 'never' && patient.smoking_status !== 'no';
+      }
+      
+      // Fill alcohol consumption
+      if (updatedData.familyHistory.alcohol === undefined && patient.alcohol_consumption) {
+        updatedData.familyHistory.alcohol = patient.alcohol_consumption !== 'never' && patient.alcohol_consumption !== 'no';
+      }
+      
+      onChange(updatedData);
+    }
+  }, [patient]);
+
   const handleSymptomChange = (symptomId: string, checked: boolean) => {
     const currentSymptoms = data.currentSymptoms || [];
     const newSymptoms = checked 
