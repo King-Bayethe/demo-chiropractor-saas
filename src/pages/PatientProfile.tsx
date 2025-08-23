@@ -64,7 +64,24 @@ const patientFormSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   zipCode: z.string().optional().refine((val) => !val || /^\d{5}(-\d{4})?$/.test(val), "Invalid ZIP code format"),
+  gender: z.string().optional(),
+  maritalStatus: z.string().optional(),
+  // Emergency Contact
   emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional().refine((val) => !val || /^[\d\-\(\)\+\s]+$/.test(val), "Invalid phone number format"),
+  emergencyContactRelationship: z.string().optional(),
+  // Medical History
+  currentMedications: z.string().optional(),
+  allergies: z.string().optional(),
+  pastInjuries: z.string().optional(),
+  chronicConditions: z.string().optional(),
+  painLocation: z.string().optional(),
+  painSeverity: z.number().min(0).max(10).optional(),
+  familyMedicalHistory: z.string().optional(),
+  smokingStatus: z.string().optional(),
+  smokingHistory: z.string().optional(),
+  otherMedicalHistory: z.string().optional(),
+  // Insurance and Legal
   didGoToHospital: z.enum(["yes", "no", ""]).optional(),
   hospitalName: z.string().optional(),
   dateOfAccident: z.date().optional(),
@@ -79,7 +96,6 @@ const patientFormSchema = z.object({
   insurancePhoneNumber: z.string().optional().refine((val) => !val || /^[\d\-\(\)\+\s]+$/.test(val), "Invalid phone number format"),
   groupNumber: z.string().optional(),
   medicaidMedicareId: z.string().optional(),
-  maritalStatus: z.string().optional(),
   licenseState: z.string().optional(),
   caseType: z.string().optional(),
 });
@@ -275,11 +291,29 @@ export default function PatientProfile() {
       email: patient.email || "",
       phone: patient.phone || patient.cell_phone || "",
       dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth) : undefined,
+      preferredLanguage: patient.preferred_language || "",
       streetAddress: patient.address || "",
       city: patient.city || "",
       state: patient.state || "",
       zipCode: patient.zip_code || "",
+      gender: patient.gender || "",
+      maritalStatus: patient.marital_status || "",
+      // Emergency Contact
       emergencyContactName: patient.emergency_contact_name || "",
+      emergencyContactPhone: patient.emergency_contact_phone || "",
+      emergencyContactRelationship: (patient as any).emergency_contact_relationship || "",
+      // Medical History
+      currentMedications: (patient as any).current_medications || "",
+      allergies: (patient as any).allergies || "",
+      pastInjuries: (patient as any).past_injuries || "",
+      chronicConditions: (patient as any).chronic_conditions || "",
+      painLocation: patient.pain_location || "",
+      painSeverity: patient.pain_severity,
+      familyMedicalHistory: patient.family_medical_history || "",
+      smokingStatus: patient.smoking_status || "",
+      smokingHistory: patient.smoking_history || "",
+      otherMedicalHistory: (patient as any).other_medical_history || "",
+      // Insurance and Legal fields continue from here
       didGoToHospital: patient.did_go_to_hospital === true ? "yes" : patient.did_go_to_hospital === false ? "no" : "",
       hospitalName: patient.hospital_name || "",
       dateOfAccident: patient.accident_date ? new Date(patient.accident_date) : undefined,
@@ -294,7 +328,6 @@ export default function PatientProfile() {
       insurancePhoneNumber: patient.insurance_phone_number || "",
       groupNumber: patient.group_number || "",
       medicaidMedicareId: patient.medicaid_medicare_id || "",
-      maritalStatus: patient.marital_status || "",
       licenseState: patient.drivers_license_state || "",
       caseType: patient.case_type || "",
     });
@@ -362,7 +395,24 @@ export default function PatientProfile() {
         city: patientData.city || "",
         state: patientData.state || "",
         zipCode: patientData.zip_code || "",
+        gender: patientData.gender || "",
+        maritalStatus: patientData.marital_status || "",
+        // Emergency Contact
         emergencyContactName: patientData.emergency_contact_name || "",
+        emergencyContactPhone: patientData.emergency_contact_phone || "",
+        emergencyContactRelationship: (patientData as any).emergency_contact_relationship || "",
+        // Medical History
+        currentMedications: (patientData as any).current_medications || "",
+        allergies: (patientData as any).allergies || "",
+        pastInjuries: (patientData as any).past_injuries || "",
+        chronicConditions: (patientData as any).chronic_conditions || "",
+        painLocation: patientData.pain_location || "",
+        painSeverity: patientData.pain_severity,
+        familyMedicalHistory: patientData.family_medical_history || "",
+        smokingStatus: patientData.smoking_status || "",
+        smokingHistory: patientData.smoking_history || "",
+        otherMedicalHistory: (patientData as any).other_medical_history || "",
+        // Insurance and Legal fields continue from here
         didGoToHospital: patientData.did_go_to_hospital === true ? "yes" : patientData.did_go_to_hospital === false ? "no" : "",
         hospitalName: patientData.hospital_name || "",
         dateOfAccident: patientData.accident_date ? new Date(patientData.accident_date) : undefined,
@@ -377,7 +427,6 @@ export default function PatientProfile() {
         insurancePhoneNumber: patientData.insurance_phone_number || "",
         groupNumber: patientData.group_number || "",
         medicaidMedicareId: patientData.medicaid_medicare_id || "",
-        maritalStatus: patientData.marital_status || "",
         licenseState: patientData.drivers_license_state || "",
         caseType: patientData.case_type || "",
       });
@@ -920,19 +969,22 @@ export default function PatientProfile() {
                       </div>
 
                       <TabsContent value="demographics" className="mt-6">
-                        <DemographicsCard 
+                        <DemographicsCard
                           patient={patient}
                           isEditing={isEditing}
                           onEdit={handleEdit}
                           isSensitiveVisible={sensitiveDataVisible}
                           onToggleSensitive={loadSensitiveData}
+                          form={form}
                         />
                       </TabsContent>
 
                       <TabsContent value="medical" className="mt-6">
-                        <MedicalHistoryCard 
+                        <MedicalHistoryCard
                           patient={patient}
+                          isEditing={isEditing}
                           onEdit={handleEdit}
+                          form={form}
                         />
                       </TabsContent>
 

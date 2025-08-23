@@ -1,6 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { 
   AlertCircle, 
   Edit, 
@@ -16,6 +19,7 @@ interface EmergencyContactCardProps {
   onEdit: () => void;
   isSensitiveVisible: boolean;
   onToggleSensitive: () => void;
+  form?: any;
 }
 
 export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
@@ -23,7 +27,8 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
   isEditing,
   onEdit,
   isSensitiveVisible,
-  onToggleSensitive
+  onToggleSensitive,
+  form
 }) => {
   const maskPhone = (phone: string) => {
     if (!phone || isSensitiveVisible) return phone;
@@ -59,68 +64,118 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {hasEmergencyContact ? (
-          <div className="space-y-3">
-            {patient.emergency_contact_name && (
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  Contact Name
-                </h4>
-                <p className="font-medium">{patient.emergency_contact_name}</p>
-              </div>
-            )}
-            
-            {patient.emergency_contact_relationship && (
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  Relationship
-                </h4>
-                <p className="text-sm">{patient.emergency_contact_relationship}</p>
-              </div>
-            )}
-            
-            {patient.emergency_contact_phone && (
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  Phone Number
-                </h4>
-                <p className="text-sm font-mono">
-                  {isSensitiveVisible 
-                    ? formatPhone(patient.emergency_contact_phone)
-                    : maskPhone(patient.emergency_contact_phone)
-                  }
-                </p>
-              </div>
-            )}
-            
-            {/* Sensitive Data Toggle */}
-            {!isSensitiveVisible && patient.emergency_contact_phone && (
-              <Button 
-                onClick={onToggleSensitive}
-                variant="outline" 
-                size="sm"
-                className="w-full mt-4 flex items-center gap-2"
-              >
-                <Shield className="h-4 w-4" />
-                Reveal Sensitive Information
-              </Button>
-            )}
+        {isEditing && form ? (
+          /* Edit Mode */
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="emergencyContactName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Emergency Contact Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter emergency contact name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="emergencyContactRelationship"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Relationship</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., Spouse, Parent, Sibling" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="emergencyContactPhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter emergency contact phone" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         ) : (
-          <div className="text-center py-6 text-muted-foreground">
-            <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No emergency contact information recorded</p>
-            <Button 
-              onClick={onEdit}
-              variant="outline" 
-              size="sm"
-              className="mt-3"
-            >
-              Add Emergency Contact
-            </Button>
+          /* View Mode */
+          <div className="space-y-4">
+            {hasEmergencyContact ? (
+              <div className="space-y-3">
+                {patient.emergency_contact_name && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      Contact Name
+                    </h4>
+                    <p className="font-medium">{patient.emergency_contact_name}</p>
+                  </div>
+                )}
+                
+                {patient.emergency_contact_relationship && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      Relationship
+                    </h4>
+                    <p className="text-sm">{patient.emergency_contact_relationship}</p>
+                  </div>
+                )}
+                
+                {patient.emergency_contact_phone && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      Phone Number
+                    </h4>
+                    <p className="text-sm font-mono">
+                      {isSensitiveVisible 
+                        ? formatPhone(patient.emergency_contact_phone)
+                        : maskPhone(patient.emergency_contact_phone)
+                      }
+                    </p>
+                  </div>
+                )}
+                
+                {/* Sensitive Data Toggle */}
+                {!isSensitiveVisible && patient.emergency_contact_phone && (
+                  <Button 
+                    onClick={onToggleSensitive}
+                    variant="outline" 
+                    size="sm"
+                    className="w-full mt-4 flex items-center gap-2"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Reveal Sensitive Information
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No emergency contact information recorded</p>
+                <Button 
+                  onClick={onEdit}
+                  variant="outline" 
+                  size="sm"
+                  className="mt-3"
+                >
+                  Add Emergency Contact
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
