@@ -133,88 +133,176 @@ const painFaces = [
 ];
 
 export function SubjectiveSection({ data, onChange, patient }: SubjectiveSectionProps) {
+  // Helper function to intelligently map patient data to SOAP fields
+  const mapPatientDataToSOAP = () => {
+    if (!patient) return;
+    
+    const updatedData = { ...data };
+    let hasUpdates = false;
+    
+    // Initialize nested objects if they don't exist
+    if (!updatedData.medicalHistory) {
+      updatedData.medicalHistory = {};
+    }
+    if (!updatedData.familyHistory) {
+      updatedData.familyHistory = {};
+    }
+    
+    // Smart mapping for medications - check multiple potential fields
+    if (!updatedData.medicalHistory.medications) {
+      const medicationSources = [
+        patient.current_medications,
+        patient.medications,
+        patient.other_medical_history
+      ].filter(Boolean);
+      
+      if (medicationSources.length > 0) {
+        updatedData.medicalHistory.medications = medicationSources.join(', ');
+        hasUpdates = true;
+      }
+    }
+    
+    // Smart mapping for allergies
+    if (!updatedData.medicalHistory.allergies && patient.allergies) {
+      updatedData.medicalHistory.allergies = patient.allergies;
+      hasUpdates = true;
+    }
+    
+    // Smart mapping for previous accidents/trauma
+    if (!updatedData.medicalHistory.previousAccidents) {
+      const accidentSources = [
+        patient.previous_accidents,
+        patient.accident_description,
+        patient.past_injuries
+      ].filter(Boolean);
+      
+      if (accidentSources.length > 0) {
+        updatedData.medicalHistory.previousAccidents = accidentSources.join('; ');
+        hasUpdates = true;
+      }
+    }
+    
+    // Smart mapping for trauma/injuries
+    if (!updatedData.medicalHistory.trauma) {
+      const traumaSources = [
+        patient.past_injuries,
+        patient.accident_description,
+        patient.previous_accidents
+      ].filter(Boolean);
+      
+      if (traumaSources.length > 0) {
+        updatedData.medicalHistory.trauma = traumaSources.join('; ');
+        hasUpdates = true;
+      }
+    }
+    
+    // Smart mapping for chronic conditions/illness
+    if (!updatedData.medicalHistory.illness) {
+      const illnessSources = [
+        patient.chronic_conditions,
+        patient.other_medical_history,
+        patient.medical_systems_review && typeof patient.medical_systems_review === 'object' 
+          ? Object.entries(patient.medical_systems_review)
+              .filter(([_, value]) => value === true || value === 'yes')
+              .map(([key, _]) => key)
+              .join(', ')
+          : null
+      ].filter(Boolean);
+      
+      if (illnessSources.length > 0) {
+        updatedData.medicalHistory.illness = illnessSources.join('; ');
+        hasUpdates = true;
+      }
+    }
+    
+    // Smart mapping for pain description
+    if (!updatedData.painDescription) {
+      let painDesc = '';
+      
+      if (patient.pain_description) {
+        if (typeof patient.pain_description === 'object') {
+          painDesc = patient.pain_description.description || JSON.stringify(patient.pain_description);
+        } else {
+          painDesc = patient.pain_description;
+        }
+      } else if (patient.current_symptoms) {
+        if (typeof patient.current_symptoms === 'object') {
+          painDesc = JSON.stringify(patient.current_symptoms);
+        } else {
+          painDesc = patient.current_symptoms;
+        }
+      } else if (patient.symptom_changes) {
+        painDesc = patient.symptom_changes;
+      } else if (patient.pain_location) {
+        painDesc = `Pain in ${patient.pain_location}`;
+      }
+      
+      if (painDesc) {
+        updatedData.painDescription = painDesc;
+        hasUpdates = true;
+      }
+    }
+    
+    // Smart mapping for pain scale
+    if (!updatedData.painScale && patient.pain_severity) {
+      updatedData.painScale = patient.pain_severity;
+      hasUpdates = true;
+    }
+    
+    // Smart mapping for family history conditions
+    if (!updatedData.familyHistory.conditions && patient.family_medical_history) {
+      const familyHistory = patient.family_medical_history.toLowerCase();
+      const matchedConditions: string[] = [];
+      
+      // Use fuzzy matching for conditions
+      familyHistoryConditions.forEach(condition => {
+        const conditionTerms = condition.label.toLowerCase().split(/[\s\/]+/);
+        const hasMatch = conditionTerms.some(term => 
+          familyHistory.includes(term) || 
+          familyHistory.includes(term.slice(0, -1)) || // partial match
+          familyHistory.includes(term + 's') // plural
+        );
+        
+        if (hasMatch) {
+          matchedConditions.push(condition.id);
+        }
+      });
+      
+      if (matchedConditions.length > 0) {
+        updatedData.familyHistory.conditions = matchedConditions;
+        hasUpdates = true;
+      }
+    }
+    
+    // Smart mapping for smoking status
+    if (updatedData.familyHistory.smoking === undefined && patient.smoking_status) {
+      const smokingTerms = ['current', 'former', 'yes', 'daily', 'occasionally'];
+      const isSmokingPositive = smokingTerms.some(term => 
+        patient.smoking_status.toLowerCase().includes(term)
+      );
+      updatedData.familyHistory.smoking = isSmokingPositive;
+      hasUpdates = true;
+    }
+    
+    // Smart mapping for alcohol consumption
+    if (updatedData.familyHistory.alcohol === undefined && patient.alcohol_consumption) {
+      const alcoholTerms = ['yes', 'daily', 'weekly', 'social', 'moderate', 'heavy', 'drinks'];
+      const isAlcoholPositive = alcoholTerms.some(term => 
+        patient.alcohol_consumption.toLowerCase().includes(term)
+      );
+      updatedData.familyHistory.alcohol = isAlcoholPositive;
+      hasUpdates = true;
+    }
+    
+    if (hasUpdates) {
+      onChange(updatedData);
+    }
+  };
+
   // Autofill from patient profile when patient data is available
   useEffect(() => {
-    if (patient && (!data.medicalHistory?.medications && !data.medicalHistory?.allergies)) {
-      const updatedData = { ...data };
-      
-      // Autofill medical history from patient profile
-      if (!updatedData.medicalHistory) {
-        updatedData.medicalHistory = {};
-      }
-      
-      // Fill medications if not already filled
-      if (!updatedData.medicalHistory.medications && patient.current_medications) {
-        updatedData.medicalHistory.medications = patient.current_medications;
-      }
-      
-      // Fill allergies if not already filled
-      if (!updatedData.medicalHistory.allergies && patient.allergies) {
-        updatedData.medicalHistory.allergies = patient.allergies;
-      }
-      
-      // Fill previous accidents if not already filled
-      if (!updatedData.medicalHistory.previousAccidents && patient.previous_accidents) {
-        updatedData.medicalHistory.previousAccidents = patient.previous_accidents;
-      }
-      
-      // Fill trauma/injuries if not already filled
-      if (!updatedData.medicalHistory.trauma && patient.past_injuries) {
-        updatedData.medicalHistory.trauma = patient.past_injuries;
-      }
-      
-      // Fill illness if not already filled
-      if (!updatedData.medicalHistory.illness && patient.chronic_conditions) {
-        updatedData.medicalHistory.illness = patient.chronic_conditions;
-      }
-      
-      // Fill pain description from patient profile if available
-      if (!updatedData.painDescription && patient.pain_description) {
-        if (typeof patient.pain_description === 'object') {
-          updatedData.painDescription = patient.pain_description.description || '';
-        } else {
-          updatedData.painDescription = patient.pain_description;
-        }
-      }
-      
-      // Fill pain scale if available
-      if (!updatedData.painScale && patient.pain_severity) {
-        updatedData.painScale = patient.pain_severity;
-      }
-      
-      // Fill family history from patient profile
-      if (!updatedData.familyHistory) {
-        updatedData.familyHistory = {};
-      }
-      
-      // Fill family medical history
-      if (!updatedData.familyHistory.conditions && patient.family_medical_history) {
-        // Parse family medical history text to match conditions
-        const familyHistory = patient.family_medical_history.toLowerCase();
-        const matchedConditions: string[] = [];
-        
-        familyHistoryConditions.forEach(condition => {
-          if (familyHistory.includes(condition.label.toLowerCase())) {
-            matchedConditions.push(condition.id);
-          }
-        });
-        
-        if (matchedConditions.length > 0) {
-          updatedData.familyHistory.conditions = matchedConditions;
-        }
-      }
-      
-      // Fill smoking status
-      if (updatedData.familyHistory.smoking === undefined && patient.smoking_status) {
-        updatedData.familyHistory.smoking = patient.smoking_status !== 'never' && patient.smoking_status !== 'no';
-      }
-      
-      // Fill alcohol consumption
-      if (updatedData.familyHistory.alcohol === undefined && patient.alcohol_consumption) {
-        updatedData.familyHistory.alcohol = patient.alcohol_consumption !== 'never' && patient.alcohol_consumption !== 'no';
-      }
-      
-      onChange(updatedData);
+    if (patient && Object.keys(data).length === 0) {
+      mapPatientDataToSOAP();
     }
   }, [patient]);
 
