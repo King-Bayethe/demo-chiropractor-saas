@@ -283,21 +283,93 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
         if (typeof symptoms === 'object' && symptoms !== null) {
           const unmappedSymptoms = [];
           
-          // Define comprehensive field mappings
+          // Define comprehensive field mappings for ALL patient profile fields
           const symptomMappings = {
-            // Direct mappings (1:1)
+            // Memory & Cognitive
             'loss_memory': 'memory_problems',
-            'loss_balance': 'balance_problems',
-            'sleeping_problems': 'sleep_problems',
+            'memory_loss': 'memory_problems',
+            'concentration_problems': 'concentration_issues',
+            'confusion': 'memory_problems',
             
-            // Custom mappings with multiple targets
-            'numbness_arms_hands': ['finger_numbness'],
-            'pain_arms_hands': ['arm_pain', 'hand_pain'],
+            // Balance & Coordination
+            'loss_balance': 'balance_problems',
+            'balance_issues': 'balance_problems',
+            'coordination_problems': 'balance_problems',
+            'unsteady': 'balance_problems',
+            
+            // Sleep & Fatigue
+            'sleeping_problems': 'sleep_problems',
+            'sleep_difficulties': 'sleep_problems',
+            'insomnia': 'sleep_problems',
+            'tired': 'fatigue',
+            'exhausted': 'fatigue',
+            'weakness': 'fatigue',
+            
+            // Arms & Hands (multiple field mappings)
+            'numbness_arms_hands': ['finger_numbness', 'arm_weakness'],
+            'pain_arms_hands': ['arm_pain', 'hand_pain', 'shoulder_pain'],
             'loss_strength_arms': ['arm_weakness'],
-            'chest_pain_rib': ['chest_pain'],
+            'arm_tingling': ['finger_numbness'],
+            'hand_tingling': ['finger_numbness'],
+            'arm_numbness': ['arm_weakness', 'finger_numbness'],
+            'hand_numbness': ['finger_numbness'],
+            'shoulder_problems': ['shoulder_pain'],
+            'elbow_problems': ['elbow_pain'],
+            'wrist_problems': ['wrist_pain'],
+            
+            // Legs & Feet (multiple field mappings) 
             'loss_strength_legs': ['leg_weakness'],
-            'pain_legs_feet': ['leg_pain', 'foot_pain'],
-            'numbness_legs_feet': ['leg_numbness']
+            'pain_legs_feet': ['leg_pain', 'foot_pain', 'knee_pain'],
+            'numbness_legs_feet': ['leg_numbness'],
+            'leg_tingling': ['leg_numbness'],
+            'foot_tingling': ['leg_numbness'],
+            'hip_problems': ['hip_pain'],
+            'knee_problems': ['knee_pain'],
+            'ankle_problems': ['ankle_pain'],
+            'thigh_problems': ['thigh_pain'],
+            
+            // Back & Spine
+            'chest_pain_rib': ['chest_pain'],
+            'back_problems': ['lower_back_pain', 'upper_back_pain'],
+            'spine_problems': ['back_stiffness'],
+            'muscle_tension': ['muscle_spasms'],
+            'stiffness': ['back_stiffness', 'neck_stiffness'],
+            
+            // Head & Neck
+            'head_pain': ['headache'],
+            'migraines': ['headache'],
+            'face_pain': ['facial_pain'],
+            'jaw_problems': ['jaw_pain'],
+            'neck_problems': ['neck_pain', 'neck_stiffness'],
+            
+            // Neurological
+            'dizzy': 'dizziness',
+            'lightheaded': 'dizziness',
+            'vision_changes': 'vision_problems',
+            'hearing_changes': 'hearing_problems',
+            'ear_problems': 'hearing_problems',
+            'ringing_ears': 'hearing_problems',
+            
+            // Sensory Issues (map to Other section)
+            'loss_smell': 'smell_problems',
+            'smell_changes': 'smell_problems',
+            'taste_changes': 'smell_problems',
+            'tingling_arms_hands': 'finger_numbness',
+            'tingling_legs_feet': 'leg_numbness',
+            'shortness_breath': 'chest_pain',
+            'breathing_problems': 'chest_pain',
+            
+            // Emotional & Mental
+            'irritability': 'anxiety',
+            'mood_changes': 'depression',
+            'stress': 'anxiety',
+            'emotional_problems': 'depression',
+            
+            // Digestive & General
+            'stomach_problems': 'nausea',
+            'digestive_issues': 'nausea',
+            'appetite_loss': 'appetite_changes',
+            'weight_changes': 'appetite_changes'
           };
           
           // Map symptoms from patient profile to SOAP form fields
@@ -381,12 +453,78 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
         } else if (typeof familyHistoryData === 'object' && familyHistoryData !== null) {
           const unmappedFamilyConditions = [];
           
-          // Define family history field mappings
+          // Define comprehensive family history field mappings for ALL patient profile fields
           const familyMappings = {
+            // Heart & Cardiovascular
             'heart_trouble': 'heart_trouble',
             'heart_disease': 'heart_trouble',
+            'cardiac_issues': 'heart_trouble',
+            'coronary_disease': 'heart_trouble',
+            'cardiovascular_disease': 'heart_trouble',
+            
+            // Blood Pressure & Circulation
             'hypertension': 'high_blood_pressure',
-            'high_bp': 'high_blood_pressure'
+            'high_bp': 'high_blood_pressure',
+            'blood_pressure': 'high_blood_pressure',
+            'circulation_problems': 'high_blood_pressure',
+            
+            // Neurological & Brain
+            'stroke': 'stroke',
+            'brain_attack': 'stroke',
+            'cerebrovascular_accident': 'stroke',
+            'aneurysm': 'stroke',
+            'seizures': 'epilepsy',
+            'convulsions': 'epilepsy',
+            
+            // Metabolic & Endocrine
+            'diabetes': 'diabetes',
+            'diabetic': 'diabetes',
+            'blood_sugar': 'diabetes',
+            'insulin_resistance': 'diabetes',
+            
+            // Cancer & Tumors
+            'cancer': 'cancer',
+            'malignancy': 'cancer',
+            'tumor': 'cancer',
+            'oncology': 'cancer',
+            
+            // Joint & Bone
+            'arthritis': 'arthritis',
+            'joint_disease': 'arthritis',
+            'rheumatoid': 'arthritis',
+            'osteoarthritis': 'arthritis',
+            'kyphosis': 'arthritis',
+            'scoliosis': 'arthritis',
+            'spine_problems': 'arthritis',
+            'osteoporosis': 'arthritis',
+            
+            // Respiratory
+            'asthma': 'asthma',
+            'breathing_problems': 'asthma',
+            'lung_disease': 'asthma',
+            'respiratory_disease': 'asthma',
+            'copd': 'asthma',
+            
+            // Mental Health
+            'mental_illness': 'mental_illness',
+            'psychiatric': 'mental_illness',
+            'depression': 'mental_illness',
+            'anxiety': 'mental_illness',
+            'bipolar': 'mental_illness',
+            'schizophrenia': 'mental_illness',
+            'alcohol_dependence': 'mental_illness',
+            'substance_abuse': 'mental_illness',
+            
+            // Kidney & Renal
+            'kidney_disease': 'kidney_disease',
+            'renal_disease': 'kidney_disease',
+            'kidney_failure': 'kidney_disease',
+            'nephritis': 'kidney_disease',
+            
+            // Neurological Disorders
+            'epilepsy': 'epilepsy',
+            'migraines': 'mental_illness', // Map to mental_illness as closest match
+            'headaches': 'mental_illness'
           };
           
           // Map object properties
