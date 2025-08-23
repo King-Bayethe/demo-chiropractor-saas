@@ -68,7 +68,7 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {isEditing && form ? (
-          // Edit Mode - Form Fields
+          // Edit Mode - Always show form fields when editing
           <div className="space-y-6">
             {/* Auto Insurance Section */}
             <div className="space-y-4 pb-4 border-b">
@@ -263,10 +263,10 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
             </div>
           </div>
         ) : (
-          // Display Mode - Read Only
+          // Display Mode - Show data or empty state
           <div className="space-y-4">
-        {/* Auto Insurance */}
-        {hasAutoInsurance && (
+            {/* Auto Insurance */}
+            {hasAutoInsurance && (
           <div className="space-y-3 pb-4 border-b">
             <div className="flex items-center gap-2 mb-3">
               <Car className="h-4 w-4 text-blue-500" />
@@ -449,13 +449,13 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
           </div>
         )}
 
-        {/* No Insurance Data */}
-        {!hasHealthInsurance && !hasAutoInsurance && !hasInsuranceContact && !hasAttorney && (
-          <div className="text-center py-6 text-muted-foreground">
-            <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No insurance information recorded</p>
-          </div>
-        )}
+            {/* No Insurance Data */}
+            {!hasHealthInsurance && !hasAutoInsurance && !hasInsuranceContact && !hasAttorney && (
+              <div className="text-center py-6 text-muted-foreground">
+                <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No insurance information recorded</p>
+              </div>
+            )}
           </div>
         )}
 
