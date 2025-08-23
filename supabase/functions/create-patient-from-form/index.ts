@@ -50,6 +50,62 @@ serve(async (req) => {
 
     const formData = submission.form_data as any
     
+    // Enhanced mapping for current symptoms from all form types
+    let currentSymptoms = {}
+    let painDescription = {}
+    let systemsReview = {}
+    
+    // Handle PIP form current symptoms
+    if (formData.currentSymptoms) {
+      currentSymptoms = {
+        // Map PIP form field names to patient schema names
+        headache: formData.currentSymptoms.headache,
+        neck_pain: formData.currentSymptoms.neckPain,
+        neck_stiffness: formData.currentSymptoms.neckStiff,
+        lower_back_pain: formData.currentSymptoms.backPain,
+        pain_arms_hands: formData.currentSymptoms.painArmsHands,
+        pain_legs_feet: formData.currentSymptoms.painLegsFeet,
+        loss_strength_arms: formData.currentSymptoms.lossStrengthArms,
+        loss_strength_legs: formData.currentSymptoms.lossStrengthLegs,
+        numbness_arms_hands: formData.currentSymptoms.numbnessArmsHands,
+        numbness_legs_feet: formData.currentSymptoms.numbnessLegsFeet,
+        tingling_arms_hands: formData.currentSymptoms.tinglingArmsHands,
+        tingling_legs_feet: formData.currentSymptoms.tinglingLegsFeet,
+        dizziness: formData.currentSymptoms.dizziness,
+        fatigue: formData.currentSymptoms.fatigue,
+        irritability: formData.currentSymptoms.irritability,
+        
+        // Additional symptoms from system review if available
+        chest_pain_rib: formData.systemReview?.chestPains === 'Yes',
+        nausea: formData.systemReview?.nausea === 'Yes',
+        anxiety: formData.systemReview?.anxiety === 'Yes',
+        depression: formData.systemReview?.depression === 'Yes',
+        loss_memory: formData.systemReview?.memoryLoss === 'Yes',
+        loss_balance: formData.systemReview?.dizziness === 'Yes',
+        sleeping_problems: formData.systemReview?.fatigue === 'Yes',
+        vision_problems: formData.systemReview?.blurredVision === 'Yes' || formData.systemReview?.doubleVision === 'Yes',
+        hearing_problems: formData.systemReview?.ringingEars === 'Yes' || formData.systemReview?.decreasedHearing === 'Yes',
+        shortness_breath: formData.systemReview?.difficultyBreathing === 'Yes',
+        loss_smell: false // Not captured in current forms
+      }
+    }
+    
+    // Handle pain description from PIP form
+    if (formData.painDescription) {
+      painDescription = {
+        description: Object.entries(formData.painDescription)
+          .filter(([_, value]) => value === true)
+          .map(([key, _]) => key)
+          .join(', '),
+        details: formData.painDescription
+      }
+    }
+    
+    // Handle systems review data
+    if (formData.systemReview) {
+      systemsReview = formData.systemReview
+    }
+    
     // Create patient from form data
     const patientData = {
       first_name: formData.firstName,
@@ -76,11 +132,19 @@ serve(async (req) => {
       student_status: formData.studentStatus,
       emergency_contact_name: formData.emergencyContact,
       emergency_contact_phone: formData.emergencyPhone,
-      medical_systems_review: formData.systems || {},
+      emergency_contact_relationship: formData.emergencyContactRelationship,
+      
+      // Enhanced medical data storage
+      medical_systems_review: systemsReview,
+      current_symptoms: currentSymptoms,
+      pain_description: painDescription,
+      systems_review: formData.systemReview || {},
+      
+      // Medical history fields
       current_medications: formData.currentMedications || null,
       allergies: formData.allergies || null,
       past_injuries: formData.pastInjuries || null,
-      previous_surgeries: formData.previousSurgeries || null,
+      previous_accidents: formData.previousAccidents || null,
       chronic_conditions: formData.chronicConditions || null,
       other_medical_history: formData.otherMedicalHistory || null,
       pain_location: formData.painLocation || null,
@@ -88,10 +152,12 @@ serve(async (req) => {
       family_medical_history: formData.familyMedicalHistory || null,
       smoking_status: formData.smokingStatus || null,
       smoking_history: formData.smokingHistory || null,
+      
+      // Form metadata
       patient_signature: formData.signature,
       consent_acknowledgement: formData.consentAcknowledgement || false,
-      case_type: 'Cash Plan',
-      tags: ['patient', 'cash'],
+      case_type: submission.form_type === 'pip' ? 'PIP' : submission.form_type === 'lop' ? 'Attorney Only' : 'Cash Plan',
+      tags: [submission.form_type, 'patient'],
       is_active: true,
     }
 
@@ -110,14 +176,34 @@ serve(async (req) => {
     let patientId = null
 
     if (existingPatient) {
-      // Update existing patient
+      // Update existing patient - merge symptom data properly
+      const mergedCurrentSymptoms = {
+        ...existingPatient.current_symptoms,
+        ...currentSymptoms
+      }
+      
+      const mergedPainDescription = {
+        ...existingPatient.pain_description,
+        ...painDescription
+      }
+      
+      const mergedSystemsReview = {
+        ...existingPatient.systems_review,
+        ...systemsReview
+      }
+      
       const updateData = {
         ...patientData,
+        // Merge symptom and medical data
+        current_symptoms: mergedCurrentSymptoms,
+        pain_description: mergedPainDescription,
+        systems_review: mergedSystemsReview,
+        
         // Preserve existing data for fields that are not provided
         current_medications: formData.currentMedications || existingPatient.current_medications,
         allergies: formData.allergies || existingPatient.allergies,
         past_injuries: formData.pastInjuries || existingPatient.past_injuries,
-        previous_surgeries: formData.previousSurgeries || existingPatient.previous_surgeries,
+        previous_accidents: formData.previousAccidents || existingPatient.previous_accidents,
         chronic_conditions: formData.chronicConditions || existingPatient.chronic_conditions,
         other_medical_history: formData.otherMedicalHistory || existingPatient.other_medical_history,
         pain_location: formData.painLocation || existingPatient.pain_location,
