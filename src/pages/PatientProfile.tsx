@@ -491,6 +491,7 @@ export default function PatientProfile() {
 
       // Map form data to patient update format with proper handling of optional fields
       const updateData: any = {
+        // Basic Demographics
         first_name: data.firstName.trim(),
         last_name: data.lastName.trim(),
         phone: data.phone.trim(),
@@ -500,7 +501,28 @@ export default function PatientProfile() {
         city: data.city?.trim() || null,
         state: data.state?.trim() || null,
         zip_code: data.zipCode?.trim() || null,
+        gender: data.gender?.trim() || null,
+        marital_status: data.maritalStatus?.trim() || null,
+        preferred_language: data.preferredLanguage?.trim() || null,
+        
+        // Emergency Contact
         emergency_contact_name: data.emergencyContactName?.trim() || null,
+        emergency_contact_phone: data.emergencyContactPhone?.trim() || null,
+        emergency_contact_relationship: data.emergencyContactRelationship?.trim() || null,
+        
+        // Medical History
+        current_medications: data.currentMedications?.trim() || null,
+        allergies: data.allergies?.trim() || null,
+        past_injuries: data.pastInjuries?.trim() || null,
+        chronic_conditions: data.chronicConditions?.trim() || null,
+        pain_location: data.painLocation?.trim() || null,
+        pain_severity: data.painSeverity || null,
+        family_medical_history: data.familyMedicalHistory?.trim() || null,
+        smoking_status: data.smokingStatus?.trim() || null,
+        smoking_history: data.smokingHistory?.trim() || null,
+        other_medical_history: data.otherMedicalHistory?.trim() || null,
+        
+        // Insurance and Legal
         claim_number: data.claimNumber?.trim() || null,
         auto_policy_number: data.policyNumber?.trim() || null,
         auto_insurance_company: data.autoInsuranceCompany?.trim() || null,
@@ -511,11 +533,9 @@ export default function PatientProfile() {
         insurance_phone_number: data.insurancePhoneNumber?.trim() || null,
         health_insurance_id: data.healthInsuranceId?.trim() || null,
         medicaid_medicare_id: data.medicaidMedicareId?.trim() || null,
-        marital_status: data.maritalStatus?.trim() || null,
         drivers_license_state: data.licenseState?.trim() || null,
         case_type: data.caseType?.trim() || null,
         group_number: data.groupNumber?.trim() || null,
-        preferred_language: data.preferredLanguage?.trim() || null,
         
         // Handle date fields
         date_of_birth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : null,
