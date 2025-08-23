@@ -42,6 +42,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
 import { PatientNotes } from "@/components/PatientNotes";
 import { PatientFiles } from "@/components/PatientFiles";
+import { PatientFormDisplay } from "@/components/forms/PatientFormDisplay";
 import { PatientAssignment } from "@/components/PatientAssignment";
 
 // Import new patient card components
@@ -156,6 +157,7 @@ export default function PatientProfile() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [files, setFiles] = useState<any[]>([]);
   const [forms, setForms] = useState<any[]>([]);
+  const [formsLoading, setFormsLoading] = useState(false);
   const [calendars, setCalendars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -291,6 +293,28 @@ export default function PatientProfile() {
     });
   };
   
+  const loadPatientForms = async (patientId: string) => {
+    setFormsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('form_submissions')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('submitted_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching patient forms:', error);
+        return;
+      }
+
+      setForms(data || []);
+    } catch (error) {
+      console.error('Failed to load patient forms:', error);
+    } finally {
+      setFormsLoading(false);
+    }
+  };
+
   const loadPatientData = async () => {
     setLoading(true);
     setSensitiveDataVisible(false); 
@@ -362,11 +386,8 @@ export default function PatientProfile() {
         { id: "file-2", name: "Patient_Intake_Form.pdf", type: "Admin", uploadDate: new Date("2025-05-22"), uploadedBy: "Patient" },
         { id: "file-3", name: "Cervical_XRay_Report.pdf", type: "Imaging", uploadDate: new Date("2025-05-23"), uploadedBy: "Dr. Silverman" }
       ]);
-      setForms([
-        { id: "form-1", name: "PIP Intake Form", status: "completed", submissionDate: new Date("2025-05-22") },
-        { id: "form-2", name: "Medical History Questionnaire", status: "completed", submissionDate: new Date("2025-05-22") },
-        { id: "form-3", name: "HIPAA Acknowledgment", status: "completed", submissionDate: new Date("2025-05-22") },
-      ]);
+      // Load real form submissions for this patient
+      await loadPatientForms(patient.id);
 
     } catch (error) {
       console.error('Failed to load patient data:', error);
@@ -1124,23 +1145,7 @@ export default function PatientProfile() {
 
                       <TabsContent value="forms" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <h3 className="text-lg font-semibold">Submitted Forms</h3>
-                        <div className="grid gap-4">
-                          {forms.map((form) => (
-                            <Card key={form.id} className="p-4">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-semibold">{form.name}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    Submitted: {format(form.submissionDate, 'PPP')}
-                                  </p>
-                                </div>
-                                <Badge variant={form.status === 'completed' ? 'default' : 'secondary'}>
-                                  {form.status}
-                                </Badge>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
+                        <PatientFormDisplay forms={forms} loading={formsLoading} />
                       </TabsContent>
 
                       <TabsContent value="providers" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
