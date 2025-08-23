@@ -111,12 +111,18 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
 
       console.log('Upload successful:', uploadData);
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL for private access (expires in 1 year)
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('patient-files')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 31536000); // 1 year expiry
 
-      console.log('Public URL:', publicUrl);
+      if (signedError) {
+        console.error('Signed URL error:', signedError);
+        throw signedError;
+      }
+
+      const signedUrl = signedData.signedUrl;
+      console.log('Signed URL:', signedUrl);
 
       // Save to patient_files table
       const { data: fileData, error: fileError } = await supabase
@@ -142,7 +148,7 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
       // Update patient record to use ID front as profile picture
       const { data: updateData, error: updateError } = await supabase
         .from('patients')
-        .update({ profile_picture_url: publicUrl })
+        .update({ profile_picture_url: signedUrl })
         .eq('id', patient.id)
         .select()
         .single();
@@ -156,7 +162,7 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
 
       // Update local state
       if (onPatientUpdate) {
-        onPatientUpdate({ profile_picture_url: publicUrl });
+        onPatientUpdate({ profile_picture_url: signedUrl });
       }
 
       toast({
