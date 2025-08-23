@@ -174,9 +174,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
   const isDisabled = data.isRefused || data.isWithinNormalLimits;
 
   return (
-    <div className="space-y-4">
-      {patient && <PatientMedicalSummary patient={patient} />}
-      <Card>
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -525,6 +523,5 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
         )}
       </CardContent>
     </Card>
-    </div>
   );
 }
