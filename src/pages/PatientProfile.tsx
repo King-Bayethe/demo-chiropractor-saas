@@ -466,23 +466,31 @@ export default function PatientProfile() {
   }
 
   const handleSave = async (data: PatientFormData) => {
+    console.log("=== SAVE BUTTON CLICKED ===");
     console.log("Save button clicked with data:", data);
     console.log("Form errors:", form.formState.errors);
     console.log("Form is valid:", form.formState.isValid);
+    console.log("Patient ID:", patient?.id);
+    
+    if (!patient?.id) {
+      console.error("❌ No patient ID found!");
+      toast({
+        title: "Error",
+        description: "Patient ID not found. Cannot save changes.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setSaving(true);
+    
     try {
-      if (!patient?.id) {
-        console.error("Patient ID not found");
-        throw new Error("Patient ID not found");
-      }
-
-      // Check form validation state
+      // Check form validation state first
       const isValid = await form.trigger();
-      console.log("Form validation result:", isValid);
+      console.log("✅ Form validation result:", isValid);
       
       if (!isValid) {
-        console.log("Form validation failed:", form.formState.errors);
+        console.log("❌ Form validation failed:", form.formState.errors);
         toast({
           title: "Validation Error",
           description: "Please fix the form errors before saving.",
@@ -493,21 +501,30 @@ export default function PatientProfile() {
       }
 
       // Additional manual validation for required fields
+      const validationErrors = [];
       if (!data.firstName?.trim()) {
-        console.log("First name validation failed");
+        console.log("❌ First name validation failed");
+        validationErrors.push("First name is required");
         form.setError("firstName", { message: "First name is required" });
-        setSaving(false);
-        return;
       }
       if (!data.lastName?.trim()) {
-        console.log("Last name validation failed");
+        console.log("❌ Last name validation failed");
+        validationErrors.push("Last name is required");
         form.setError("lastName", { message: "Last name is required" });
-        setSaving(false);
-        return;
       }
       if (!data.phone?.trim()) {
-        console.log("Phone validation failed");
+        console.log("❌ Phone validation failed");
+        validationErrors.push("Phone number is required");
         form.setError("phone", { message: "Phone number is required" });
+      }
+      
+      if (validationErrors.length > 0) {
+        console.log("❌ Manual validation failed:", validationErrors);
+        toast({
+          title: "Validation Error",
+          description: validationErrors.join(", "),
+          variant: "destructive"
+        });
         setSaving(false);
         return;
       }
@@ -569,31 +586,39 @@ export default function PatientProfile() {
         hospital_name: data.hospitalName?.trim() || null,
       };
 
-      console.log("About to update patient with data:", updateData);
+      console.log("✅ About to update patient with data:", updateData);
+      console.log("🔄 Calling updatePatient function...");
       
       // Update patient using the hook
-      await updatePatient(patient.id, updateData);
-
-      console.log("Patient updated successfully");
+      const result = await updatePatient(patient.id, updateData);
+      
+      console.log("✅ Update patient result:", result);
+      console.log("✅ Patient updated successfully");
       
       // Update local state
       setPatient(prev => ({ ...prev, ...updateData }));
       setIsEditing(false);
       
+      console.log("🎉 Showing success toast");
       toast({
         title: "Success",
         description: "Patient information updated successfully.",
       });
 
     } catch (error) {
-      console.error('Failed to save patient:', error);
-      console.error('Error details:', error);
+      console.error('❌ Failed to save patient:', error);
+      console.error('❌ Error details:', error);
+      
+      const errorMessage = error?.message || 'Unknown error occurred';
+      console.log("🚨 Showing error toast:", errorMessage);
+      
       toast({
         title: "Error", 
-        description: `Failed to save patient information: ${error.message || 'Unknown error'}`,
+        description: `Failed to save patient information: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
+      console.log("🔄 Setting saving to false");
       setSaving(false);
     }
   };
@@ -980,12 +1005,58 @@ export default function PatientProfile() {
                                 console.log("Debug - Form errors:", form.formState.errors);
                                 console.log("Debug - Form is valid:", form.formState.isValid);
                                 console.log("Debug - Patient data:", patient);
+                                toast({
+                                  title: "Debug Test",
+                                  description: "Toast is working! Check console for form data.",
+                                });
                               }}
                               variant="outline"
                               size="sm"
                               className="text-xs px-2"
                             >
                               Debug
+                            </Button>
+                            <Button 
+                              onClick={async () => {
+                                console.log("🧪 Testing direct save...");
+                                if (!patient?.id) {
+                                  toast({
+                                    title: "Test Error",
+                                    description: "No patient ID",
+                                    variant: "destructive"
+                                  });
+                                  return;
+                                }
+                                
+                                try {
+                                  const simpleUpdate = {
+                                    first_name: patient.first_name,
+                                    last_name: patient.last_name,
+                                    updated_at: new Date().toISOString()
+                                  };
+                                  
+                                  console.log("🧪 Testing updatePatient with:", simpleUpdate);
+                                  const result = await updatePatient(patient.id, simpleUpdate);
+                                  console.log("🧪 Test result:", result);
+                                  
+                                  toast({
+                                    title: "Test Success",
+                                    description: "Direct save worked!",
+                                  });
+                                } catch (error) {
+                                  console.error("🧪 Test failed:", error);
+                                  toast({
+                                    title: "Test Failed",
+                                    description: error.message,
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs px-2"
+                            >
+                              Test Save
                             </Button>
                           </div>
                         )}
