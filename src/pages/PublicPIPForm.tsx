@@ -261,7 +261,7 @@ const PublicPIPForm = () => {
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">Silverman Chiropractic & Rehabilitation Center</h1>
           <p className="text-md text-muted-foreground mt-2">
-            New Patient Intake Form / <span className="text-muted-foreground/70">Formulario de Paciente Nuevo</span>
+            PIP Intake Form / <span className="text-muted-foreground/70">Formulario de Admisión PIP</span>
           </p>
         </header>
 
@@ -955,8 +955,8 @@ const PublicPIPForm = () => {
             {/* System Review Tab */}
             <TabsContent value="review">
               <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">Review of Systems</h2>
-                <p className="text-sm text-muted-foreground">Do you currently have or have had any of the following problems? Please check Yes or No for every item.</p>
+                <h2 className="text-xl font-semibold border-b pb-3">Review of Systems <span className="text-muted-foreground">(Revisión de Sistemas)</span></h2>
+                <p className="text-sm text-muted-foreground">Do you currently have or have had any of the following problems? Please check Yes or No for every item. <span className="text-muted-foreground/70">(¿Tiene o ha tenido alguno de los siguientes problemas? Por favor marque Sí o No para cada elemento.)</span></p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
                   <div className="space-y-2">
                     <h3 className="font-semibold mb-2 border-b">General</h3>
@@ -1011,10 +1011,10 @@ const PublicPIPForm = () => {
             <TabsContent value="communications">
               <div className="space-y-8 bg-background p-6 rounded-lg shadow-sm">
                 <div>
-                  <h2 className="text-xl font-semibold border-b pb-3">Confidential Communications</h2>
-                  <p className="text-sm text-muted-foreground mt-4">I am requesting that SCRC communicate with me by an alternative means or at an alternative address or phone number that is more confidential for me. I understand that the Medical Center will not accommodate unreasonable requests.</p>
+                  <h2 className="text-xl font-semibold border-b pb-3">Confidential Communications <span className="text-muted-foreground">(Comunicaciones Confidenciales)</span></h2>
+                  <p className="text-sm text-muted-foreground mt-4">I am requesting that SCRC communicate with me by an alternative means or at an alternative address or phone number that is more confidential for me. I understand that the Medical Center will not accommodate unreasonable requests. <span className="text-muted-foreground/70">(Solicito que SCRC se comunique conmigo por medios alternativos o en una dirección o número de teléfono alternativo que sea más confidencial para mí. Entiendo que el Centro Médico no acomodará solicitudes irrazonables.)</span></p>
                   <div className="mt-4">
-                    <Label htmlFor="comm-alt">Describe the alternative means of communication you are requesting:</Label>
+                    <Label htmlFor="comm-alt">Describe the alternative means of communication you are requesting: <span className="text-muted-foreground">(Describa los medios alternativos de comunicación que solicita:)</span></Label>
                     <Textarea 
                       id="comm-alt" 
                       rows={3}
@@ -1024,10 +1024,10 @@ const PublicPIPForm = () => {
                   </div>
                 </div>
                 <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">E-Mail Consent Form</h3>
-                  <p className="text-sm text-muted-foreground mt-2">I understand the risks associated with communication of e-mail between SCRC and me and consent to the conditions outlined. I agree and consent that SCRC may communicate with me regarding my protected health information by e-mail.</p>
+                  <h3 className="text-lg font-semibold">E-Mail Consent Form <span className="text-muted-foreground">(Formulario de Consentimiento de Correo Electrónico)</span></h3>
+                  <p className="text-sm text-muted-foreground mt-2">I understand the risks associated with communication of e-mail between SCRC and me and consent to the conditions outlined. I agree and consent that SCRC may communicate with me regarding my protected health information by e-mail. <span className="text-muted-foreground/70">(Entiendo los riesgos asociados con la comunicación por correo electrónico entre SCRC y yo, y consiento las condiciones descritas. Acepto y consiento que SCRC pueda comunicarse conmigo sobre mi información de salud protegida por correo electrónico.)</span></p>
                   <div className="mt-4">
-                    <Label htmlFor="email-consent">My Consented E-Mail Address is:</Label>
+                    <Label htmlFor="email-consent">My Consented E-Mail Address is: <span className="text-muted-foreground">(Mi Dirección de Correo Electrónico Consentida es:)</span></Label>
                     <Input 
                       id="email-consent" 
                       type="email"
@@ -1043,25 +1043,25 @@ const PublicPIPForm = () => {
             <TabsContent value="release">
               <div className="space-y-8 bg-background p-6 rounded-lg shadow-sm">
                 <div>
-                  <h2 className="text-xl font-semibold border-b pb-3">Authorization for Release of Health Information</h2>
-                  <p className="text-sm text-muted-foreground mt-4">I authorize SILVERMAN CHIROPRACTIC & REHABILITATION CENTER, INC., to release my health information to the person/organization listed below.</p>
+                  <h2 className="text-xl font-semibold border-b pb-3">Authorization for Release of Health Information <span className="text-muted-foreground">(Autorización para Divulgar Información de Salud)</span></h2>
+                  <p className="text-sm text-muted-foreground mt-4">I authorize SILVERMAN CHIROPRACTIC & REHABILITATION CENTER, INC., to release my health information to the person/organization listed below. <span className="text-muted-foreground/70">(Autorizo a SILVERMAN CHIROPRACTIC & REHABILITATION CENTER, INC., a divulgar mi información de salud a la persona/organización listada abajo.)</span></p>
                   <div className="mt-4 space-y-4">
                     <div>
-                      <Label>Person/Organization</Label>
+                      <Label>Person/Organization <span className="text-muted-foreground">(Persona/Organización)</span></Label>
                       <Input 
                         value={formData.releasePersonOrganization}
                         onChange={(e) => handleInputChange("releasePersonOrganization", e.target.value)}
                       />
                     </div>
                     <div>
-                      <Label>Address</Label>
+                      <Label>Address <span className="text-muted-foreground">(Dirección)</span></Label>
                       <Input 
                         value={formData.releaseAddress}
                         onChange={(e) => handleInputChange("releaseAddress", e.target.value)}
                       />
                     </div>
                     <div>
-                      <Label>Phone</Label>
+                      <Label>Phone <span className="text-muted-foreground">(Teléfono)</span></Label>
                       <Input 
                         type="tel"
                         value={formData.releasePhone}
