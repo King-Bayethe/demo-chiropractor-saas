@@ -377,7 +377,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
             <div className="space-y-4">
               {/* Drag and Drop Area */}
               <div
-                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors overflow-hidden ${
                   dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
                 }`}
                 onDragEnter={handleDrag}
@@ -385,14 +385,16 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <div className="space-y-2">
-                  <p className="text-lg font-medium">
-                    Drop files here or click to browse
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Supports PDF, DOC, DOCX, XLS, XLSX, images and text files (max 10MB each)
-                  </p>
+                <div className="relative z-20 pointer-events-none">
+                  <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="space-y-2">
+                    <p className="text-lg font-medium">
+                      Drop files here or click to browse
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Supports PDF, DOC, DOCX, XLS, XLSX, images and text files (max 10MB each)
+                    </p>
+                  </div>
                 </div>
                 <input
                   type="file"
