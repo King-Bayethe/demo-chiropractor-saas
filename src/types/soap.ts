@@ -35,7 +35,57 @@ export interface SubjectiveData {
   // Enhanced questionnaire fields
   painWorse?: string;
   painBetter?: string;
-  currentSymptoms?: string[];
+  currentSymptoms?: {
+    // Head & Neck
+    headache?: boolean;
+    neck_pain?: boolean;
+    jaw_pain?: boolean;
+    facial_pain?: boolean;
+    neck_stiffness?: boolean;
+    
+    // Arms & Hands
+    arm_pain?: boolean;
+    shoulder_pain?: boolean;
+    elbow_pain?: boolean;
+    wrist_pain?: boolean;
+    hand_pain?: boolean;
+    finger_numbness?: boolean;
+    arm_weakness?: boolean;
+    
+    // Back & Core
+    upper_back_pain?: boolean;
+    mid_back_pain?: boolean;
+    lower_back_pain?: boolean;
+    back_stiffness?: boolean;
+    muscle_spasms?: boolean;
+    chest_pain?: boolean;
+    
+    // Legs & Feet
+    hip_pain?: boolean;
+    thigh_pain?: boolean;
+    knee_pain?: boolean;
+    leg_pain?: boolean;
+    ankle_pain?: boolean;
+    foot_pain?: boolean;
+    leg_weakness?: boolean;
+    leg_numbness?: boolean;
+    
+    // Neurological
+    dizziness?: boolean;
+    vision_problems?: boolean;
+    hearing_problems?: boolean;
+    memory_problems?: boolean;
+    concentration_issues?: boolean;
+    balance_problems?: boolean;
+    
+    // General
+    fatigue?: boolean;
+    sleep_problems?: boolean;
+    anxiety?: boolean;
+    depression?: boolean;
+    nausea?: boolean;
+    appetite_changes?: boolean;
+  };
   medicalHistory?: {
     previousOfficeVisit?: boolean;
     previousAccidents?: string;
@@ -46,10 +96,18 @@ export interface SubjectiveData {
     allergies?: string;
   };
   familyHistory?: {
-    conditions?: string[];
-    alcohol?: boolean;
-    smoking?: boolean;
-  } | string; // Support both object and string for backward compatibility
+    heart_trouble?: boolean;
+    stroke?: boolean;
+    diabetes?: boolean;
+    cancer?: boolean;
+    arthritis?: boolean;
+    high_blood_pressure?: boolean;
+    kidney_disease?: boolean;
+    mental_illness?: boolean;
+    asthma?: boolean;
+    epilepsy?: boolean;
+    other_conditions?: string;
+  }
   
   // Additional fields for comprehensive notes - keeping flexible for compatibility
   historyOfPresentIllness?: string;
