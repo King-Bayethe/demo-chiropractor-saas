@@ -220,16 +220,16 @@ const PublicPIPForm = () => {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 mb-8 bg-muted p-1 rounded-lg">
-              <TabsTrigger value="general" className="border-r border-border/50">General</TabsTrigger>
-              <TabsTrigger value="accident" className="border-r border-border/50">Accident</TabsTrigger>
-              <TabsTrigger value="insurance" className="border-r border-border/50">Insurance</TabsTrigger>
-              <TabsTrigger value="medical" className="border-r border-border/50">Medical History</TabsTrigger>
-              <TabsTrigger value="symptoms" className="border-r border-border/50">Symptoms</TabsTrigger>
-              <TabsTrigger value="review" className="border-r border-border/50">System Review</TabsTrigger>
-              <TabsTrigger value="communications" className="border-r border-border/50">Communications</TabsTrigger>
-              <TabsTrigger value="release" className="border-r border-border/50">Release of Info</TabsTrigger>
-              <TabsTrigger value="auth">Authorizations</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 mb-8 bg-muted p-1 rounded-lg gap-0">
+              <TabsTrigger value="general" className="border-r border-border/50 text-xs sm:text-sm px-2">General</TabsTrigger>
+              <TabsTrigger value="accident" className="border-r border-border/50 text-xs sm:text-sm px-2">Accident</TabsTrigger>
+              <TabsTrigger value="insurance" className="border-r border-border/50 text-xs sm:text-sm px-2">Insurance</TabsTrigger>
+              <TabsTrigger value="medical" className="border-r border-border/50 text-xs sm:text-sm px-2">Medical</TabsTrigger>
+              <TabsTrigger value="symptoms" className="border-r border-border/50 text-xs sm:text-sm px-2">Symptoms</TabsTrigger>
+              <TabsTrigger value="review" className="border-r border-border/50 text-xs sm:text-sm px-2">Review</TabsTrigger>
+              <TabsTrigger value="communications" className="border-r border-border/50 text-xs sm:text-sm px-2">Comms</TabsTrigger>
+              <TabsTrigger value="release" className="border-r border-border/50 text-xs sm:text-sm px-2">Release</TabsTrigger>
+              <TabsTrigger value="auth" className="text-xs sm:text-sm px-2">Auth</TabsTrigger>
             </TabsList>
 
             {/* General Information Tab */}
