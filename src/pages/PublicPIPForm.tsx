@@ -220,15 +220,15 @@ const PublicPIPForm = () => {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 mb-8">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="accident">Accident</TabsTrigger>
-              <TabsTrigger value="insurance">Insurance</TabsTrigger>
-              <TabsTrigger value="medical">Medical History</TabsTrigger>
-              <TabsTrigger value="symptoms">Symptoms</TabsTrigger>
-              <TabsTrigger value="review">System Review</TabsTrigger>
-              <TabsTrigger value="communications">Communications</TabsTrigger>
-              <TabsTrigger value="release">Release of Info</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 mb-8 bg-muted p-1 rounded-lg">
+              <TabsTrigger value="general" className="border-r border-border/50">General</TabsTrigger>
+              <TabsTrigger value="accident" className="border-r border-border/50">Accident</TabsTrigger>
+              <TabsTrigger value="insurance" className="border-r border-border/50">Insurance</TabsTrigger>
+              <TabsTrigger value="medical" className="border-r border-border/50">Medical History</TabsTrigger>
+              <TabsTrigger value="symptoms" className="border-r border-border/50">Symptoms</TabsTrigger>
+              <TabsTrigger value="review" className="border-r border-border/50">System Review</TabsTrigger>
+              <TabsTrigger value="communications" className="border-r border-border/50">Communications</TabsTrigger>
+              <TabsTrigger value="release" className="border-r border-border/50">Release of Info</TabsTrigger>
               <TabsTrigger value="auth">Authorizations</TabsTrigger>
             </TabsList>
 
