@@ -259,6 +259,13 @@ export default function PatientProfile() {
     }
   }, [patientId]); // Removed patients dependency to fix race condition
   
+  // Reset form when patient data loads
+  useEffect(() => {
+    if (patient && !isEditing) {
+      resetFormToPatientData();
+    }
+  }, [patient]);
+  
   const resetFormToPatientData = () => {
     if (!patient) return;
     
@@ -387,7 +394,7 @@ export default function PatientProfile() {
         { id: "file-3", name: "Cervical_XRay_Report.pdf", type: "Imaging", uploadDate: new Date("2025-05-23"), uploadedBy: "Dr. Silverman" }
       ]);
       // Load real form submissions for this patient
-      await loadPatientForms(patient.id);
+      await loadPatientForms(patientData.id);
 
     } catch (error) {
       console.error('Failed to load patient data:', error);
