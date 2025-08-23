@@ -270,7 +270,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
       hasUpdates = true;
     }
     
-    // Smart mapping for current symptoms
+    // Smart mapping for current symptoms with comprehensive field mappings
     if (patient.current_symptoms) {
       console.log('Found current_symptoms in patient data:', patient.current_symptoms);
       try {
@@ -281,31 +281,76 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
         console.log('Parsed symptoms:', symptoms);
         
         if (typeof symptoms === 'object' && symptoms !== null) {
+          const unmappedSymptoms = [];
+          
+          // Define comprehensive field mappings
+          const symptomMappings = {
+            // Direct mappings (1:1)
+            'loss_memory': 'memory_problems',
+            'loss_balance': 'balance_problems',
+            'sleeping_problems': 'sleep_problems',
+            
+            // Custom mappings with multiple targets
+            'numbness_arms_hands': ['finger_numbness'],
+            'pain_arms_hands': ['arm_pain', 'hand_pain'],
+            'loss_strength_arms': ['arm_weakness'],
+            'chest_pain_rib': ['chest_pain'],
+            'loss_strength_legs': ['leg_weakness'],
+            'pain_legs_feet': ['leg_pain', 'foot_pain'],
+            'numbness_legs_feet': ['leg_numbness']
+          };
+          
           // Map symptoms from patient profile to SOAP form fields
           Object.entries(symptoms).forEach(([key, value]) => {
             if (value === true || value === 'true') {
-              // Direct mapping for matching field names
+              let mapped = false;
+              
+              // Check direct field name match
               if (updatedData.currentSymptoms.hasOwnProperty(key)) {
                 updatedData.currentSymptoms[key] = true;
                 hasUpdates = true;
-                console.log(`Mapped symptom: ${key} = true`);
+                mapped = true;
+                console.log(`Direct mapped symptom: ${key} = true`);
               }
-              // Custom mappings for different field names
-              else if (key === 'loss_memory' && updatedData.currentSymptoms.hasOwnProperty('memory_problems')) {
-                updatedData.currentSymptoms.memory_problems = true;
-                hasUpdates = true;
-                console.log('Mapped loss_memory to memory_problems');
+              // Check custom mappings
+              else if (symptomMappings[key]) {
+                const targets = Array.isArray(symptomMappings[key]) ? symptomMappings[key] : [symptomMappings[key]];
+                targets.forEach(target => {
+                  if (updatedData.currentSymptoms.hasOwnProperty(target)) {
+                    updatedData.currentSymptoms[target] = true;
+                    hasUpdates = true;
+                    mapped = true;
+                    console.log(`Custom mapped symptom: ${key} -> ${target} = true`);
+                  }
+                });
               }
-              // Add more custom mappings as needed
+              
+              // If no mapping found, add to unmapped list for "Other" section
+              if (!mapped) {
+                const readableLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                unmappedSymptoms.push(readableLabel);
+                console.log(`Unmapped symptom added to Other: ${key} -> ${readableLabel}`);
+              }
             }
           });
+          
+          // Add unmapped symptoms to otherSymptoms field
+          if (unmappedSymptoms.length > 0) {
+            const existingOther = updatedData.otherSymptoms || '';
+            const newOtherSymptoms = unmappedSymptoms.join(', ');
+            updatedData.otherSymptoms = existingOther 
+              ? `${existingOther}, ${newOtherSymptoms}` 
+              : newOtherSymptoms;
+            hasUpdates = true;
+            console.log(`Added unmapped symptoms to Other section: ${newOtherSymptoms}`);
+          }
         }
       } catch (error) {
         console.error('Error parsing current symptoms:', error);
       }
     }
     
-    // Smart mapping for family medical history
+    // Smart mapping for family medical history with comprehensive field mappings
     if (patient.family_medical_history || patient.family_history) {
       console.log('Found family history in patient data:', patient.family_medical_history || patient.family_history);
       const familyHistoryData = patient.family_medical_history || patient.family_history;
@@ -326,17 +371,66 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
               }
             }
           });
+          
+          // Add the entire text to other_conditions if it contains unmapped info
+          if (!updatedData.familyHistory.other_conditions) {
+            updatedData.familyHistory.other_conditions = familyHistoryData;
+            hasUpdates = true;
+            console.log('Added family history text to other_conditions');
+          }
         } else if (typeof familyHistoryData === 'object' && familyHistoryData !== null) {
+          const unmappedFamilyConditions = [];
+          
+          // Define family history field mappings
+          const familyMappings = {
+            'heart_trouble': 'heart_trouble',
+            'heart_disease': 'heart_trouble',
+            'hypertension': 'high_blood_pressure',
+            'high_bp': 'high_blood_pressure'
+          };
+          
           // Map object properties
           Object.entries(familyHistoryData).forEach(([key, value]) => {
             if (value === true || value === 'true') {
+              let mapped = false;
+              
+              // Check direct field name match
               if (updatedData.familyHistory.hasOwnProperty(key)) {
                 updatedData.familyHistory[key] = true;
                 hasUpdates = true;
-                console.log(`Mapped family history: ${key} = true`);
+                mapped = true;
+                console.log(`Direct mapped family history: ${key} = true`);
+              }
+              // Check custom mappings
+              else if (familyMappings[key]) {
+                const target = familyMappings[key];
+                if (updatedData.familyHistory.hasOwnProperty(target)) {
+                  updatedData.familyHistory[target] = true;
+                  hasUpdates = true;
+                  mapped = true;
+                  console.log(`Custom mapped family history: ${key} -> ${target} = true`);
+                }
+              }
+              
+              // If no mapping found, add to unmapped list for "Other" section
+              if (!mapped) {
+                const readableLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                unmappedFamilyConditions.push(readableLabel);
+                console.log(`Unmapped family condition added to Other: ${key} -> ${readableLabel}`);
               }
             }
           });
+          
+          // Add unmapped family conditions to other_conditions field
+          if (unmappedFamilyConditions.length > 0) {
+            const existingOther = updatedData.familyHistory.other_conditions || '';
+            const newOtherConditions = unmappedFamilyConditions.join(', ');
+            updatedData.familyHistory.other_conditions = existingOther 
+              ? `${existingOther}, ${newOtherConditions}` 
+              : newOtherConditions;
+            hasUpdates = true;
+            console.log(`Added unmapped family conditions to Other section: ${newOtherConditions}`);
+          }
         }
       } catch (error) {
         console.error('Error parsing family history:', error);
@@ -626,30 +720,44 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                 </div>
               </div>
 
-              {/* General */}
-              <div className="space-y-3">
-                <h5 className="text-sm font-medium text-muted-foreground">General</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {[
-                    { key: 'fatigue', label: 'Fatigue' },
-                    { key: 'sleep_problems', label: 'Sleep Problems' },
-                    { key: 'anxiety', label: 'Anxiety' },
-                    { key: 'depression', label: 'Depression' },
-                    { key: 'nausea', label: 'Nausea' },
-                    { key: 'appetite_changes', label: 'Appetite Changes' }
-                  ].map(({ key, label }) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`current-${key}`}
-                        checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
-                        onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
-                      />
-                      <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
-                    </div>
-                  ))}
-                </div>
+            {/* General */}
+            <div className="space-y-3">
+              <h5 className="text-sm font-medium text-muted-foreground">General</h5>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                  { key: 'fatigue', label: 'Fatigue' },
+                  { key: 'sleep_problems', label: 'Sleep Problems' },
+                  { key: 'anxiety', label: 'Anxiety' },
+                  { key: 'depression', label: 'Depression' },
+                  { key: 'nausea', label: 'Nausea' },
+                  { key: 'appetite_changes', label: 'Appetite Changes' }
+                ].map(({ key, label }) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`current-${key}`}
+                      checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
+                      onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
+                    />
+                    <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* Other Symptoms */}
+            <div className="space-y-2">
+              <Label htmlFor="other-symptoms" className="text-sm font-medium text-muted-foreground">
+                Other Symptoms
+              </Label>
+              <Textarea
+                id="other-symptoms"
+                placeholder="Please specify any other symptoms not listed above..."
+                value={data.otherSymptoms || ''}
+                onChange={(e) => onChange({ ...data, otherSymptoms: e.target.value })}
+                className="min-h-[60px]"
+              />
+            </div>
+          </div>
 
             <Separator />
 
