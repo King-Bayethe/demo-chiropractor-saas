@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EnhancedDateInput } from '@/components/EnhancedDateInput';
-import { Edit, Phone, Mail, MapPin, User, Calendar, Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Edit, Phone, Mail, MapPin, User, Calendar, Shield, Upload, Camera } from 'lucide-react';
 
 interface DemographicsCardProps {
   patient: any;
@@ -16,6 +19,7 @@ interface DemographicsCardProps {
   isSensitiveVisible: boolean;
   onToggleSensitive: () => void;
   form?: any;
+  onPatientUpdate?: (updates: any) => void;
 }
 
 export const DemographicsCard: React.FC<DemographicsCardProps> = ({
@@ -24,8 +28,11 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
   onEdit,
   isSensitiveVisible,
   onToggleSensitive,
-  form
+  form,
+  onPatientUpdate
 }) => {
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
   const formatPhone = (phone: string) => {
     if (!phone) return '';
     const cleaned = phone.replace(/\D/g, '');
@@ -42,6 +49,83 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
       patient.state && patient.zip ? `${patient.state} ${patient.zip}` : patient.state || patient.zip
     ].filter(Boolean);
     return parts.join(', ');
+  };
+
+  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "Image size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${patient.id}-${Date.now()}.${fileExt}`;
+      const filePath = `patient-profiles/${fileName}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update patient record
+      const { error: updateError } = await supabase
+        .from('patients')
+        .update({ profile_picture_url: publicUrl })
+        .eq('id', patient.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      if (onPatientUpdate) {
+        onPatientUpdate({ profile_picture_url: publicUrl });
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload profile picture",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
   };
 
   return (
@@ -62,6 +146,40 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Profile Picture Section */}
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <Avatar className="h-24 w-24">
+              <AvatarImage 
+                src={patient.profile_picture_url} 
+                alt={`${patient.first_name} ${patient.last_name}`}
+              />
+              <AvatarFallback className="text-xl">
+                {getInitials(patient.first_name, patient.last_name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute bottom-0 right-0">
+              <label htmlFor="profile-picture-upload" className="cursor-pointer">
+                <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg hover:bg-primary/90 transition-colors">
+                  {uploading ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </div>
+              </label>
+              <input
+                id="profile-picture-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureUpload}
+                className="hidden"
+                disabled={uploading}
+              />
+            </div>
+          </div>
+        </div>
+
         {isEditing && form ? (
           /* Edit Mode */
           <Form {...form}>

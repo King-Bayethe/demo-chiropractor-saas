@@ -976,6 +976,7 @@ export default function PatientProfile() {
                           isSensitiveVisible={sensitiveDataVisible}
                           onToggleSensitive={loadSensitiveData}
                           form={form}
+                          onPatientUpdate={(updates) => setPatient(prev => prev ? { ...prev, ...updates } : null)}
                         />
                       </TabsContent>
 
