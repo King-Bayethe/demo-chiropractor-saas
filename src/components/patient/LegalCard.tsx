@@ -2,6 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Scale, 
   Edit, 
@@ -19,6 +21,7 @@ interface LegalCardProps {
   onEdit: () => void;
   isSensitiveVisible: boolean;
   onToggleSensitive: () => void;
+  form?: any; // Add form prop for editing
 }
 
 export const LegalCard: React.FC<LegalCardProps> = ({
@@ -26,7 +29,8 @@ export const LegalCard: React.FC<LegalCardProps> = ({
   isEditing,
   onEdit,
   isSensitiveVisible,
-  onToggleSensitive
+  onToggleSensitive,
+  form
 }) => {
   const maskPhone = (phone: string) => {
     if (!phone || isSensitiveVisible) return phone;
@@ -55,42 +59,78 @@ export const LegalCard: React.FC<LegalCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Attorney Information */}
-        {(patient.attorney_name || patient.attorney_phone || patient.attorney_firm) && (
-          <div className="space-y-3 pb-4 border-b">
-            <h4 className="font-medium text-foreground">Attorney Information</h4>
-            
-            {patient.attorney_name && (
-              <div>
-                <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  Attorney Name
-                </h5>
-                <p className="text-sm">{patient.attorney_name}</p>
+        {isEditing && form ? (
+          // Edit Mode - Show form fields
+          <div className="space-y-6">
+            {/* Attorney Information Section */}
+            <div className="space-y-4 pb-4 border-b">
+              <div className="flex items-center gap-2 mb-3">
+                <User className="h-4 w-4 text-purple-500" />
+                <h4 className="font-medium text-foreground">Attorney Information</h4>
               </div>
-            )}
-            
-            {patient.attorney_firm && (
-              <div>
-                <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <Building className="h-3 w-3" />
-                  Law Firm
-                </h5>
-                <p className="text-sm">{patient.attorney_firm}</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="attorneyName">Attorney's Name</Label>
+                  <Input 
+                    id="attorneyName"
+                    placeholder="Enter attorney's name" 
+                    value={form?.watch('attorneyName') || ''}
+                    onChange={(e) => form?.setValue('attorneyName', e.target.value)}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="attorneyPhone">Phone Number</Label>
+                  <Input 
+                    id="attorneyPhone"
+                    placeholder="Enter attorney's phone number" 
+                    value={form?.watch('attorneyPhone') || ''}
+                    onChange={(e) => form?.setValue('attorneyPhone', e.target.value)}
+                  />
+                </div>
               </div>
-            )}
-            
-            {patient.attorney_phone && (
-              <div>
-                <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  Phone
-                </h5>
-                <p className="text-sm font-mono">{maskPhone(patient.attorney_phone)}</p>
-              </div>
-            )}
+            </div>
           </div>
-        )}
+        ) : (
+          // Display Mode
+          <div className="space-y-4">
+            {/* Attorney Information */}
+            {(patient.attorney_name || patient.attorney_phone || patient.attorney_firm) && (
+              <div className="space-y-3 pb-4 border-b">
+                <h4 className="font-medium text-foreground">Attorney Information</h4>
+                
+                {patient.attorney_name && (
+                  <div>
+                    <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      Attorney Name
+                    </h5>
+                    <p className="text-sm">{patient.attorney_name}</p>
+                  </div>
+                )}
+                
+                {patient.attorney_firm && (
+                  <div>
+                    <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <Building className="h-3 w-3" />
+                      Law Firm
+                    </h5>
+                    <p className="text-sm">{patient.attorney_firm}</p>
+                  </div>
+                )}
+                
+                {patient.attorney_phone && (
+                  <div>
+                    <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      Phone
+                    </h5>
+                    <p className="text-sm font-mono">{maskPhone(patient.attorney_phone)}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
         {/* Adjuster Information */}
         {(patient.adjuster_name || patient.adjuster_phone || patient.adjuster_firm) && (
@@ -158,11 +198,13 @@ export const LegalCard: React.FC<LegalCardProps> = ({
           </div>
         )}
 
-        {/* No Legal Data */}
-        {!hasLegalInfo && (
-          <div className="text-center py-6 text-muted-foreground">
-            <Scale className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No legal information recorded</p>
+            {/* No Legal Data */}
+            {!hasLegalInfo && (
+              <div className="text-center py-6 text-muted-foreground">
+                <Scale className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No legal information recorded</p>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

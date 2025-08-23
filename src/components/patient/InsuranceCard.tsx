@@ -45,7 +45,7 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
   const hasHealthInsurance = patient.health_insurance || patient.health_insurance_id || patient.group_number || patient.medicaid_medicare_id;
   const hasAutoInsurance = patient.auto_insurance_company || patient.auto_policy_number || patient.claim_number || patient.adjuster_name;
   const hasInsuranceContact = patient.insurance_phone_number;
-  const hasAttorney = patient.attorney_name || patient.attorney_phone;
+  
 
   return (
     <Card className="h-full">
@@ -187,35 +187,6 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
               </div>
             </div>
 
-            {/* Attorney Information Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
-                <User className="h-4 w-4 text-purple-500" />
-                <h4 className="font-medium text-foreground">Attorney Information</h4>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="attorneyName">Attorney's Name</Label>
-                  <Input 
-                    id="attorneyName"
-                    placeholder="Enter attorney's name" 
-                    value={form?.watch('attorneyName') || ''}
-                    onChange={(e) => form?.setValue('attorneyName', e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="attorneyPhone">Phone Number</Label>
-                  <Input 
-                    id="attorneyPhone"
-                    placeholder="Enter attorney's phone number" 
-                    value={form?.watch('attorneyPhone') || ''}
-                    onChange={(e) => form?.setValue('attorneyPhone', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         ) : (
           // Display Mode - Show data or empty state
@@ -350,35 +321,6 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
           </div>
         )}
 
-        {/* Attorney Information */}
-        {hasAttorney && (
-          <div className="space-y-3 pb-4 border-b">
-            <div className="flex items-center gap-2 mb-3">
-              <User className="h-4 w-4 text-purple-500" />
-              <h4 className="font-medium text-foreground">Attorney Information</h4>
-            </div>
-            
-            {patient.attorney_name && (
-              <div>
-                <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  Attorney's Name
-                </h5>
-                <p className="text-sm">{patient.attorney_name}</p>
-              </div>
-            )}
-            
-            {patient.attorney_phone && (
-              <div>
-                <h5 className="font-medium text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  Phone Number
-                </h5>
-                <p className="text-sm">{patient.attorney_phone}</p>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Additional Insurance Info */}
         {(patient.date_of_loss || patient.policy_limits) && (
@@ -405,7 +347,7 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
         )}
 
             {/* No Insurance Data */}
-            {!hasHealthInsurance && !hasAutoInsurance && !hasInsuranceContact && !hasAttorney && (
+            {!hasHealthInsurance && !hasAutoInsurance && !hasInsuranceContact && (
               <div className="text-center py-6 text-muted-foreground">
                 <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No insurance information recorded</p>
@@ -415,7 +357,7 @@ export const InsuranceCard: React.FC<InsuranceCardProps> = ({
         )}
 
         {/* Sensitive Data Toggle */}
-        {!isEditing && !isSensitiveVisible && (hasHealthInsurance || hasAutoInsurance || hasInsuranceContact || hasAttorney) && (
+        {!isEditing && !isSensitiveVisible && (hasHealthInsurance || hasAutoInsurance || hasInsuranceContact) && (
           <Button 
             onClick={onToggleSensitive}
             variant="outline" 
