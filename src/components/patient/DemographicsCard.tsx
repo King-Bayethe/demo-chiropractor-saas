@@ -78,30 +78,60 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
     setUploading(true);
 
     try {
+      // Check authentication first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to upload images",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${patient.id}-${Date.now()}.${fileExt}`;
       const filePath = `patient-profiles/${fileName}`;
 
-      // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
+      console.log('Uploading file:', fileName, 'to path:', filePath);
 
-      if (uploadError) throw uploadError;
+      // Upload to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
+      console.log('Public URL:', publicUrl);
+
       // Update patient record
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('patients')
         .update({ profile_picture_url: publicUrl })
-        .eq('id', patient.id);
+        .eq('id', patient.id)
+        .select()
+        .single();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw updateError;
+      }
+
+      console.log('Database update successful:', updateData);
 
       // Update local state
       if (onPatientUpdate) {
