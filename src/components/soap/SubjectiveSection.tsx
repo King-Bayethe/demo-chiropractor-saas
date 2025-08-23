@@ -148,6 +148,86 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
       updatedData.familyHistory = {};
     }
     
+    // Map current symptoms from patient profile to symptoms checklist
+    if (!updatedData.currentSymptoms || updatedData.currentSymptoms.length === 0) {
+      const symptomsFromProfile: string[] = [];
+      
+      // Check patient's current symptoms and map to our form
+      if (patient.current_symptoms) {
+        let patientSymptoms = '';
+        
+        // Handle both string and object formats
+        if (typeof patient.current_symptoms === 'object') {
+          // Extract symptoms from object format
+          patientSymptoms = Object.entries(patient.current_symptoms)
+            .filter(([_, value]) => value === true || value === 'yes' || value === 'checked')
+            .map(([key, _]) => key)
+            .join(' ').toLowerCase();
+        } else {
+          patientSymptoms = patient.current_symptoms.toLowerCase();
+        }
+        
+        // Map patient symptoms to our form symptoms
+        detailedSymptoms.forEach(symptom => {
+          const symptomTerms = symptom.label.toLowerCase().split(/[\s\/\-]+/);
+          const hasMatch = symptomTerms.some(term => 
+            patientSymptoms.includes(term) ||
+            patientSymptoms.includes(term.replace('_', ' ')) ||
+            patientSymptoms.includes(term.replace(' ', '_'))
+          );
+          
+          if (hasMatch) {
+            symptomsFromProfile.push(symptom.id);
+          }
+        });
+      }
+      
+      if (symptomsFromProfile.length > 0) {
+        updatedData.currentSymptoms = symptomsFromProfile;
+        hasUpdates = true;
+      }
+    }
+    
+    // Map family history from patient profile to family history form
+    if (!updatedData.familyHistory.conditions || updatedData.familyHistory.conditions.length === 0) {
+      const familyConditionsFromProfile: string[] = [];
+      
+      if (patient.family_medical_history) {
+        let familyHistory = '';
+        
+        // Handle both string and object formats
+        if (typeof patient.family_medical_history === 'object') {
+          familyHistory = Object.entries(patient.family_medical_history)
+            .filter(([_, value]) => value === true || value === 'yes' || value === 'checked')
+            .map(([key, _]) => key)
+            .join(' ').toLowerCase();
+        } else {
+          familyHistory = patient.family_medical_history.toLowerCase();
+        }
+        
+        // Map family history conditions
+        familyHistoryConditions.forEach(condition => {
+          const conditionTerms = condition.label.toLowerCase().split(/[\s\/\-]+/);
+          const hasMatch = conditionTerms.some(term => 
+            familyHistory.includes(term) ||
+            familyHistory.includes(term.replace('_', ' ')) ||
+            familyHistory.includes(term.replace(' ', '_')) ||
+            familyHistory.includes(term.slice(0, -1)) || // partial match
+            familyHistory.includes(term + 's') // plural
+          );
+          
+          if (hasMatch) {
+            familyConditionsFromProfile.push(condition.id);
+          }
+        });
+      }
+      
+      if (familyConditionsFromProfile.length > 0) {
+        updatedData.familyHistory.conditions = familyConditionsFromProfile;
+        hasUpdates = true;
+      }
+    }
+    
     // Smart mapping for medications - check multiple potential fields
     if (!updatedData.medicalHistory.medications) {
       const medicationSources = [
@@ -247,31 +327,6 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
     if (!updatedData.painScale && patient.pain_severity) {
       updatedData.painScale = patient.pain_severity;
       hasUpdates = true;
-    }
-    
-    // Smart mapping for family history conditions
-    if (!updatedData.familyHistory.conditions && patient.family_medical_history) {
-      const familyHistory = patient.family_medical_history.toLowerCase();
-      const matchedConditions: string[] = [];
-      
-      // Use fuzzy matching for conditions
-      familyHistoryConditions.forEach(condition => {
-        const conditionTerms = condition.label.toLowerCase().split(/[\s\/]+/);
-        const hasMatch = conditionTerms.some(term => 
-          familyHistory.includes(term) || 
-          familyHistory.includes(term.slice(0, -1)) || // partial match
-          familyHistory.includes(term + 's') // plural
-        );
-        
-        if (hasMatch) {
-          matchedConditions.push(condition.id);
-        }
-      });
-      
-      if (matchedConditions.length > 0) {
-        updatedData.familyHistory.conditions = matchedConditions;
-        hasUpdates = true;
-      }
     }
     
     // Smart mapping for smoking status
