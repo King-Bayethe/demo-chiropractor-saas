@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Stethoscope, 
@@ -140,7 +145,151 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!hasSystemsData ? (
+        {isEditing && form ? (
+          /* Edit Mode */
+          <Form {...form}>
+            <div className="space-y-6">
+              {/* Cardiovascular System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Heart className="h-4 w-4 text-red-500" />
+                  <h4 className="font-medium text-foreground">Cardiovascular System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Chest Pain', 'Palpitations', 'Shortness of Breath', 'Swelling', 'Dizziness', 'Fainting'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`cardio-${symptom}`} />
+                      <Label htmlFor={`cardio-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Respiratory System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Wind className="h-4 w-4 text-blue-500" />
+                  <h4 className="font-medium text-foreground">Respiratory System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Cough', 'Wheezing', 'Shortness of Breath', 'Chest Pain', 'Sputum Production', 'Night Sweats'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`resp-${symptom}`} />
+                      <Label htmlFor={`resp-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Neurological System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Brain className="h-4 w-4 text-purple-500" />
+                  <h4 className="font-medium text-foreground">Neurological System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Headache', 'Dizziness', 'Numbness', 'Tingling', 'Weakness', 'Memory Loss', 'Seizures', 'Vision Changes'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`neuro-${symptom}`} />
+                      <Label htmlFor={`neuro-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Musculoskeletal System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bone className="h-4 w-4 text-orange-500" />
+                  <h4 className="font-medium text-foreground">Musculoskeletal System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Joint Pain', 'Muscle Pain', 'Stiffness', 'Swelling', 'Limited Range of Motion', 'Back Pain'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`musculo-${symptom}`} />
+                      <Label htmlFor={`musculo-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gastrointestinal System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Apple className="h-4 w-4 text-green-500" />
+                  <h4 className="font-medium text-foreground">Gastrointestinal System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Nausea', 'Vomiting', 'Abdominal Pain', 'Diarrhea', 'Constipation', 'Loss of Appetite'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`gi-${symptom}`} />
+                      <Label htmlFor={`gi-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Genitourinary System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <h4 className="font-medium text-foreground">Genitourinary System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Frequent Urination', 'Painful Urination', 'Blood in Urine', 'Incontinence', 'Kidney Pain'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`gu-${symptom}`} />
+                      <Label htmlFor={`gu-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ENT (Eyes, Nose, Throat) */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Eye className="h-4 w-4 text-indigo-500" />
+                  <h4 className="font-medium text-foreground">ENT (Eyes, Nose, Throat)</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Vision Changes', 'Eye Pain', 'Hearing Loss', 'Ear Pain', 'Sore Throat', 'Nasal Congestion'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`ent-${symptom}`} />
+                      <Label htmlFor={`ent-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Endocrine System */}
+              <div className="space-y-4 pb-4 border-b">
+                <div className="flex items-center gap-2 mb-3">
+                  <Stethoscope className="h-4 w-4 text-pink-500" />
+                  <h4 className="font-medium text-foreground">Endocrine System</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['Excessive Thirst', 'Frequent Urination', 'Weight Changes', 'Fatigue', 'Heat/Cold Intolerance'].map((symptom) => (
+                    <div key={symptom} className="flex items-center space-x-2">
+                      <Checkbox id={`endo-${symptom}`} />
+                      <Label htmlFor={`endo-${symptom}`} className="text-sm">{symptom}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Additional Notes */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-foreground">Additional Notes</h4>
+                <Textarea 
+                  placeholder="Any additional symptoms or concerns not listed above..."
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+          </Form>
+        ) : (
+          /* View Mode */
+          !hasSystemsData ? (
           <div className="text-center py-6 text-muted-foreground">
             <Stethoscope className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No systems review data recorded</p>
@@ -192,7 +341,7 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
             })}
 
             {/* Additional/Other Systems */}
-            {patient.medical_systems_review && (
+            {patient.medical_systems_review && Object.keys(patient.medical_systems_review).length > 0 && (
               <div className="pt-4 border-t">
                 <h4 className="font-medium text-foreground mb-3">Additional Systems Review</h4>
                 <div className="bg-muted/50 p-3 rounded-md">
@@ -203,7 +352,7 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
               </div>
             )}
           </div>
-        )}
+        ))}
       </CardContent>
     </Card>
   );
