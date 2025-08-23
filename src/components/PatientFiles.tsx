@@ -377,7 +377,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
             <div className="space-y-4">
               {/* Drag and Drop Area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                   dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
                 }`}
                 onDragEnter={handleDrag}
@@ -399,7 +399,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
                   multiple
                   accept={Object.keys(ACCEPTED_FILE_TYPES).join(',')}
                   onChange={(e) => e.target.files && handleFileSelection(Array.from(e.target.files))}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
               </div>
 
