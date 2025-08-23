@@ -748,6 +748,7 @@ export type Database = {
           address: string | null
           adjuster_name: string | null
           age: number | null
+          allergies: string | null
           attorney_name: string | null
           attorney_phone: string | null
           auto_insurance_company: string | null
@@ -755,10 +756,12 @@ export type Database = {
           body_part_hit: string | null
           case_type: string | null
           cell_phone: string | null
+          chronic_conditions: string | null
           city: string | null
           claim_number: string | null
           consent_acknowledgement: boolean | null
           created_at: string
+          current_medications: string | null
           date_of_birth: string | null
           did_go_to_hospital: boolean | null
           drivers_license: string | null
@@ -766,6 +769,7 @@ export type Database = {
           email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           employer_address: string | null
           employer_name: string | null
           employment_status: string | null
@@ -788,8 +792,10 @@ export type Database = {
           marital_status: string | null
           medicaid_medicare_id: string | null
           medical_systems_review: Json | null
+          other_medical_history: string | null
           pain_location: string | null
           pain_severity: number | null
+          past_injuries: string | null
           patient_signature: string | null
           person_type: string | null
           phone: string | null
@@ -817,6 +823,7 @@ export type Database = {
           address?: string | null
           adjuster_name?: string | null
           age?: number | null
+          allergies?: string | null
           attorney_name?: string | null
           attorney_phone?: string | null
           auto_insurance_company?: string | null
@@ -824,10 +831,12 @@ export type Database = {
           body_part_hit?: string | null
           case_type?: string | null
           cell_phone?: string | null
+          chronic_conditions?: string | null
           city?: string | null
           claim_number?: string | null
           consent_acknowledgement?: boolean | null
           created_at?: string
+          current_medications?: string | null
           date_of_birth?: string | null
           did_go_to_hospital?: boolean | null
           drivers_license?: string | null
@@ -835,6 +844,7 @@ export type Database = {
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           employer_address?: string | null
           employer_name?: string | null
           employment_status?: string | null
@@ -857,8 +867,10 @@ export type Database = {
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
+          other_medical_history?: string | null
           pain_location?: string | null
           pain_severity?: number | null
+          past_injuries?: string | null
           patient_signature?: string | null
           person_type?: string | null
           phone?: string | null
@@ -886,6 +898,7 @@ export type Database = {
           address?: string | null
           adjuster_name?: string | null
           age?: number | null
+          allergies?: string | null
           attorney_name?: string | null
           attorney_phone?: string | null
           auto_insurance_company?: string | null
@@ -893,10 +906,12 @@ export type Database = {
           body_part_hit?: string | null
           case_type?: string | null
           cell_phone?: string | null
+          chronic_conditions?: string | null
           city?: string | null
           claim_number?: string | null
           consent_acknowledgement?: boolean | null
           created_at?: string
+          current_medications?: string | null
           date_of_birth?: string | null
           did_go_to_hospital?: boolean | null
           drivers_license?: string | null
@@ -904,6 +919,7 @@ export type Database = {
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           employer_address?: string | null
           employer_name?: string | null
           employment_status?: string | null
@@ -926,8 +942,10 @@ export type Database = {
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
+          other_medical_history?: string | null
           pain_location?: string | null
           pain_severity?: number | null
+          past_injuries?: string | null
           patient_signature?: string | null
           person_type?: string | null
           phone?: string | null
