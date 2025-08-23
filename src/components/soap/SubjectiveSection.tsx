@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { PatientMedicalSummary } from "./PatientMedicalSummary";
+import { autofillSOAPFromPatient, convertCurrentSymptomsToSOAP, convertFamilyHistoryToSOAP } from "@/utils/soapFormMapping";
 
 interface SubjectiveSectionProps {
   data: SubjectiveData;
@@ -111,6 +112,7 @@ export interface SubjectiveData {
     medications?: string;
     allergies?: string;
   };
+  functionalLimitations?: string;
   
   // Enhanced chiropractic fields (optional for backward compatibility)
   mainComplaints?: string[];
@@ -594,18 +596,62 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
     }
   };
 
-  // Autofill from patient profile when patient data is available
+  // Enhanced autofill from patient data using mapping system
   useEffect(() => {
     console.log('SubjectiveSection useEffect triggered with patient:', patient);
     console.log('Current data state:', data);
     
-    if (patient && (
-      !data.currentSymptoms || Object.values(data.currentSymptoms || {}).every(val => !val) ||
-      !data.familyHistory || Object.values(data.familyHistory || {}).every(val => !val) ||
-      !data.medicalHistory?.medications || !data.painDescription
-    )) {
-      console.log('Conditions met for autofill, triggering mapPatientDataToSOAP');
-      mapPatientDataToSOAP();
+    if (patient) {
+      console.log('Starting enhanced patient autofill with data:', patient);
+      const autofillData = autofillSOAPFromPatient(patient);
+      console.log('Generated autofill data:', autofillData);
+      
+      // Check if we have any meaningful autofill data
+      const hasAutofillData = (
+        Object.keys(autofillData.currentSymptoms || {}).length > 0 || 
+        Object.keys(autofillData.familyHistory || {}).length > 0 ||
+        autofillData.painScale ||
+        autofillData.painDescription ||
+        autofillData.otherSymptoms ||
+        autofillData.otherFamilyHistory
+      );
+      
+      // Only autofill if there's meaningful data and current form is mostly empty
+      const formNeedsAutofill = (
+        !data.currentSymptoms || Object.values(data.currentSymptoms || {}).every(val => !val) ||
+        !data.familyHistory || Object.values(data.familyHistory || {}).every(val => !val) ||
+        !data.painScale || !data.painDescription
+      );
+      
+      if (hasAutofillData && formNeedsAutofill) {
+        console.log('Applying enhanced autofill...');
+        const updatedData = {
+          ...data,
+          currentSymptoms: {
+            ...data.currentSymptoms,
+            ...autofillData.currentSymptoms
+          },
+          familyHistory: {
+            ...data.familyHistory,
+            ...autofillData.familyHistory
+          },
+          painScale: autofillData.painScale || data.painScale,
+          painDescription: autofillData.painDescription || data.painDescription,
+          otherSymptoms: [
+            data.otherSymptoms, 
+            autofillData.otherSymptoms, 
+            autofillData.otherFamilyHistory
+          ].filter(Boolean).join(', ') || data.otherSymptoms,
+          functionalLimitations: autofillData.functionalLimitations || data.functionalLimitations
+        };
+        
+        console.log('Final enhanced autofill data being applied:', updatedData);
+        onChange(updatedData);
+      } else {
+        // Fallback to original mapping for backwards compatibility
+        console.log('Using fallback mapping system');
+        mapPatientDataToSOAP();
+      }
     } else {
       console.log('Autofill conditions not met');
     }
