@@ -71,6 +71,47 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   };
   const alcoholInfo = patient.alcohol_consumption;
 
+  // Parse symptoms and family history from JSON fields
+  const currentSymptoms = patient.current_symptoms ? 
+    (typeof patient.current_symptoms === 'string' ? JSON.parse(patient.current_symptoms) : patient.current_symptoms) : {};
+  const systemsReview = patient.systems_review ? 
+    (typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review) : {};
+
+  // Symptom categories
+  const symptomCategories = [
+    {
+      title: "Head & Neck",
+      symptoms: ["headache", "neck_pain", "neck_stiff", "jaw_pain"]
+    },
+    {
+      title: "Arms & Hands", 
+      symptoms: ["tingling_arms_hands", "numbness_arms_hands", "pain_arms_hands", "loss_strength_arms"]
+    },
+    {
+      title: "Back & Core",
+      symptoms: ["back_pain", "chest_pain_rib", "shortness_breath"]
+    },
+    {
+      title: "Legs & Feet",
+      symptoms: ["loss_strength_legs", "pain_legs_feet", "numbness_legs_feet", "tingling_legs_feet"]
+    },
+    {
+      title: "Neurological",
+      symptoms: ["dizziness", "loss_memory", "loss_balance", "loss_smell"]
+    },
+    {
+      title: "General",
+      symptoms: ["fatigue", "irritability", "sleeping_problems", "nausea", "ears_ring"]
+    }
+  ];
+
+  // Family history conditions
+  const familyHistoryConditions = [
+    "heart_trouble", "stroke", "kyphosis", "diabetes", "cancer", "arthritis",
+    "lung_disease", "osteoporosis", "migraines", "high_blood_pressure", 
+    "scoliosis", "spine_problems", "alcohol_dependence", "aneurysm"
+  ];
+
   const sections = [
     {
       key: 'medications',
@@ -315,6 +356,73 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
               )}
             />
 
+            <div className="space-y-6 border-t pt-6">
+              <div>
+                <FormLabel className="text-base font-semibold mb-4 block">Current Symptoms</FormLabel>
+                <p className="text-sm text-muted-foreground mb-4">Please check any symptoms you are currently experiencing:</p>
+                <div className="space-y-4">
+                  {symptomCategories.map((category) => (
+                    <div key={category.title} className="space-y-2">
+                      <h4 className="font-medium text-sm text-primary">{category.title}</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {category.symptoms.map((symptom) => (
+                          <FormField
+                            key={symptom}
+                            control={form.control}
+                            name={`currentSymptoms.${symptom}`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    checked={field.value || false}
+                                    onChange={field.onChange}
+                                    className="mt-1"
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">
+                                  {symptom.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <FormLabel className="text-base font-semibold mb-4 block">Family Medical History</FormLabel>
+                <p className="text-sm text-muted-foreground mb-4">Check conditions that apply to family members (parents, siblings, grandparents, aunts/uncles):</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {familyHistoryConditions.map((condition) => (
+                    <FormField
+                      key={condition}
+                      control={form.control}
+                      name={`familyHistory.${condition}`}
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value || false}
+                              onChange={field.onChange}
+                              className="mt-1"
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">
+                            {condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <FormField
               control={form.control}
               name="otherMedicalHistory"
@@ -479,6 +587,56 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                 <p className="text-sm bg-muted/50 p-3 rounded-md">
                   {patient.other_medical_history}
                 </p>
+              </div>
+            )}
+
+            {/* Current Symptoms */}
+            {Object.keys(currentSymptoms).some(key => currentSymptoms[key]) && (
+              <div className="border-t pt-3 mt-4">
+                <h4 className="font-medium text-sm text-blue-700 mb-3 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Current Symptoms
+                </h4>
+                <div className="space-y-3">
+                  {symptomCategories.map((category) => {
+                    const categorySymptoms = category.symptoms.filter(symptom => currentSymptoms[symptom]);
+                    if (categorySymptoms.length === 0) return null;
+                    
+                    return (
+                      <div key={category.title} className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                        <h5 className="font-medium text-sm text-blue-600 mb-2">{category.title}</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {categorySymptoms.map((symptom) => (
+                            <Badge key={symptom} variant="secondary" className="text-xs">
+                              {symptom.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Family Medical History Conditions */}
+            {Object.keys(systemsReview).some(key => systemsReview[key]) && (
+              <div className="border-t pt-3 mt-4">
+                <h4 className="font-medium text-sm text-emerald-700 mb-3 flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4" />
+                  Family Medical Conditions
+                </h4>
+                <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
+                  <div className="flex flex-wrap gap-2">
+                    {familyHistoryConditions
+                      .filter(condition => systemsReview[condition])
+                      .map((condition) => (
+                        <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
+                          {condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </Badge>
+                      ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -87,6 +87,48 @@ const patientFormSchema = z.object({
   smokingStatus: z.string().optional(),
   smokingHistory: z.string().optional(),
   alcoholConsumption: z.string().optional(),
+  currentSymptoms: z.object({
+    headache: z.boolean().optional(),
+    neck_pain: z.boolean().optional(),
+    neck_stiff: z.boolean().optional(),
+    jaw_pain: z.boolean().optional(),
+    tingling_arms_hands: z.boolean().optional(),
+    numbness_arms_hands: z.boolean().optional(),
+    pain_arms_hands: z.boolean().optional(),
+    loss_strength_arms: z.boolean().optional(),
+    back_pain: z.boolean().optional(),
+    chest_pain_rib: z.boolean().optional(),
+    shortness_breath: z.boolean().optional(),
+    loss_strength_legs: z.boolean().optional(),
+    pain_legs_feet: z.boolean().optional(),
+    numbness_legs_feet: z.boolean().optional(),
+    tingling_legs_feet: z.boolean().optional(),
+    dizziness: z.boolean().optional(),
+    loss_memory: z.boolean().optional(),
+    loss_balance: z.boolean().optional(),
+    loss_smell: z.boolean().optional(),
+    fatigue: z.boolean().optional(),
+    irritability: z.boolean().optional(),
+    sleeping_problems: z.boolean().optional(),
+    nausea: z.boolean().optional(),
+    ears_ring: z.boolean().optional(),
+  }).optional(),
+  familyHistory: z.object({
+    heart_trouble: z.boolean().optional(),
+    stroke: z.boolean().optional(),
+    kyphosis: z.boolean().optional(),
+    diabetes: z.boolean().optional(),
+    cancer: z.boolean().optional(),
+    arthritis: z.boolean().optional(),
+    lung_disease: z.boolean().optional(),
+    osteoporosis: z.boolean().optional(),
+    migraines: z.boolean().optional(),
+    high_blood_pressure: z.boolean().optional(),
+    scoliosis: z.boolean().optional(),
+    spine_problems: z.boolean().optional(),
+    alcohol_dependence: z.boolean().optional(),
+    aneurysm: z.boolean().optional(),
+  }).optional(),
   otherMedicalHistory: z.string().optional(),
   
   // Accident Details
@@ -345,6 +387,10 @@ export default function PatientProfile() {
       smokingStatus: patient.smoking_status || "",
       smokingHistory: patient.smoking_history || "",
       alcoholConsumption: patient.alcohol_consumption || "",
+      currentSymptoms: patient.current_symptoms ? 
+        (typeof patient.current_symptoms === 'string' ? JSON.parse(patient.current_symptoms) : patient.current_symptoms) : {},
+      familyHistory: patient.systems_review ? 
+        (typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review) : {},
       otherMedicalHistory: (patient as any).other_medical_history || "",
       
       // New PIP Form Fields - Accident Details
@@ -470,6 +516,10 @@ export default function PatientProfile() {
         smokingStatus: patientData.smoking_status || "",
         smokingHistory: patientData.smoking_history || "",
         alcoholConsumption: patientData.alcohol_consumption || "",
+        currentSymptoms: patientData.current_symptoms ? 
+          (typeof patientData.current_symptoms === 'string' ? JSON.parse(patientData.current_symptoms) : patientData.current_symptoms) : {},
+        familyHistory: patientData.systems_review ? 
+          (typeof patientData.systems_review === 'string' ? JSON.parse(patientData.systems_review) : patientData.systems_review) : {},
         otherMedicalHistory: (patientData as any).other_medical_history || "",
         // Insurance and Legal fields continue from here
         didGoToHospital: patientData.did_go_to_hospital === true ? "yes" : patientData.did_go_to_hospital === false ? "no" : "",
@@ -607,6 +657,8 @@ export default function PatientProfile() {
         smoking_status: data.smokingStatus?.trim() || null,
         smoking_history: data.smokingHistory?.trim() || null,
         alcohol_consumption: data.alcoholConsumption?.trim() || null,
+        current_symptoms: data.currentSymptoms ? JSON.stringify(data.currentSymptoms) : null,
+        systems_review: data.familyHistory ? JSON.stringify(data.familyHistory) : null,
         other_medical_history: data.otherMedicalHistory?.trim() || null,
         
         // Insurance and Legal
