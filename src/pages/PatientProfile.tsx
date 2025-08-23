@@ -982,7 +982,32 @@ export default function PatientProfile() {
                               Cancel
                             </Button>
                             <Button 
-                              onClick={form.handleSubmit(handleSave)}
+                              type="submit"
+                              onClick={(e) => {
+                                console.log("Save button clicked - about to submit form");
+                                e.preventDefault();
+                                
+                                // Check form validation first
+                                const formData = form.getValues();
+                                console.log("Current form values:", formData);
+                                console.log("Form errors:", form.formState.errors);
+                                
+                                // Trigger validation
+                                form.trigger().then((isValid) => {
+                                  console.log("Form validation result:", isValid);
+                                  if (isValid) {
+                                    console.log("Form is valid, calling handleSave");
+                                    handleSave(formData);
+                                  } else {
+                                    console.log("Form validation failed:", form.formState.errors);
+                                    toast({
+                                      title: "Validation Error",
+                                      description: "Please check the form for errors before saving.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                });
+                              }}
                               disabled={saving}
                               size="sm"
                               className="flex-1 sm:flex-initial"
