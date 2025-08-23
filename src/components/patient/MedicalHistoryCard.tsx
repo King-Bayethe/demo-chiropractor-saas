@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Activity, 
@@ -121,7 +121,8 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
       <CardContent className="space-y-3">
         {isEditing && form ? (
           /* Edit Mode */
-          <div className="space-y-4">
+          <Form {...form}>
+            <div className="space-y-4">
             <FormField
               control={form.control}
               name="currentMedications"
@@ -304,7 +305,8 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                 </FormItem>
               )}
             />
-          </div>
+            </div>
+          </Form>
         ) : (
           /* View Mode */
           <div className="space-y-3">

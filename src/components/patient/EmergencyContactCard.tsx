@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { 
   AlertCircle, 
   Edit, 
@@ -66,7 +66,8 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
       <CardContent className="space-y-4">
         {isEditing && form ? (
           /* Edit Mode */
-          <div className="space-y-4">
+          <Form {...form}>
+            <div className="space-y-4">
             <FormField
               control={form.control}
               name="emergencyContactName"
@@ -108,7 +109,8 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
                 </FormItem>
               )}
             />
-          </div>
+            </div>
+          </Form>
         ) : (
           /* View Mode */
           <div className="space-y-4">

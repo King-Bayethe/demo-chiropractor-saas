@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { EnhancedDateInput } from '@/components/EnhancedDateInput';
 import { Edit, Phone, Mail, MapPin, User, Calendar, Shield } from 'lucide-react';
 
@@ -64,7 +64,8 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
       <CardContent className="space-y-4">
         {isEditing && form ? (
           /* Edit Mode */
-          <div className="space-y-4">
+          <Form {...form}>
+            <div className="space-y-4">
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -277,7 +278,8 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
                 />
               </div>
             </div>
-          </div>
+            </div>
+          </Form>
         ) : (
           /* View Mode */
           <div className="space-y-4">
