@@ -1017,6 +1017,7 @@ export default function PatientProfile() {
                           onEdit={handleEdit}
                           isSensitiveVisible={sensitiveDataVisible}
                           onToggleSensitive={loadSensitiveData}
+                          form={form}
                         />
                       </TabsContent>
                     </Tabs>
