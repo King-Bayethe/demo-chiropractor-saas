@@ -134,157 +134,172 @@ export function PatientMedicalSummary({ patient, showNavigationButton = true }: 
         <p className="text-xs text-muted-foreground">Reference information from patient profile</p>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Pain Assessment Summary */}
-        {hasPainData && (
-          <Collapsible open={openSections.pain} onOpenChange={() => toggleSection('pain')}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-2 h-auto">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-destructive" />
-                  <span className="text-sm font-medium">Pain Assessment</span>
-                </div>
-                {openSections.pain ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
+        {/* Pain Assessment Summary - Always show */}
+        <Collapsible open={openSections.pain} onOpenChange={() => toggleSection('pain')}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between p-2 h-auto">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-destructive" />
+                <span className="text-sm font-medium">Pain Assessment</span>
+                {!hasPainData && <Badge variant="outline" className="text-xs text-muted-foreground">No data</Badge>}
+              </div>
+              {openSections.pain ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 ml-6 space-y-2">
+            {hasPainData ? (
+              <>
+                {patient?.pain_severity && renderPainSeverity(patient.pain_severity)}
+                {patient?.pain_location && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Location:</p>
+                    <p className="text-sm">{patient.pain_location}</p>
+                  </div>
                 )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 ml-6 space-y-2">
-              {patient?.pain_severity && renderPainSeverity(patient.pain_severity)}
-              {patient?.pain_location && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Location:</p>
-                  <p className="text-sm">{patient.pain_location}</p>
-                </div>
-              )}
-              {patient?.pain_frequency && (
-                <Badge variant="outline" className="text-xs">
-                  Frequency: {patient.pain_frequency}
-                </Badge>
-              )}
-              {patient?.pain_quality && (
-                <Badge variant="outline" className="text-xs">
-                  Quality: {patient.pain_quality}
-                </Badge>
-              )}
-              {patient?.functional_limitations && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Functional Impact:</p>
-                  <p className="text-sm">{patient.functional_limitations}</p>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {/* Medical History Summary */}
-        {hasMedicalHistory && (
-          <Collapsible open={openSections.history} onOpenChange={() => toggleSection('history')}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-2 h-auto">
-                <div className="flex items-center gap-2">
-                  <Pill className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">Medical History</span>
-                </div>
-                {openSections.history ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
+                {patient?.pain_frequency && (
+                  <Badge variant="outline" className="text-xs">
+                    Frequency: {patient.pain_frequency}
+                  </Badge>
                 )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 ml-6 space-y-3">
-              {patient?.allergies && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Allergies:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {parseList(patient.allergies).map((allergy, index) => (
-                      <Badge key={index} variant="destructive" className="text-xs">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        {allergy}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {patient?.current_medications && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Current Medications:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {parseList(patient.current_medications).map((medication, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-                        {medication}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {patient?.chronic_conditions && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Chronic Conditions:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {parseList(patient.chronic_conditions).map((condition, index) => (
-                      <Badge key={index} variant="outline" className="text-xs bg-yellow-50 text-yellow-800 border-yellow-200">
-                        {condition}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {patient?.past_injuries && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Past Injuries:</p>
-                  <p className="text-sm">{patient.past_injuries}</p>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {/* Systems Review Summary */}
-        {hasSystemsReview && (
-          <Collapsible open={openSections.systems} onOpenChange={() => toggleSection('systems')}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-2 h-auto">
-                <div className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">Systems Review</span>
-                </div>
-                {openSections.systems ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
+                {patient?.pain_quality && (
+                  <Badge variant="outline" className="text-xs">
+                    Quality: {patient.pain_quality}
+                  </Badge>
                 )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 ml-6">
-              {renderSystemsFindings(patient?.systems_review || patient?.medical_systems_review)}
-              
-              {patient?.current_symptoms && (
-                <div className="mt-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Current Symptoms:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {parseList(patient.current_symptoms).map((symptom, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {symptom}
-                      </Badge>
-                    ))}
+                {patient?.functional_limitations && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Functional Impact:</p>
+                    <p className="text-sm">{patient.functional_limitations}</p>
                   </div>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
+                No pain assessment data recorded for this patient. Pain information can be added in the patient profile.
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
 
-        {!hasPainData && !hasMedicalHistory && !hasSystemsReview && (
-          <p className="text-sm text-muted-foreground text-center py-2">
-            No medical context data available from patient profile
-          </p>
-        )}
+        {/* Medical History Summary - Always show */}
+        <Collapsible open={openSections.history} onOpenChange={() => toggleSection('history')}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between p-2 h-auto">
+              <div className="flex items-center gap-2">
+                <Pill className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium">Medical History</span>
+                {!hasMedicalHistory && <Badge variant="outline" className="text-xs text-muted-foreground">No data</Badge>}
+              </div>
+              {openSections.history ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 ml-6 space-y-3">
+            {hasMedicalHistory ? (
+              <>
+                {patient?.allergies && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Allergies:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {parseList(patient.allergies).map((allergy, index) => (
+                        <Badge key={index} variant="destructive" className="text-xs">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {allergy}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {patient?.current_medications && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Current Medications:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {parseList(patient.current_medications).map((medication, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                          {medication}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {patient?.chronic_conditions && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Chronic Conditions:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {parseList(patient.chronic_conditions).map((condition, index) => (
+                        <Badge key={index} variant="outline" className="text-xs bg-yellow-50 text-yellow-800 border-yellow-200">
+                          {condition}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {patient?.past_injuries && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Past Injuries:</p>
+                    <p className="text-sm">{patient.past_injuries}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
+                No medical history recorded for this patient. Medical history (medications, allergies, conditions) can be added in the patient profile.
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Systems Review Summary - Always show */}
+        <Collapsible open={openSections.systems} onOpenChange={() => toggleSection('systems')}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between p-2 h-auto">
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium">Systems Review</span>
+                {!hasSystemsReview && <Badge variant="outline" className="text-xs text-muted-foreground">No data</Badge>}
+              </div>
+              {openSections.systems ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 ml-6">
+            {hasSystemsReview ? (
+              <>
+                {renderSystemsFindings(patient?.systems_review || patient?.medical_systems_review)}
+                
+                {patient?.current_symptoms && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Current Symptoms:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {parseList(patient.current_symptoms).map((symptom, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {symptom}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground p-2 bg-muted/30 rounded">
+                No systems review data recorded for this patient. Systems review information can be added in the patient profile.
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );
