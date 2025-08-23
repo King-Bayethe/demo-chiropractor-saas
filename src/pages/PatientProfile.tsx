@@ -86,6 +86,7 @@ const patientFormSchema = z.object({
   familyMedicalHistory: z.string().optional(),
   smokingStatus: z.string().optional(),
   smokingHistory: z.string().optional(),
+  alcoholConsumption: z.string().optional(),
   otherMedicalHistory: z.string().optional(),
   
   // Accident Details
@@ -343,6 +344,7 @@ export default function PatientProfile() {
       familyMedicalHistory: patient.family_medical_history || "",
       smokingStatus: patient.smoking_status || "",
       smokingHistory: patient.smoking_history || "",
+      alcoholConsumption: patient.alcohol_consumption || "",
       otherMedicalHistory: (patient as any).other_medical_history || "",
       
       // New PIP Form Fields - Accident Details
@@ -467,6 +469,7 @@ export default function PatientProfile() {
         familyMedicalHistory: patientData.family_medical_history || "",
         smokingStatus: patientData.smoking_status || "",
         smokingHistory: patientData.smoking_history || "",
+        alcoholConsumption: patientData.alcohol_consumption || "",
         otherMedicalHistory: (patientData as any).other_medical_history || "",
         // Insurance and Legal fields continue from here
         didGoToHospital: patientData.did_go_to_hospital === true ? "yes" : patientData.did_go_to_hospital === false ? "no" : "",
@@ -603,6 +606,7 @@ export default function PatientProfile() {
         family_medical_history: data.familyMedicalHistory?.trim() || null,
         smoking_status: data.smokingStatus?.trim() || null,
         smoking_history: data.smokingHistory?.trim() || null,
+        alcohol_consumption: data.alcoholConsumption?.trim() || null,
         other_medical_history: data.otherMedicalHistory?.trim() || null,
         
         // Insurance and Legal

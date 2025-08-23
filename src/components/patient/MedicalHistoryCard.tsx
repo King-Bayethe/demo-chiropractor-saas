@@ -69,6 +69,7 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
     status: patient.smoking_status,
     history: patient.smoking_history
   };
+  const alcoholInfo = patient.alcohol_consumption;
 
   const sections = [
     {
@@ -290,6 +291,32 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
 
             <FormField
               control={form.control}
+              name="alcoholConsumption"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Alcohol Consumption</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select alcohol consumption level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="never">Never</SelectItem>
+                      <SelectItem value="occasionally">Occasionally</SelectItem>
+                      <SelectItem value="socially">Socially</SelectItem>
+                      <SelectItem value="regularly">Regularly</SelectItem>
+                      <SelectItem value="heavily">Heavily</SelectItem>
+                      <SelectItem value="former_drinker">Former Drinker</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="otherMedicalHistory"
               render={({ field }) => (
                 <FormItem>
@@ -429,6 +456,19 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                       <p className="text-sm text-yellow-700 mt-1">{smokingInfo.history}</p>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Alcohol Consumption */}
+            {alcoholInfo && (
+              <div className="border-t pt-3 mt-4">
+                <h4 className="font-medium text-sm text-purple-700 mb-3 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Alcohol Consumption
+                </h4>
+                <div className="bg-purple-50 p-3 rounded-md border border-purple-200">
+                  <p className="text-sm text-purple-700 capitalize">{alcoholInfo.replace('_', ' ')}</p>
                 </div>
               </div>
             )}
