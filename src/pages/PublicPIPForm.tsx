@@ -214,22 +214,22 @@ const PublicPIPForm = () => {
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">Silverman Chiropractic & Rehabilitation Center</h1>
           <p className="text-md text-muted-foreground mt-2">
-            PIP Intake Form / <span className="text-muted-foreground/70">Formulario de PIP</span>
+            New Patient Intake Form / <span className="text-muted-foreground/70">Formulario de Paciente Nuevo</span>
           </p>
         </header>
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 mb-8 bg-muted p-1 rounded-lg gap-0">
-              <TabsTrigger value="general" className="border-r border-border/50 text-xs sm:text-sm px-2">General</TabsTrigger>
-              <TabsTrigger value="accident" className="border-r border-border/50 text-xs sm:text-sm px-2">Accident</TabsTrigger>
-              <TabsTrigger value="insurance" className="border-r border-border/50 text-xs sm:text-sm px-2">Insurance</TabsTrigger>
-              <TabsTrigger value="medical" className="border-r border-border/50 text-xs sm:text-sm px-2">Medical</TabsTrigger>
-              <TabsTrigger value="symptoms" className="border-r border-border/50 text-xs sm:text-sm px-2">Symptoms</TabsTrigger>
-              <TabsTrigger value="review" className="border-r border-border/50 text-xs sm:text-sm px-2">Review</TabsTrigger>
-              <TabsTrigger value="communications" className="border-r border-border/50 text-xs sm:text-sm px-2">Comms</TabsTrigger>
-              <TabsTrigger value="release" className="border-r border-border/50 text-xs sm:text-sm px-2">Release</TabsTrigger>
-              <TabsTrigger value="auth" className="text-xs sm:text-sm px-2">Auth</TabsTrigger>
+            <TabsList className="flex flex-wrap -mb-px text-sm font-medium text-center border-b border-border">
+              <TabsTrigger value="general" className="inline-block p-4 border-b-2 rounded-t-lg">General</TabsTrigger>
+              <TabsTrigger value="accident" className="inline-block p-4 border-b-2 rounded-t-lg">Accident <span className="text-muted-foreground/70">(Accidente)</span></TabsTrigger>
+              <TabsTrigger value="insurance" className="inline-block p-4 border-b-2 rounded-t-lg">Insurance <span className="text-muted-foreground/70">(Seguro)</span></TabsTrigger>
+              <TabsTrigger value="medical" className="inline-block p-4 border-b-2 rounded-t-lg">Medical History <span className="text-muted-foreground/70">(Historial)</span></TabsTrigger>
+              <TabsTrigger value="symptoms" className="inline-block p-4 border-b-2 rounded-t-lg">Symptoms <span className="text-muted-foreground/70">(Síntomas)</span></TabsTrigger>
+              <TabsTrigger value="review" className="inline-block p-4 border-b-2 rounded-t-lg">System Review <span className="text-muted-foreground/70">(Revisión)</span></TabsTrigger>
+              <TabsTrigger value="communications" className="inline-block p-4 border-b-2 rounded-t-lg">Communications <span className="text-muted-foreground/70">(Comunicaciones)</span></TabsTrigger>
+              <TabsTrigger value="release" className="inline-block p-4 border-b-2 rounded-t-lg">Release of Info</TabsTrigger>
+              <TabsTrigger value="auth" className="inline-block p-4 border-b-2 rounded-t-lg">Authorizations <span className="text-muted-foreground/70">(Autorizaciones)</span></TabsTrigger>
             </TabsList>
 
             {/* General Information Tab */}
@@ -537,7 +537,7 @@ const PublicPIPForm = () => {
                     </RadioGroup>
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold pt-4 border-t">Impact Details</h3>
+                <h3 className="text-lg font-semibold pt-4 border-t">Impact Details <span className="text-muted-foreground">(Detalles del Impacto)</span></h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <p className="text-sm font-medium mb-2">On impact, your head was looking:</p>
@@ -641,7 +641,7 @@ const PublicPIPForm = () => {
                     />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold pt-4 border-t">Medical Attention</h3>
+                <h3 className="text-lg font-semibold pt-4 border-t">Medical Attention <span className="text-muted-foreground">(Atencion Medica)</span></h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <p className="text-sm font-medium mb-2">Did you go to the hospital? <span className="text-muted-foreground">(¿Fue al Hospital?)</span></p>
