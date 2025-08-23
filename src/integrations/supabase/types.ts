@@ -769,6 +769,7 @@ export type Database = {
           employer_address: string | null
           employer_name: string | null
           employment_status: string | null
+          family_medical_history: string | null
           first_name: string | null
           gender: string | null
           ghl_contact_id: string | null
@@ -787,12 +788,17 @@ export type Database = {
           marital_status: string | null
           medicaid_medicare_id: string | null
           medical_systems_review: Json | null
+          pain_location: string | null
+          pain_severity: number | null
           patient_signature: string | null
           person_type: string | null
           phone: string | null
           pip_form_submitted_at: string | null
           preferred_language: string | null
+          profile_picture_url: string | null
           signature_date: string | null
+          smoking_history: string | null
+          smoking_status: string | null
           social_security_number: string | null
           state: string | null
           street_surface: string | null
@@ -832,6 +838,7 @@ export type Database = {
           employer_address?: string | null
           employer_name?: string | null
           employment_status?: string | null
+          family_medical_history?: string | null
           first_name?: string | null
           gender?: string | null
           ghl_contact_id?: string | null
@@ -850,12 +857,17 @@ export type Database = {
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
+          pain_location?: string | null
+          pain_severity?: number | null
           patient_signature?: string | null
           person_type?: string | null
           phone?: string | null
           pip_form_submitted_at?: string | null
           preferred_language?: string | null
+          profile_picture_url?: string | null
           signature_date?: string | null
+          smoking_history?: string | null
+          smoking_status?: string | null
           social_security_number?: string | null
           state?: string | null
           street_surface?: string | null
@@ -895,6 +907,7 @@ export type Database = {
           employer_address?: string | null
           employer_name?: string | null
           employment_status?: string | null
+          family_medical_history?: string | null
           first_name?: string | null
           gender?: string | null
           ghl_contact_id?: string | null
@@ -913,12 +926,17 @@ export type Database = {
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
+          pain_location?: string | null
+          pain_severity?: number | null
           patient_signature?: string | null
           person_type?: string | null
           phone?: string | null
           pip_form_submitted_at?: string | null
           preferred_language?: string | null
+          profile_picture_url?: string | null
           signature_date?: string | null
+          smoking_history?: string | null
+          smoking_status?: string | null
           social_security_number?: string | null
           state?: string | null
           street_surface?: string | null

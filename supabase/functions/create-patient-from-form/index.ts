@@ -77,6 +77,17 @@ serve(async (req) => {
       emergency_contact_name: formData.emergencyContact,
       emergency_contact_phone: formData.emergencyPhone,
       medical_systems_review: formData.systems || {},
+      current_medications: formData.currentMedications || null,
+      allergies: formData.allergies || null,
+      past_injuries: formData.pastInjuries || null,
+      previous_surgeries: formData.previousSurgeries || null,
+      chronic_conditions: formData.chronicConditions || null,
+      other_medical_history: formData.otherMedicalHistory || null,
+      pain_location: formData.painLocation || null,
+      pain_severity: formData.painSeverity ? parseInt(formData.painSeverity) : null,
+      family_medical_history: formData.familyMedicalHistory || null,
+      smoking_status: formData.smokingStatus || null,
+      smoking_history: formData.smokingHistory || null,
       patient_signature: formData.signature,
       consent_acknowledgement: formData.consentAcknowledgement || false,
       case_type: 'Cash Plan',
@@ -100,9 +111,25 @@ serve(async (req) => {
 
     if (existingPatient) {
       // Update existing patient
+      const updateData = {
+        ...patientData,
+        // Preserve existing data for fields that are not provided
+        current_medications: formData.currentMedications || existingPatient.current_medications,
+        allergies: formData.allergies || existingPatient.allergies,
+        past_injuries: formData.pastInjuries || existingPatient.past_injuries,
+        previous_surgeries: formData.previousSurgeries || existingPatient.previous_surgeries,
+        chronic_conditions: formData.chronicConditions || existingPatient.chronic_conditions,
+        other_medical_history: formData.otherMedicalHistory || existingPatient.other_medical_history,
+        pain_location: formData.painLocation || existingPatient.pain_location,
+        pain_severity: formData.painSeverity ? parseInt(formData.painSeverity) : existingPatient.pain_severity,
+        family_medical_history: formData.familyMedicalHistory || existingPatient.family_medical_history,
+        smoking_status: formData.smokingStatus || existingPatient.smoking_status,
+        smoking_history: formData.smokingHistory || existingPatient.smoking_history,
+      };
+
       const { data: updatedPatient, error: updateError } = await supabase
         .from('patients')
-        .update(patientData)
+        .update(updateData)
         .eq('id', existingPatient.id)
         .select('id, first_name, last_name')
         .single()

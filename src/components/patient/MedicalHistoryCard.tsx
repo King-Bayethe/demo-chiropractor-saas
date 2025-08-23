@@ -48,6 +48,19 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   const injuries = parseList(patient.past_injuries || '');
   const conditions = parseList(patient.chronic_conditions || '');
 
+  // Pain Assessment
+  const painInfo = {
+    location: patient.pain_location,
+    severity: patient.pain_severity
+  };
+
+  // Additional medical info
+  const familyHistory = patient.family_medical_history;
+  const smokingInfo = {
+    status: patient.smoking_status,
+    history: patient.smoking_history
+  };
+
   const sections = [
     {
       key: 'medications',
@@ -146,6 +159,79 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
             </Collapsible>
           );
         })}
+
+        {/* Pain Assessment */}
+        {(painInfo.location || painInfo.severity) && (
+          <div className="border-t pt-3 mt-4">
+            <h4 className="font-medium text-sm text-red-700 mb-3 flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Pain Assessment
+            </h4>
+            <div className="space-y-3 bg-red-50 p-3 rounded-md border border-red-200">
+              {painInfo.location && (
+                <div>
+                  <span className="text-xs font-medium text-red-600">Location:</span>
+                  <p className="text-sm text-red-700 mt-1">{painInfo.location}</p>
+                </div>
+              )}
+              {painInfo.severity && (
+                <div>
+                  <span className="text-xs font-medium text-red-600">Severity Level:</span>
+                  <div className="flex items-center space-x-3 mt-1">
+                    <span className="text-lg font-bold text-red-700">{painInfo.severity}/10</span>
+                    <div className="flex space-x-1">
+                      {[...Array(10)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-3 h-3 rounded-full ${
+                            i < painInfo.severity ? 'bg-red-500' : 'bg-red-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Family Medical History */}
+        {familyHistory && (
+          <div className="border-t pt-3 mt-4">
+            <h4 className="font-medium text-sm text-green-700 mb-2 flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Family Medical History
+            </h4>
+            <p className="text-sm bg-green-50 p-3 rounded-md border border-green-200 text-green-700">
+              {familyHistory}
+            </p>
+          </div>
+        )}
+
+        {/* Smoking Status */}
+        {(smokingInfo.status || smokingInfo.history) && (
+          <div className="border-t pt-3 mt-4">
+            <h4 className="font-medium text-sm text-yellow-700 mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Smoking History
+            </h4>
+            <div className="space-y-2 bg-yellow-50 p-3 rounded-md border border-yellow-200">
+              {smokingInfo.status && (
+                <div>
+                  <span className="text-xs font-medium text-yellow-600">Status:</span>
+                  <p className="text-sm text-yellow-700 capitalize mt-1">{smokingInfo.status.replace('_', ' ')}</p>
+                </div>
+              )}
+              {smokingInfo.history && (
+                <div>
+                  <span className="text-xs font-medium text-yellow-600">Details:</span>
+                  <p className="text-sm text-yellow-700 mt-1">{smokingInfo.history}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {patient.other_medical_history && (
           <div className="border-t pt-3 mt-4">

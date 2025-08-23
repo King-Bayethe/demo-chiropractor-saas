@@ -76,6 +76,11 @@ const PublicCashForm = () => {
     previousSurgeries: "",
     chronicConditions: "",
     otherMedicalHistory: "",
+    painLocation: "",
+    painSeverity: "5",
+    familyMedicalHistory: "",
+    smokingStatus: "",
+    smokingHistory: "",
     
     consentAcknowledgement: false,
     signature: "",
@@ -219,6 +224,11 @@ const PublicCashForm = () => {
         previousSurgeries: "",
         chronicConditions: "",
         otherMedicalHistory: "",
+        painLocation: "",
+        painSeverity: "5",
+        familyMedicalHistory: "",
+        smokingStatus: "",
+        smokingHistory: "",
         consentAcknowledgement: false,
         signature: "",
         date: "",
@@ -963,6 +973,84 @@ const PublicCashForm = () => {
                     onChange={(e) => handleInputChange("otherMedicalHistory", e.target.value)}
                     className="w-full rounded-md border-gray-300"
                   />
+                </div>
+
+                {/* Pain Assessment */}
+                <div className="space-y-4 border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-800">Pain Assessment / <span className="font-medium italic">Evaluación del Dolor</span></h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-gray-600 font-medium mb-2 block">Where do you feel pain? / <span className="italic">¿Dónde siente dolor?</span></Label>
+                      <Textarea
+                        placeholder="Describe the location of your pain (e.g., lower back, neck, right shoulder) / Describa la ubicación de su dolor"
+                        rows={3}
+                        value={formData.painLocation}
+                        onChange={(e) => handleInputChange("painLocation", e.target.value)}
+                        className="w-full rounded-md border-gray-300"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-gray-600 font-medium mb-2 block">Pain Level (1-10 scale) / <span className="italic">Nivel de Dolor (escala 1-10)</span></Label>
+                      <div className="space-y-3">
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          value={formData.painSeverity}
+                          onChange={(e) => handleInputChange("painSeverity", e.target.value)}
+                          className="w-full h-3 bg-gradient-to-r from-green-400 via-yellow-400 to-red-600 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>1 (Minimal)</span>
+                          <span className="font-bold text-lg bg-blue-100 px-3 py-1 rounded-full">{formData.painSeverity}</span>
+                          <span>10 (Severe)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Family Medical History */}
+                <div className="border-t pt-6">
+                  <Label className="text-gray-600 font-medium mb-2 block">Family Medical History / <span className="italic">Historial Médico Familiar</span></Label>
+                  <Textarea
+                    placeholder="Any family history of medical conditions (diabetes, heart disease, cancer, etc.) / Cualquier historial familiar de condiciones médicas"
+                    rows={3}
+                    value={formData.familyMedicalHistory}
+                    onChange={(e) => handleInputChange("familyMedicalHistory", e.target.value)}
+                    className="w-full rounded-md border-gray-300"
+                  />
+                </div>
+
+                {/* Smoking History */}
+                <div className="space-y-4 border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-800">Smoking History / <span className="font-medium italic">Historial de Tabaquismo</span></h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-gray-600 font-medium mb-2 block">Do you smoke? / <span className="italic">¿Fuma usted?</span></Label>
+                      <Select onValueChange={(value) => handleInputChange("smokingStatus", value)}>
+                        <SelectTrigger className="w-full rounded-md border-gray-300">
+                          <SelectValue placeholder="Select an option / Seleccione una opción" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="never">Never smoked / Nunca he fumado</SelectItem>
+                          <SelectItem value="current">Current smoker / Fumador actual</SelectItem>
+                          <SelectItem value="former">Former smoker / Ex fumador</SelectItem>
+                          <SelectItem value="occasional">Occasional smoker / Fumador ocasional</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-gray-600 font-medium mb-2 block">Smoking History Details / <span className="italic">Detalles del Historial de Tabaquismo</span></Label>
+                      <Textarea
+                        placeholder="If applicable, please provide details (packs per day, years smoking, quit date, etc.) / Si aplica, proporcione detalles"
+                        rows={3}
+                        value={formData.smokingHistory}
+                        onChange={(e) => handleInputChange("smokingHistory", e.target.value)}
+                        className="w-full rounded-md border-gray-300"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </CollapsibleContent>
