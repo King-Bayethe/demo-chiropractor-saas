@@ -9,8 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Check, Circle } from "lucide-react";
 
 const PublicPIPForm = () => {
+  const [currentTab, setCurrentTab] = useState("general");
+  const [completedSections, setCompletedSections] = useState<string[]>([]);
+  
   const [formData, setFormData] = useState({
     // General Information
     lastName: "",
@@ -162,6 +166,44 @@ const PublicPIPForm = () => {
     finalDate: "",
   });
 
+  // Check if a section is completed based on required fields
+  const isSectionCompleted = (section: string) => {
+    switch (section) {
+      case "general":
+        return formData.lastName && formData.firstName && formData.email && formData.dob;
+      case "accident":
+        return formData.accidentDate && formData.accidentDescription;
+      case "insurance":
+        return formData.vehicleOwner && formData.vehicleDriver;
+      case "medical":
+        return formData.allergies !== "" || formData.previousAccidents;
+      case "symptoms":
+        return formData.painLocation;
+      case "review":
+        return Object.values(formData.systemReview).some(value => value !== "");
+      case "communications":
+        return formData.emailConsent;
+      case "release":
+        return formData.releasePersonOrganization || formData.healthcareFacility;
+      case "auth":
+        return formData.patientSignature;
+      default:
+        return false;
+    }
+  };
+
+  const tabs = [
+    { id: "general", label: "General", spanish: "" },
+    { id: "accident", label: "Accident", spanish: "(Accidente)" },
+    { id: "insurance", label: "Insurance", spanish: "(Seguro)" },
+    { id: "medical", label: "Medical History", spanish: "(Historial)" },
+    { id: "symptoms", label: "Symptoms", spanish: "(Síntomas)" },
+    { id: "review", label: "System Review", spanish: "(Revisión)" },
+    { id: "communications", label: "Communications", spanish: "(Comunicaciones)" },
+    { id: "release", label: "Release of Info", spanish: "" },
+    { id: "auth", label: "Authorizations", spanish: "(Autorizaciones)" }
+  ];
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -219,17 +261,33 @@ const PublicPIPForm = () => {
         </header>
 
         <form onSubmit={handleSubmit}>
-          <Tabs defaultValue="general" className="w-full">
-            <TabsList className="flex flex-wrap -mb-px text-sm font-medium text-center border-b border-border">
-              <TabsTrigger value="general" className="inline-block p-4 border-b-2 rounded-t-lg">General</TabsTrigger>
-              <TabsTrigger value="accident" className="inline-block p-4 border-b-2 rounded-t-lg">Accident <span className="text-muted-foreground/70">(Accidente)</span></TabsTrigger>
-              <TabsTrigger value="insurance" className="inline-block p-4 border-b-2 rounded-t-lg">Insurance <span className="text-muted-foreground/70">(Seguro)</span></TabsTrigger>
-              <TabsTrigger value="medical" className="inline-block p-4 border-b-2 rounded-t-lg">Medical History <span className="text-muted-foreground/70">(Historial)</span></TabsTrigger>
-              <TabsTrigger value="symptoms" className="inline-block p-4 border-b-2 rounded-t-lg">Symptoms <span className="text-muted-foreground/70">(Síntomas)</span></TabsTrigger>
-              <TabsTrigger value="review" className="inline-block p-4 border-b-2 rounded-t-lg">System Review <span className="text-muted-foreground/70">(Revisión)</span></TabsTrigger>
-              <TabsTrigger value="communications" className="inline-block p-4 border-b-2 rounded-t-lg">Communications <span className="text-muted-foreground/70">(Comunicaciones)</span></TabsTrigger>
-              <TabsTrigger value="release" className="inline-block p-4 border-b-2 rounded-t-lg">Release of Info</TabsTrigger>
-              <TabsTrigger value="auth" className="inline-block p-4 border-b-2 rounded-t-lg">Authorizations <span className="text-muted-foreground/70">(Autorizaciones)</span></TabsTrigger>
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 w-full mb-8 bg-muted p-1 rounded-lg min-h-[80px] gap-1">
+              {tabs.map((tab, index) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm relative border border-border rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground"
+                >
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    {isSectionCompleted(tab.id) && (
+                      <Check className="w-4 h-4 text-green-600" />
+                    )}
+                    {!isSectionCompleted(tab.id) && (
+                      <Circle className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="text-center leading-tight">
+                    <div className="font-medium">{tab.label}</div>
+                    {tab.spanish && (
+                      <div className="text-muted-foreground text-xs">{tab.spanish}</div>
+                    )}
+                  </div>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {/* General Information Tab */}
