@@ -411,6 +411,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
             data={wizardData.subjective}
             onChange={(data) => setWizardData(prev => ({ ...prev, subjective: data }))}
             specialty="chiropractic"
+            patient={patient}
           />
         );
         

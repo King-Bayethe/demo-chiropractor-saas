@@ -22,6 +22,7 @@ interface PatientMedicalSummaryProps {
 }
 
 export function PatientMedicalSummary({ patient, showNavigationButton = true }: PatientMedicalSummaryProps) {
+  console.log('PatientMedicalSummary - Received patient data:', patient);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     pain: false,
     history: false,
