@@ -214,7 +214,7 @@ const PublicPIPForm = () => {
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">Silverman Chiropractic & Rehabilitation Center</h1>
           <p className="text-md text-muted-foreground mt-2">
-            New Patient Intake Form / <span className="text-muted-foreground/70">Formulario de Paciente Nuevo</span>
+            PIP Intake Form / <span className="text-muted-foreground/70">Formulario de PIP</span>
           </p>
         </header>
 
