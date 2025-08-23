@@ -51,6 +51,10 @@ import { MedicalHistoryCard } from "@/components/patient/MedicalHistoryCard";
 import { InsuranceCard } from "@/components/patient/InsuranceCard";
 import { LegalCard } from "@/components/patient/LegalCard";
 import { EmergencyContactCard } from "@/components/patient/EmergencyContactCard";
+import { AccidentDetailsCard } from "@/components/patient/AccidentDetailsCard";
+import { PainAssessmentCard } from "@/components/patient/PainAssessmentCard";
+import { SystemsReviewCard } from "@/components/patient/SystemsReviewCard";
+import { CommunicationsCard } from "@/components/patient/CommunicationsCard";
 
 // Form schema for the main patient profile
 const patientFormSchema = z.object({
@@ -1126,9 +1130,21 @@ export default function PatientProfile() {
                             <User className="h-4 w-4" />
                             Demographics
                           </TabsTrigger>
+                          <TabsTrigger value="accident" className="flex items-center gap-2 whitespace-nowrap">
+                            <Car className="h-4 w-4" />
+                            Accident Details
+                          </TabsTrigger>
+                          <TabsTrigger value="pain" className="flex items-center gap-2 whitespace-nowrap">
+                            <HeartPulse className="h-4 w-4" />
+                            Pain Assessment
+                          </TabsTrigger>
                           <TabsTrigger value="medical" className="flex items-center gap-2 whitespace-nowrap">
                             <Activity className="h-4 w-4" />
                             Medical History
+                          </TabsTrigger>
+                          <TabsTrigger value="systems" className="flex items-center gap-2 whitespace-nowrap">
+                            <BarChart3 className="h-4 w-4" />
+                            Systems Review
                           </TabsTrigger>
                           <TabsTrigger value="insurance" className="flex items-center gap-2 whitespace-nowrap">
                             <Shield className="h-4 w-4" />
@@ -1137,6 +1153,10 @@ export default function PatientProfile() {
                           <TabsTrigger value="legal" className="flex items-center gap-2 whitespace-nowrap">
                             <Scale className="h-4 w-4" />
                             Legal Information
+                          </TabsTrigger>
+                          <TabsTrigger value="communications" className="flex items-center gap-2 whitespace-nowrap">
+                            <MessageSquare className="h-4 w-4" />
+                            Communications
                           </TabsTrigger>
                           <TabsTrigger value="emergency" className="flex items-center gap-2 whitespace-nowrap">
                             <AlertCircle className="h-4 w-4" />
@@ -1157,8 +1177,35 @@ export default function PatientProfile() {
                         />
                       </TabsContent>
 
+                      <TabsContent value="accident" className="mt-6">
+                        <AccidentDetailsCard
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          form={form}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="pain" className="mt-6">
+                        <PainAssessmentCard
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          form={form}
+                        />
+                      </TabsContent>
+
                       <TabsContent value="medical" className="mt-6">
                         <MedicalHistoryCard
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
+                          form={form}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="systems" className="mt-6">
+                        <SystemsReviewCard
                           patient={patient}
                           isEditing={isEditing}
                           onEdit={handleEdit}
@@ -1184,6 +1231,15 @@ export default function PatientProfile() {
                           onEdit={handleEdit}
                           isSensitiveVisible={sensitiveDataVisible}
                           onToggleSensitive={loadSensitiveData}
+                          form={form}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="communications" className="mt-6">
+                        <CommunicationsCard
+                          patient={patient}
+                          isEditing={isEditing}
+                          onEdit={handleEdit}
                           form={form}
                         />
                       </TabsContent>

@@ -1,0 +1,210 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  Stethoscope, 
+  Edit, 
+  Heart, 
+  Wind, 
+  Brain,
+  Eye,
+  Ear,
+  Bone,
+  Apple,
+  Zap,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react';
+
+interface SystemsReviewCardProps {
+  patient: any;
+  isEditing: boolean;
+  onEdit: () => void;
+  form?: any;
+}
+
+export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
+  patient,
+  isEditing,
+  onEdit,
+  form
+}) => {
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  const hasSystemsData = patient.systems_review && 
+                        Object.keys(patient.systems_review).length > 0;
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const systemCategories = [
+    {
+      key: 'cardiovascular',
+      title: 'Cardiovascular',
+      icon: Heart,
+      color: 'text-red-500 bg-red-50 border-red-200'
+    },
+    {
+      key: 'respiratory',
+      title: 'Respiratory',
+      icon: Wind,
+      color: 'text-blue-500 bg-blue-50 border-blue-200'
+    },
+    {
+      key: 'neurological',
+      title: 'Neurological',
+      icon: Brain,
+      color: 'text-purple-500 bg-purple-50 border-purple-200'
+    },
+    {
+      key: 'musculoskeletal',
+      title: 'Musculoskeletal',
+      icon: Bone,
+      color: 'text-orange-500 bg-orange-50 border-orange-200'
+    },
+    {
+      key: 'gastrointestinal',
+      title: 'Gastrointestinal',
+      icon: Apple,
+      color: 'text-green-500 bg-green-50 border-green-200'
+    },
+    {
+      key: 'genitourinary',
+      title: 'Genitourinary',
+      icon: Zap,
+      color: 'text-yellow-500 bg-yellow-50 border-yellow-200'
+    },
+    {
+      key: 'ent',
+      title: 'ENT (Eyes, Nose, Throat)',
+      icon: Eye,
+      color: 'text-indigo-500 bg-indigo-50 border-indigo-200'
+    },
+    {
+      key: 'endocrine',
+      title: 'Endocrine',
+      icon: Stethoscope,
+      color: 'text-pink-500 bg-pink-50 border-pink-200'
+    }
+  ];
+
+  const renderSystemReview = (systemKey: string, systemData: any) => {
+    if (!systemData || typeof systemData !== 'object') return null;
+
+    const positiveFindings = Object.entries(systemData).filter(([_, value]) => value === true);
+    const notes = systemData.notes || systemData.other || '';
+
+    if (positiveFindings.length === 0 && !notes) return null;
+
+    return (
+      <div className="space-y-2">
+        {positiveFindings.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {positiveFindings.map(([finding, _]) => (
+              <Badge key={finding} variant="secondary" className="text-xs">
+                {finding.replace(/([A-Z])/g, ' $1').trim()}
+              </Badge>
+            ))}
+          </div>
+        )}
+        {notes && (
+          <p className="text-sm text-muted-foreground italic bg-muted/30 p-2 rounded">
+            {notes}
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <Stethoscope className="h-5 w-5" />
+          Systems Review
+        </CardTitle>
+        <Button 
+          onClick={onEdit} 
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Edit className="h-4 w-4" />
+          Edit
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!hasSystemsData ? (
+          <div className="text-center py-6 text-muted-foreground">
+            <Stethoscope className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No systems review data recorded</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {systemCategories.map(category => {
+              const Icon = category.icon;
+              const systemData = patient.systems_review[category.key];
+              const isOpen = openSections[category.key];
+              const hasData = systemData && typeof systemData === 'object' && 
+                           (Object.values(systemData).some(v => v === true) || 
+                            systemData.notes || systemData.other);
+
+              if (!hasData) return null;
+
+              return (
+                <Collapsible 
+                  key={category.key} 
+                  open={isOpen} 
+                  onOpenChange={() => toggleSection(category.key)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between p-3 h-auto border rounded-lg hover:bg-muted/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`h-5 w-5 ${category.color.split(' ')[0]}`} />
+                        <span className="font-medium">{category.title}</span>
+                        <Badge variant="secondary" className="ml-2">
+                          {Object.values(systemData).filter(v => v === true).length} findings
+                        </Badge>
+                      </div>
+                      {isOpen ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className={`p-4 rounded-lg border ${category.color}`}>
+                      {renderSystemReview(category.key, systemData)}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+
+            {/* Additional/Other Systems */}
+            {patient.medical_systems_review && (
+              <div className="pt-4 border-t">
+                <h4 className="font-medium text-foreground mb-3">Additional Systems Review</h4>
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <pre className="text-sm whitespace-pre-wrap">
+                    {JSON.stringify(patient.medical_systems_review, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};

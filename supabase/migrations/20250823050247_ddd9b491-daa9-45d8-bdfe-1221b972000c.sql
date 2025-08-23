@@ -1,0 +1,20 @@
+-- Add missing PIP form fields to patients table
+ALTER TABLE public.patients 
+ADD COLUMN IF NOT EXISTS pain_description jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS current_symptoms jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS family_medical_history jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS systems_review jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS alcohol_consumption text,
+ADD COLUMN IF NOT EXISTS loss_of_consciousness text,
+ADD COLUMN IF NOT EXISTS consciousness_duration text,
+ADD COLUMN IF NOT EXISTS previous_accidents text,
+ADD COLUMN IF NOT EXISTS alternative_communication text,
+ADD COLUMN IF NOT EXISTS email_consent text,
+ADD COLUMN IF NOT EXISTS release_information jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS accident_impact_details jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS emergency_hospital_visit boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS emergency_hospital_details text,
+ADD COLUMN IF NOT EXISTS pain_frequency text,
+ADD COLUMN IF NOT EXISTS pain_quality text,
+ADD COLUMN IF NOT EXISTS symptom_changes text,
+ADD COLUMN IF NOT EXISTS functional_limitations text;

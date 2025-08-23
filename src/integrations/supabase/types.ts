@@ -744,11 +744,14 @@ export type Database = {
         Row: {
           accident_date: string | null
           accident_description: string | null
+          accident_impact_details: Json | null
           accident_time: string | null
           address: string | null
           adjuster_name: string | null
           age: number | null
+          alcohol_consumption: string | null
           allergies: string | null
+          alternative_communication: string | null
           attorney_name: string | null
           attorney_phone: string | null
           auto_insurance_company: string | null
@@ -759,22 +762,28 @@ export type Database = {
           chronic_conditions: string | null
           city: string | null
           claim_number: string | null
+          consciousness_duration: string | null
           consent_acknowledgement: boolean | null
           created_at: string
           current_medications: string | null
+          current_symptoms: Json | null
           date_of_birth: string | null
           did_go_to_hospital: boolean | null
           drivers_license: string | null
           drivers_license_state: string | null
           email: string | null
+          email_consent: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
+          emergency_hospital_details: string | null
+          emergency_hospital_visit: boolean | null
           employer_address: string | null
           employer_name: string | null
           employment_status: string | null
           family_medical_history: string | null
           first_name: string | null
+          functional_limitations: string | null
           gender: string | null
           ghl_contact_id: string | null
           group_number: string | null
@@ -789,11 +798,15 @@ export type Database = {
           is_active: boolean | null
           last_name: string | null
           last_synced_at: string | null
+          loss_of_consciousness: string | null
           marital_status: string | null
           medicaid_medicare_id: string | null
           medical_systems_review: Json | null
           other_medical_history: string | null
+          pain_description: Json | null
+          pain_frequency: string | null
           pain_location: string | null
+          pain_quality: string | null
           pain_severity: number | null
           past_injuries: string | null
           patient_signature: string | null
@@ -801,7 +814,9 @@ export type Database = {
           phone: string | null
           pip_form_submitted_at: string | null
           preferred_language: string | null
+          previous_accidents: string | null
           profile_picture_url: string | null
+          release_information: Json | null
           signature_date: string | null
           smoking_history: string | null
           smoking_status: string | null
@@ -809,6 +824,8 @@ export type Database = {
           state: string | null
           street_surface: string | null
           student_status: string | null
+          symptom_changes: string | null
+          systems_review: Json | null
           tags: string[] | null
           updated_at: string
           weather_conditions: string | null
@@ -819,11 +836,14 @@ export type Database = {
         Insert: {
           accident_date?: string | null
           accident_description?: string | null
+          accident_impact_details?: Json | null
           accident_time?: string | null
           address?: string | null
           adjuster_name?: string | null
           age?: number | null
+          alcohol_consumption?: string | null
           allergies?: string | null
+          alternative_communication?: string | null
           attorney_name?: string | null
           attorney_phone?: string | null
           auto_insurance_company?: string | null
@@ -834,22 +854,28 @@ export type Database = {
           chronic_conditions?: string | null
           city?: string | null
           claim_number?: string | null
+          consciousness_duration?: string | null
           consent_acknowledgement?: boolean | null
           created_at?: string
           current_medications?: string | null
+          current_symptoms?: Json | null
           date_of_birth?: string | null
           did_go_to_hospital?: boolean | null
           drivers_license?: string | null
           drivers_license_state?: string | null
           email?: string | null
+          email_consent?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
+          emergency_hospital_details?: string | null
+          emergency_hospital_visit?: boolean | null
           employer_address?: string | null
           employer_name?: string | null
           employment_status?: string | null
           family_medical_history?: string | null
           first_name?: string | null
+          functional_limitations?: string | null
           gender?: string | null
           ghl_contact_id?: string | null
           group_number?: string | null
@@ -864,11 +890,15 @@ export type Database = {
           is_active?: boolean | null
           last_name?: string | null
           last_synced_at?: string | null
+          loss_of_consciousness?: string | null
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
           other_medical_history?: string | null
+          pain_description?: Json | null
+          pain_frequency?: string | null
           pain_location?: string | null
+          pain_quality?: string | null
           pain_severity?: number | null
           past_injuries?: string | null
           patient_signature?: string | null
@@ -876,7 +906,9 @@ export type Database = {
           phone?: string | null
           pip_form_submitted_at?: string | null
           preferred_language?: string | null
+          previous_accidents?: string | null
           profile_picture_url?: string | null
+          release_information?: Json | null
           signature_date?: string | null
           smoking_history?: string | null
           smoking_status?: string | null
@@ -884,6 +916,8 @@ export type Database = {
           state?: string | null
           street_surface?: string | null
           student_status?: string | null
+          symptom_changes?: string | null
+          systems_review?: Json | null
           tags?: string[] | null
           updated_at?: string
           weather_conditions?: string | null
@@ -894,11 +928,14 @@ export type Database = {
         Update: {
           accident_date?: string | null
           accident_description?: string | null
+          accident_impact_details?: Json | null
           accident_time?: string | null
           address?: string | null
           adjuster_name?: string | null
           age?: number | null
+          alcohol_consumption?: string | null
           allergies?: string | null
+          alternative_communication?: string | null
           attorney_name?: string | null
           attorney_phone?: string | null
           auto_insurance_company?: string | null
@@ -909,22 +946,28 @@ export type Database = {
           chronic_conditions?: string | null
           city?: string | null
           claim_number?: string | null
+          consciousness_duration?: string | null
           consent_acknowledgement?: boolean | null
           created_at?: string
           current_medications?: string | null
+          current_symptoms?: Json | null
           date_of_birth?: string | null
           did_go_to_hospital?: boolean | null
           drivers_license?: string | null
           drivers_license_state?: string | null
           email?: string | null
+          email_consent?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
+          emergency_hospital_details?: string | null
+          emergency_hospital_visit?: boolean | null
           employer_address?: string | null
           employer_name?: string | null
           employment_status?: string | null
           family_medical_history?: string | null
           first_name?: string | null
+          functional_limitations?: string | null
           gender?: string | null
           ghl_contact_id?: string | null
           group_number?: string | null
@@ -939,11 +982,15 @@ export type Database = {
           is_active?: boolean | null
           last_name?: string | null
           last_synced_at?: string | null
+          loss_of_consciousness?: string | null
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
           other_medical_history?: string | null
+          pain_description?: Json | null
+          pain_frequency?: string | null
           pain_location?: string | null
+          pain_quality?: string | null
           pain_severity?: number | null
           past_injuries?: string | null
           patient_signature?: string | null
@@ -951,7 +998,9 @@ export type Database = {
           phone?: string | null
           pip_form_submitted_at?: string | null
           preferred_language?: string | null
+          previous_accidents?: string | null
           profile_picture_url?: string | null
+          release_information?: Json | null
           signature_date?: string | null
           smoking_history?: string | null
           smoking_status?: string | null
@@ -959,6 +1008,8 @@ export type Database = {
           state?: string | null
           street_surface?: string | null
           student_status?: string | null
+          symptom_changes?: string | null
+          systems_review?: Json | null
           tags?: string[] | null
           updated_at?: string
           weather_conditions?: string | null
