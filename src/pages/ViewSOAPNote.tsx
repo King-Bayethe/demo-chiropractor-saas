@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes, SOAPNote } from "@/hooks/useSOAPNotes";
 import { ArrowLeft, Edit, Download, Eye, Calendar, User } from "lucide-react";
-import { PatientContextHeader } from "@/components/soap/PatientContextHeader";
+import { EnhancedPatientContextHeader } from "@/components/soap/EnhancedPatientContextHeader";
 import { SOAPNoteBreadcrumb } from "@/components/soap/SOAPNoteBreadcrumb";
 import { format } from "date-fns";
 
@@ -222,6 +222,9 @@ export default function ViewSOAPNote() {
               </div>
             </div>
 
+            {/* Patient Context */}
+            {soapNote?.patients && <EnhancedPatientContextHeader patient={soapNote.patients} />}
+            
             {/* SOAP Note Content */}
             <SOAPViewer soapNote={soapNote} />
           </div>

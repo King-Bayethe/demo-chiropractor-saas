@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import EditableSOAPForm from "@/components/soap/EditableSOAPForm";
-import { PatientContextHeader } from "@/components/soap/PatientContextHeader";
+import { EnhancedPatientContextHeader } from "@/components/soap/EnhancedPatientContextHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +72,7 @@ export default function EditSOAPNote() {
     <AuthGuard>
       <Layout>
         <div className="container max-w-6xl mx-auto px-6 py-8">
-          {patient && <PatientContextHeader patient={patient} />}
+          {patient && <EnhancedPatientContextHeader patient={patient} />}
           <EditableSOAPForm />
         </div>
       </Layout>

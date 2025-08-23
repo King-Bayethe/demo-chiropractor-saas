@@ -4,7 +4,7 @@ import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SOAPWizard } from "@/components/soap/SOAPWizard";
 import { PatientSelector } from "@/components/PatientSelector";
-import { PatientContextHeader } from "@/components/soap/PatientContextHeader";
+import { EnhancedPatientContextHeader } from "@/components/soap/EnhancedPatientContextHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -145,7 +145,7 @@ export default function NewSOAPNote() {
       <AuthGuard>
         <Layout>
           <div className="container max-w-6xl mx-auto px-6 py-8">
-            {selectedPatient && <PatientContextHeader patient={selectedPatient} />}
+            {selectedPatient && <EnhancedPatientContextHeader patient={selectedPatient} />}
             <SOAPWizard
               patient={selectedPatient}
               onSave={handleSave}
