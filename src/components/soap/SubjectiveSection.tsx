@@ -543,47 +543,26 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             'headaches': 'mental_illness'
           };
           
-          // Map object properties
-          Object.entries(familyHistoryData).forEach(([key, value]) => {
-            if (value === true || value === 'true') {
-              let mapped = false;
-              
-              // Check direct field name match
-              if (updatedData.familyHistory.hasOwnProperty(key)) {
-                updatedData.familyHistory[key] = true;
-                hasUpdates = true;
-                mapped = true;
-                console.log(`Direct mapped family history: ${key} = true`);
-              }
-              // Check custom mappings
-              else if (familyMappings[key]) {
-                const target = familyMappings[key];
-                if (updatedData.familyHistory.hasOwnProperty(target)) {
-                  updatedData.familyHistory[target] = true;
-                  hasUpdates = true;
-                  mapped = true;
-                  console.log(`Custom mapped family history: ${key} -> ${target} = true`);
-                }
-              }
-              
-              // If no mapping found, add to unmapped list for "Other" section
-              if (!mapped) {
-                const readableLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                unmappedFamilyConditions.push(readableLabel);
-                console.log(`Unmapped family condition added to Other: ${key} -> ${readableLabel}`);
-              }
+          // Use the enhanced mapping function from soapFormMapping
+          const convertedFamilyHistory = convertFamilyHistoryToSOAP(familyHistoryData);
+          
+          // Apply mapped family history
+          Object.entries(convertedFamilyHistory.familyHistory).forEach(([field, value]) => {
+            if (value === true && updatedData.familyHistory.hasOwnProperty(field)) {
+              updatedData.familyHistory[field] = true;
+              hasUpdates = true;
+              console.log(`Mapped family history: ${field} = true`);
             }
           });
           
-          // Add unmapped family conditions to other_conditions field
-          if (unmappedFamilyConditions.length > 0) {
+          // Add any unmapped conditions to other_conditions
+          if (convertedFamilyHistory.otherFamilyHistory) {
             const existingOther = updatedData.familyHistory.other_conditions || '';
-            const newOtherConditions = unmappedFamilyConditions.join(', ');
             updatedData.familyHistory.other_conditions = existingOther 
-              ? `${existingOther}, ${newOtherConditions}` 
-              : newOtherConditions;
+              ? `${existingOther}; ${convertedFamilyHistory.otherFamilyHistory}` 
+              : convertedFamilyHistory.otherFamilyHistory;
             hasUpdates = true;
-            console.log(`Added unmapped family conditions to Other section: ${newOtherConditions}`);
+            console.log(`Added unmapped family history to other_conditions: ${convertedFamilyHistory.otherFamilyHistory}`);
           }
         }
       } catch (error) {
