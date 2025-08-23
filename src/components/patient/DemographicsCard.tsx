@@ -51,7 +51,7 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
     return parts.join(', ');
   };
 
-  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIDFrontUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -89,16 +89,16 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
         return;
       }
 
-      // Generate unique filename
+      // Generate unique filename for ID front
       const fileExt = file.name.split('.').pop();
-      const fileName = `${patient.id}-${Date.now()}.${fileExt}`;
-      const filePath = `patient-profiles/${fileName}`;
+      const fileName = `id-front-${Date.now()}.${fileExt}`;
+      const filePath = `${patient.id}/identification/${fileName}`;
 
-      console.log('Uploading file:', fileName, 'to path:', filePath);
+      console.log('Uploading ID front:', fileName, 'to path:', filePath);
 
-      // Upload to Supabase storage
+      // Upload to patient-files storage bucket in identification folder
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('patient-files')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -113,12 +113,33 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('patient-files')
         .getPublicUrl(filePath);
 
       console.log('Public URL:', publicUrl);
 
-      // Update patient record
+      // Save to patient_files table
+      const { data: fileData, error: fileError } = await supabase
+        .from('patient_files')
+        .insert({
+          patient_id: patient.id,
+          file_name: `ID Front - ${fileName}`,
+          file_path: filePath,
+          file_type: file.type,
+          file_size: file.size,
+          category: 'Identification',
+          description: 'Front side of ID document',
+          uploaded_by: session.user.id
+        })
+        .select()
+        .single();
+
+      if (fileError) {
+        console.error('File record error:', fileError);
+        throw fileError;
+      }
+
+      // Update patient record to use ID front as profile picture
       const { data: updateData, error: updateError } = await supabase
         .from('patients')
         .update({ profile_picture_url: publicUrl })
@@ -140,13 +161,13 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
 
       toast({
         title: "Success",
-        description: "Profile picture updated successfully",
+        description: "ID front uploaded and set as profile picture",
       });
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
+      console.error('Error uploading ID front:', error);
       toast({
         title: "Error",
-        description: "Failed to upload profile picture",
+        description: "Failed to upload ID front",
         variant: "destructive",
       });
     } finally {
@@ -261,7 +282,7 @@ export const DemographicsCard: React.FC<DemographicsCardProps> = ({
                 id="profile-picture-upload"
                 type="file"
                 accept="image/*"
-                onChange={handleProfilePictureUpload}
+                onChange={handleIDFrontUpload}
                 className="hidden"
                 disabled={uploading}
               />
