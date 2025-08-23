@@ -26,14 +26,31 @@ export interface SubjectiveData {
   isRefused: boolean;
   isWithinNormalLimits: boolean;
   
+  // Enhanced questionnaire fields
+  painWorse?: string;
+  painBetter?: string;
+  currentSymptoms?: string[];
+  medicalHistory?: {
+    previousOfficeVisit?: boolean;
+    previousAccidents?: string;
+    illness?: string;
+    surgery?: string;
+    trauma?: string;
+    medications?: string;
+    allergies?: string;
+  };
+  familyHistory?: {
+    conditions?: string[];
+    alcohol?: boolean;
+    smoking?: boolean;
+  };
+  
   // Enhanced chiropractic fields (optional for backward compatibility)
   mainComplaints?: string[];
   otherComplaint?: string;
   problemStart?: string;
   problemBegin?: string;
   painRating?: number[];
-  painBetter?: string;
-  painWorse?: string;
   painDescriptions?: string[];
   painRadiate?: string;
   painFrequency?: string[];
@@ -62,19 +79,48 @@ export interface SubjectiveData {
   };
 }
 
-const commonSymptoms = [
-  { id: 'fatigue', label: 'Fatigue' },
-  { id: 'pain', label: 'Pain' },
-  { id: 'shakiness', label: 'Shakiness' },
-  { id: 'shortness_breath', label: 'Shortness of Breath' },
+const detailedSymptoms = [
   { id: 'headache', label: 'Headache' },
-  { id: 'nausea', label: 'Nausea' },
+  { id: 'neck_pain', label: 'Neck Pain' },
+  { id: 'neck_stiff', label: 'Neck Stiff' },
+  { id: 'tingling_arms_hands', label: 'Tingling in arms/hands' },
+  { id: 'numbness_arms_hands', label: 'Numbness in arms/hands' },
+  { id: 'pain_arms_hands', label: 'Pain in arms/hands' },
+  { id: 'loss_strength_arms', label: 'Loss of strength - arms' },
+  { id: 'back_pain', label: 'Back Pain' },
+  { id: 'numbness_legs_feet', label: 'Numbness in legs/feet' },
+  { id: 'loss_strength_legs', label: 'Loss of strength - legs' },
+  { id: 'pain_legs_feet', label: 'Pain in legs/feet' },
   { id: 'dizziness', label: 'Dizziness' },
-  { id: 'numbness', label: 'Numbness/Tingling' },
-  { id: 'weakness', label: 'Weakness' },
-  { id: 'stiffness', label: 'Stiffness' },
-  { id: 'swelling', label: 'Swelling' },
-  { id: 'burning', label: 'Burning Sensation' }
+  { id: 'loss_memory', label: 'Loss of Memory' },
+  { id: 'ears_ring', label: 'Ears Ring' },
+  { id: 'sleeping_problems', label: 'Sleeping Problems' },
+  { id: 'nausea', label: 'Nausea' },
+  { id: 'loss_balance', label: 'Loss of Balance' },
+  { id: 'shortness_breath', label: 'Shortness of Breath' },
+  { id: 'fatigue', label: 'Fatigue' },
+  { id: 'irritability', label: 'Irritability' },
+  { id: 'loss_smell', label: 'Loss of Smell' },
+  { id: 'chest_pain', label: 'Chest pain/rib pain' },
+  { id: 'jaw_pain', label: 'Jaw pain' },
+  { id: 'tingling_legs_feet', label: 'Tingling in legs/feet' }
+];
+
+const familyHistoryConditions = [
+  { id: 'heart_trouble', label: 'Heart trouble' },
+  { id: 'stroke', label: 'Stroke' },
+  { id: 'kyphosis', label: 'Kyphosis' },
+  { id: 'diabetes', label: 'Diabetes' },
+  { id: 'cancer', label: 'Cancer' },
+  { id: 'arthritis', label: 'Arthritis' },
+  { id: 'lung_disease', label: 'Lung Disease' },
+  { id: 'osteoporosis', label: 'Osteoporosis' },
+  { id: 'migraines', label: 'Migraines' },
+  { id: 'high_blood_pressure', label: 'High blood pressure' },
+  { id: 'scoliosis', label: 'Scoliosis' },
+  { id: 'spine_problems', label: 'Spine problems' },
+  { id: 'alcohol_dependence', label: 'Alcohol dependence' },
+  { id: 'aneurysm', label: 'Aneurysm' }
 ];
 
 const painFaces = [
@@ -88,12 +134,37 @@ const painFaces = [
 
 export function SubjectiveSection({ data, onChange, patient }: SubjectiveSectionProps) {
   const handleSymptomChange = (symptomId: string, checked: boolean) => {
-    const currentSymptoms = data.symptoms || [];
+    const currentSymptoms = data.currentSymptoms || [];
     const newSymptoms = checked 
       ? [...currentSymptoms, symptomId]
       : currentSymptoms.filter(s => s !== symptomId);
     
-    onChange({ ...data, symptoms: newSymptoms });
+    onChange({ ...data, currentSymptoms: newSymptoms });
+  };
+
+  const handleFamilyHistoryChange = (conditionId: string, checked: boolean) => {
+    const currentConditions = data.familyHistory?.conditions || [];
+    const newConditions = checked 
+      ? [...currentConditions, conditionId]
+      : currentConditions.filter(c => c !== conditionId);
+    
+    onChange({ 
+      ...data, 
+      familyHistory: { 
+        ...data.familyHistory, 
+        conditions: newConditions 
+      } 
+    });
+  };
+
+  const handleMedicalHistoryChange = (field: string, value: any) => {
+    onChange({
+      ...data,
+      medicalHistory: {
+        ...data.medicalHistory,
+        [field]: value
+      }
+    });
   };
 
   const handlePainScaleChange = (value: number) => {
@@ -159,21 +230,58 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
         {!isDisabled && (
           <>
-            {/* Common Symptoms */}
+            {/* Pain Aggravating/Alleviating Factors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="painWorse" className="text-base font-semibold">What makes it worse?</Label>
+                <Textarea
+                  id="painWorse"
+                  value={data.painWorse || ''}
+                  onChange={(e) => onChange({ ...data, painWorse: e.target.value })}
+                  placeholder="Describe what makes the pain worse..."
+                  rows={2}
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="painBetter" className="text-base font-semibold">What makes it better?</Label>
+                <Textarea
+                  id="painBetter"
+                  value={data.painBetter || ''}
+                  onChange={(e) => onChange({ ...data, painBetter: e.target.value })}
+                  placeholder="Describe what makes the pain better..."
+                  rows={2}
+                  className="mt-2"
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Current Symptoms Checklist */}
             <div>
-              <Label className="text-base font-semibold">Common Symptoms</Label>
-              <p className="text-sm text-muted-foreground mb-3">Select all that apply</p>
-              <div className="grid grid-cols-3 gap-3">
-                {commonSymptoms.map((symptom) => (
+              <Label className="text-base font-semibold">Please check any of the following symptoms you are now experiencing:</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                {detailedSymptoms.map((symptom) => (
                   <div key={symptom.id} className="flex items-center space-x-2">
-                     <Checkbox
+                    <Checkbox
                       id={symptom.id}
-                      checked={data.symptoms?.includes(symptom.id) || false}
+                      checked={data.currentSymptoms?.includes(symptom.id) || false}
                       onCheckedChange={(checked) => handleSymptomChange(symptom.id, checked as boolean)}
                     />
                     <Label htmlFor={symptom.id} className="text-sm">{symptom.label}</Label>
                   </div>
                 ))}
+              </div>
+              <div className="mt-3">
+                <Label htmlFor="otherCurrentSymptoms" className="text-sm font-medium">Other:</Label>
+                <Input
+                  id="otherCurrentSymptoms"
+                  value={data.otherSymptoms || ''}
+                  onChange={(e) => onChange({ ...data, otherSymptoms: e.target.value })}
+                  placeholder="Describe other symptoms..."
+                  className="mt-1"
+                />
               </div>
             </div>
 
@@ -238,17 +346,178 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
               />
             </div>
 
-            {/* Other Symptoms */}
+            {/* Medical History */}
             <div>
-              <Label htmlFor="otherSymptoms" className="text-base font-semibold">Additional Symptoms</Label>
-              <p className="text-sm text-muted-foreground mb-2">Describe any other symptoms not listed above</p>
-              <Textarea
-                id="otherSymptoms"
-                value={data.otherSymptoms}
-                onChange={(e) => onChange({ ...data, otherSymptoms: e.target.value })}
-                placeholder="Patient also reports..."
-                rows={3}
-              />
+              <Label className="text-base font-semibold">Medical History</Label>
+              <div className="space-y-4 mt-3">
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm font-medium">Have you ever been in our office before?</Label>
+                  <div className="flex space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="previous-yes"
+                        checked={data.medicalHistory?.previousOfficeVisit === true}
+                        onCheckedChange={(checked) => handleMedicalHistoryChange('previousOfficeVisit', checked)}
+                      />
+                      <Label htmlFor="previous-yes" className="text-sm">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="previous-no"
+                        checked={data.medicalHistory?.previousOfficeVisit === false}
+                        onCheckedChange={(checked) => handleMedicalHistoryChange('previousOfficeVisit', !checked)}
+                      />
+                      <Label htmlFor="previous-no" className="text-sm">No</Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="previousAccidents" className="text-sm font-medium">List any previous accidents (automobile, on the job injuries, slips, falls, sports, etc.) and date:</Label>
+                  <Textarea
+                    id="previousAccidents"
+                    value={data.medicalHistory?.previousAccidents || ''}
+                    onChange={(e) => handleMedicalHistoryChange('previousAccidents', e.target.value)}
+                    placeholder="Previous accidents..."
+                    rows={2}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="illness" className="text-sm font-medium">Illness:</Label>
+                  <Input
+                    id="illness"
+                    value={data.medicalHistory?.illness || ''}
+                    onChange={(e) => handleMedicalHistoryChange('illness', e.target.value)}
+                    placeholder="Any illnesses..."
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="surgery" className="text-sm font-medium">Surgery/hospitalization:</Label>
+                  <Input
+                    id="surgery"
+                    value={data.medicalHistory?.surgery || ''}
+                    onChange={(e) => handleMedicalHistoryChange('surgery', e.target.value)}
+                    placeholder="Surgery/hospitalization details..."
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="trauma" className="text-sm font-medium">Trauma/Injuries/Accidents:</Label>
+                  <Input
+                    id="trauma"
+                    value={data.medicalHistory?.trauma || ''}
+                    onChange={(e) => handleMedicalHistoryChange('trauma', e.target.value)}
+                    placeholder="Trauma details..."
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="medications" className="text-sm font-medium">Medication:</Label>
+                  <Input
+                    id="medications"
+                    value={data.medicalHistory?.medications || ''}
+                    onChange={(e) => handleMedicalHistoryChange('medications', e.target.value)}
+                    placeholder="Current medications..."
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="allergies" className="text-sm font-medium">Do you have any allergies?</Label>
+                  <Textarea
+                    id="allergies"
+                    value={data.medicalHistory?.allergies || ''}
+                    onChange={(e) => handleMedicalHistoryChange('allergies', e.target.value)}
+                    placeholder="List any allergies..."
+                    rows={2}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Family History */}
+            <div>
+              <Label className="text-base font-semibold">Members of my family (parents, brothers/sisters, grandparents, aunts/uncles) suffer with the following:</Label>
+              <p className="text-sm text-muted-foreground mb-3">Check all that apply</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {familyHistoryConditions.map((condition) => (
+                  <div key={condition.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={condition.id}
+                      checked={data.familyHistory?.conditions?.includes(condition.id) || false}
+                      onCheckedChange={(checked) => handleFamilyHistoryChange(condition.id, checked as boolean)}
+                    />
+                    <Label htmlFor={condition.id} className="text-sm">{condition.label}</Label>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex space-x-8 mt-4">
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm font-medium">Do you drink alcohol?</Label>
+                  <div className="flex space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="alcohol-yes"
+                        checked={data.familyHistory?.alcohol === true}
+                        onCheckedChange={(checked) => onChange({
+                          ...data,
+                          familyHistory: { ...data.familyHistory, alcohol: checked as boolean }
+                        })}
+                      />
+                      <Label htmlFor="alcohol-yes" className="text-sm">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="alcohol-no"
+                        checked={data.familyHistory?.alcohol === false}
+                        onCheckedChange={(checked) => onChange({
+                          ...data,
+                          familyHistory: { ...data.familyHistory, alcohol: !(checked as boolean) }
+                        })}
+                      />
+                      <Label htmlFor="alcohol-no" className="text-sm">No</Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm font-medium">Do you smoke?</Label>
+                  <div className="flex space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="smoking-yes"
+                        checked={data.familyHistory?.smoking === true}
+                        onCheckedChange={(checked) => onChange({
+                          ...data,
+                          familyHistory: { ...data.familyHistory, smoking: checked as boolean }
+                        })}
+                      />
+                      <Label htmlFor="smoking-yes" className="text-sm">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="smoking-no"
+                        checked={data.familyHistory?.smoking === false}
+                        onCheckedChange={(checked) => onChange({
+                          ...data,
+                          familyHistory: { ...data.familyHistory, smoking: !(checked as boolean) }
+                        })}
+                      />
+                      <Label htmlFor="smoking-no" className="text-sm">No</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         )}

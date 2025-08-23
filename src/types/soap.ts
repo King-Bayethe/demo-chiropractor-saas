@@ -31,6 +31,26 @@ export interface SubjectiveData {
   otherSymptoms: string;
   isRefused: boolean;
   isWithinNormalLimits: boolean;
+  
+  // Enhanced questionnaire fields
+  painWorse?: string;
+  painBetter?: string;
+  currentSymptoms?: string[];
+  medicalHistory?: {
+    previousOfficeVisit?: boolean;
+    previousAccidents?: string;
+    illness?: string;
+    surgery?: string;
+    trauma?: string;
+    medications?: string;
+    allergies?: string;
+  };
+  familyHistory?: {
+    conditions?: string[];
+    alcohol?: boolean;
+    smoking?: boolean;
+  } | string; // Support both object and string for backward compatibility
+  
   // Additional fields for comprehensive notes - keeping flexible for compatibility
   historyOfPresentIllness?: string;
   reviewOfSystems?: any; // Keep as any for backward compatibility with existing components
@@ -38,7 +58,6 @@ export interface SubjectiveData {
   medications?: any; // Support both string and string[] formats for compatibility
   allergies?: string[];
   socialHistory?: string;
-  familyHistory?: string;
 }
 
 export interface VitalSigns {
