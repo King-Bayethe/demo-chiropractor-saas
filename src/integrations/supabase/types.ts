@@ -159,6 +159,45 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_time_slots: {
         Row: {
           created_at: string
@@ -1458,6 +1497,14 @@ export type Database = {
         }
         Returns: string
       }
+      can_access_patient: {
+        Args: { patient_id_param: string }
+        Returns: boolean
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_soap_notes_with_patient_info: {
         Args: { limit_count?: number; offset_count?: number }
         Returns: {
@@ -1482,6 +1529,16 @@ export type Database = {
       is_chat_admin: {
         Args: { chat_id_to_check: string; user_id_to_check: string }
         Returns: boolean
+      }
+      log_patient_access: {
+        Args: {
+          action_param: string
+          new_data_param?: Json
+          old_data_param?: Json
+          record_id_param: string
+          table_name_param: string
+        }
+        Returns: undefined
       }
       unassign_patient_from_provider: {
         Args: { patient_id_param: string; provider_id_param: string }
