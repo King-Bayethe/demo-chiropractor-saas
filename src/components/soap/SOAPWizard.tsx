@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -47,6 +48,7 @@ type LocalWizardData = {
   dateCreated: Date;
   chiefComplaint: string;
   isQuickNote: boolean;
+  isReferral: boolean;
   subjective: SubjectiveData;
   objective: ObjectiveData;
   assessment: AssessmentData;
@@ -74,6 +76,7 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
     dateCreated: new Date(),
     chiefComplaint: "",
     isQuickNote: false,
+    isReferral: false,
     subjective: {
       symptoms: [],
       painScale: null,
@@ -388,6 +391,15 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
                       }))}
                     />
                   </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-4 bg-muted/50 rounded-lg">
+                  <Label htmlFor="is-referral">Are you a referral?</Label>
+                  <Switch
+                    id="is-referral"
+                    checked={wizardData.isReferral}
+                    onCheckedChange={(checked) => setWizardData(prev => ({ ...prev, isReferral: checked }))}
+                  />
                 </div>
                 
                 <div>
