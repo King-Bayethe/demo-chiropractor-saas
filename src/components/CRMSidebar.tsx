@@ -64,7 +64,7 @@ const navigationGroups = [
     items: [
       { title: "Patients", url: "/patients", icon: Users, collapsedIcon: UserPlus },
       { title: "SOAP Notes", url: "/soap-notes", icon: Stethoscope, collapsedIcon: FileEdit },
-      { title: "Opportunities", url: "/opportunities", icon: Activity, collapsedIcon: TrendingUp },
+      { title: "Pipeline", url: "/opportunities", icon: Activity, collapsedIcon: TrendingUp },
       { title: "Forms", url: "/forms", icon: ClipboardList, collapsedIcon: FormInput },
     ]
   },

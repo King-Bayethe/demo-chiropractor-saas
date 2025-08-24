@@ -50,12 +50,11 @@ export interface Opportunity {
 
 export const MEDICAL_PIPELINE_STAGES = [
   { id: 'lead', title: 'New Lead', color: 'bg-slate-500' },
-  { id: 'intake', title: 'Intake Complete', color: 'bg-blue-500' },
-  { id: 'consultation', title: 'Consultation Scheduled', color: 'bg-yellow-500' },
-  { id: 'treatment', title: 'In Treatment', color: 'bg-green-500' },
+  { id: 'appointment', title: 'Appointment', color: 'bg-blue-500' },
+  { id: 'checkedin', title: 'Checked-in', color: 'bg-yellow-500' },
+  { id: 'visitcomplete', title: 'Visit Complete', color: 'bg-green-500' },
   { id: 'billing', title: 'Billing Pending', color: 'bg-orange-500' },
-  { id: 'collection', title: 'Payment Collected', color: 'bg-emerald-500' },
-  { id: 'closed', title: 'Case Closed', color: 'bg-gray-500' },
+  { id: 'paymentcomplete', title: 'Payment Complete', color: 'bg-emerald-500' },
 ];
 
 export const useOpportunities = () => {

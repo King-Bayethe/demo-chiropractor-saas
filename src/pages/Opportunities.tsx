@@ -166,17 +166,17 @@ export default function Opportunities() {
             <div className="flex flex-col space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold tracking-tight">Medical Opportunities</h1>
-                  <p className="text-muted-foreground">Track patient opportunities through your medical pipeline</p>
+                  <h1 className="text-3xl font-bold tracking-tight">Medical Pipeline</h1>
+                  <p className="text-muted-foreground">Track patients through your medical pipeline</p>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <Button onClick={() => setIsAddDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Opportunity
+                    Add to Pipeline
                   </Button>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Add New Medical Opportunity</DialogTitle>
+                      <DialogTitle>Add New Medical Pipeline Entry</DialogTitle>
                     </DialogHeader>
                     <AddMedicalOpportunityForm 
                       onSubmit={handleAddOpportunity}
@@ -193,7 +193,7 @@ export default function Opportunities() {
                     <div className="flex items-center space-x-2">
                       <Users className="h-5 w-5 text-blue-600" />
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Opportunities</p>
+                        <p className="text-sm font-medium text-muted-foreground">Total Pipeline</p>
                         <p className="text-2xl font-bold">{metrics.total}</p>
                       </div>
                     </div>
@@ -243,7 +243,7 @@ export default function Opportunities() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
-                      placeholder="Search opportunities, patients, or tags..."
+                      placeholder="Search pipeline, patients, or tags..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -268,7 +268,7 @@ export default function Opportunities() {
               {selectedCaseType !== 'All Cases' && (
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">
-                    Showing {getCaseTypeDisplayName(selectedCaseType)} cases: {filteredOpportunities.length} opportunities
+                    Showing {getCaseTypeDisplayName(selectedCaseType)} cases: {filteredOpportunities.length} pipeline entries
                   </Badge>
                 </div>
               )}
@@ -316,7 +316,7 @@ export default function Opportunities() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Medical Opportunity</DialogTitle>
+              <DialogTitle>Edit Medical Pipeline Entry</DialogTitle>
             </DialogHeader>
             {selectedOpportunity && (
               <AddMedicalOpportunityForm 
