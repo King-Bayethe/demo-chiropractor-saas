@@ -227,10 +227,23 @@ export const autofillSOAPFromPatient = (patient: any) => {
   }
 
   // Process family history from patient data
-  if (patient.family_history) {
-    const converted = convertFamilyHistoryToSOAP(patient.family_history);
-    autofillData.familyHistory = converted.familyHistory;
-    autofillData.otherFamilyHistory = converted.otherFamilyHistory;
+  if (patient.family_medical_history) {
+    try {
+      // Parse JSON string if it's a string, otherwise use as object
+      let familyHistoryData = patient.family_medical_history;
+      if (typeof familyHistoryData === 'string') {
+        familyHistoryData = JSON.parse(familyHistoryData);
+      }
+      
+      const converted = convertFamilyHistoryToSOAP(familyHistoryData);
+      autofillData.familyHistory = converted.familyHistory;
+      autofillData.otherFamilyHistory = converted.otherFamilyHistory;
+      
+      console.log('Successfully autofilled family history from family_medical_history:', familyHistoryData);
+    } catch (error) {
+      console.error('Error parsing family_medical_history JSON:', error);
+      console.log('Raw family_medical_history data:', patient.family_medical_history);
+    }
   }
 
   // Add pain assessment data
