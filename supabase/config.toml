@@ -1,16 +1,16 @@
 project_id = "togpcxapjuqrzbzqilbt"
 
 [functions.ghl-contacts]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ghl-opportunities] 
-verify_jwt = false
+verify_jwt = true
 
 [functions.ghl-conversations]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ghl-emails]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ghl-webhook]
 verify_jwt = false
@@ -19,4 +19,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.create-patient-from-form]
-verify_jwt = false
+verify_jwt = true
