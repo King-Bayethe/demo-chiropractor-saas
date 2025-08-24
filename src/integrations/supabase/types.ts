@@ -309,45 +309,140 @@ export type Database = {
         }
         Relationships: []
       }
+      form_submission_audit: {
+        Row: {
+          created_at: string | null
+          event_details: Json | null
+          event_type: string
+          form_submission_id: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type: string
+          form_submission_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type?: string
+          form_submission_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_submission_audit_form_submission_id_fkey"
+            columns: ["form_submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_submission_rate_limits: {
+        Row: {
+          blocked_until: string | null
+          created_at: string | null
+          form_type: string
+          id: string
+          ip_address: unknown
+          submission_count: number | null
+          updated_at: string | null
+          window_start: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string | null
+          form_type: string
+          id?: string
+          ip_address: unknown
+          submission_count?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string | null
+          form_type?: string
+          id?: string
+          ip_address?: unknown
+          submission_count?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       form_submissions: {
         Row: {
           created_at: string
           form_data: Json
           form_type: string
+          honeypot_field: string | null
           id: string
+          ip_address: unknown | null
+          is_verified: boolean | null
           patient_email: string | null
           patient_id: string | null
           patient_name: string | null
           patient_phone: string | null
           status: string
+          submission_source: string | null
+          submission_time_ms: number | null
           submitted_at: string
           updated_at: string
+          user_agent: string | null
+          verification_token: string | null
         }
         Insert: {
           created_at?: string
           form_data: Json
           form_type: string
+          honeypot_field?: string | null
           id?: string
+          ip_address?: unknown | null
+          is_verified?: boolean | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
           patient_phone?: string | null
           status?: string
+          submission_source?: string | null
+          submission_time_ms?: number | null
           submitted_at?: string
           updated_at?: string
+          user_agent?: string | null
+          verification_token?: string | null
         }
         Update: {
           created_at?: string
           form_data?: Json
           form_type?: string
+          honeypot_field?: string | null
           id?: string
+          ip_address?: unknown | null
+          is_verified?: boolean | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
           patient_phone?: string | null
           status?: string
+          submission_source?: string | null
+          submission_time_ms?: number | null
           submitted_at?: string
           updated_at?: string
+          user_agent?: string | null
+          verification_token?: string | null
         }
         Relationships: [
           {
@@ -1501,6 +1596,15 @@ export type Database = {
         Args: { patient_id_param: string }
         Returns: boolean
       }
+      check_form_submission_rate_limit: {
+        Args: {
+          client_ip: unknown
+          form_type_param: string
+          max_submissions?: number
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1542,6 +1646,14 @@ export type Database = {
       }
       unassign_patient_from_provider: {
         Args: { patient_id_param: string; provider_id_param: string }
+        Returns: boolean
+      }
+      validate_form_submission: {
+        Args: {
+          form_data_param: Json
+          form_type_param: string
+          honeypot_value?: string
+        }
         Returns: boolean
       }
     }

@@ -6,6 +6,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Get client IP address helper
+function getClientIP(req: Request): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  const realIP = req.headers.get('x-real-ip');
+  const cfConnectingIP = req.headers.get('cf-connecting-ip'); // Cloudflare
+  
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  if (realIP) {
+    return realIP;
+  }
+  if (cfConnectingIP) {
+    return cfConnectingIP;
+  }
+  
+  // Fallback to a default IP (shouldn't happen in production)
+  return '127.0.0.1';
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,10 +45,68 @@ serve(async (req) => {
       })
     }
 
-    const { formType, formData } = await req.json()
+    const startTime = Date.now();
+    const requestBody = await req.json();
+    const { formType, formData, honeypot } = requestBody; // Added honeypot field
+    
+    // Get client information for security
+    const clientIP = getClientIP(req);
+    const userAgent = req.headers.get('user-agent') || '';
 
     if (!formType || !formData) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Security checks: Honeypot validation
+    if (honeypot && honeypot.trim() !== '') {
+      console.log('Honeypot field filled, blocking submission from:', clientIP);
+      return new Response(JSON.stringify({ error: 'Invalid submission' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Security checks: Rate limiting
+    const { data: rateLimitCheck, error: rateLimitError } = await supabase
+      .rpc('check_form_submission_rate_limit', {
+        client_ip: clientIP,
+        form_type_param: formType,
+        max_submissions: 5, // 5 submissions per hour
+        window_minutes: 60
+      });
+
+    if (rateLimitError) {
+      console.error('Rate limit check error:', rateLimitError);
+      return new Response(JSON.stringify({ error: 'System error during submission' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!rateLimitCheck) {
+      console.log('Rate limit exceeded for IP:', clientIP, 'form type:', formType);
+      return new Response(JSON.stringify({ 
+        error: 'Too many submissions. Please wait before submitting again.' 
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Security checks: Form validation
+    const { data: formValidation, error: validationError } = await supabase
+      .rpc('validate_form_submission', {
+        form_data_param: formData,
+        form_type_param: formType,
+        honeypot_value: honeypot || null
+      });
+
+    if (validationError || !formValidation) {
+      console.log('Form validation failed for IP:', clientIP, 'form type:', formType);
+      return new Response(JSON.stringify({ error: 'Invalid form data' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -329,7 +407,9 @@ serve(async (req) => {
       }
     }
 
-    // Insert form submission
+    const submissionTime = Date.now() - startTime;
+
+    // Insert form submission with security data
     const { data, error } = await supabase
       .from('form_submissions')
       .insert({
@@ -339,7 +419,13 @@ serve(async (req) => {
         patient_name: patientName || null,
         patient_email: patientEmail || null,
         patient_phone: patientPhone || null,
-        status: 'pending'
+        status: 'pending',
+        // Security fields
+        ip_address: clientIP,
+        user_agent: userAgent,
+        submission_source: 'web',
+        honeypot_field: honeypot || null,
+        submission_time_ms: submissionTime
       })
       .select()
       .single()
@@ -352,7 +438,7 @@ serve(async (req) => {
       })
     }
 
-    console.log('Form submission created:', data)
+    console.log('Form submission created:', data.id, 'from IP:', clientIP)
 
     return new Response(JSON.stringify({ 
       success: true, 
