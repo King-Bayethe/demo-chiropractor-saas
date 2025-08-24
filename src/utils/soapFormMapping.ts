@@ -221,9 +221,22 @@ export const autofillSOAPFromPatient = (patient: any) => {
 
   // Process current symptoms from patient data
   if (patient.current_symptoms) {
-    const converted = convertCurrentSymptomsToSOAP(patient.current_symptoms);
-    autofillData.currentSymptoms = converted.currentSymptoms;
-    autofillData.otherSymptoms = converted.otherSymptoms;
+    try {
+      // Parse JSON string if it's a string, otherwise use as object
+      let currentSymptomsData = patient.current_symptoms;
+      if (typeof currentSymptomsData === 'string') {
+        currentSymptomsData = JSON.parse(currentSymptomsData);
+      }
+      
+      const converted = convertCurrentSymptomsToSOAP(currentSymptomsData);
+      autofillData.currentSymptoms = converted.currentSymptoms;
+      autofillData.otherSymptoms = converted.otherSymptoms;
+      
+      console.log('Successfully autofilled current symptoms from current_symptoms:', currentSymptomsData);
+    } catch (error) {
+      console.error('Error parsing current_symptoms JSON:', error);
+      console.log('Raw current_symptoms data:', patient.current_symptoms);
+    }
   }
 
   // Process family history from patient data
