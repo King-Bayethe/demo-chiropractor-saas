@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 // Standard CORS headers
 const corsHeaders = {
@@ -11,6 +12,12 @@ const corsHeaders = {
 const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 const GHL_API_KEY = Deno.env.get('GOHIGHLEVEL_API_KEY');
 const GHL_LOCATION_ID = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
+
+// Supabase Configuration
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // Main request handler
 const handler = async (req: Request): Promise<Response> => {
@@ -198,8 +205,20 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('Patient sync successful - GHL Contact ID:', responseData.contact.id);
         console.log('Patient ID:', patientId);
         
-        // You could add logic here to update the patient record with the GHL contact ID
-        // using a Supabase client if needed
+        try {
+          const { error: updateError } = await supabase
+            .from('patients')
+            .update({ ghl_contact_id: responseData.contact.id })
+            .eq('id', patientId);
+            
+          if (updateError) {
+            console.error('Error updating patient with GHL contact ID:', updateError);
+          } else {
+            console.log('Successfully updated patient with GHL contact ID');
+          }
+        } catch (updateErr) {
+          console.error('Exception updating patient:', updateErr);
+        }
       }
       
       return new Response(JSON.stringify(responseData), {
