@@ -78,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         // Fetch from GoHighLevel Calendar API using correct endpoint
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events/appointments?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
+          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
           { headers: ghlHeaders }
         );
 
@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
         };
 
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events/appointments`,
+          `https://services.leadconnectorhq.com/calendars/events`,
           {
             method: 'POST',
             headers: ghlHeaders,
@@ -358,7 +358,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         // Fetch all events from GoHighLevel using correct endpoint
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events/appointments?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
+          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
           { headers: ghlHeaders }
         );
 

@@ -68,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('Fetching all calendars from GoHighLevel');
         
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars?locationId=${ghlLocationId}`,
+          `https://services.leadconnectorhq.com/calendars/?locationId=${ghlLocationId}`,
           { headers: ghlHeaders }
         );
 
@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('Fetching calendar by ID:', calendarId);
         
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/${calendarId}`,
+          `https://services.leadconnectorhq.com/calendars/${calendarId}?locationId=${ghlLocationId}`,
           { headers: ghlHeaders }
         );
 
@@ -122,7 +122,8 @@ const handler = async (req: Request): Promise<Response> => {
         const params = new URLSearchParams({
           calendarId,
           startDate,
-          endDate
+          endDate,
+          locationId: ghlLocationId
         });
 
         const ghlResponse = await fetch(
