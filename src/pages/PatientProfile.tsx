@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { usePatients } from "@/hooks/usePatients";
 import { useEnhancedSOAPNotes } from "@/hooks/useEnhancedSOAPNotes";
+import { FAMILY_HISTORY_MAPPING } from "@/utils/soapFormMapping";
 import { SOAPNoteTimeline } from "@/components/soap/SOAPNoteTimeline";
 import { SOAPNoteSearch } from "@/components/soap/SOAPNoteSearch";
 import { SOAPNoteBulkActions } from "@/components/soap/SOAPNoteBulkActions";
@@ -389,8 +390,27 @@ export default function PatientProfile() {
       alcoholConsumption: patient.alcohol_consumption || "",
       currentSymptoms: patient.current_symptoms ? 
         (typeof patient.current_symptoms === 'string' ? JSON.parse(patient.current_symptoms) : patient.current_symptoms) : {},
-      familyHistory: patient.systems_review ? 
-        (typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review) : {},
+      familyHistory: (() => {
+        // First try family_medical_history (from forms), then fall back to systems_review
+        const familyData = patient.family_medical_history || patient.systems_review;
+        if (!familyData) return {};
+        
+        const parsedData = typeof familyData === 'string' ? JSON.parse(familyData) : familyData;
+        
+        // Convert from formField format to soapField format for the form
+        const convertedData = {};
+        Object.entries(parsedData).forEach(([key, value]) => {
+          const mapping = FAMILY_HISTORY_MAPPING.find(m => m.formField === key);
+          if (mapping) {
+            convertedData[mapping.soapField] = value;
+          } else {
+            // If no mapping found, use the key as-is (might already be in soapField format)
+            convertedData[key] = value;
+          }
+        });
+        
+        return convertedData;
+      })(),
       otherMedicalHistory: (patient as any).other_medical_history || "",
       
       // New PIP Form Fields - Accident Details
@@ -518,8 +538,27 @@ export default function PatientProfile() {
         alcoholConsumption: patientData.alcohol_consumption || "",
         currentSymptoms: patientData.current_symptoms ? 
           (typeof patientData.current_symptoms === 'string' ? JSON.parse(patientData.current_symptoms) : patientData.current_symptoms) : {},
-        familyHistory: patientData.systems_review ? 
-          (typeof patientData.systems_review === 'string' ? JSON.parse(patientData.systems_review) : patientData.systems_review) : {},
+        familyHistory: (() => {
+          // First try family_medical_history (from forms), then fall back to systems_review
+          const familyData = patientData.family_medical_history || patientData.systems_review;
+          if (!familyData) return {};
+          
+          const parsedData = typeof familyData === 'string' ? JSON.parse(familyData) : familyData;
+          
+          // Convert from formField format to soapField format for the form
+          const convertedData = {};
+          Object.entries(parsedData).forEach(([key, value]) => {
+            const mapping = FAMILY_HISTORY_MAPPING.find(m => m.formField === key);
+            if (mapping) {
+              convertedData[mapping.soapField] = value;
+            } else {
+              // If no mapping found, use the key as-is (might already be in soapField format)
+              convertedData[key] = value;
+            }
+          });
+          
+          return convertedData;
+        })(),
         otherMedicalHistory: (patientData as any).other_medical_history || "",
         // Insurance and Legal fields continue from here
         didGoToHospital: patientData.did_go_to_hospital === true ? "yes" : patientData.did_go_to_hospital === false ? "no" : "",
@@ -653,12 +692,28 @@ export default function PatientProfile() {
         chronic_conditions: data.chronicConditions?.trim() || null,
         pain_location: data.painLocation?.trim() || null,
         pain_severity: data.painSeverity || null,
-        family_medical_history: data.familyMedicalHistory?.trim() || null,
+        family_medical_history: (() => {
+          // Convert familyHistory form data from soapField format back to formField format
+          if (!data.familyHistory) return data.familyMedicalHistory?.trim() || null;
+          
+          const convertedData = {};
+          Object.entries(data.familyHistory).forEach(([key, value]) => {
+            const mapping = FAMILY_HISTORY_MAPPING.find(m => m.soapField === key);
+            if (mapping) {
+              convertedData[mapping.formField] = value;
+            } else {
+              // If no mapping found, use the key as-is
+              convertedData[key] = value;
+            }
+          });
+          
+          return JSON.stringify(convertedData);
+        })(),
         smoking_status: data.smokingStatus?.trim() || null,
         smoking_history: data.smokingHistory?.trim() || null,
         alcohol_consumption: data.alcoholConsumption?.trim() || null,
         current_symptoms: data.currentSymptoms ? JSON.stringify(data.currentSymptoms) : null,
-        systems_review: data.familyHistory ? JSON.stringify(data.familyHistory) : null,
+        systems_review: null, // Clear this field as we're now using family_medical_history
         other_medical_history: data.otherMedicalHistory?.trim() || null,
         
         // Insurance and Legal
