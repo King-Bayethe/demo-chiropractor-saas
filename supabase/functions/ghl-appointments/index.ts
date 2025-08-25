@@ -76,25 +76,51 @@ const handler = async (req: Request): Promise<Response> => {
         const startTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
         const endTime = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days forward
         
-        // Fetch from GoHighLevel Calendar API using correct endpoint
-        const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
+        // First, get calendar groups to find available calendars
+        const groupsResponse = await fetch(
+          `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
           { headers: ghlHeaders }
         );
 
-        if (!ghlResponse.ok) {
-          const errorText = await ghlResponse.text();
-          console.error(`GoHighLevel API error: ${ghlResponse.status}`, errorText);
-          throw new Error(`GoHighLevel API error: ${ghlResponse.status} - ${errorText}`);
+        if (!groupsResponse.ok) {
+          const errorText = await groupsResponse.text();
+          console.error(`GoHighLevel Groups API error: ${groupsResponse.status}`, errorText);
+          throw new Error(`GoHighLevel Groups API error: ${groupsResponse.status} - ${errorText}`);
         }
 
-        const ghlData = await ghlResponse.json();
-        const ghlEvents = ghlData.events || [];
-        console.log(`Fetched ${ghlEvents.length} appointments from GoHighLevel`);
+        const groupsData = await groupsResponse.json();
+        const groups = groupsData.groups || [];
+        console.log(`Found ${groups.length} calendar groups`);
+
+        let allEvents = [];
+
+        // Fetch events for each group
+        for (const group of groups) {
+          try {
+            console.log(`Fetching events for group: ${group.id}`);
+            const eventsResponse = await fetch(
+              `https://services.leadconnectorhq.com/calendars/events?groupId=${group.id}&startTime=${startTime}&endTime=${endTime}`,
+              { headers: ghlHeaders }
+            );
+
+            if (eventsResponse.ok) {
+              const eventsData = await eventsResponse.json();
+              const events = eventsData.events || [];
+              allEvents.push(...events);
+              console.log(`Fetched ${events.length} events from group ${group.id}`);
+            } else {
+              console.warn(`Failed to fetch events for group ${group.id}: ${eventsResponse.status}`);
+            }
+          } catch (error) {
+            console.error(`Error fetching events for group ${group.id}:`, error);
+          }
+        }
+
+        console.log(`Total events fetched: ${allEvents.length}`);
 
         // Fetch contact names for each appointment
         const appointmentsWithContacts = await Promise.all(
-          ghlEvents.map(async (appointment: any) => {
+          allEvents.map(async (appointment: any) => {
             if (!appointment.contactId) {
               return { ...appointment, contactName: '' };
             }
@@ -356,26 +382,46 @@ const handler = async (req: Request): Promise<Response> => {
         const startTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
         const endTime = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days forward
         
-        // Fetch all events from GoHighLevel using correct endpoint
-        const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
+        // First, get calendar groups to find available calendars
+        const groupsResponse = await fetch(
+          `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
           { headers: ghlHeaders }
         );
 
-        if (!ghlResponse.ok) {
-          const errorText = await ghlResponse.text();
-          console.error(`GoHighLevel API error: ${ghlResponse.status}`, errorText);
-          throw new Error(`GoHighLevel API error: ${ghlResponse.status} - ${errorText}`);
+        if (!groupsResponse.ok) {
+          const errorText = await groupsResponse.text();
+          console.error(`GoHighLevel Groups API error: ${groupsResponse.status}`, errorText);
+          throw new Error(`GoHighLevel Groups API error: ${groupsResponse.status} - ${errorText}`);
         }
 
-        const ghlData = await ghlResponse.json();
-        const ghlEvents = ghlData.events || [];
+        const groupsData = await groupsResponse.json();
+        const groups = groupsData.groups || [];
+
+        let allEvents = [];
+
+        // Fetch events for each group
+        for (const group of groups) {
+          try {
+            const eventsResponse = await fetch(
+              `https://services.leadconnectorhq.com/calendars/events?groupId=${group.id}&startTime=${startTime}&endTime=${endTime}`,
+              { headers: ghlHeaders }
+            );
+
+            if (eventsResponse.ok) {
+              const eventsData = await eventsResponse.json();
+              const events = eventsData.events || [];
+              allEvents.push(...events);
+            }
+          } catch (error) {
+            console.error(`Error fetching events for group ${group.id}:`, error);
+          }
+        }
         
         let syncedCount = 0;
         let errorCount = 0;
 
         // Sync each GHL event to local database
-        for (const event of ghlEvents) {
+        for (const event of allEvents) {
           try {
             const { error } = await supabaseClient
               .from('appointments')
@@ -413,7 +459,7 @@ const handler = async (req: Request): Promise<Response> => {
             success: true,
             syncedCount,
             errorCount,
-            totalEvents: ghlEvents.length
+            totalEvents: allEvents.length
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
