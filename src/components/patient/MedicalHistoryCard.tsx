@@ -279,23 +279,6 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="familyMedicalHistory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Family Medical History</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Describe family medical history"
-                      className="min-h-[80px]"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
