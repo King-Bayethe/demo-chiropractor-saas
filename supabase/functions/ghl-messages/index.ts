@@ -1,187 +1,109 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
 
-const GHL_API_BASE = "https://services.leadconnectorhq.com";
-
-interface MessageData {
-  id: string;
-  conversationId: string;
-  type: string;
-  direction: string;
-  status: string;
-  body?: string;
-  dateAdded: string;
-  attachments?: Array<{
-    id: string;
-    url: string;
-    type: string;
-    name?: string;
-  }>;
-  meta?: {
-    recordingUrl?: string;
-    recordingId?: string;
-    transcription?: string;
-    duration?: number;
-  };
-  contactId?: string;
-  userId?: string;
-}
-
-interface EnhancedMessage extends MessageData {
-  hasRecording?: boolean;
-  hasTranscription?: boolean;
-  recordingData?: {
-    id: string;
-    url: string;
-    duration?: number;
-  };
-  transcriptionData?: {
-    text: string;
-    confidence?: number;
-  };
-}
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders
+    });
   }
 
   try {
-    const apiKey = Deno.env.get('GOHIGHLEVEL_API_KEY');
-    if (!apiKey) {
-      throw new Error('GoHighLevel API key not configured');
+    const ghlApiKey = Deno.env.get('GOHIGHLEVEL_API_KEY');
+    const ghlLocationId = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
+    
+    if (!ghlApiKey || !ghlLocationId) {
+      console.error('Missing GoHighLevel API configuration');
+      return new Response(JSON.stringify({
+        error: 'Missing GoHighLevel API configuration'
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
     }
 
-    const url = new URL(req.url);
-    const conversationId = url.searchParams.get('conversationId');
-    const lastMessageId = url.searchParams.get('lastMessageId');
-    const limit = url.searchParams.get('limit') || '20';
+    const { conversationId } = await req.json();
     
     if (!conversationId) {
-      return new Response(
-        JSON.stringify({ error: 'Conversation ID is required' }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      return new Response(JSON.stringify({
+        error: 'conversationId is required'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
         }
-      );
+      });
     }
 
     console.log(`Fetching messages for conversation: ${conversationId}`);
 
-    // Build the messages endpoint URL
-    let messagesUrl = `${GHL_API_BASE}/conversations/${conversationId}/messages?limit=${limit}`;
-    if (lastMessageId) {
-      messagesUrl += `&lastMessageId=${lastMessageId}`;
-    }
-
-    const response = await fetch(messagesUrl, {
+    // Fetch messages from GoHighLevel API
+    const response = await fetch(`https://services.leadconnectorhq.com/conversations/${conversationId}/messages`, {
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Version': '2021-07-28',
-        'Accept': 'application/json'
+        'Authorization': `Bearer ${ghlApiKey}`,
+        'Content-Type': 'application/json',
+        'Version': '2021-07-28'
       }
     });
 
     if (!response.ok) {
-      console.error(`Messages fetch failed: ${response.status} ${response.statusText}`);
-      throw new Error(`Failed to fetch messages: ${response.statusText}`);
+      console.error(`GoHighLevel API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      
+      return new Response(JSON.stringify({
+        error: `GoHighLevel API error: ${response.status}`,
+        details: errorText
+      }), {
+        status: response.status,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
     }
 
     const data = await response.json();
-    const messages: MessageData[] = data.messages || [];
-    
-    console.log(`Fetched ${messages.length} messages`);
+    console.log('GoHighLevel API response:', JSON.stringify(data, null, 2));
 
-    // Enhance messages with recording and transcription info
-    const enhancedMessages: EnhancedMessage[] = await Promise.all(
-      messages.map(async (message) => {
-        const enhanced: EnhancedMessage = { ...message };
+    // Extract messages from the nested structure and return them directly
+    const messages = data?.messages?.messages || data?.messages || [];
 
-        // Check for recordings (calls and voicemails)
-        const hasRecording = (
-          message.type === 'TYPE_CALL' || 
-          message.type === 'TYPE_VOICEMAIL'
-        ) && (
-          message.meta?.recordingUrl || 
-          message.meta?.recordingId ||
-          message.attachments?.some(att => att.type === 'audio')
-        );
-
-        if (hasRecording) {
-          enhanced.hasRecording = true;
-          enhanced.recordingData = {
-            id: message.meta?.recordingId || message.id,
-            url: message.meta?.recordingUrl || '',
-            duration: message.meta?.duration
-          };
-
-          // Check if transcription is available
-          if (message.meta?.transcription) {
-            enhanced.hasTranscription = true;
-            enhanced.transcriptionData = {
-              text: message.meta.transcription
-            };
-          }
-        }
-
-        // Check for attachments that might be audio
-        if (message.attachments) {
-          message.attachments.forEach(attachment => {
-            if (attachment.type === 'audio') {
-              enhanced.hasRecording = true;
-              if (!enhanced.recordingData) {
-                enhanced.recordingData = {
-                  id: attachment.id,
-                  url: attachment.url
-                };
-              }
-            }
-          });
-        }
-
-        return enhanced;
-      })
-    );
-
-    const result = {
-      messages: enhancedMessages,
-      conversationId,
-      total: enhancedMessages.length,
-      hasMore: data.hasMore || false,
-      lastMessageId: enhancedMessages.length > 0 ? enhancedMessages[enhancedMessages.length - 1].id : null
-    };
-
-    return new Response(
-      JSON.stringify(result),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+    return new Response(JSON.stringify({
+      messages
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
   } catch (error) {
     console.error('Error in ghl-messages function:', error);
-    
-    return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Internal server error',
-        details: error instanceof Error ? error.stack : undefined
-      }),
-      { 
-        status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+    return new Response(JSON.stringify({
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
       }
-    );
+    });
   }
 });
