@@ -29,12 +29,11 @@ serve(async (req) => {
       throw new Error('GoHighLevel API key not configured');
     }
 
-    const url = new URL(req.url);
-    const recordingId = url.searchParams.get('recordingId');
+    const { messageId } = await req.json();
     
-    if (!recordingId) {
+    if (!messageId) {
       return new Response(
-        JSON.stringify({ error: 'Recording ID is required' }),
+        JSON.stringify({ error: 'Message ID is required' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -42,10 +41,10 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Fetching recording: ${recordingId}`);
+    console.log(`Fetching recording for message: ${messageId}`);
 
-    // Get recording metadata first
-    const metadataResponse = await fetch(`${GHL_API_BASE}/conversations/recordings/${recordingId}`, {
+    // Get message details first to find recording info
+    const messageResponse = await fetch(`${GHL_API_BASE}/conversations/messages/${messageId}`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Version': '2021-07-28',
@@ -53,65 +52,86 @@ serve(async (req) => {
       }
     });
 
-    if (!metadataResponse.ok) {
-      console.error(`Recording metadata fetch failed: ${metadataResponse.status}`);
-      throw new Error(`Failed to fetch recording metadata: ${metadataResponse.statusText}`);
+    if (!messageResponse.ok) {
+      console.error(`Message fetch failed: ${messageResponse.status}`);
+      throw new Error(`Failed to fetch message: ${messageResponse.statusText}`);
     }
 
-    const metadata: RecordingData = await metadataResponse.json();
-    console.log('Recording metadata:', metadata);
+    const messageData = await messageResponse.json();
+    console.log('Message data:', messageData);
 
-    if (!metadata.url) {
-      throw new Error('Recording URL not available');
+    // Check for recording in message attachments or meta
+    let recordingUrl = null;
+    let recordingId = null;
+    let duration = null;
+
+    // Check meta for recording info
+    if (messageData.meta?.recordingUrl) {
+      recordingUrl = messageData.meta.recordingUrl;
+      recordingId = messageData.meta.recordingId || messageId;
+      duration = messageData.meta.duration;
     }
 
-    // Check file size if provided
-    if (metadata.fileSize && metadata.fileSize > MAX_FILE_SIZE) {
-      throw new Error(`Recording file too large: ${metadata.fileSize} bytes (max: ${MAX_FILE_SIZE})`);
+    // Check attachments for audio files
+    if (!recordingUrl && messageData.attachments) {
+      const audioAttachment = messageData.attachments.find(att => 
+        att.type === 'audio' || att.type?.includes('audio')
+      );
+      if (audioAttachment) {
+        recordingUrl = audioAttachment.url;
+        recordingId = audioAttachment.id || messageId;
+      }
     }
 
-    // Download the audio file
-    console.log(`Downloading audio from: ${metadata.url}`);
-    const audioResponse = await fetch(metadata.url, {
+    if (!recordingUrl) {
+      return new Response(
+        JSON.stringify({ error: 'No recording found for this message' }),
+        { 
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log(`Found recording URL: ${recordingUrl}`);
+
+    // Fetch the recording file
+    const recordingResponse = await fetch(recordingUrl, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
       }
     });
 
-    if (!audioResponse.ok) {
-      console.error(`Audio download failed: ${audioResponse.status}`);
-      throw new Error(`Failed to download audio: ${audioResponse.statusText}`);
+    if (!recordingResponse.ok) {
+      console.error(`Recording download failed: ${recordingResponse.status}`);
+      throw new Error(`Failed to download recording: ${recordingResponse.statusText}`);
     }
 
-    const contentLength = audioResponse.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
-      throw new Error(`Audio file too large: ${contentLength} bytes (max: ${MAX_FILE_SIZE})`);
-    }
-
+    const contentLength = recordingResponse.headers.get('content-length');
+    const contentType = recordingResponse.headers.get('content-type') || 'audio/wav';
+    
     // Get audio data as array buffer
-    const audioBuffer = await audioResponse.arrayBuffer();
-    console.log(`Downloaded audio: ${audioBuffer.byteLength} bytes`);
+    const audioBuffer = await recordingResponse.arrayBuffer();
+    console.log(`Downloaded recording: ${audioBuffer.byteLength} bytes`);
 
-    // Convert to base64
+    // Convert to base64 for data URL
     const base64Audio = btoa(
       new Uint8Array(audioBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
     );
-
-    // Detect content type
-    const contentType = audioResponse.headers.get('content-type') || 'audio/mpeg';
     
-    // Create data URL
     const dataUrl = `data:${contentType};base64,${base64Audio}`;
 
     const result = {
-      id: recordingId,
-      base64Audio: dataUrl,
+      messageId,
+      recordingId,
+      url: dataUrl,
+      originalUrl: recordingUrl,
       metadata: {
-        duration: metadata.duration,
-        fileName: metadata.fileName || `recording_${recordingId}`,
+        duration,
+        fileName: `recording_${messageId}`,
         fileSize: audioBuffer.byteLength,
         contentType,
-        originalUrl: metadata.url
+        fileSizeFormatted: formatFileSize(audioBuffer.byteLength)
       }
     };
 
@@ -143,3 +163,12 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
