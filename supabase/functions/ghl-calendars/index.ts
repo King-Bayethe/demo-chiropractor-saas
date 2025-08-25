@@ -65,10 +65,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     switch (action) {
       case 'getAll': {
-        console.log('Fetching all calendars from GoHighLevel');
+        console.log('Fetching all calendar groups from GoHighLevel');
         
+        // First get calendar groups to find calendars
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/?locationId=${ghlLocationId}`,
+          `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
           { headers: ghlHeaders }
         );
 
@@ -79,12 +80,21 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         const ghlData = await ghlResponse.json();
-        const calendars = ghlData.calendars || [];
-        console.log(`Fetched ${calendars.length} calendars from GoHighLevel`);
+        const groups = ghlData.groups || [];
+        console.log(`Fetched ${groups.length} calendar groups from GoHighLevel`);
+
+        // Extract calendars from groups
+        const calendars = [];
+        for (const group of groups) {
+          if (group.calendars && Array.isArray(group.calendars)) {
+            calendars.push(...group.calendars);
+          }
+        }
 
         return new Response(
           JSON.stringify({
             calendars: calendars,
+            groups: groups,
             total: calendars.length
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -95,8 +105,12 @@ const handler = async (req: Request): Promise<Response> => {
         const { calendarId } = requestBody as any;
         console.log('Fetching calendar by ID:', calendarId);
         
+        if (!calendarId) {
+          throw new Error('Calendar ID is required');
+        }
+        
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/${calendarId}?locationId=${ghlLocationId}`,
+          `https://services.leadconnectorhq.com/calendars/${calendarId}`,
           { headers: ghlHeaders }
         );
 
@@ -119,11 +133,14 @@ const handler = async (req: Request): Promise<Response> => {
         const { calendarId, startDate, endDate } = requestBody as any;
         console.log('Fetching available slots for calendar:', calendarId, startDate, endDate);
         
+        if (!calendarId) {
+          throw new Error('Calendar ID is required for fetching available slots');
+        }
+        
         const params = new URLSearchParams({
           calendarId,
           startDate,
-          endDate,
-          locationId: ghlLocationId
+          endDate
         });
 
         const ghlResponse = await fetch(
