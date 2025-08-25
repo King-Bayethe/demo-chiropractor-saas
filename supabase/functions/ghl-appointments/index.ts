@@ -240,7 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('GHL appointment payload:', ghlPayload);
 
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/${calendarId}/events`,
+          `https://services.leadconnectorhq.com/calendars/events/appointments`,
           {
             method: 'POST',
             headers: ghlHeaders,
