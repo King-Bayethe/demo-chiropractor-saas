@@ -8,6 +8,8 @@ import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChiropracticSOAPQuestionnaire } from "@/components/ChiropracticSOAPQuestionnaire";
 import { LeadIntakeForm } from "@/components/LeadIntakeForm";
+import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
+import { exportFormToCSV, exportFormToPDF, exportMultipleFormsToCSV } from "@/utils/formExport";
 import { toast } from "sonner";
 import { 
   FileText, 
@@ -24,7 +26,9 @@ import {
   Filter,
   Plus,
   Stethoscope,
-  UserPlus
+  UserPlus,
+  FileDown,
+  Package
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -135,183 +139,19 @@ export default function Forms() {
     }
   };
 
-  const renderFormData = (formData: any, formType: string) => {
-    const sections = [];
-
-    // Personal Information
-    if (formData.firstName || formData.lastName) {
-      sections.push(
-        <div key="personal" className="space-y-3">
-          <h4 className="font-semibold text-primary">Personal Information</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {formData.firstName && (
-              <div>
-                <span className="font-medium">First Name:</span> {formData.firstName}
-              </div>
-            )}
-            {formData.lastName && (
-              <div>
-                <span className="font-medium">Last Name:</span> {formData.lastName}
-              </div>
-            )}
-            {formData.email && (
-              <div>
-                <span className="font-medium">Email:</span> {formData.email}
-              </div>
-            )}
-            {formData.cellPhone && (
-              <div>
-                <span className="font-medium">Phone:</span> {formData.cellPhone}
-              </div>
-            )}
-            {formData.dob && (
-              <div>
-                <span className="font-medium">Date of Birth:</span> {formData.dob}
-              </div>
-            )}
-            {formData.address && (
-              <div className="col-span-2">
-                <span className="font-medium">Address:</span> {formData.address}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Accident Information
-    if (formData.accidentDate || formData.accidentDescription) {
-      sections.push(
-        <div key="accident" className="space-y-3">
-          <h4 className="font-semibold text-primary">Accident Information</h4>
-          <div className="space-y-2 text-sm">
-            {formData.accidentDate && (
-              <div>
-                <span className="font-medium">Date of Accident:</span> {formData.accidentDate}
-              </div>
-            )}
-            {formData.accidentTime && (
-              <div>
-                <span className="font-medium">Time of Accident:</span> {formData.accidentTime}
-              </div>
-            )}
-            {formData.accidentType && (
-              <div>
-                <span className="font-medium">Type of Accident:</span> {formData.accidentType}
-              </div>
-            )}
-            {formData.accidentDescription && (
-              <div>
-                <span className="font-medium">Description:</span>
-                <p className="mt-1 p-2 bg-muted rounded">{formData.accidentDescription}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Insurance Information (for PIP forms)
-    if (formType === 'pip' && (formData.insuranceCo || formData.attorneyName)) {
-      sections.push(
-        <div key="insurance" className="space-y-3">
-          <h4 className="font-semibold text-primary">Insurance & Legal</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {formData.insuranceCo && (
-              <div>
-                <span className="font-medium">Insurance Company:</span> {formData.insuranceCo}
-              </div>
-            )}
-            {formData.policyNumber && (
-              <div>
-                <span className="font-medium">Policy Number:</span> {formData.policyNumber}
-              </div>
-            )}
-            {formData.attorneyName && (
-              <div>
-                <span className="font-medium">Attorney:</span> {formData.attorneyName}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Symptoms (for forms that have them)
-    if (formData.symptoms && typeof formData.symptoms === 'object') {
-      const activeSymptoms = Object.entries(formData.symptoms)
-        .filter(([_, active]) => active)
-        .map(([symptom, _]) => symptom);
-
-      if (activeSymptoms.length > 0) {
-        sections.push(
-          <div key="symptoms" className="space-y-3">
-            <h4 className="font-semibold text-primary">Symptoms</h4>
-            <div className="flex flex-wrap gap-2">
-              {activeSymptoms.map((symptom) => (
-                <Badge key={symptom} variant="outline" className="text-xs">
-                  {symptom.replace(/([A-Z])/g, ' $1').trim()}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        );
+  const handleExportForm = (submission: FormSubmission, format: 'csv' | 'pdf') => {
+    try {
+      if (format === 'csv') {
+        exportFormToCSV(submission);
+        toast.success("CSV exported successfully");
+      } else if (format === 'pdf') {
+        exportFormToPDF(submission);
+        toast.success("PDF exported successfully");
       }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(`Failed to export ${format.toUpperCase()}`);
     }
-
-    // Lead Intake Form Data
-    if (formType === 'lead_intake') {
-      sections.push(
-        <div key="lead-info" className="space-y-3">
-          <h4 className="font-semibold text-primary">Lead Information</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {formData.leadSource && (
-              <div>
-                <span className="font-medium">Lead Source:</span> {formData.leadSource}
-              </div>
-            )}
-            {formData.referredBy && (
-              <div>
-                <span className="font-medium">Referred By:</span> {formData.referredBy}
-              </div>
-            )}
-            {formData.affiliateOffice && (
-              <div className="col-span-2">
-                <span className="font-medium">Affiliate Office:</span> {formData.affiliateOffice}
-              </div>
-            )}
-            {formData.caseType && (
-              <div>
-                <span className="font-medium">Case Type:</span> {formData.caseType}
-              </div>
-            )}
-            {formData.insuranceName && (
-              <div>
-                <span className="font-medium">Insurance:</span> {formData.insuranceName}
-              </div>
-            )}
-            {formData.biLimit && (
-              <div>
-                <span className="font-medium">BI Limit:</span> {formData.biLimit}
-              </div>
-            )}
-            {formData.language && (
-              <div>
-                <span className="font-medium">Language:</span> {formData.language}
-              </div>
-            )}
-          </div>
-          {formData.other && (
-            <div className="mt-3">
-              <span className="font-medium">Additional Notes:</span>
-              <p className="mt-1 p-2 bg-muted rounded text-sm">{formData.other}</p>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return sections;
   };
 
   const handleSOAPQuestionnaireSubmit = async (data: any) => {
@@ -436,6 +276,14 @@ export default function Forms() {
               <p className="text-muted-foreground">View and manage patient form submissions</p>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => exportMultipleFormsToCSV(filteredSubmissions)}
+                disabled={filteredSubmissions.length === 0}
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Export All CSV
+              </Button>
               <Button 
                 onClick={() => setShowLeadIntakeForm(true)}
                 className="bg-orange-500 hover:bg-orange-600"
@@ -656,9 +504,14 @@ export default function Forms() {
                             </div>
 
                             <ScrollArea className="h-96">
-                              <div className="space-y-6">
-                                {renderFormData(submission.form_data, submission.form_type)}
-                              </div>
+                              <FormSubmissionDetails
+                                formData={submission.form_data}
+                                formType={submission.form_type}
+                                submissionDate={submission.submitted_at}
+                                submissionId={submission.id}
+                                patientName={submission.patient_name || undefined}
+                                onExport={(format) => handleExportForm(submission, format)}
+                              />
                             </ScrollArea>
                           </div>
                         </DialogContent>

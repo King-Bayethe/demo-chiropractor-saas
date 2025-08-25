@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
+import { exportFormToCSV, exportFormToPDF } from "@/utils/formExport";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { 
   FileText, 
@@ -64,199 +67,7 @@ export function PatientFormDisplay({ forms, loading = false }: PatientFormDispla
     }
   };
 
-  const renderFormData = (formData: any, formType: string) => {
-    const sections = [];
-
-    // Personal Information
-    if (formData.firstName || formData.lastName) {
-      sections.push(
-        <div key="personal" className="space-y-3">
-          <h4 className="font-semibold text-primary">Personal Information</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {formData.firstName && (
-              <div>
-                <span className="font-medium">First Name:</span> {formData.firstName}
-              </div>
-            )}
-            {formData.lastName && (
-              <div>
-                <span className="font-medium">Last Name:</span> {formData.lastName}
-              </div>
-            )}
-            {formData.email && (
-              <div>
-                <span className="font-medium">Email:</span> {formData.email}
-              </div>
-            )}
-            {formData.cellPhone && (
-              <div>
-                <span className="font-medium">Phone:</span> {formData.cellPhone}
-              </div>
-            )}
-            {formData.dob && (
-              <div>
-                <span className="font-medium">Date of Birth:</span> {formData.dob}
-              </div>
-            )}
-            {formData.streetAddress && (
-              <div className="col-span-2">
-                <span className="font-medium">Address:</span> {formData.streetAddress}, {formData.city}, {formData.state} {formData.zipCode}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Medical History
-    if (formData.painLocation || formData.painSeverity || formData.familyMedicalHistory || formData.smokingStatus || formData.smokingHistory) {
-      sections.push(
-        <div key="medical" className="space-y-3">
-          <h4 className="font-semibold text-primary">Medical History</h4>
-          <div className="space-y-2 text-sm">
-            {formData.painLocation && (
-              <div>
-                <span className="font-medium">Pain Location:</span> {formData.painLocation}
-              </div>
-            )}
-            {formData.painSeverity && (
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Pain Severity:</span> 
-                <div className="flex items-center gap-2">
-                  <span>{formData.painSeverity}/10</span>
-                  <div className="flex gap-1">
-                    {[...Array(10)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-2 h-2 rounded-full ${
-                          i < formData.painSeverity 
-                            ? formData.painSeverity <= 3 
-                              ? 'bg-green-500' 
-                              : formData.painSeverity <= 6 
-                              ? 'bg-yellow-500' 
-                              : 'bg-red-500'
-                            : 'bg-gray-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            {formData.familyMedicalHistory && (
-              <div>
-                <span className="font-medium">Family Medical History:</span>
-                <p className="mt-1 p-2 bg-muted rounded">{formData.familyMedicalHistory}</p>
-              </div>
-            )}
-            {formData.smokingStatus && (
-              <div>
-                <span className="font-medium">Smoking Status:</span> {formData.smokingStatus}
-              </div>
-            )}
-            {formData.smokingHistory && (
-              <div>
-                <span className="font-medium">Smoking History:</span>
-                <p className="mt-1 p-2 bg-muted rounded">{formData.smokingHistory}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Accident Information
-    if (formData.accidentDate || formData.accidentDescription) {
-      sections.push(
-        <div key="accident" className="space-y-3">
-          <h4 className="font-semibold text-primary">Accident Information</h4>
-          <div className="space-y-2 text-sm">
-            {formData.accidentDate && (
-              <div>
-                <span className="font-medium">Date of Accident:</span> {formData.accidentDate}
-              </div>
-            )}
-            {formData.accidentTime && (
-              <div>
-                <span className="font-medium">Time of Accident:</span> {formData.accidentTime}
-              </div>
-            )}
-            {formData.accidentType && (
-              <div>
-                <span className="font-medium">Type of Accident:</span> {formData.accidentType}
-              </div>
-            )}
-            {formData.accidentDescription && (
-              <div>
-                <span className="font-medium">Description:</span>
-                <p className="mt-1 p-2 bg-muted rounded">{formData.accidentDescription}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Insurance Information
-    if (formData.autoInsuranceCompany || formData.healthInsurance || formData.attorneyName) {
-      sections.push(
-        <div key="insurance" className="space-y-3">
-          <h4 className="font-semibold text-primary">Insurance & Legal</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {formData.autoInsuranceCompany && (
-              <div>
-                <span className="font-medium">Auto Insurance:</span> {formData.autoInsuranceCompany}
-              </div>
-            )}
-            {formData.policyNumber && (
-              <div>
-                <span className="font-medium">Policy Number:</span> {formData.policyNumber}
-              </div>
-            )}
-            {formData.healthInsurance && (
-              <div>
-                <span className="font-medium">Health Insurance:</span> {formData.healthInsurance}
-              </div>
-            )}
-            {formData.attorneyName && (
-              <div>
-                <span className="font-medium">Attorney:</span> {formData.attorneyName}
-              </div>
-            )}
-            {formData.attorneyPhone && (
-              <div>
-                <span className="font-medium">Attorney Phone:</span> {formData.attorneyPhone}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Symptoms (for forms that have them)
-    if (formData.symptoms && typeof formData.symptoms === 'object') {
-      const activeSymptoms = Object.entries(formData.symptoms)
-        .filter(([_, active]) => active)
-        .map(([symptom, _]) => symptom);
-
-      if (activeSymptoms.length > 0) {
-        sections.push(
-          <div key="symptoms" className="space-y-3">
-            <h4 className="font-semibold text-primary">Symptoms</h4>
-            <div className="flex flex-wrap gap-2">
-              {activeSymptoms.map((symptom) => (
-                <Badge key={symptom} variant="outline" className="text-xs">
-                  {symptom.replace(/([A-Z])/g, ' $1').trim()}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        );
-      }
-    }
-
-    return sections;
-  };
+  // This renderFormData function is no longer needed as we use FormSubmissionDetails component
 
   if (loading) {
     return (
@@ -323,9 +134,27 @@ export function PatientFormDisplay({ forms, loading = false }: PatientFormDispla
                       </DialogDescription>
                     </DialogHeader>
                     <ScrollArea className="max-h-[60vh] pr-4">
-                      <div className="space-y-6">
-                        {renderFormData(form.form_data, form.form_type)}
-                      </div>
+                      <FormSubmissionDetails
+                        formData={form.form_data}
+                        formType={form.form_type}
+                        submissionDate={form.submitted_at}
+                        submissionId={form.id}
+                        patientName={form.patient_name || undefined}
+                        onExport={(format) => {
+                          try {
+                            if (format === 'csv') {
+                              exportFormToCSV(form);
+                              toast.success("CSV exported successfully");
+                            } else if (format === 'pdf') {
+                              exportFormToPDF(form);
+                              toast.success("PDF exported successfully");
+                            }
+                          } catch (error) {
+                            console.error('Export error:', error);
+                            toast.error(`Failed to export ${format.toUpperCase()}`);
+                          }
+                        }}
+                      />
                     </ScrollArea>
                   </DialogContent>
                 </Dialog>
