@@ -19,16 +19,16 @@ import {
   Loader2,
   Clock,
   Mic,
-  FileAudio
+  FileAudio,
+  RefreshCw
 } from "lucide-react";
-import { usePatientConversations, PatientConversation, PatientMessage } from "@/hooks/usePatientConversations";
+import { useGHLConversations, GHLConversation, GHLMessage } from "@/hooks/useGHLConversations";
 import { usePatients } from "@/hooks/usePatients";
 import { toast } from "sonner";
-import { formatDistanceToNow } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
 
 export const PatientChatSection = () => {
-  const [selectedConversation, setSelectedConversation] = useState<PatientConversation | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<GHLConversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [audioRecordings, setAudioRecordings] = useState<{[messageId: string]: any}>({});
@@ -38,13 +38,13 @@ export const PatientChatSection = () => {
     conversations,
     messages,
     loading,
+    messagesLoading,
     error,
     fetchMessages,
     sendMessage,
-    createConversation,
-    markAsRead,
+    fetchConversations,
     syncGHLConversations
-  } = usePatientConversations();
+  } = useGHLConversations();
   
   const { patients } = usePatients();
 
@@ -52,9 +52,8 @@ export const PatientChatSection = () => {
   useEffect(() => {
     if (selectedConversation) {
       fetchMessages(selectedConversation.id);
-      markAsRead(selectedConversation.id);
     }
-  }, [selectedConversation, fetchMessages, markAsRead]);
+  }, [selectedConversation, fetchMessages]);
 
   // Auto-select the first conversation when conversations load
   useEffect(() => {
@@ -75,10 +74,13 @@ export const PatientChatSection = () => {
   const handleSendMessage = async () => {
     if (newMessage.trim() && selectedConversation) {
       try {
-        await sendMessage(selectedConversation.id, newMessage);
-        setNewMessage("");
-        
-        toast.success("Message sent successfully");
+        const success = await sendMessage(selectedConversation.id, newMessage);
+        if (success) {
+          setNewMessage("");
+          toast.success("Message sent successfully");
+        } else {
+          toast.error("Failed to send message");
+        }
       } catch (error) {
         console.error('Error sending message:', error);
         toast.error("Failed to send message");
@@ -86,39 +88,23 @@ export const PatientChatSection = () => {
     }
   };
 
-  const handleCreateConversation = async () => {
-    // For demo, create a conversation with the first patient
-    if (patients.length > 0) {
-      try {
-        const newConversation = await createConversation(patients[0].id);
-        setSelectedConversation(newConversation);
-        toast.success("New conversation created");
-      } catch (error) {
-        console.error('Error creating conversation:', error);
-        toast.error("Failed to create conversation");
-      }
-    } else {
-      toast.error("No patients available to start a conversation with");
-    }
-  };
-
   const handleSyncGHL = async () => {
     try {
-      const result = await syncGHLConversations();
-      toast.success(`Synced ${result.conversationsSynced} conversations and ${result.messagesImported} messages from GHL`);
+      await syncGHLConversations();
+      toast.success("Synced conversations from GoHighLevel");
     } catch (error) {
       console.error('Failed to sync GHL conversations:', error);
       toast.error("Failed to sync with GoHighLevel");
     }
   };
 
-  const getPatientDisplayName = (conversation: PatientConversation) => {
+  const getPatientDisplayName = (conversation: GHLConversation) => {
     const patient = conversation.patient;
     if (!patient) return 'Unknown Patient';
     return `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Unknown Patient';
   };
 
-  const getPatientAvatar = (conversation: PatientConversation) => {
+  const getPatientAvatar = (conversation: GHLConversation) => {
     const patient = conversation.patient;
     if (!patient) return 'UP';
     const firstName = patient.first_name || '';
@@ -158,7 +144,7 @@ export const PatientChatSection = () => {
       setAudioRecordings(prev => ({ ...prev, [messageId]: data }));
       toast.success('Audio recording loaded successfully');
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching recording:', error);
       toast.error(`Failed to load audio recording: ${error.message || 'Unknown error'}`);
       return null;
@@ -186,19 +172,23 @@ export const PatientChatSection = () => {
       setTranscriptions(prev => ({ ...prev, [messageId]: data }));
       toast.success('Transcription loaded successfully');
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching transcription:', error);
       toast.error(`Failed to load transcription: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
 
-  const isAudioMessage = (message: PatientMessage) => {
-    return message.message_type === 'call' || message.message_type === 'voicemail';
+  const isAudioMessage = (message: GHLMessage) => {
+    return message.type === 'TYPE_CALL' || message.type === 'TYPE_VOICEMAIL';
   };
 
-  const getLastMessage = (conversation: PatientConversation) => {
-    return conversation.title || 'No messages yet';
+  const getLastMessage = (conversation: GHLConversation) => {
+    return conversation.lastMessage?.body || 'No messages yet';
+  };
+
+  const isFromProvider = (message: GHLMessage) => {
+    return message.direction === 'outbound';
   };
 
   if (loading) {
@@ -214,12 +204,11 @@ export const PatientChatSection = () => {
       <div className="flex items-center justify-center h-[600px]">
         <div className="text-center">
           <p className="text-destructive mb-2">Error loading conversations</p>
-          <p className="text-sm text-muted-foreground">
-            {error.includes('access') ? 
-              'You do not have access to patient conversations. Please contact your administrator to assign you to patients.' : 
-              error
-            }
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          <Button onClick={fetchConversations} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );
@@ -236,16 +225,10 @@ export const PatientChatSection = () => {
                 <MessageSquare className="w-5 h-5" />
                 <span>Patient Conversations</span>
               </CardTitle>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={handleSyncGHL}>
-                  <MessageSquare className="w-4 h-4 mr-1" />
-                  Sync GHL
-                </Button>
-                <Button size="sm" onClick={handleCreateConversation}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  New
-                </Button>
-              </div>
+              <Button size="sm" variant="outline" onClick={handleSyncGHL}>
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Sync GHL
+              </Button>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -267,9 +250,9 @@ export const PatientChatSection = () => {
                     variant="outline" 
                     size="sm" 
                     className="mt-2"
-                    onClick={handleCreateConversation}
+                    onClick={handleSyncGHL}
                   >
-                    Start a conversation
+                    Sync from GoHighLevel
                   </Button>
                 </div>
               ) : (
@@ -292,9 +275,9 @@ export const PatientChatSection = () => {
                           <p className="font-medium text-sm truncate">
                             {getPatientDisplayName(conversation)}
                           </p>
-                          {conversation.unread_count > 0 && (
+                          {(conversation.unreadCount || 0) > 0 && (
                             <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
-                              {conversation.unread_count}
+                              {conversation.unreadCount}
                             </Badge>
                           )}
                         </div>
@@ -302,7 +285,7 @@ export const PatientChatSection = () => {
                           {getLastMessage(conversation)}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {conversation.last_message_at ? formatTime(conversation.last_message_at) : formatTime(conversation.created_at)}
+                          {conversation.lastMessageDate ? formatTime(conversation.lastMessageDate) : 'No date'}
                         </p>
                       </div>
                     </div>
@@ -331,7 +314,7 @@ export const PatientChatSection = () => {
                     <p className="text-xs text-muted-foreground">{selectedConversation.patient?.phone}</p>
                   </div>
                   <Badge variant="outline" className="ml-auto">
-                    {selectedConversation.conversation_type.toUpperCase()}
+                    SMS
                   </Badge>
                 </div>
               </CardHeader>
@@ -339,138 +322,130 @@ export const PatientChatSection = () => {
               
               {/* Messages */}
               <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  {messages.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No messages yet. Start the conversation!</p>
-                    </div>
-                  ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender_type === 'provider' ? 'justify-end' : 'justify-start'}`}
-                      >
+                {messagesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No messages yet. Start the conversation!</p>
+                      </div>
+                    ) : (
+                      messages.map((message) => (
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.sender_type === 'provider'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          }`}
+                          key={message.id}
+                          className={`flex ${isFromProvider(message) ? 'justify-end' : 'justify-start'}`}
                         >
-                          {/* Message content */}
-                          <div className="flex items-start gap-2 mb-2">
-                            {isAudioMessage(message) && (
-                              <div className="flex items-center gap-1">
-                                {message.message_type === 'call' ? (
-                                  <Phone className="w-4 h-4" />
-                                ) : (
-                                  <Mic className="w-4 h-4" />
-                                )}
-                                <span className="text-xs font-medium">
-                                  {message.message_type === 'call' ? 'Call' : 'Voicemail'}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {message.content && (
-                            <p className="text-sm mb-2">{message.content}</p>
-                          )}
-
-                          {/* Audio Player for call/voicemail messages */}
-                          {isAudioMessage(message) && (
-                            <div className="mt-3 space-y-3">
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => fetchAudioRecording(message.id, message.ghl_message_id)}
-                                  className="text-xs"
-                                >
-                                  <FileAudio className="w-3 h-3 mr-1" />
-                                  Load Audio
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => fetchTranscription(message.id, message.ghl_message_id)}
-                                  className="text-xs"
-                                >
-                                  <FileAudio className="w-3 h-3 mr-1" />
-                                  Load Transcript
-                                </Button>
-                              </div>
-
-                              {/* Audio Player */}
-                              {audioRecordings[message.id] && (
-                                <WebAudioApiPlayer
-                                  base64Audio={audioRecordings[message.id].base64Audio}
-                                  fileName={audioRecordings[message.id].metadata?.fileName || `${message.message_type}_${message.id}`}
-                                  className="bg-background/50"
-                                />
-                              )}
-
-                              {/* Transcription Display and Download */}
-                              {transcriptions[message.id] && (
-                                <div className="bg-background/30 p-3 rounded border">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-medium">Transcription:</span>
-                                    <TranscriptionDownload
-                                      transcriptionText={transcriptions[message.id].text}
-                                      fileName={`transcription_${message.id}`}
-                                      contactName={getPatientDisplayName(selectedConversation)}
-                                      messageDate={message.created_at}
-                                      size="sm"
-                                      variant="ghost"
-                                    />
-                                  </div>
-                                  {transcriptions[message.id].text ? (
-                                    <p className="text-xs leading-relaxed">
-                                      {transcriptions[message.id].text}
-                                    </p>
+                          <div
+                            className={`max-w-[80%] p-3 rounded-lg ${
+                              isFromProvider(message)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
+                            }`}
+                          >
+                            {/* Message content */}
+                            <div className="flex items-start gap-2 mb-2">
+                              {isAudioMessage(message) && (
+                                <div className="flex items-center gap-1">
+                                  {message.type === 'TYPE_CALL' ? (
+                                    <Phone className="w-4 h-4" />
                                   ) : (
-                                    <p className="text-xs text-muted-foreground italic">
-                                      No transcription available
-                                    </p>
+                                    <Mic className="w-4 h-4" />
                                   )}
+                                  <span className="text-xs font-medium">
+                                    {message.type === 'TYPE_CALL' ? 'Call' : 'Voicemail'}
+                                  </span>
                                 </div>
                               )}
                             </div>
-                          )}
+                            
+                            {message.body && (
+                              <p className="text-sm mb-2">{message.body}</p>
+                            )}
 
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-3 h-3 text-muted-foreground" />
-                              <span className={`text-xs ${
-                                message.sender_type === 'provider' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                              }`}>
-                                {formatTime(message.created_at)}
-                              </span>
-                            </div>
-                            {/* GHL Sync Status for Provider Messages */}
-                            {message.sender_type === 'provider' && (
-                              <div className="flex items-center space-x-1">
-                                {message.sync_status === 'pending' && (
-                                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" title="Syncing to GHL..." />
+                            {/* Audio Player for call/voicemail messages */}
+                            {isAudioMessage(message) && (
+                              <div className="mt-3 space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => fetchAudioRecording(message.id, message.id)}
+                                    className="text-xs"
+                                  >
+                                    <FileAudio className="w-3 h-3 mr-1" />
+                                    Load Audio
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => fetchTranscription(message.id, message.id)}
+                                    className="text-xs"
+                                  >
+                                    <FileAudio className="w-3 h-3 mr-1" />
+                                    Load Transcript
+                                  </Button>
+                                </div>
+
+                                {/* Audio Player */}
+                                {audioRecordings[message.id] && (
+                                  <WebAudioApiPlayer
+                                    base64Audio={audioRecordings[message.id].base64Audio}
+                                    fileName={audioRecordings[message.id].metadata?.fileName || `${message.type}_${message.id}`}
+                                    className="bg-background/50"
+                                  />
                                 )}
-                                {message.sync_status === 'synced' && (
-                                  <div className="w-2 h-2 bg-green-500 rounded-full" title="Synced to GHL" />
-                                )}
-                                {message.sync_status === 'failed' && (
-                                  <div className="w-2 h-2 bg-red-500 rounded-full" title="GHL sync failed" />
-                                )}
-                                {message.sync_status === 'skipped' && (
-                                  <div className="w-2 h-2 bg-gray-400 rounded-full" title="GHL sync skipped" />
+
+                                {/* Transcription Display and Download */}
+                                {transcriptions[message.id] && (
+                                  <div className="bg-background/30 p-3 rounded border">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-medium">Transcription:</span>
+                                      <TranscriptionDownload
+                                        transcriptionText={transcriptions[message.id].text}
+                                        fileName={`transcription_${message.id}`}
+                                        contactName={getPatientDisplayName(selectedConversation)}
+                                        messageDate={message.dateAdded}
+                                        size="sm"
+                                        variant="ghost"
+                                      />
+                                    </div>
+                                    {transcriptions[message.id].text ? (
+                                      <p className="text-xs leading-relaxed">
+                                        {transcriptions[message.id].text}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-muted-foreground italic">
+                                        No transcription available
+                                      </p>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             )}
+
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center space-x-1">
+                                <Clock className="w-3 h-3 text-muted-foreground" />
+                                <span className={`text-xs ${
+                                  isFromProvider(message) ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                }`}>
+                                  {formatTime(message.dateAdded)}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-green-500 rounded-full" title="Delivered" />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </ScrollArea>
 
               {/* Message Input */}
@@ -549,14 +524,12 @@ export const PatientChatSection = () => {
 
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">Conversation Type</p>
-                    <Badge variant="outline">{selectedConversation.conversation_type.toUpperCase()}</Badge>
+                    <Badge variant="outline">SMS</Badge>
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
-                    <Badge variant={selectedConversation.status === 'active' ? 'default' : 'secondary'}>
-                      {selectedConversation.status}
-                    </Badge>
+                    <Badge variant="default">Active</Badge>
                   </div>
                 </div>
 
