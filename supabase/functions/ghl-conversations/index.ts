@@ -76,7 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Fetch conversations or messages for specific conversation
       const endpoint = conversationId && conversationId !== 'ghl-conversations'
         ? `${GHL_API_BASE}/conversations/${conversationId}/messages`
-        : `${GHL_API_BASE}/conversations`;
+        : `${GHL_API_BASE}/conversations/search`;
 
       console.log('GHL API endpoint:', endpoint);
 
