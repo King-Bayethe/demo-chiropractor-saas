@@ -98,7 +98,30 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
       familyHistoryAdditionalNotes = additionalNotes || '';
     }
   } else if (typeof patient.family_medical_history === 'string') {
-    familyHistoryAdditionalNotes = patient.family_medical_history;
+    try {
+      // Try to parse as JSON first
+      const parsed = JSON.parse(patient.family_medical_history);
+      if (typeof parsed === 'object' && parsed !== null) {
+        // Check if this is checkbox-style data
+        const familyHistoryFields = FAMILY_HISTORY_MAPPING.map(m => m.formField);
+        const hasCheckboxData = Object.keys(parsed).some(key => 
+          familyHistoryFields.includes(key) && typeof parsed[key] === 'boolean'
+        );
+        
+        if (hasCheckboxData) {
+          familyHistoryConditionsData = parsed;
+          familyHistoryAdditionalNotes = parsed.additionalNotes || '';
+        } else {
+          // Treat as additional notes if not checkbox data
+          familyHistoryAdditionalNotes = patient.family_medical_history;
+        }
+      } else {
+        familyHistoryAdditionalNotes = patient.family_medical_history;
+      }
+    } catch (e) {
+      // If not valid JSON, treat as text
+      familyHistoryAdditionalNotes = patient.family_medical_history;
+    }
   } else if (patient.systems_review) {
     familyHistoryConditionsData = typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review;
   }
@@ -648,9 +671,10 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                     </div>
                   )}
                   
-                  {/* Legacy text notes support */}
+                  {/* Legacy text notes support - only show if it's not JSON */}
                   {(!familyHistoryAdditionalNotes || familyHistoryAdditionalNotes.trim() === '') && 
-                   familyHistoryText && typeof familyHistoryText === 'string' && familyHistoryText.trim() !== '' && (
+                   familyHistoryText && typeof familyHistoryText === 'string' && familyHistoryText.trim() !== '' && 
+                   !familyHistoryText.trim().startsWith('{') && !familyHistoryText.trim().startsWith('[') && (
                     <div className="text-sm text-emerald-900 leading-relaxed">
                       <span className="font-medium">Additional Notes: </span>
                       {familyHistoryText}
