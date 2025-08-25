@@ -130,13 +130,23 @@ const handler = async (req: Request): Promise<Response> => {
     if (method === 'POST') {
       console.log('Sending message to GHL...');
       
+      
       let messageData: MessageData;
       try {
         const requestText = await req.text();
+        console.log('Received request body:', requestText);
+        
         if (!requestText) {
           throw new Error('Empty request body');
         }
-        messageData = JSON.parse(requestText);
+        
+        // Try to parse as JSON first, but handle string bodies too
+        try {
+          messageData = JSON.parse(requestText);
+        } catch (jsonError) {
+          // If it's not JSON, maybe it's already an object
+          messageData = requestText as any;
+        }
         
         if (!messageData.contactId || !messageData.message) {
           throw new Error('Missing required fields: contactId and message');
