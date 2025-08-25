@@ -75,14 +75,12 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   const currentSymptoms = patient.current_symptoms ? 
     (typeof patient.current_symptoms === 'string' ? JSON.parse(patient.current_symptoms) : patient.current_symptoms) : {};
   
-  // Try multiple sources for family history conditions
+  // Parse family history conditions from family_medical_history field
   let familyHistoryConditionsData = {};
-  if (patient.systems_review) {
-    familyHistoryConditionsData = typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review;
-  }
-  // Also check if family_medical_history contains JSON data
   if (patient.family_medical_history && typeof patient.family_medical_history === 'object') {
-    familyHistoryConditionsData = { ...familyHistoryConditionsData, ...patient.family_medical_history };
+    familyHistoryConditionsData = patient.family_medical_history;
+  } else if (patient.systems_review) {
+    familyHistoryConditionsData = typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review;
   }
 
   // Symptom categories
@@ -113,7 +111,25 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
     }
   ];
 
-  // Family history conditions
+  // Family history conditions mapping (database camelCase to display names)
+  const familyHistoryConditionsMap = {
+    "heartTrouble": "Heart Trouble",
+    "stroke": "Stroke", 
+    "kyphosis": "Kyphosis",
+    "diabetes": "Diabetes",
+    "cancer": "Cancer",
+    "arthritis": "Arthritis",
+    "lungDisease": "Lung Disease",
+    "osteoporosis": "Osteoporosis", 
+    "migraines": "Migraines",
+    "highBloodPressure": "High Blood Pressure",
+    "scoliosis": "Scoliosis",
+    "spineProblems": "Spine Problems",
+    "alcoholDependence": "Alcohol Dependence",
+    "aneurysm": "Aneurysm"
+  };
+
+  // Legacy snake_case conditions for form editing
   const familyHistoryConditions = [
     "heart_trouble", "stroke", "kyphosis", "diabetes", "cancer", "arthritis",
     "lung_disease", "osteoporosis", "migraines", "high_blood_pressure", 
@@ -636,32 +652,11 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                 </h4>
                 <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
                   <div className="flex flex-wrap gap-2">
-                    {familyHistoryConditions
-                      .filter(condition => familyHistoryConditionsData[condition])
-                      .map((condition) => (
-                        <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
-                          {condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </Badge>
-                      ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Show raw JSON as fallback only if it's being displayed as text */}
-            {familyHistoryText && typeof familyHistoryText === 'object' && (
-              <div className="border-t pt-3 mt-4">
-                <h4 className="font-medium text-sm text-emerald-700 mb-3 flex items-center gap-2">
-                  <Stethoscope className="w-4 h-4" />
-                  Family Medical History
-                </h4>
-                <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(familyHistoryText)
+                    {Object.entries(familyHistoryConditionsData)
                       .filter(([key, value]) => value === true)
                       .map(([condition]) => (
                         <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
-                          {condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}
+                          {familyHistoryConditionsMap[condition] || condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}
                         </Badge>
                       ))}
                   </div>
