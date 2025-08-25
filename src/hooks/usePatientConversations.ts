@@ -55,18 +55,26 @@ export function usePatientConversations() {
     
     try {
       setLoading(true);
+      setError(null);
       
       // First get user profile to check role
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('user_id', user.id)
         .single();
 
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        // Continue with default role if profile fetch fails
+      }
+
       const userRole = profile?.role || 'staff';
+      console.log('User role:', userRole);
       
       // If user is admin/overlord/doctor/staff, they can see all conversations
       if (['admin', 'overlord', 'doctor', 'staff', 'provider'].includes(userRole)) {
+        console.log('Fetching all conversations for elevated user');
         const { data, error } = await supabase
           .from('patient_conversations')
           .select(`
@@ -83,9 +91,15 @@ export function usePatientConversations() {
           .eq('status', 'active')
           .order('last_message_at', { ascending: false, nullsFirst: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching conversations:', error);
+          throw error;
+        }
+        
+        console.log('Fetched conversations:', data?.length || 0);
         setConversations(data || []);
       } else {
+        console.log('Fetching conversations for regular user');
         // For regular users, only show conversations for assigned patients
         const { data, error } = await supabase
           .from('patient_conversations')
@@ -109,15 +123,25 @@ export function usePatientConversations() {
           .eq('patient.patient_providers.is_active', true)
           .order('last_message_at', { ascending: false, nullsFirst: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching conversations:', error);
+          throw error;
+        }
+        
+        console.log('Fetched conversations:', data?.length || 0);
         setConversations(data || []);
       }
     } catch (err: any) {
       console.error('Error fetching conversations:', err);
-      setError(err.message.includes('permission denied') ? 
-        'You do not have access to patient conversations. Please contact your administrator to assign you to patients.' : 
-        err.message
-      );
+      const errorMessage = err.message || 'Unknown error occurred';
+      
+      if (errorMessage.includes('permission denied')) {
+        setError('You do not have access to patient conversations. Please contact your administrator to assign you to patients.');
+      } else if (errorMessage.includes('Failed to fetch')) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
