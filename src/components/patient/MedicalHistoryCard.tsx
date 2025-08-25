@@ -64,7 +64,7 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   };
 
   // Additional medical info
-  const familyHistory = patient.family_medical_history;
+  const familyHistoryText = patient.family_medical_history;
   const smokingInfo = {
     status: patient.smoking_status,
     history: patient.smoking_history
@@ -74,8 +74,16 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   // Parse symptoms and family history from JSON fields
   const currentSymptoms = patient.current_symptoms ? 
     (typeof patient.current_symptoms === 'string' ? JSON.parse(patient.current_symptoms) : patient.current_symptoms) : {};
-  const systemsReview = patient.systems_review ? 
-    (typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review) : {};
+  
+  // Try multiple sources for family history conditions
+  let familyHistoryConditionsData = {};
+  if (patient.systems_review) {
+    familyHistoryConditionsData = typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review;
+  }
+  // Also check if family_medical_history contains JSON data
+  if (patient.family_medical_history && typeof patient.family_medical_history === 'object') {
+    familyHistoryConditionsData = { ...familyHistoryConditionsData, ...patient.family_medical_history };
+  }
 
   // Symptom categories
   const symptomCategories = [
@@ -531,15 +539,15 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
               </div>
             )}
 
-            {/* Family Medical History */}
-            {familyHistory && (
+            {/* Family Medical History Text */}
+            {familyHistoryText && typeof familyHistoryText === 'string' && (
               <div className="border-t pt-3 mt-4">
                 <h4 className="font-medium text-sm text-green-700 mb-2 flex items-center gap-2">
                   <Activity className="w-4 h-4" />
-                  Family Medical History
+                  Family Medical History Notes
                 </h4>
                 <p className="text-sm bg-green-50 p-3 rounded-md border border-green-200 text-green-700">
-                  {familyHistory}
+                  {familyHistoryText}
                 </p>
               </div>
             )}
@@ -620,19 +628,40 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
             )}
 
             {/* Family Medical History Conditions */}
-            {Object.keys(systemsReview).some(key => systemsReview[key]) && (
+            {Object.keys(familyHistoryConditionsData).some(key => familyHistoryConditionsData[key]) && (
               <div className="border-t pt-3 mt-4">
                 <h4 className="font-medium text-sm text-emerald-700 mb-3 flex items-center gap-2">
                   <Stethoscope className="w-4 h-4" />
-                  Family Medical Conditions
+                  Family Medical History
                 </h4>
                 <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
                   <div className="flex flex-wrap gap-2">
                     {familyHistoryConditions
-                      .filter(condition => systemsReview[condition])
+                      .filter(condition => familyHistoryConditionsData[condition])
                       .map((condition) => (
                         <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
                           {condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </Badge>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show raw JSON as fallback only if it's being displayed as text */}
+            {familyHistoryText && typeof familyHistoryText === 'object' && (
+              <div className="border-t pt-3 mt-4">
+                <h4 className="font-medium text-sm text-emerald-700 mb-3 flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4" />
+                  Family Medical History
+                </h4>
+                <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(familyHistoryText)
+                      .filter(([key, value]) => value === true)
+                      .map(([condition]) => (
+                        <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
+                          {condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}
                         </Badge>
                       ))}
                   </div>
