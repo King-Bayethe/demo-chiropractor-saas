@@ -54,7 +54,15 @@ serve(async (req) => {
     const userAgent = req.headers.get('user-agent') || '';
 
     if (!formType || !formData) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+      const missingFields = [];
+      if (!formType) missingFields.push('form type');
+      if (!formData) missingFields.push('form data');
+      
+      return new Response(JSON.stringify({ 
+        error: `Missing required information: ${missingFields.join(' and ')}. Please ensure all required fields are completed.`,
+        details: 'Invalid request format',
+        code: 'MISSING_REQUIRED_FIELDS'
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -80,7 +88,12 @@ serve(async (req) => {
 
     if (rateLimitError) {
       console.error('Rate limit check error:', rateLimitError);
-      return new Response(JSON.stringify({ error: 'System error during submission' }), {
+      const errorMessage = `Unable to process submission at this time: ${rateLimitError.message || 'Database connection error'}. Please try again in a few minutes.`;
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        details: 'Rate limit check failed',
+        code: 'RATE_LIMIT_CHECK_ERROR'
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -105,8 +118,38 @@ serve(async (req) => {
       });
 
     if (validationError || !formValidation) {
-      console.log('Form validation failed for IP:', clientIP, 'form type:', formType);
-      return new Response(JSON.stringify({ error: 'Invalid form data' }), {
+      console.log('Form validation failed for IP:', clientIP, 'form type:', formType, 'validation error:', validationError);
+      
+      let errorMessage = 'Your form submission contains invalid data. Please check the following:';
+      const validationIssues = [];
+      
+      if (formType === 'pip') {
+        if (!formData.firstName) validationIssues.push('First name is required');
+        if (!formData.lastName) validationIssues.push('Last name is required');
+        if (!formData.email && !formData.cellPhone && !formData.homePhone) {
+          validationIssues.push('At least one contact method (email or phone) is required');
+        }
+      } else if (formType === 'lop') {
+        if (!formData.firstName && !formData.patient_name) validationIssues.push('Patient name is required');
+        if (!formData.attorney_name) validationIssues.push('Attorney name is required');
+      } else if (formType === 'cash') {
+        if (!formData.firstName) validationIssues.push('First name is required');
+        if (!formData.lastName) validationIssues.push('Last name is required');
+        if (!formData.cellPhone && !formData.homePhone && !formData.patient_phone) {
+          validationIssues.push('Phone number is required');
+        }
+      }
+      
+      if (validationIssues.length > 0) {
+        errorMessage += '\n• ' + validationIssues.join('\n• ');
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        details: validationError?.message || 'Form validation failed',
+        code: 'VALIDATION_ERROR',
+        validationIssues
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -438,7 +481,33 @@ serve(async (req) => {
 
     if (error) {
       console.error('Error inserting form submission:', error)
-      return new Response(JSON.stringify({ error: 'Failed to submit form' }), {
+      
+      let errorMessage = 'Unable to submit your form at this time. ';
+      let errorCode = 'SUBMISSION_ERROR';
+      
+      // Check for specific database errors
+      if (error.code === '23505') {
+        errorMessage += 'A submission with this information already exists. Please check if you have already submitted this form.';
+        errorCode = 'DUPLICATE_SUBMISSION';
+      } else if (error.code === '23503') {
+        errorMessage += 'There was an issue with the form data relationships. Please ensure all required fields are properly filled.';
+        errorCode = 'FOREIGN_KEY_ERROR';
+      } else if (error.code === '23514') {
+        errorMessage += 'Some form data does not meet our validation requirements. Please review your entries and try again.';
+        errorCode = 'CHECK_CONSTRAINT_ERROR';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage += 'The request timed out. Please try submitting again.';
+        errorCode = 'TIMEOUT_ERROR';
+      } else {
+        errorMessage += 'Please try again in a few moments. If the problem persists, contact support.';
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        details: error.message || 'Database insertion failed',
+        code: errorCode,
+        timestamp: new Date().toISOString()
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -457,7 +526,30 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Unexpected error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    
+    let errorMessage = 'An unexpected error occurred while processing your form submission. ';
+    let errorCode = 'INTERNAL_SERVER_ERROR';
+    
+    // Check for specific error types
+    if (error.name === 'TypeError') {
+      errorMessage += 'There was an issue with the form data format. Please check your entries and try again.';
+      errorCode = 'DATA_FORMAT_ERROR';
+    } else if (error.message?.includes('JSON')) {
+      errorMessage += 'The form data could not be processed. Please refresh the page and try again.';
+      errorCode = 'JSON_PARSE_ERROR';
+    } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      errorMessage += 'There was a network connection issue. Please check your internet connection and try again.';
+      errorCode = 'NETWORK_ERROR';
+    } else {
+      errorMessage += 'Please try again in a few moments. If the problem persists, contact our support team.';
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      details: error.message || 'Unexpected server error',
+      code: errorCode,
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
