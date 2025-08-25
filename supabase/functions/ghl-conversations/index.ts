@@ -51,7 +51,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { method } = req;
+    let requestBody;
+    try {
+      const bodyText = await req.text();
+      requestBody = bodyText ? JSON.parse(bodyText) : {};
+    } catch (error) {
+      requestBody = {};
+    }
+
+    const { method } = requestBody;
     const url = new URL(req.url);
     const conversationId = url.pathname.split('/').pop();
 
@@ -62,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
       'Accept': 'application/json',
     };
 
-    if (method === 'GET') {
+    if (method === 'GET' || req.method === 'GET') {
       console.log('Fetching conversations from GHL API...');
       
       // Fetch conversations or messages for specific conversation
@@ -127,26 +135,13 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    if (method === 'POST') {
+    if (method === 'POST' || req.method === 'POST') {
       console.log('Sending message to GHL...');
-      
       
       let messageData: MessageData;
       try {
-        const requestText = await req.text();
-        console.log('Received request body:', requestText);
-        
-        if (!requestText) {
-          throw new Error('Empty request body');
-        }
-        
-        // Try to parse as JSON first, but handle string bodies too
-        try {
-          messageData = JSON.parse(requestText);
-        } catch (jsonError) {
-          // If it's not JSON, maybe it's already an object
-          messageData = requestText as any;
-        }
+        // Use the request body we already parsed
+        messageData = requestBody;
         
         if (!messageData.contactId || !messageData.message) {
           throw new Error('Missing required fields: contactId and message');

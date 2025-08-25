@@ -185,7 +185,9 @@ export default function Conversations() {
     setConversationsLoading(true);
     setError(null);
     try {
-      const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations');
+      const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
+        body: { method: 'GET' }
+      });
       if (funcError) throw funcError;
 
       if (data?.conversations) {
@@ -358,11 +360,12 @@ export default function Conversations() {
 
     try {
       const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
-        body: JSON.stringify({
+        body: {
+          method: 'POST',
           contactId: selectedConversation.contactId, // Use contactId to send message
           message: messageToSend,
           type: 'SMS' // Assuming SMS, could be dynamic
-        })
+        }
       });
 
       if (funcError) throw funcError;
