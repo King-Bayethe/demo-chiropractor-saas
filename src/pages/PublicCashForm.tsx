@@ -97,6 +97,7 @@ const PublicCashForm = () => {
       migraines: false,
       scoliosis: false,
       spineProblems: false,
+      other: false,
     },
     currentSymptoms: {
       headache: false,
@@ -264,6 +265,7 @@ const PublicCashForm = () => {
           migraines: false,
           scoliosis: false,
           spineProblems: false,
+          other: false,
         },
         currentSymptoms: {
           headache: false,
