@@ -79,11 +79,12 @@ export const useGHLApi = () => {
   };
 
   const conversations = {
-    getAll: () => callGHLFunction('ghl-conversations'),
+    getAll: () => callGHLFunction('ghl-conversations', {
+      body: JSON.stringify({ method: 'GET' }),
+    }),
     getMessages: (conversationId: string) => callGHLFunction(`ghl-conversations/${conversationId}`),
     sendMessage: (messageData: any) => callGHLFunction('ghl-conversations', {
-      method: 'POST',
-      body: JSON.stringify(messageData),
+      body: JSON.stringify({ method: 'POST', ...messageData }),
     }),
   };
 
