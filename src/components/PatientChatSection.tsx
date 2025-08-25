@@ -143,24 +143,33 @@ export const PatientChatSection = () => {
   const fetchAudioRecording = async (messageId: string, recordingId?: string) => {
     if (audioRecordings[messageId]) return audioRecordings[messageId];
     
+    console.log('Fetching audio recording for messageId:', messageId, 'recordingId:', recordingId);
+    toast.info('Loading audio recording...');
+    
     try {
       const { data, error } = await supabase.functions.invoke('ghl-recordings', {
         body: { recordingId: recordingId || messageId }
       });
       
+      console.log('Audio recording response:', { data, error });
+      
       if (error) throw error;
       
       setAudioRecordings(prev => ({ ...prev, [messageId]: data }));
+      toast.success('Audio recording loaded successfully');
       return data;
     } catch (error) {
       console.error('Error fetching recording:', error);
-      toast.error('Failed to load audio recording');
+      toast.error(`Failed to load audio recording: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
 
   const fetchTranscription = async (messageId: string, recordingId?: string) => {
     if (transcriptions[messageId]) return transcriptions[messageId];
+    
+    console.log('Fetching transcription for messageId:', messageId, 'recordingId:', recordingId);
+    toast.info('Loading transcription...');
     
     try {
       const { data, error } = await supabase.functions.invoke('ghl-transcriptions', {
@@ -170,13 +179,16 @@ export const PatientChatSection = () => {
         }
       });
       
+      console.log('Transcription response:', { data, error });
+      
       if (error) throw error;
       
       setTranscriptions(prev => ({ ...prev, [messageId]: data }));
+      toast.success('Transcription loaded successfully');
       return data;
     } catch (error) {
       console.error('Error fetching transcription:', error);
-      toast.error('Failed to load transcription');
+      toast.error(`Failed to load transcription: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
