@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { WebAudioApiPlayer } from "@/components/WebAudioApiPlayer";
+import { TranscriptionDownload } from "@/components/TranscriptionDownload";
 import { 
   Search, 
   Send, 
@@ -15,17 +17,22 @@ import {
   User,
   Plus,
   Loader2,
-  Clock
+  Clock,
+  Mic,
+  FileAudio
 } from "lucide-react";
 import { usePatientConversations, PatientConversation, PatientMessage } from "@/hooks/usePatientConversations";
 import { usePatients } from "@/hooks/usePatients";
 import { toast } from "sonner";
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from "@/integrations/supabase/client";
 
 export const PatientChatSection = () => {
   const [selectedConversation, setSelectedConversation] = useState<PatientConversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [audioRecordings, setAudioRecordings] = useState<{[messageId: string]: any}>({});
+  const [transcriptions, setTranscriptions] = useState<{[messageId: string]: any}>({});
   
   const {
     conversations,
@@ -131,6 +138,51 @@ export const PatientChatSection = () => {
     } else {
       return date.toLocaleDateString();
     }
+  };
+
+  const fetchAudioRecording = async (messageId: string, recordingId?: string) => {
+    if (audioRecordings[messageId]) return audioRecordings[messageId];
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('ghl-recordings', {
+        body: { recordingId: recordingId || messageId }
+      });
+      
+      if (error) throw error;
+      
+      setAudioRecordings(prev => ({ ...prev, [messageId]: data }));
+      return data;
+    } catch (error) {
+      console.error('Error fetching recording:', error);
+      toast.error('Failed to load audio recording');
+      return null;
+    }
+  };
+
+  const fetchTranscription = async (messageId: string, recordingId?: string) => {
+    if (transcriptions[messageId]) return transcriptions[messageId];
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('ghl-transcriptions', {
+        body: { 
+          recordingId: recordingId,
+          messageId: !recordingId ? messageId : undefined 
+        }
+      });
+      
+      if (error) throw error;
+      
+      setTranscriptions(prev => ({ ...prev, [messageId]: data }));
+      return data;
+    } catch (error) {
+      console.error('Error fetching transcription:', error);
+      toast.error('Failed to load transcription');
+      return null;
+    }
+  };
+
+  const isAudioMessage = (message: PatientMessage) => {
+    return message.message_type === 'call' || message.message_type === 'voicemail';
   };
 
   const getLastMessage = (conversation: PatientConversation) => {
@@ -294,7 +346,87 @@ export const PatientChatSection = () => {
                               : 'bg-muted'
                           }`}
                         >
-                          <p className="text-sm">{message.content}</p>
+                          {/* Message content */}
+                          <div className="flex items-start gap-2 mb-2">
+                            {isAudioMessage(message) && (
+                              <div className="flex items-center gap-1">
+                                {message.message_type === 'call' ? (
+                                  <Phone className="w-4 h-4" />
+                                ) : (
+                                  <Mic className="w-4 h-4" />
+                                )}
+                                <span className="text-xs font-medium">
+                                  {message.message_type === 'call' ? 'Call' : 'Voicemail'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {message.content && (
+                            <p className="text-sm mb-2">{message.content}</p>
+                          )}
+
+                          {/* Audio Player for call/voicemail messages */}
+                          {isAudioMessage(message) && (
+                            <div className="mt-3 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => fetchAudioRecording(message.id, message.ghl_message_id)}
+                                  className="text-xs"
+                                >
+                                  <FileAudio className="w-3 h-3 mr-1" />
+                                  Load Audio
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => fetchTranscription(message.id, message.ghl_message_id)}
+                                  className="text-xs"
+                                >
+                                  <FileAudio className="w-3 h-3 mr-1" />
+                                  Load Transcript
+                                </Button>
+                              </div>
+
+                              {/* Audio Player */}
+                              {audioRecordings[message.id] && (
+                                <WebAudioApiPlayer
+                                  base64Audio={audioRecordings[message.id].base64Audio}
+                                  fileName={audioRecordings[message.id].metadata?.fileName || `${message.message_type}_${message.id}`}
+                                  className="bg-background/50"
+                                />
+                              )}
+
+                              {/* Transcription Display and Download */}
+                              {transcriptions[message.id] && (
+                                <div className="bg-background/30 p-3 rounded border">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-medium">Transcription:</span>
+                                    <TranscriptionDownload
+                                      transcriptionText={transcriptions[message.id].text}
+                                      fileName={`transcription_${message.id}`}
+                                      contactName={getPatientDisplayName(selectedConversation)}
+                                      messageDate={message.created_at}
+                                      size="sm"
+                                      variant="ghost"
+                                    />
+                                  </div>
+                                  {transcriptions[message.id].text ? (
+                                    <p className="text-xs leading-relaxed">
+                                      {transcriptions[message.id].text}
+                                    </p>
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground italic">
+                                      No transcription available
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center space-x-1">
                               <Clock className="w-3 h-3 text-muted-foreground" />
