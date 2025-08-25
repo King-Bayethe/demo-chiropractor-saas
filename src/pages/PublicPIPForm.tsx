@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, Circle } from "lucide-react";
+import { DocumentUpload } from "@/components/DocumentUpload";
 
 const PublicPIPForm = () => {
   const [currentTab, setCurrentTab] = useState("general");
@@ -466,6 +467,38 @@ const PublicPIPForm = () => {
                     </Select>
                   </div>
                 </div>
+                
+                {/* Document Upload Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-4 bg-muted/30 rounded-lg">
+                  <h3 className="md:col-span-2 text-lg font-semibold text-foreground border-b pb-2">
+                    Document Uploads <span className="text-muted-foreground">(Subida de Documentos)</span>
+                  </h3>
+                  
+                  <DocumentUpload
+                    documentType="drivers-license-front"
+                    label="Driver's License Front"
+                    spanishLabel="Frente de Licencia"
+                  />
+                  
+                  <DocumentUpload
+                    documentType="drivers-license-back"
+                    label="Driver's License Back"
+                    spanishLabel="Reverso de Licencia"
+                  />
+                  
+                  <DocumentUpload
+                    documentType="insurance-card-front"
+                    label="Insurance Card Front"
+                    spanishLabel="Frente de Tarjeta de Seguro"
+                  />
+                  
+                  <DocumentUpload
+                    documentType="insurance-card-back"
+                    label="Insurance Card Back"
+                    spanishLabel="Reverso de Tarjeta de Seguro"
+                  />
+                </div>
+                
                 <div>
                   <Label htmlFor="marital-status">Marital Status</Label>
                   <Select onValueChange={(value) => handleInputChange("maritalStatus", value)}>

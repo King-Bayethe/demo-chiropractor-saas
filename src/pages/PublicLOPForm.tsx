@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, IdCard, CreditCard } from "lucide-react";
+import { DocumentUpload } from "@/components/DocumentUpload";
 
 const PublicLOPForm = () => {
   const [formData, setFormData] = useState({
@@ -73,34 +74,6 @@ const PublicLOPForm = () => {
     date: "",
   });
 
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
-  const [uploadedFiles, setUploadedFiles] = useState<Record<string, string>>({});
-
-  const handleFileUpload = async (file: File, documentType: string) => {
-    if (!file) return;
-
-    setUploading(prev => ({ ...prev, [documentType]: true }));
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${documentType}-${Date.now()}.${fileExt}`;
-      const filePath = `form-documents/${fileName}`;
-
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
-
-      if (error) throw error;
-
-      setUploadedFiles(prev => ({ ...prev, [documentType]: fileName }));
-      toast.success(`${documentType} uploaded successfully`);
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error(`Failed to upload ${documentType}`);
-    } finally {
-      setUploading(prev => ({ ...prev, [documentType]: false }));
-    }
-  };
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -319,65 +292,35 @@ const PublicLOPForm = () => {
                   className="w-full rounded-md border-gray-300"
                 />
                 
-                {/* ID Upload Buttons */}
-                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label className="text-gray-600 font-medium mb-2 block">Driver's License Front / Frente de Licencia</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={uploading['id-front']}
-                        onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) handleFileUpload(file, 'id-front');
-                          };
-                          input.click();
-                        }}
-                        className="rounded-md border-gray-300"
-                      >
-                        <IdCard className="h-4 w-4" />
-                        {uploading['id-front'] ? 'Uploading...' : 'Upload ID Front'}
-                      </Button>
-                      {uploadedFiles['id-front'] && (
-                        <span className="text-sm text-green-600">✓ Uploaded</span>
-                      )}
-                    </div>
-                  </div>
+                {/* Document Upload Section */}
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="md:col-span-2 text-lg font-semibold text-gray-900 border-b pb-2">
+                    Document Uploads / <span className="font-medium">Subida de Documentos</span>
+                  </h3>
                   
-                  <div>
-                    <Label className="text-gray-600 font-medium mb-2 block">Driver's License Back / Reverso de Licencia</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={uploading['id-back']}
-                        onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) handleFileUpload(file, 'id-back');
-                          };
-                          input.click();
-                        }}
-                        className="rounded-md border-gray-300"
-                      >
-                        <IdCard className="h-4 w-4" />
-                        {uploading['id-back'] ? 'Uploading...' : 'Upload ID Back'}
-                      </Button>
-                      {uploadedFiles['id-back'] && (
-                        <span className="text-sm text-green-600">✓ Uploaded</span>
-                      )}
-                    </div>
-                  </div>
+                  <DocumentUpload
+                    documentType="drivers-license-front"
+                    label="Driver's License Front"
+                    spanishLabel="Frente de Licencia"
+                  />
+                  
+                  <DocumentUpload
+                    documentType="drivers-license-back"
+                    label="Driver's License Back"
+                    spanishLabel="Reverso de Licencia"
+                  />
+                  
+                  <DocumentUpload
+                    documentType="insurance-card-front"
+                    label="Insurance Card Front"
+                    spanishLabel="Frente de Tarjeta de Seguro"
+                  />
+                  
+                  <DocumentUpload
+                    documentType="insurance-card-back"
+                    label="Insurance Card Back"
+                    spanishLabel="Reverso de Tarjeta de Seguro"
+                  />
                 </div>
                 <Input
                   type="text"
@@ -551,66 +494,6 @@ const PublicLOPForm = () => {
                  className="w-full rounded-md border-gray-300"
                />
                
-               {/* Insurance Upload Buttons */}
-               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                 <div>
-                   <Label className="text-gray-600 font-medium mb-2 block">Insurance Card Front / Frente de Tarjeta de Seguro</Label>
-                   <div className="flex items-center gap-2">
-                     <Button
-                       type="button"
-                       variant="outline"
-                       size="sm"
-                       disabled={uploading['insurance-front']}
-                       onClick={() => {
-                         const input = document.createElement('input');
-                         input.type = 'file';
-                         input.accept = 'image/*';
-                         input.onchange = (e) => {
-                           const file = (e.target as HTMLInputElement).files?.[0];
-                           if (file) handleFileUpload(file, 'insurance-front');
-                         };
-                         input.click();
-                       }}
-                       className="rounded-md border-gray-300"
-                     >
-                       <CreditCard className="h-4 w-4" />
-                       {uploading['insurance-front'] ? 'Uploading...' : 'Upload Insurance Front'}
-                     </Button>
-                     {uploadedFiles['insurance-front'] && (
-                       <span className="text-sm text-green-600">✓ Uploaded</span>
-                     )}
-                   </div>
-                 </div>
-                 
-                 <div>
-                   <Label className="text-gray-600 font-medium mb-2 block">Insurance Card Back / Reverso de Tarjeta de Seguro</Label>
-                   <div className="flex items-center gap-2">
-                     <Button
-                       type="button"
-                       variant="outline"
-                       size="sm"
-                       disabled={uploading['insurance-back']}
-                       onClick={() => {
-                         const input = document.createElement('input');
-                         input.type = 'file';
-                         input.accept = 'image/*';
-                         input.onchange = (e) => {
-                           const file = (e.target as HTMLInputElement).files?.[0];
-                           if (file) handleFileUpload(file, 'insurance-back');
-                         };
-                         input.click();
-                       }}
-                       className="rounded-md border-gray-300"
-                     >
-                       <CreditCard className="h-4 w-4" />
-                       {uploading['insurance-back'] ? 'Uploading...' : 'Upload Insurance Back'}
-                     </Button>
-                     {uploadedFiles['insurance-back'] && (
-                       <span className="text-sm text-green-600">✓ Uploaded</span>
-                     )}
-                   </div>
-                 </div>
-               </div>
             </CollapsibleContent>
           </Collapsible>
 
