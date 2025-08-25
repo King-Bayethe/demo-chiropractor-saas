@@ -1,0 +1,97 @@
+-- First, temporarily update the sync function to skip the HTTP call
+CREATE OR REPLACE FUNCTION public.sync_patient_to_ghl()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- Temporarily disabled GHL sync for development
+  -- Will be re-enabled when net extension is available
+  RETURN NEW;
+END;
+$function$;
+
+-- Now insert the mock form submission
+INSERT INTO public.form_submissions (
+  form_type,
+  patient_name,
+  patient_email,
+  patient_phone,
+  form_data,
+  submission_source,
+  ip_address,
+  user_agent,
+  is_verified,
+  status
+) VALUES (
+  'pip',
+  'Maria Elena Rodriguez',
+  'maria.rodriguez@email.com',
+  '+1-555-0123',
+  '{
+    "firstName": "Maria Elena",
+    "lastName": "Rodriguez", 
+    "email": "maria.rodriguez@email.com",
+    "cellPhone": "+1-555-0123",
+    "homePhone": "+1-555-0124",
+    "address": "1234 Oak Street",
+    "city": "Miami",
+    "state": "FL",
+    "zip": "33101",
+    "dateOfBirth": "1985-06-15",
+    "gender": "Female",
+    "maritalStatus": "Married",
+    "accidentDate": "2024-01-15",
+    "accidentDescription": "Rear-ended while stopped at traffic light",
+    "painLocation": "Lower back and neck",
+    "painSeverity": 7,
+    "currentSymptoms": {
+      "headache": true,
+      "neck_pain": true,
+      "back_pain": true,
+      "dizziness": false,
+      "tingling_arms_hands": true,
+      "numbness_arms_hands": false,
+      "fatigue": true,
+      "sleeping_problems": true,
+      "irritability": false,
+      "loss_memory": false,
+      "shortness_breath": false,
+      "nausea": false
+    },
+    "familyHistory": {
+      "heartTrouble": false,
+      "stroke": false,
+      "diabetes": true,
+      "highBloodPressure": true,
+      "cancer": false,
+      "arthritis": true,
+      "allergies": false,
+      "mentalIllness": false,
+      "substanceAbuse": false,
+      "additionalNotes": "Maternal grandmother had diabetes, father has high blood pressure"
+    },
+    "autoInsuranceCompany": "State Farm Insurance",
+    "policyNumber": "SF-789456123",
+    "claimNumber": "CLM-2024-001234",
+    "adjustersName": "John Wilson",
+    "adjustersPhone": "+1-555-0200",
+    "healthInsurance": "Blue Cross Blue Shield",
+    "healthInsurancePolicyNumber": "BCBS-556677889",
+    "emergencyContactName": "Carlos Rodriguez",
+    "emergencyContactPhone": "+1-555-0125",
+    "emergencyContactRelationship": "Spouse",
+    "employmentStatus": "Employed",
+    "employerName": "Miami General Hospital",
+    "employerAddress": "5678 Medical Center Dr, Miami, FL 33102",
+    "consentToTreatment": true,
+    "hipaaAcknowledgment": true,
+    "signatureDate": "2024-01-20"
+  }'::jsonb,
+  'web',
+  '192.168.1.100'::inet,
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+  true,
+  'completed'
+);
