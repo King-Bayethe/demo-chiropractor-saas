@@ -13,6 +13,7 @@ import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { useAppointments, Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
 import { useGHLApi } from '@/hooks/useGHLApi';
+import { useCalendars } from '@/hooks/useCalendars';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
 
@@ -43,6 +44,7 @@ export default function Appointments() {
   } = useAppointments();
   
   const ghlApi = useGHLApi();
+  const { calendars, loading: calendarsLoading } = useCalendars();
 
   // Load contacts on component mount
   React.useEffect(() => {
@@ -265,9 +267,10 @@ export default function Appointments() {
                 <AppointmentForm
                   contacts={contacts}
                   providers={providers}
+                  calendars={calendars}
                   onSubmit={handleCreateAppointment}
                   onCancel={() => setIsCreateDialogOpen(false)}
-                  loading={loading}
+                  loading={loading || calendarsLoading}
                 />
               </Dialog>
             </div>
@@ -370,6 +373,7 @@ export default function Appointments() {
                 appointment={editingAppointment}
                 contacts={contacts}
                 providers={providers}
+                calendars={calendars}
                 onSubmit={handleUpdateAppointment}
                 onCancel={() => {
                   setIsEditDialogOpen(false);

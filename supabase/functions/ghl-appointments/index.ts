@@ -76,9 +76,9 @@ const handler = async (req: Request): Promise<Response> => {
         const startTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
         const endTime = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days forward
         
-        // Fetch from GoHighLevel Calendar API
+        // Fetch from GoHighLevel Calendar API using correct endpoint
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
+          `https://services.leadconnectorhq.com/calendars/events/appointments?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
           { headers: ghlHeaders }
         );
 
@@ -152,20 +152,22 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('Creating appointment:', appointmentData);
 
         // Create in GoHighLevel using the correct payload structure
+        const calendarId = data.calendarId || Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
+        if (!calendarId) {
+          throw new Error('Calendar ID is required for appointment creation');
+        }
+
         const ghlPayload = {
           title: appointmentData.title,
-          calendarId: data.calendarId || appointmentData.calendarId,
+          calendarId,
           contactId: appointmentData.contact_id,
           startTime: appointmentData.start_time,
           endTime: appointmentData.end_time,
           appointmentStatus: appointmentData.status || 'new',
-          meetingLocationType: 'custom',
-          meetingLocationId: 'default',
-          overrideLocationConfig: true,
-          address: appointmentData.location || 'Office',
+          notes: appointmentData.notes || '',
+          address: appointmentData.location || '',
           ignoreDateRange: false,
-          toNotify: true,
-          ignoreFreeSlotValidation: true
+          toNotify: true
         };
 
         const ghlResponse = await fetch(
@@ -354,9 +356,9 @@ const handler = async (req: Request): Promise<Response> => {
         const startTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
         const endTime = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days forward
         
-        // Fetch all events from GoHighLevel
+        // Fetch all events from GoHighLevel using correct endpoint
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
+          `https://services.leadconnectorhq.com/calendars/events/appointments?locationId=${ghlLocationId}&startTime=${startTime}&endTime=${endTime}`,
           { headers: ghlHeaders }
         );
 

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
-import { Check, ChevronsUpDown, Search, User, Calendar, Clock, MapPin, Stethoscope, FileText } from 'lucide-react';
+import { Check, ChevronsUpDown, Search, User, Calendar as CalendarIcon, Clock, MapPin, Stethoscope, FileText } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
+import { Calendar as CalendarType } from '@/hooks/useCalendars';
 
 const appointmentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -25,12 +26,14 @@ const appointmentSchema = z.object({
   notes: z.string().optional(),
   location: z.string().optional(),
   provider_id: z.string().optional(),
+  calendarId: z.string().optional(),
 });
 
 interface AppointmentFormProps {
   appointment?: Appointment;
   contacts: Array<{ id: string; name: string }>;
   providers: Array<{ id: string; name: string }>;
+  calendars: CalendarType[];
   onSubmit: (data: CreateAppointmentData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
@@ -40,12 +43,14 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   appointment,
   contacts,
   providers,
+  calendars,
   onSubmit,
   onCancel,
   loading = false,
 }) => {
   const [contactOpen, setContactOpen] = useState(false);
   const [providerOpen, setProviderOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const form = useForm<CreateAppointmentData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -58,6 +63,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       notes: appointment?.notes || '',
       location: appointment?.location || '',
       provider_id: appointment?.provider_id || '',
+      calendarId: (appointment as any)?.calendarId || (calendars.length > 0 ? calendars[0].id : ''),
     },
   });
 
@@ -81,7 +87,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
     <DialogContent className="max-w-lg">
       <DialogHeader className="pb-4">
         <DialogTitle className="flex items-center gap-2 text-xl">
-          <Calendar className="h-5 w-5 text-primary" />
+          <CalendarIcon className="h-5 w-5 text-primary" />
           {appointment ? 'Edit Appointment' : 'New Appointment'}
         </DialogTitle>
       </DialogHeader>
@@ -220,10 +226,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
-                    <Calendar className="h-4 w-4" />
-                    Status
-                  </FormLabel>
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <CalendarIcon className="h-4 w-4" />
+                  Status
+                </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="h-11">
@@ -374,6 +380,75 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
                     {...field} 
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="calendarId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                  <CalendarIcon className="h-4 w-4" />
+                  Calendar <span className="text-destructive">*</span>
+                </FormLabel>
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={calendarOpen}
+                        className={cn(
+                          "h-11 justify-between bg-background",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? calendars.find((calendar) => calendar.id === field.value)?.name || "Calendar not found"
+                          : "Select a calendar"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search calendars..." 
+                        className="h-11"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No calendar found.</CommandEmpty>
+                        <CommandGroup>
+                          {calendars.map((calendar) => (
+                            <CommandItem
+                              key={calendar.id}
+                              value={calendar.name}
+                              onSelect={() => {
+                                field.onChange(calendar.id);
+                                setCalendarOpen(false);
+                              }}
+                              className="flex items-center gap-2 p-3"
+                            >
+                              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                              <span>{calendar.name}</span>
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  calendar.id === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}

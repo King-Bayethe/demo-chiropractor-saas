@@ -8,6 +8,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
 import { useAppointments } from "@/hooks/useAppointments";
+import { useCalendars } from "@/hooks/useCalendars";
 import { AppointmentForm } from "@/components/appointments/AppointmentForm";
 import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDetailDialog";
 import { 
@@ -52,6 +53,7 @@ export default function Calendar() {
   const { toast } = useToast();
   const ghlApi = useGHLApi();
   const { appointments, loading, createAppointment, fetchAppointments } = useAppointments();
+  const { calendars, loading: calendarsLoading } = useCalendars();
 
   useEffect(() => {
     loadData();
@@ -438,9 +440,10 @@ export default function Calendar() {
                 name: `${contact.firstNameLowerCase || ''} ${contact.lastNameLowerCase || ''}`.trim() || contact.name || 'Unknown'
               }))}
               providers={providers}
+              calendars={calendars}
               onSubmit={handleCreateAppointment}
               onCancel={() => setIsCreateAppointmentOpen(false)}
-              loading={loading}
+              loading={loading || calendarsLoading}
             />
           </Dialog>
 
