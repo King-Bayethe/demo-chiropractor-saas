@@ -132,11 +132,22 @@ const handler = async (req: Request): Promise<Response> => {
       
       let messageData: MessageData;
       try {
-        messageData = await req.json();
+        const requestText = await req.text();
+        if (!requestText) {
+          throw new Error('Empty request body');
+        }
+        messageData = JSON.parse(requestText);
+        
+        if (!messageData.contactId || !messageData.message) {
+          throw new Error('Missing required fields: contactId and message');
+        }
       } catch (parseError) {
         console.error('Error parsing request body:', parseError);
         return new Response(
-          JSON.stringify({ error: 'Invalid request body' }),
+          JSON.stringify({ 
+            error: 'Invalid request body',
+            details: parseError.message 
+          }),
           {
             status: 400,
             headers: { 'Content-Type': 'application/json', ...corsHeaders },
