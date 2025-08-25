@@ -81,9 +81,22 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   let familyHistoryAdditionalNotes = '';
   
   if (patient.family_medical_history && typeof patient.family_medical_history === 'object') {
-    const { additionalNotes, ...conditions } = patient.family_medical_history;
-    familyHistoryConditionsData = conditions;
-    familyHistoryAdditionalNotes = additionalNotes || '';
+    // Check if this is checkbox-style data (has boolean values matching our mapping)
+    const familyHistoryFields = FAMILY_HISTORY_MAPPING.map(m => m.formField);
+    const hasCheckboxData = Object.keys(patient.family_medical_history).some(key => 
+      familyHistoryFields.includes(key) && typeof patient.family_medical_history[key] === 'boolean'
+    );
+    
+    if (hasCheckboxData) {
+      // This is checkbox-style data from forms
+      familyHistoryConditionsData = patient.family_medical_history;
+      familyHistoryAdditionalNotes = patient.family_medical_history.additionalNotes || '';
+    } else {
+      // This is legacy format with explicit additionalNotes
+      const { additionalNotes, ...conditions } = patient.family_medical_history;
+      familyHistoryConditionsData = conditions;
+      familyHistoryAdditionalNotes = additionalNotes || '';
+    }
   } else if (typeof patient.family_medical_history === 'string') {
     familyHistoryAdditionalNotes = patient.family_medical_history;
   } else if (patient.systems_review) {
