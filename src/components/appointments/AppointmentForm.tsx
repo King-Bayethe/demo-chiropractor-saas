@@ -84,10 +84,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   };
 
   return (
-    <DialogContent className="max-w-lg">
-      <DialogHeader className="pb-4">
-        <DialogTitle className="flex items-center gap-2 text-xl">
-          <CalendarIcon className="h-5 w-5 text-primary" />
+    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogHeader className="pb-3">
+        <DialogTitle className="flex items-center gap-2 text-lg">
+          <CalendarIcon className="h-4 w-4 text-primary" />
           {appointment ? 'Edit Appointment' : 'New Appointment'}
         </DialogTitle>
       </DialogHeader>
