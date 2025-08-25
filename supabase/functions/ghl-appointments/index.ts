@@ -186,9 +186,38 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         // Get calendar ID - either from data or use default
-        const calendarId = data.calendarId || appointmentData.calendarId || Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
+        let calendarId = data.calendarId || appointmentData.calendarId || Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
+        
+        // If no calendar ID provided, try to get the first available calendar from groups
         if (!calendarId) {
-          throw new Error('Calendar ID is required for appointment creation');
+          console.log('No calendar ID provided, fetching available calendars');
+          try {
+            const groupsResponse = await fetch(
+              `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
+              { headers: ghlHeaders }
+            );
+            
+            if (groupsResponse.ok) {
+              const groupsData = await groupsResponse.json();
+              const groups = groupsData.groups || [];
+              console.log(`Found ${groups.length} calendar groups`);
+              
+              // Try to find a calendar in the first group
+              if (groups.length > 0) {
+                const firstGroup = groups[0];
+                if (firstGroup.calendars && firstGroup.calendars.length > 0) {
+                  calendarId = firstGroup.calendars[0].id;
+                  console.log(`Using calendar ID: ${calendarId}`);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching calendar groups:', error);
+          }
+        }
+        
+        if (!calendarId) {
+          throw new Error('No calendar ID available for appointment creation. Please configure GOHIGHLEVEL_DEFAULT_CALENDAR_ID or ensure calendars are available.');
         }
 
         // Convert ISO datetime to Unix timestamp (required by GHL)
@@ -211,7 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('GHL appointment payload:', ghlPayload);
 
         const ghlResponse = await fetch(
-          `https://services.leadconnectorhq.com/calendars/events`,
+          `https://services.leadconnectorhq.com/calendars/${calendarId}/events`,
           {
             method: 'POST',
             headers: ghlHeaders,
