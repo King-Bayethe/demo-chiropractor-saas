@@ -108,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         });
       } else {
-        // List all conversations - use contacts search since GHL doesn't have a direct conversations list endpoint
+        // List all conversations using the conversations/search endpoint
         const GHL_LOCATION_ID = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
         if (!GHL_LOCATION_ID) {
           return new Response(
@@ -120,62 +120,71 @@ const handler = async (req: Request): Promise<Response> => {
           );
         }
         
-        console.log('Fetching contacts to get conversations...');
-        const endpoint = `${GHL_API_BASE}/contacts/search`;
+        console.log('Searching conversations with location ID:', GHL_LOCATION_ID);
         
-        const searchBody = {
+        // Use the conversations/search endpoint with query parameters
+        const searchParams = new URLSearchParams({
           locationId: GHL_LOCATION_ID,
-          pageLimit: 100,
-          filters: [],
-          sort: [{ field: "dateUpdated", direction: "desc" }]
-        };
+        });
         
-        console.log('GHL API endpoint for contacts:', endpoint);
+        const endpoint = `${GHL_API_BASE}/conversations/search?${searchParams}`;
+        console.log('GHL API endpoint for conversations search:', endpoint);
 
         const response = await fetch(endpoint, {
-          method: 'POST',
+          method: 'GET',
           headers,
-          body: JSON.stringify(searchBody),
         });
 
-         console.log('GHL API response status:', response.status);
+        console.log('GHL API response status:', response.status);
 
-         if (!response.ok) {
-           const errorText = await response.text();
-           console.error('GHL API error:', response.status, errorText);
-           
-           return new Response(
-             JSON.stringify({ 
-               error: `GHL API error: ${response.status} ${response.statusText}`,
-               details: errorText 
-             }),
-             {
-               status: response.status,
-               headers: { 'Content-Type': 'application/json', ...corsHeaders },
-             }
-           );
-         }
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('GHL API error:', response.status, errorText);
+          
+          return new Response(
+            JSON.stringify({ 
+              error: `GHL API error: ${response.status} ${response.statusText}`,
+              details: errorText 
+            }),
+            {
+              status: response.status,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          );
+        }
 
-         const contactsData = await response.json();
-         console.log('Fetched contacts:', contactsData?.contacts?.length || 0);
-         
-         // Transform contacts data to conversations format
-         // For now, return empty conversations since GHL doesn't have a direct conversations list
-         // In a real implementation, you'd need to fetch conversation data for each contact
-         const conversations = [];
-         
-         const result = {
-           conversations,
-           total: conversations.length,
-           hasMore: false
-         };
+        let data;
+        try {
+          const responseText = await response.text();
+          console.log('GHL API response text length:', responseText.length);
+          
+          if (!responseText) {
+            data = { conversations: [] };
+          } else {
+            data = JSON.parse(responseText);
+          }
+        } catch (parseError) {
+          console.error('Error parsing GHL API response:', parseError);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Invalid response from GHL API',
+              details: parseError.message 
+            }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          );
+        }
 
-         return new Response(JSON.stringify(result), {
-           status: 200,
-           headers: { 'Content-Type': 'application/json', ...corsHeaders },
-         });
-       }
-     }
+        console.log('Successfully fetched conversations:', data?.conversations?.length || 0);
+
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+    }
 
     if (method === 'POST' || req.method === 'POST') {
       console.log('Sending message to GHL...');
