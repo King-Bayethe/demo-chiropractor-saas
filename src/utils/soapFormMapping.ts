@@ -96,6 +96,8 @@ export const FAMILY_HISTORY_MAPPING: FamilyHistoryMapping[] = [
   { formField: 'lungDisease', soapField: 'lung_disease', description: 'Lung Disease' },
   { formField: 'osteoporosis', soapField: 'osteoporosis', description: 'Osteoporosis' },
   { formField: 'migraines', soapField: 'migraines', description: 'Migraines' },
+  { formField: 'scoliosis', soapField: 'scoliosis', description: 'Scoliosis' },
+  { formField: 'spineProblems', soapField: 'spine_problems', description: 'Spine Problems' },
   { formField: 'other', soapField: 'other', description: 'Other' },
 ];
 

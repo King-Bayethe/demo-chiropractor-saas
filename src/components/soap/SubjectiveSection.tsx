@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { PatientMedicalSummary } from "./PatientMedicalSummary";
-import { autofillSOAPFromPatient, convertCurrentSymptomsToSOAP, convertFamilyHistoryToSOAP } from "@/utils/soapFormMapping";
+import { autofillSOAPFromPatient, convertCurrentSymptomsToSOAP, convertFamilyHistoryToSOAP, FAMILY_HISTORY_MAPPING } from "@/utils/soapFormMapping";
 
 interface SubjectiveSectionProps {
   data: SubjectiveData;
@@ -1083,35 +1083,18 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
               </div>
             </div>
 
-            {/* Family Medical History */}
+             {/* Family Medical History - Using standardized mapping */}
             <div className="space-y-4">
               <h4 className="text-sm font-medium text-primary">Family Medical History</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                 {[
-                   { key: 'heart_trouble', label: 'Heart Trouble' },
-                   { key: 'stroke', label: 'Stroke' },
-                   { key: 'diabetes', label: 'Diabetes' },
-                   { key: 'cancer', label: 'Cancer' },
-                   { key: 'arthritis', label: 'Arthritis' },
-                   { key: 'high_blood_pressure', label: 'High Blood Pressure' },
-                   { key: 'kidney_disease', label: 'Kidney Disease' },
-                   { key: 'mental_illness', label: 'Mental Illness' },
-                   { key: 'asthma', label: 'Asthma' },
-                   { key: 'epilepsy', label: 'Epilepsy' },
-                   { key: 'kyphosis', label: 'Kyphosis' },
-                   { key: 'lung_disease', label: 'Lung Disease' },
-                   { key: 'osteoporosis', label: 'Osteoporosis' },
-                   { key: 'migraines', label: 'Migraines' },
-                   { key: 'scoliosis', label: 'Scoliosis' },
-                   { key: 'spine_problems', label: 'Spine Problems' }
-                 ].map(({ key, label }) => (
-                  <div key={key} className="flex items-center space-x-2">
+                 {FAMILY_HISTORY_MAPPING.map(({ soapField, description }) => (
+                  <div key={soapField} className="flex items-center space-x-2">
                      <Checkbox
-                       id={`family-${key}`}
-                       checked={Boolean(data.familyHistory?.[key as keyof typeof data.familyHistory])}
-                       onCheckedChange={(checked) => handleFamilyHistoryChange(key, Boolean(checked))}
+                       id={`family-${soapField}`}
+                       checked={Boolean(data.familyHistory?.[soapField as keyof typeof data.familyHistory])}
+                       onCheckedChange={(checked) => handleFamilyHistoryChange(soapField, Boolean(checked))}
                      />
-                    <Label htmlFor={`family-${key}`} className="text-sm">{label}</Label>
+                    <Label htmlFor={`family-${soapField}`} className="text-sm">{description}</Label>
                   </div>
                 ))}
               </div>

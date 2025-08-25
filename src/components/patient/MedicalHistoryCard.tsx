@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { FAMILY_HISTORY_MAPPING } from '@/utils/soapFormMapping';
 import { 
   Activity, 
   Pill, 
@@ -115,31 +116,6 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
       title: "General",
       symptoms: ["fatigue", "irritability", "sleeping_problems", "nausea", "ears_ring"]
     }
-  ];
-
-  // Family history conditions mapping (database camelCase to display names)
-  const familyHistoryConditionsMap = {
-    "heartTrouble": "Heart Trouble",
-    "stroke": "Stroke", 
-    "kyphosis": "Kyphosis",
-    "diabetes": "Diabetes",
-    "cancer": "Cancer",
-    "arthritis": "Arthritis",
-    "lungDisease": "Lung Disease",
-    "osteoporosis": "Osteoporosis", 
-    "migraines": "Migraines",
-    "highBloodPressure": "High Blood Pressure",
-    "scoliosis": "Scoliosis",
-    "spineProblems": "Spine Problems",
-    "alcoholDependence": "Alcohol Dependence",
-    "aneurysm": "Aneurysm"
-  };
-
-  // Legacy snake_case conditions for form editing
-  const familyHistoryConditions = [
-    "heart_trouble", "stroke", "kyphosis", "diabetes", "cancer", "arthritis",
-    "lung_disease", "osteoporosis", "migraines", "high_blood_pressure", 
-    "scoliosis", "spine_problems", "alcohol_dependence", "aneurysm"
   ];
 
   const sections = [
@@ -427,11 +403,11 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                 <FormLabel className="text-base font-semibold mb-4 block">Family Medical History</FormLabel>
                 <p className="text-sm text-muted-foreground mb-4">Check conditions that apply to family members (parents, siblings, grandparents, aunts/uncles):</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {familyHistoryConditions.map((condition) => (
+                  {FAMILY_HISTORY_MAPPING.map((mapping) => (
                     <FormField
-                      key={condition}
+                      key={mapping.soapField}
                       control={form.control}
-                      name={`familyHistory.${condition}`}
+                      name={`familyHistory.${mapping.soapField}`}
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                           <FormControl>
@@ -443,7 +419,7 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                             />
                           </FormControl>
                           <FormLabel className="text-sm font-normal">
-                            {condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            {mapping.description}
                           </FormLabel>
                         </FormItem>
                       )}
@@ -636,7 +612,7 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
               </div>
             )}
 
-            {/* Family Medical History - Unified section for both structured data and text notes */}
+            {/* Family Medical History - Using standardized mapping */}
             {((Object.keys(familyHistoryConditionsData).some(key => familyHistoryConditionsData[key])) || 
               (familyHistoryAdditionalNotes && familyHistoryAdditionalNotes.trim() !== '') ||
               (familyHistoryText && typeof familyHistoryText === 'string' && familyHistoryText.trim() !== '')) && (
@@ -646,16 +622,25 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
                   Family Medical History
                 </h4>
                 <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
-                  {/* Structured condition badges */}
+                  {/* Structured condition badges using standardized mapping */}
                   {Object.keys(familyHistoryConditionsData).some(key => familyHistoryConditionsData[key]) && (
                     <div className="flex flex-wrap gap-2 mb-3">
                       {Object.entries(familyHistoryConditionsData)
                         .filter(([key, value]) => value === true)
-                        .map(([condition]) => (
-                          <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
-                            {familyHistoryConditionsMap[condition] || condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}
-                          </Badge>
-                        ))}
+                        .map(([condition]) => {
+                          // Find the matching mapping for display
+                          const mapping = FAMILY_HISTORY_MAPPING.find(m => 
+                            m.formField === condition || m.soapField === condition
+                          );
+                          const displayName = mapping ? mapping.description : 
+                            condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                          
+                          return (
+                            <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
+                              {displayName}
+                            </Badge>
+                          );
+                        })}
                     </div>
                   )}
                   
