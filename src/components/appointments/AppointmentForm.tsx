@@ -17,10 +17,10 @@ import { Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
 import { Calendar as CalendarType } from '@/hooks/useCalendars';
 
 const appointmentSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  contact_id: z.string().min(1, 'Contact is required'),
-  start_time: z.string().min(1, 'Start time is required'),
-  end_time: z.string().min(1, 'End time is required'),
+  title: z.string().optional(),
+  contact_id: z.string().optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
   status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'no_show']),
   type: z.enum(['consultation', 'treatment', 'follow_up', 'procedure']),
   notes: z.string().optional(),
@@ -122,7 +122,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               <FormItem className="flex flex-col">
                 <FormLabel className="flex items-center gap-2 text-sm font-medium">
                   <User className="h-4 w-4" />
-                  Select Contact <span className="text-destructive">*</span>
+                  Select Contact
                 </FormLabel>
                 <Popover open={contactOpen} onOpenChange={setContactOpen}>
                   <PopoverTrigger asChild>
@@ -392,7 +392,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               <FormItem className="flex flex-col">
                 <FormLabel className="flex items-center gap-2 text-sm font-medium">
                   <CalendarIcon className="h-4 w-4" />
-                  Calendar <span className="text-destructive">*</span>
+                  Calendar
                 </FormLabel>
                 <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                   <PopoverTrigger asChild>

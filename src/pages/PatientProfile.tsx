@@ -58,10 +58,10 @@ import { CommunicationsCard } from "@/components/patient/CommunicationsCard";
 
 // Form schema for the main patient profile
 const patientFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   email: z.union([z.string().email("Invalid email address"), z.literal("")]).optional(),
-  phone: z.string().min(10, "Phone number must be at least 10 digits").regex(/^[\d\-\(\)\+\s]+$/, "Invalid phone number format"),
+  phone: z.string().optional(),
   dateOfBirth: z.date().optional(),
   preferredLanguage: z.string().optional(),
   streetAddress: z.string().optional(),
@@ -177,9 +177,9 @@ type PatientFormData = z.infer<typeof patientFormSchema>;
 
 // Form schema for booking an appointment
 const appointmentFormSchema = z.object({
-    calendarId: z.string().min(1, "Please select a calendar."),
-    title: z.string().min(1, "Appointment title is required."),
-    startTime: z.date({ required_error: "Please select a date and time." }),
+    calendarId: z.string().optional(),
+    title: z.string().optional(),
+    startTime: z.date().optional(),
     notes: z.string().optional(),
 });
 type AppointmentFormData = z.infer<typeof appointmentFormSchema>;

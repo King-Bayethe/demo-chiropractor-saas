@@ -47,15 +47,12 @@ export function AddOpportunityForm({ onSubmit }: AddOpportunityFormProps) {
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <Label htmlFor="name">Patient Name *</Label>
+          <Label htmlFor="name">Patient Name</Label>
           <Input
             id="name"
-            {...register("name", { required: "Name is required" })}
+            {...register("name")}
             placeholder="John Doe"
           />
-          {errors.name && (
-            <p className="text-sm text-destructive mt-1">{errors.name.message as string}</p>
-          )}
         </div>
 
         <div>

@@ -13,7 +13,7 @@ import { Patient } from '@/hooks/usePatients';
 import { MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().optional(),
   description: z.string().optional(),
   case_type: z.string().optional(),
   estimated_value: z.number().optional(),
@@ -103,7 +103,7 @@ export function AddMedicalOpportunityForm({ onSubmit, onCancel }: AddMedicalOppo
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Opportunity Name *</FormLabel>
+                <FormLabel>Opportunity Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter opportunity name" {...field} />
                 </FormControl>
