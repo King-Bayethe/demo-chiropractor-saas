@@ -51,35 +51,71 @@ export function usePatientConversations() {
 
   // Fetch conversations with patient data (only for assigned patients)
   const fetchConversations = async () => {
+    if (!user) return;
+    
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('patient_conversations')
-        .select(`
-          *,
-          patient:patients!inner (
-            id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            ghl_contact_id,
-            patient_providers!inner (
-              provider_id,
-              is_active
-            )
-          )
-        `)
-        .eq('status', 'active')
-        .eq('patient.patient_providers.is_active', true)
-        .order('last_message_at', { ascending: false, nullsFirst: false });
+      
+      // First get user profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-      if (error) throw error;
-      setConversations(data || []);
+      const userRole = profile?.role || 'staff';
+      
+      // If user is admin/overlord/doctor/staff, they can see all conversations
+      if (['admin', 'overlord', 'doctor', 'staff', 'provider'].includes(userRole)) {
+        const { data, error } = await supabase
+          .from('patient_conversations')
+          .select(`
+            *,
+            patient:patients!inner (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              ghl_contact_id
+            )
+          `)
+          .eq('status', 'active')
+          .order('last_message_at', { ascending: false, nullsFirst: false });
+
+        if (error) throw error;
+        setConversations(data || []);
+      } else {
+        // For regular users, only show conversations for assigned patients
+        const { data, error } = await supabase
+          .from('patient_conversations')
+          .select(`
+            *,
+            patient:patients!inner (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              ghl_contact_id,
+              patient_providers!inner (
+                provider_id,
+                is_active
+              )
+            )
+          `)
+          .eq('status', 'active')
+          .eq('patient.patient_providers.provider_id', user.id)
+          .eq('patient.patient_providers.is_active', true)
+          .order('last_message_at', { ascending: false, nullsFirst: false });
+
+        if (error) throw error;
+        setConversations(data || []);
+      }
     } catch (err: any) {
       console.error('Error fetching conversations:', err);
       setError(err.message.includes('permission denied') ? 
-        'You do not have access to patient conversations. Please contact your administrator.' : 
+        'You do not have access to patient conversations. Please contact your administrator to assign you to patients.' : 
         err.message
       );
     } finally {
@@ -244,22 +280,34 @@ export function usePatientConversations() {
     }
   };
 
-  // Create a new conversation (only for assigned patients)
+  // Create a new conversation 
   const createConversation = async (patientId: string, title?: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      // Check if user has access to this patient via patient_providers
-      const { data: providerCheck, error: providerError } = await supabase
-        .from('patient_providers')
-        .select('id')
-        .eq('patient_id', patientId)
-        .eq('provider_id', user.id)
-        .eq('is_active', true)
+      // First get user profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
         .single();
 
-      if (providerError || !providerCheck) {
-        throw new Error('You do not have access to create conversations for this patient');
+      const userRole = profile?.role || 'staff';
+      
+      // Check if user has access to this patient
+      if (!['admin', 'overlord', 'doctor', 'staff', 'provider'].includes(userRole)) {
+        // For regular users, check patient assignment
+        const { data: providerCheck, error: providerError } = await supabase
+          .from('patient_providers')
+          .select('id')
+          .eq('patient_id', patientId)
+          .eq('provider_id', user.id)
+          .eq('is_active', true)
+          .single();
+
+        if (providerError || !providerCheck) {
+          throw new Error('You do not have access to create conversations for this patient');
+        }
       }
 
       const { data, error } = await supabase
