@@ -520,9 +520,7 @@ export default function Conversations() {
                                            <p className="text-xs opacity-75">Transcription:</p>
                                            <TranscriptionDownload 
                                              transcriptionText={transcriptions.get(message.id)!}
-                                             fileName={`transcription-${message.id}.txt`}
-                                             variant="ghost"
-                                             size="sm"
+                                             fileName={`transcription-${message.id}`}
                                            />
                                          </div>
                                          <p className="text-sm">{transcriptions.get(message.id)}</p>
@@ -532,13 +530,17 @@ export default function Conversations() {
                                  {message.hasRecording && recordingUrls.has(message.id) && (
                                   <>
                                      <WebAudioApiPlayer 
-                                       audioUrl={recordingUrls.get(message.id)} 
-                                       fileName={`recording-${message.id}.wav`}
+                                       audioUrl={(() => {
+                                         const url = recordingUrls.get(message.id);
+                                         console.log(`🎵 Passing to WebAudioApiPlayer for ${message.id}:`, typeof url, url);
+                                         return url;
+                                       })()} 
+                                       fileName={`recording-${message.id}`}
                                        className={message.sender === 'agent' ? 'self-end' : 'self-start'}
                                      />
                                     <AudioDownloadButton
                                       audioUrl={recordingUrls.get(message.id)}
-                                      fileName={`recording-${message.id}.wav`}
+                                      fileName={`recording-${message.id}`}
                                       variant="outline"
                                       size="sm"
                                       className={`mt-2 ${message.sender === 'agent' ? 'self-end' : 'self-start'}`}
@@ -579,5 +581,5 @@ export default function Conversations() {
         </div>
       </Layout>
     </AuthGuard>
-  );
+  )
 }

@@ -7,10 +7,19 @@ export const useGoHighLevel = () => {
         body: { recordingId: messageId }
       });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching recording:', error);
+        throw error;
+      }
+      
+      return {
+        recording: {
+          url: data?.audioDataUrl || data?.url,
+          metadata: data?.metadata
+        }
+      };
     } catch (error) {
-      console.error('Error fetching recording:', error);
+      console.error('Failed to get message recording:', error);
       throw error;
     }
   };
@@ -21,10 +30,20 @@ export const useGoHighLevel = () => {
         body: { recordingId: messageId }
       });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching transcription:', error);
+        throw error;
+      }
+      
+      return {
+        transcription: {
+          text: data?.text,
+          status: data?.status,
+          confidence: data?.confidence
+        }
+      };
     } catch (error) {
-      console.error('Error fetching transcription:', error);
+      console.error('Failed to get message transcription:', error);
       throw error;
     }
   };
