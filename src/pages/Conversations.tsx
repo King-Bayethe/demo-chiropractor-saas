@@ -393,7 +393,13 @@ export default function Conversations() {
       loadConversations();
 
     } catch (err) {
-      toast({ title: "Failed to Send Message", description: err.message, variant: "destructive" });
+      // Check if the error is due to DND being active
+      let errorMessage = err.message;
+      if (err.message.includes("Cannot send message as DND is active") || err.message.includes("DND is active")) {
+        errorMessage = "Cannot send message to a patient that has dnd on";
+      }
+      
+      toast({ title: "Failed to Send Message", description: errorMessage, variant: "destructive" });
       setMessages(prev => prev.filter(msg => msg.id !== tempId));
     } finally {
       setIsSending(false);
