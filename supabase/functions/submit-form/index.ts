@@ -202,7 +202,10 @@ serve(async (req) => {
               pain_description: formData.painDescription || {},
               current_symptoms: formData.currentSymptoms || {},
               pain_location: formData.painLocation,
-              family_medical_history: formData.familyHistory || {}, // Fixed: was familyHistory -> JSON string conversion
+              family_medical_history: {
+                ...(formData.familyHistory || {}),
+                additionalNotes: formData.familyMedicalHistory || null
+              }, // Combine structured family history with text notes
               systems_review: formData.systemReview || {},
               alcohol_consumption: formData.drinksAlcohol, // Fixed: was alcoholConsumption
               smoking_status: formData.smokes,
@@ -304,7 +307,10 @@ serve(async (req) => {
               pain_description: formData.painDescription || {},
               current_symptoms: formData.currentSymptoms || {},
               pain_location: formData.painLocation,
-              family_medical_history: formData.familyHistory || {},
+              family_medical_history: {
+                ...(formData.familyHistory || {}),
+                additionalNotes: formData.familyMedicalHistory || null
+              }, // Combine structured family history with text notes
               systems_review: formData.systemReview || {},
               alcohol_consumption: formData.drinksAlcohol, // Fixed: was alcoholConsumption
               smoking_status: formData.smokes,

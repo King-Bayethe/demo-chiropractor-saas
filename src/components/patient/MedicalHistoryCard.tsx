@@ -77,8 +77,14 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
   
   // Parse family history conditions from family_medical_history field
   let familyHistoryConditionsData = {};
+  let familyHistoryAdditionalNotes = '';
+  
   if (patient.family_medical_history && typeof patient.family_medical_history === 'object') {
-    familyHistoryConditionsData = patient.family_medical_history;
+    const { additionalNotes, ...conditions } = patient.family_medical_history;
+    familyHistoryConditionsData = conditions;
+    familyHistoryAdditionalNotes = additionalNotes || '';
+  } else if (typeof patient.family_medical_history === 'string') {
+    familyHistoryAdditionalNotes = patient.family_medical_history;
   } else if (patient.systems_review) {
     familyHistoryConditionsData = typeof patient.systems_review === 'string' ? JSON.parse(patient.systems_review) : patient.systems_review;
   }
@@ -555,19 +561,6 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
               </div>
             )}
 
-            {/* Family Medical History Text */}
-            {familyHistoryText && typeof familyHistoryText === 'string' && (
-              <div className="border-t pt-3 mt-4">
-                <h4 className="font-medium text-sm text-green-700 mb-2 flex items-center gap-2">
-                  <Activity className="w-4 h-4" />
-                  Family Medical History Notes
-                </h4>
-                <p className="text-sm bg-green-50 p-3 rounded-md border border-green-200 text-green-700">
-                  {familyHistoryText}
-                </p>
-              </div>
-            )}
-
             {/* Smoking Status */}
             {(smokingInfo.status || smokingInfo.history) && (
               <div className="border-t pt-3 mt-4">
@@ -643,23 +636,45 @@ export const MedicalHistoryCard: React.FC<MedicalHistoryCardProps> = ({
               </div>
             )}
 
-            {/* Family Medical History Conditions */}
-            {Object.keys(familyHistoryConditionsData).some(key => familyHistoryConditionsData[key]) && (
+            {/* Family Medical History - Unified section for both structured data and text notes */}
+            {((Object.keys(familyHistoryConditionsData).some(key => familyHistoryConditionsData[key])) || 
+              (familyHistoryAdditionalNotes && familyHistoryAdditionalNotes.trim() !== '') ||
+              (familyHistoryText && typeof familyHistoryText === 'string' && familyHistoryText.trim() !== '')) && (
               <div className="border-t pt-3 mt-4">
                 <h4 className="font-medium text-sm text-emerald-700 mb-3 flex items-center gap-2">
                   <Stethoscope className="w-4 h-4" />
                   Family Medical History
                 </h4>
                 <div className="bg-emerald-50 p-3 rounded-md border border-emerald-200">
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(familyHistoryConditionsData)
-                      .filter(([key, value]) => value === true)
-                      .map(([condition]) => (
-                        <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
-                          {familyHistoryConditionsMap[condition] || condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}
-                        </Badge>
-                      ))}
-                  </div>
+                  {/* Structured condition badges */}
+                  {Object.keys(familyHistoryConditionsData).some(key => familyHistoryConditionsData[key]) && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {Object.entries(familyHistoryConditionsData)
+                        .filter(([key, value]) => value === true)
+                        .map(([condition]) => (
+                          <Badge key={condition} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
+                            {familyHistoryConditionsMap[condition] || condition.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
+                  
+                  {/* Text notes from new format */}
+                  {familyHistoryAdditionalNotes && familyHistoryAdditionalNotes.trim() !== '' && (
+                    <div className="text-sm text-emerald-900 leading-relaxed">
+                      <span className="font-medium">Additional Notes: </span>
+                      {familyHistoryAdditionalNotes}
+                    </div>
+                  )}
+                  
+                  {/* Legacy text notes support */}
+                  {(!familyHistoryAdditionalNotes || familyHistoryAdditionalNotes.trim() === '') && 
+                   familyHistoryText && typeof familyHistoryText === 'string' && familyHistoryText.trim() !== '' && (
+                    <div className="text-sm text-emerald-900 leading-relaxed">
+                      <span className="font-medium">Additional Notes: </span>
+                      {familyHistoryText}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

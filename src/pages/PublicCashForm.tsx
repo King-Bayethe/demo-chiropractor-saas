@@ -996,7 +996,7 @@ const PublicCashForm = () => {
                     ))}
                   </div>
                   <Textarea
-                    placeholder="Other family medical history / Otro historial médico familiar"
+                    placeholder="Additional family medical history notes / Notas adicionales del historial médico familiar"
                     rows={2}
                     value={formData.familyMedicalHistory}
                     onChange={(e) => handleInputChange("familyMedicalHistory", e.target.value)}
