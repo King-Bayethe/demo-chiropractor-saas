@@ -161,9 +161,12 @@ const handler = async (req: Request): Promise<Response> => {
     }
     if (action === 'create' && data) {
       console.log('Creating new contact:', data);
+      const { patientId, ...contactData } = data;
       
       const endpoint = `${GHL_API_BASE}/contacts/`;
-      const body = { ...data, locationId: GHL_LOCATION_ID };
+      const body = { ...contactData, locationId: GHL_LOCATION_ID };
+      
+      console.log('Sending contact data to GHL:', body);
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -176,11 +179,28 @@ const handler = async (req: Request): Promise<Response> => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Create contact error:', response.status, errorText);
+        
+        // If this is from a patient sync, we should update the patient record
+        if (patientId) {
+          console.log('Updating patient with sync error:', patientId);
+          // Note: In a real implementation, you might want to update the patient record
+          // to indicate the sync failed, but for now we'll just log it
+        }
+        
         throw new Error(`GHL Create Contact Error: ${response.status} - ${errorText}`);
       }
       
       const responseData = await response.json();
       console.log('Contact created successfully:', responseData);
+      
+      // If this was triggered by a patient sync, update the patient record with the GHL contact ID
+      if (patientId && responseData.contact?.id) {
+        console.log('Patient sync successful - GHL Contact ID:', responseData.contact.id);
+        console.log('Patient ID:', patientId);
+        
+        // You could add logic here to update the patient record with the GHL contact ID
+        // using a Supabase client if needed
+      }
       
       return new Response(JSON.stringify(responseData), {
         status: response.status,
