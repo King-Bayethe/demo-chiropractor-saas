@@ -177,24 +177,38 @@ const handler = async (req: Request): Promise<Response> => {
         const appointmentData: AppointmentData = data.appointmentData;
         console.log('Creating appointment:', appointmentData);
 
-        // Create in GoHighLevel using the correct payload structure
-        const calendarId = data.calendarId || Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
+        // Validate required fields
+        if (!appointmentData.contact_id) {
+          throw new Error('Contact ID is required for appointment creation');
+        }
+        if (!appointmentData.start_time || !appointmentData.end_time) {
+          throw new Error('Start time and end time are required');
+        }
+
+        // Get calendar ID - either from data or use default
+        const calendarId = data.calendarId || appointmentData.calendarId || Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
         if (!calendarId) {
           throw new Error('Calendar ID is required for appointment creation');
         }
 
+        // Convert ISO datetime to Unix timestamp (required by GHL)
+        const startTimeUnix = Math.floor(new Date(appointmentData.start_time).getTime() / 1000);
+        const endTimeUnix = Math.floor(new Date(appointmentData.end_time).getTime() / 1000);
+
+        // Create in GoHighLevel using the correct payload structure
         const ghlPayload = {
-          title: appointmentData.title,
           calendarId,
           contactId: appointmentData.contact_id,
-          startTime: appointmentData.start_time,
-          endTime: appointmentData.end_time,
+          startTime: startTimeUnix,
+          endTime: endTimeUnix,
+          title: appointmentData.title || 'Appointment',
           appointmentStatus: appointmentData.status || 'new',
-          notes: appointmentData.notes || '',
           address: appointmentData.location || '',
           ignoreDateRange: false,
           toNotify: true
         };
+
+        console.log('GHL appointment payload:', ghlPayload);
 
         const ghlResponse = await fetch(
           `https://services.leadconnectorhq.com/calendars/events`,
@@ -208,7 +222,7 @@ const handler = async (req: Request): Promise<Response> => {
         if (!ghlResponse.ok) {
           const errorText = await ghlResponse.text();
           console.error('GoHighLevel create error:', errorText);
-          throw new Error(`Failed to create appointment in GoHighLevel: ${ghlResponse.status}`);
+          throw new Error(`Failed to create appointment in GoHighLevel: ${ghlResponse.status} - ${errorText}`);
         }
 
         const ghlResult = await ghlResponse.json();
@@ -218,29 +232,34 @@ const handler = async (req: Request): Promise<Response> => {
         const { data: localResult, error: localError } = await supabaseClient
           .from('appointments')
           .insert({
-            ghl_appointment_id: ghlResult.id,
-            title: appointmentData.title,
+            ghl_appointment_id: ghlResult.id || ghlResult.eventId,
+            title: appointmentData.title || 'Appointment',
             contact_id: appointmentData.contact_id,
             start_time: appointmentData.start_time,
             end_time: appointmentData.end_time,
             status: appointmentData.status || 'scheduled',
-            type: appointmentData.type || 'consultation',
+            appointment_type: appointmentData.type || 'consultation',
             notes: appointmentData.notes,
             location: appointmentData.location,
-            provider_id: appointmentData.provider_id
+            provider_id: appointmentData.provider_id,
+            patient_name: ghlResult.contactName || 'Unknown',
+            patient_email: ghlResult.contactEmail || null,
+            patient_phone: ghlResult.contactPhone || null
           })
           .select()
           .single();
 
         if (localError) {
           console.error('Error storing appointment locally:', localError);
+          // Don't throw here - the GHL appointment was created successfully
         }
 
         return new Response(
           JSON.stringify({ 
             success: true, 
             ghlAppointment: ghlResult,
-            localAppointment: localResult
+            localAppointment: localResult,
+            message: 'Appointment created successfully'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -265,30 +284,32 @@ const handler = async (req: Request): Promise<Response> => {
           );
         }
 
-        // Update in GoHighLevel
-        const ghlPayload = {
-          contactId: appointmentData.contact_id,
-          startTime: appointmentData.start_time,
-          endTime: appointmentData.end_time,
-          title: appointmentData.title,
-          appointmentStatus: appointmentData.status,
-          notes: appointmentData.notes,
-          location: appointmentData.location
-        };
+        // Convert ISO datetime to Unix timestamp if provided
+        const updatePayload: any = {};
+        if (appointmentData.contact_id) updatePayload.contactId = appointmentData.contact_id;
+        if (appointmentData.start_time) updatePayload.startTime = Math.floor(new Date(appointmentData.start_time).getTime() / 1000);
+        if (appointmentData.end_time) updatePayload.endTime = Math.floor(new Date(appointmentData.end_time).getTime() / 1000);
+        if (appointmentData.title) updatePayload.title = appointmentData.title;
+        if (appointmentData.status) updatePayload.appointmentStatus = appointmentData.status;
+        if (appointmentData.notes) updatePayload.notes = appointmentData.notes;
+        if (appointmentData.location) updatePayload.address = appointmentData.location;
 
+        console.log('GHL update payload:', updatePayload);
+
+        // Update in GoHighLevel
         const ghlResponse = await fetch(
           `https://services.leadconnectorhq.com/calendars/events/${localAppointment.ghl_appointment_id}`,
           {
             method: 'PUT',
             headers: ghlHeaders,
-            body: JSON.stringify(ghlPayload)
+            body: JSON.stringify(updatePayload)
           }
         );
 
         if (!ghlResponse.ok) {
           const errorText = await ghlResponse.text();
           console.error('GoHighLevel update error:', errorText);
-          throw new Error(`Failed to update appointment in GoHighLevel: ${ghlResponse.status}`);
+          throw new Error(`Failed to update appointment in GoHighLevel: ${ghlResponse.status} - ${errorText}`);
         }
 
         const ghlResult = await ghlResponse.json();
@@ -302,7 +323,7 @@ const handler = async (req: Request): Promise<Response> => {
             start_time: appointmentData.start_time,
             end_time: appointmentData.end_time,
             status: appointmentData.status,
-            type: appointmentData.type,
+            appointment_type: appointmentData.type,
             notes: appointmentData.notes,
             location: appointmentData.location,
             provider_id: appointmentData.provider_id,
