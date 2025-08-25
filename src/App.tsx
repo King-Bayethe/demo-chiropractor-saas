@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Contacts from "./pages/Contacts";
 import Conversations from "./pages/Conversations";
+import TeamChat from "./pages/TeamChat";
 import Forms from "./pages/Forms";
 import Documents from "./pages/Documents";
 import Emails from "./pages/Emails";
@@ -60,6 +61,7 @@ const App = () => (
           
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/conversations" element={<Conversations />} />
+          <Route path="/team-chat" element={<TeamChat />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/forms" element={<Forms />} />

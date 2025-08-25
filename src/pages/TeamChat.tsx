@@ -1,11 +1,11 @@
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
-import { PatientChatSection } from "@/components/PatientChatSection";
+import { TeamChatSection } from "@/components/TeamChatSection";
 import { 
-  MessageSquare
+  Users
 } from "lucide-react";
 
-export default function Conversations() {
+export default function TeamChat() {
   return (
     <AuthGuard>
       <Layout>
@@ -13,13 +13,13 @@ export default function Conversations() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Patient Conversations</h1>
-              <p className="text-muted-foreground">Manage conversations with your patients</p>
+              <h1 className="text-3xl font-bold text-foreground">Team Chat</h1>
+              <p className="text-muted-foreground">Communicate with your team members</p>
             </div>
           </div>
 
-          {/* Patient Conversations */}
-          <PatientChatSection />
+          {/* Team Chat Section */}
+          <TeamChatSection />
         </div>
       </Layout>
     </AuthGuard>
