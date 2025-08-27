@@ -279,6 +279,35 @@ export const autofillSOAPFromPatient = (patient: any) => {
     autofillData.functionalLimitations = patient.functional_limitations;
   }
 
+  // Add allergies to medical history
+  if (patient.allergies) {
+    autofillData.medicalHistory = {
+      ...autofillData.medicalHistory,
+      allergies: patient.allergies
+    };
+  }
+
+  // Add medications to medical history
+  if (patient.current_medications) {
+    autofillData.medicalHistory = {
+      ...autofillData.medicalHistory,
+      medications: patient.current_medications
+    };
+  }
+
+  // Handle pain description properly from patient.pain_description
+  if (patient.pain_description && !autofillData.painDescription) {
+    if (typeof patient.pain_description === 'object') {
+      // Handle object format from forms
+      const painTypes = Object.entries(patient.pain_description)
+        .filter(([key, value]) => value === true)
+        .map(([key]) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim());
+      autofillData.painDescription = painTypes.length > 0 ? painTypes.join(', ') : '';
+    } else {
+      autofillData.painDescription = patient.pain_description;
+    }
+  }
+
   return autofillData;
 };
 

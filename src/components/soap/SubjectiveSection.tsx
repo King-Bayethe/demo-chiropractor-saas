@@ -598,14 +598,16 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
         autofillData.painScale ||
         autofillData.painDescription ||
         autofillData.otherSymptoms ||
-        autofillData.otherFamilyHistory
+        autofillData.otherFamilyHistory ||
+        autofillData.medicalHistory
       );
       
       // Only autofill if there's meaningful data and current form is mostly empty
       const formNeedsAutofill = (
         !data.currentSymptoms || Object.values(data.currentSymptoms || {}).every(val => !val) ||
         !data.familyHistory || Object.values(data.familyHistory || {}).every(val => !val) ||
-        !data.painScale || !data.painDescription
+        !data.painScale || !data.painDescription ||
+        !data.medicalHistory || (!data.medicalHistory.allergies && !data.medicalHistory.medications)
       );
       
       if (hasAutofillData && formNeedsAutofill) {
@@ -619,6 +621,10 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
           familyHistory: {
             ...data.familyHistory,
             ...autofillData.familyHistory
+          },
+          medicalHistory: {
+            ...data.medicalHistory,
+            ...autofillData.medicalHistory
           },
           painScale: autofillData.painScale || data.painScale,
           painDescription: autofillData.painDescription || data.painDescription,
