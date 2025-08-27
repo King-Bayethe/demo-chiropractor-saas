@@ -12,7 +12,6 @@ import { CalendarDays, Plus, RefreshCw, Search, Filter } from 'lucide-react';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { useAppointments, Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
-import { useCalendars } from '@/hooks/useCalendars';
 import { useProviders } from '@/hooks/useProviders';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,8 +38,6 @@ export default function Appointments() {
     updateAppointment, 
     deleteAppointment
   } = useAppointments();
-  
-  const { calendars, loading: calendarsLoading } = useCalendars();
 
   // Load patients on component mount
   React.useEffect(() => {
@@ -264,10 +261,9 @@ export default function Appointments() {
                 <AppointmentForm
                   contacts={contacts}
                   providers={providers.map(p => ({ id: p.user_id, name: getProviderDisplayName(p) }))}
-                  calendars={calendars}
                   onSubmit={handleCreateAppointment}
                   onCancel={() => setIsCreateDialogOpen(false)}
-                  loading={loading || calendarsLoading}
+                  loading={loading}
                 />
               </Dialog>
             </div>
@@ -370,7 +366,6 @@ export default function Appointments() {
                 appointment={editingAppointment}
                 contacts={contacts}
                 providers={providers.map(p => ({ id: p.user_id, name: getProviderDisplayName(p) }))}
-                calendars={calendars}
                 onSubmit={handleUpdateAppointment}
                 onCancel={() => {
                   setIsEditDialogOpen(false);

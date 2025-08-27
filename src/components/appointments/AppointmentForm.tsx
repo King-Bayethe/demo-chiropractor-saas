@@ -14,7 +14,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
-import { Calendar as CalendarType } from '@/hooks/useCalendars';
 import { Calendar } from '@/components/ui/calendar';
 
 const appointmentSchema = z.object({
@@ -29,7 +28,6 @@ const appointmentSchema = z.object({
   notes: z.string().optional(),
   location: z.string().optional(),
   provider_id: z.string().optional(),
-  calendarId: z.string().optional(),
 });
 
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
@@ -38,7 +36,6 @@ interface AppointmentFormProps {
   appointment?: Appointment;
   contacts: Array<{ id: string; name: string }>;
   providers: Array<{ id: string; name: string }>;
-  calendars: CalendarType[];
   onSubmit: (data: CreateAppointmentData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
@@ -48,7 +45,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   appointment,
   contacts,
   providers,
-  calendars,
   onSubmit,
   onCancel,
   loading = false,
@@ -71,7 +67,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       notes: appointment?.notes || '',
       location: appointment?.location || '',
       provider_id: appointment?.provider_id || '',
-      calendarId: calendars.length > 0 ? calendars[0].id : '',
     },
   });
 
@@ -115,7 +110,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         notes: data.notes?.trim() || '',
         location: data.location?.trim() || '',
         provider_id: data.provider_id === 'none' ? '' : data.provider_id,
-        calendarId: data.calendarId,
       };
       await onSubmit(submitData);
     } catch (error) {

@@ -5,7 +5,6 @@ import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAppointments } from "@/hooks/useAppointments";
 import { supabase } from "@/integrations/supabase/client";
-import { useCalendars } from "@/hooks/useCalendars";
 import { AppointmentForm } from "@/components/appointments/AppointmentForm";
 import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDetailDialog";
 import { CalendarLayout } from "@/components/calendar/CalendarLayout";
@@ -50,7 +49,6 @@ export default function Calendar() {
   });
   const { toast } = useToast();
   const { appointments, loading, createAppointment, updateAppointment, fetchAppointments } = useAppointments();
-  const { calendars, loading: calendarsLoading } = useCalendars();
 
   useEffect(() => {
     loadData();
@@ -272,10 +270,9 @@ export default function Calendar() {
           <AppointmentForm
             contacts={contacts}
             providers={providers}
-            calendars={calendars}
             onSubmit={handleCreateAppointment}
             onCancel={() => setIsCreateAppointmentOpen(false)}
-            loading={loading || calendarsLoading}
+            loading={loading}
           />
         </Dialog>
 
@@ -289,33 +286,32 @@ export default function Calendar() {
 
         {/* Edit Appointment Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <AppointmentForm
-            appointment={editingAppointment ? {
-              id: editingAppointment.id,
-              title: editingAppointment.title,
-              contact_id: editingAppointment.patientId,
-              start_time: editingAppointment.startTime.toISOString(),
-              end_time: editingAppointment.endTime.toISOString(),
-              status: editingAppointment.status,
-              type: editingAppointment.type as 'consultation' | 'treatment' | 'follow_up' | 'procedure',
-              notes: editingAppointment.notes || '',
-              location: editingAppointment.location || '',
-              provider_id: '', // Will be resolved from provider name
-              contact_name: editingAppointment.patientName,
-              provider_name: editingAppointment.provider,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            } : undefined}
-            contacts={contacts}
-            providers={providers}
-            calendars={calendars}
-            onSubmit={handleUpdateAppointment}
-            onCancel={() => {
-              setIsEditDialogOpen(false);
-              setEditingAppointment(null);
-            }}
-            loading={loading || calendarsLoading}
-          />
+            <AppointmentForm
+              appointment={editingAppointment ? {
+                id: editingAppointment.id,
+                title: editingAppointment.title,
+                contact_id: editingAppointment.patientId,
+                start_time: editingAppointment.startTime.toISOString(),
+                end_time: editingAppointment.endTime.toISOString(),
+                status: editingAppointment.status,
+                type: editingAppointment.type as 'consultation' | 'treatment' | 'follow_up' | 'procedure',
+                notes: editingAppointment.notes || '',
+                location: editingAppointment.location || '',
+                provider_id: '', // Will be resolved from provider name
+                contact_name: editingAppointment.patientName,
+                provider_name: editingAppointment.provider,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              } : undefined}
+              contacts={contacts}
+              providers={providers}
+              onSubmit={handleUpdateAppointment}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setEditingAppointment(null);
+              }}
+              loading={loading}
+            />
         </Dialog>
       </Layout>
     </AuthGuard>
