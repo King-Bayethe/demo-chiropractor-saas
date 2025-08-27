@@ -8,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, Circle } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 
 const PublicPIPForm = () => {
+  const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState("general");
   const [completedSections, setCompletedSections] = useState<string[]>([]);
   
@@ -254,7 +256,8 @@ const PublicPIPForm = () => {
         throw error;
       }
 
-      toast.success("Form submitted successfully! We will contact you soon.");
+      // Redirect to thank you page
+      navigate('/thank-you?type=pip');
       
       // Reset form would go here if needed
     } catch (error) {

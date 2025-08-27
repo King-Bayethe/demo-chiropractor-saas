@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, IdCard, CreditCard } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 
 const PublicCashForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     lastName: "",
     firstName: "",
@@ -182,120 +184,9 @@ const PublicCashForm = () => {
         throw error;
       }
 
-      toast.success("Form submitted successfully! We will contact you soon.");
+      // Redirect to thank you page
+      navigate('/thank-you?type=cash');
       
-      // Reset form
-      setFormData({
-        lastName: "",
-        firstName: "",
-        address: "",
-        city: "",
-        state: "",
-        zip: "",
-        homePhone: "",
-        workPhone: "",
-        cellPhone: "",
-        email: "",
-        driversLicense: "",
-        driversLicenseState: "",
-        emergencyContact: "",
-        emergencyPhone: "",
-        sex: "",
-        maritalStatus: "",
-        dob: "",
-        ssn: "",
-        age: "",
-        employmentStatus: "",
-        employerName: "",
-        employerAddress: "",
-        studentStatus: "",
-        autoInsurance: "",
-        policyNumber: "",
-        claimNumber: "",
-        adjusterName: "",
-        healthInsurance: "",
-        groupNumber: "",
-        attorneyName: "",
-        attorneyPhone: "",
-        accidentDate: "",
-        accidentTime: "",
-        accidentDescription: "",
-        roleInAccident: "",
-        weather: "",
-        streetSurface: "",
-        bodyPartHit: "",
-        whatItHit: "",
-        systems: {
-          fever: false,
-          chills: false,
-          fatigue: false,
-          blurredVision: false,
-          doubleVision: false,
-          eyePain: false,
-          ringingInEars: false,
-          nasalCongestion: false,
-          chestPains: false,
-          palpitations: false,
-          nausea: false,
-          abdominalPain: false,
-          weakness: false,
-          numbness: false,
-          dizziness: false,
-        },
-        currentMedications: "",
-        allergies: "",
-        pastInjuries: "",
-        previousSurgeries: "",
-        chronicConditions: "",
-        otherMedicalHistory: "",
-        painLocation: "",
-        painSeverity: "5",
-        familyMedicalHistory: "",
-        familyHistory: {
-          heartTrouble: false,
-          stroke: false,
-          diabetes: false,
-          cancer: false,
-          arthritis: false,
-          highBloodPressure: false,
-          kidneyDisease: false,
-          mentalIllness: false,
-          asthma: false,
-          epilepsy: false,
-          kyphosis: false,
-          lungDisease: false,
-          osteoporosis: false,
-          migraines: false,
-          scoliosis: false,
-          spineProblems: false,
-          other: false,
-        },
-        currentSymptoms: {
-          headache: false,
-          neckPain: false,
-          neckStiff: false,
-          upperBackPain: false,
-          midBackPain: false,
-          lowerBackPain: false,
-          painArmsHands: false,
-          painLegsFeet: false,
-          lossStrengthArms: false,
-          lossStrengthLegs: false,
-          numbnessArmsHands: false,
-          numbnessLegsFeet: false,
-          tinglingArmsHands: false,
-          tinglingLegsFeet: false,
-          dizziness: false,
-          fatigue: false,
-          irritability: false,
-        },
-        smokingStatus: "",
-        smokingHistory: "",
-        consentAcknowledgement: false,
-        signature: "",
-        date: "",
-      });
-      setHoneypot("");
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error("Failed to submit form. Please try again.");

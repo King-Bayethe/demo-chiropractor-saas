@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, IdCard, CreditCard } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 
 const PublicLOPForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     lastName: "",
     firstName: "",
@@ -120,71 +122,9 @@ const PublicLOPForm = () => {
         throw error;
       }
 
-      toast.success("Form submitted successfully! We will contact you soon.");
+      // Redirect to thank you page
+      navigate('/thank-you?type=lop');
       
-      // Reset form
-      setFormData({
-        lastName: "",
-        firstName: "",
-        address: "",
-        city: "",
-        state: "",
-        zip: "",
-        homePhone: "",
-        workPhone: "",
-        cellPhone: "",
-        email: "",
-        driversLicense: "",
-        driversLicenseState: "",
-        emergencyContact: "",
-        emergencyPhone: "",
-        sex: "",
-        maritalStatus: "",
-        dob: "",
-        ssn: "",
-        age: "",
-        employmentStatus: "",
-        employerName: "",
-        employerAddress: "",
-        studentStatus: "",
-        autoInsurance: "",
-        policyNumber: "",
-        claimNumber: "",
-        adjusterName: "",
-        healthInsurance: "",
-        groupNumber: "",
-        attorneyName: "",
-        attorneyPhone: "",
-        accidentDate: "",
-        accidentTime: "",
-        accidentDescription: "",
-        roleInAccident: "",
-        weather: "",
-        streetSurface: "",
-        bodyPartHit: "",
-        whatItHit: "",
-        systems: {
-          fever: false,
-          chills: false,
-          fatigue: false,
-          blurredVision: false,
-          doubleVision: false,
-          eyePain: false,
-          ringingInEars: false,
-          nasalCongestion: false,
-          chestPains: false,
-          palpitations: false,
-          nausea: false,
-          abdominalPain: false,
-          weakness: false,
-          numbness: false,
-          dizziness: false,
-        },
-        consentAcknowledgement: false,
-        signature: "",
-        date: "",
-      });
-      setHoneypot("");
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error("Failed to submit form. Please try again.");
