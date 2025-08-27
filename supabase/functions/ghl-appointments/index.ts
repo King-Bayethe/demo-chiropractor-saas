@@ -299,7 +299,19 @@ const handler = async (req: Request): Promise<Response> => {
           
           // Provide specific error messages for common issues
           if (ghlResponse.status === 403) {
-            const errorData = JSON.parse(errorText);
+            console.log('403 Error response body:', errorText);
+            
+            let errorData;
+            try {
+              errorData = JSON.parse(errorText);
+              console.log('Parsed 403 error data:', errorData);
+            } catch (parseError) {
+              console.log('Could not parse error response as JSON:', parseError);
+              throw new Error(`GoHighLevel API access denied (403): ${errorText}`);
+            }
+            
+            // Log the exact error message for debugging
+            console.log('Exact error message from GoHighLevel:', errorData.message);
             
             // More specific error based on the actual error message
             if (errorData.message && errorData.message.includes('token does not have access to this location')) {
@@ -314,7 +326,16 @@ To fix this:
 
 Note: Contact features work because your API key has contact permissions, but calendar operations require additional permissions.`);
             } else {
-              throw new Error(`Authentication failed: The API key does not have access to this location (${ghlLocationId}). Please verify that your GOHIGHLEVEL_API_KEY and GOHIGHLEVEL_LOCATION_ID are correctly paired in Supabase secrets.`);
+              // For any other 403 error, show the actual message from GoHighLevel
+              throw new Error(`GoHighLevel API access denied: ${errorData.message || errorText}. 
+              
+This could be due to:
+- Calendar/appointment permissions not enabled for your API key
+- Calendar ID not found or not accessible
+- Location access issues
+- Other permission restrictions
+
+Check your GoHighLevel API key settings and ensure calendar permissions are enabled.`);
             }
           } else if (ghlResponse.status === 401) {
             throw new Error(`Authentication failed: Invalid API key. Please check your GOHIGHLEVEL_API_KEY in Supabase secrets.`);
