@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useProviderAvailability } from '@/hooks/useProviderAvailability';
 import { supabase } from '@/integrations/supabase/client';
-import { formatTimeWithTimezone } from '@/utils/timezone';
+import { formatTimeWithTimezone, formatTimeSlot } from '@/utils/timezone';
 import { useAuth } from '@/contexts/AuthContext';
 import { Clock, Calendar, Plus, Edit, Trash2, Coffee } from 'lucide-react';
 
@@ -274,8 +274,8 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
                             <div>
                               <h4 className="font-medium">{slot.title}</h4>
                               <p className="text-sm text-muted-foreground">
-                                 {new Date(slot.start_time).toLocaleString("en-US", { timeZone: "America/New_York", timeZoneName: "short" })} - {new Date(slot.end_time).toLocaleString("en-US", { timeZone: "America/New_York", timeZoneName: "short" })}
-                               </p>
+                                {formatTimeSlot(slot.start_time, slot.end_time)}
+                              </p>
                               {slot.reason && (
                                 <p className="text-sm text-muted-foreground mt-1">{slot.reason}</p>
                               )}

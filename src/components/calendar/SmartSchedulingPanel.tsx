@@ -28,6 +28,7 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useProviders } from "@/hooks/useProviders";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { formatTimeSlot } from "@/utils/timezone";
 
 interface Patient {
   id: string;
@@ -135,7 +136,9 @@ export function SmartSchedulingPanel({
     
     // Morning slots recommendation
     const morningSlots = slots.filter(slot => {
-      const hour = new Date(slot.startTime).getHours();
+      const startDate = new Date(slot.start);
+      if (isNaN(startDate.getTime())) return false;
+      const hour = startDate.getHours();
       return hour >= 8 && hour < 12;
     });
     
@@ -162,7 +165,9 @@ export function SmartSchedulingPanel({
 
     // Lunch break warning
     const lunchSlots = slots.filter(slot => {
-      const hour = new Date(slot.startTime).getHours();
+      const startDate = new Date(slot.start);
+      if (isNaN(startDate.getTime())) return false;
+      const hour = startDate.getHours();
       return hour >= 12 && hour < 14;
     });
     
@@ -215,8 +220,8 @@ export function SmartSchedulingPanel({
   };
 
   const handleSlotSelect = (slot: any) => {
-    setSelectedTimeSlot(slot.startTime);
-    checkForConflicts(slot.startTime);
+    setSelectedTimeSlot(slot.start);
+    checkForConflicts(slot.start);
   };
 
   const handleSchedule = () => {
@@ -446,15 +451,25 @@ export function SmartSchedulingPanel({
                   {availableSlots.map((slot, index) => (
                     <Button
                       key={index}
-                      variant={selectedTimeSlot === slot.startTime ? "default" : "outline"}
+                      variant={selectedTimeSlot === slot.start ? "default" : "outline"}
                       size="sm"
                       onClick={() => handleSlotSelect(slot)}
                       className="text-xs"
                     >
-                      {new Date(`2024-01-01 ${slot.startTime}`).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit'
-                      })}
+                      {(() => {
+                        try {
+                          const startDate = new Date(slot.start);
+                          if (isNaN(startDate.getTime())) return 'Invalid Date';
+                          return startDate.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            timeZone: 'America/New_York'
+                          });
+                        } catch (error) {
+                          console.error('Error formatting slot time:', error, slot);
+                          return 'Invalid Date';
+                        }
+                      })()}
                     </Button>
                   ))}
                 </div>
