@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUsers } from '@/hooks/useUsers';
+import { useUserManagement } from '@/hooks/useUserManagement';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,7 @@ import { toast } from 'sonner';
 export const UserManagement = () => {
   // All hooks must be called at the top level, unconditionally
   const { profile, startImpersonation } = useAuth();
-  const { users, loading, createUser, updateUser, deleteUser, refreshUsers } = useUsers();
+  const { users, loading, createUser, updateUser, deleteUser, refreshUsers } = useUserManagement();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -64,10 +64,6 @@ export const UserManagement = () => {
     role: 'staff' as 'admin' | 'doctor' | 'nurse' | 'staff' | 'overlord',
     is_active: true
   });
-
-  useEffect(() => {
-    refreshUsers();
-  }, []);
 
   // Early return check - but all hooks are already called above
   if (!profile) {
@@ -148,7 +144,7 @@ export const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users?.filter(user => {
+  const filteredUsers = users.filter(user => {
     const matchesSearch = searchQuery === '' || 
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase());
@@ -156,7 +152,7 @@ export const UserManagement = () => {
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     
     return matchesSearch && matchesRole;
-  }) || [];
+  });
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
