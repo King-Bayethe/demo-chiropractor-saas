@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { MyProfileSection } from "@/components/MyProfileSection";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 import { AISettings } from "@/components/settings/AISettings";
+import { ProviderAvailabilityManager } from "@/components/calendar/ProviderAvailabilityManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState("profile");
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const section = searchParams.get("section");
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [searchParams]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -25,6 +35,8 @@ export default function Settings() {
             </CardContent>
           </Card>
         );
+      case "schedule":
+        return <ProviderAvailabilityManager />;
       case "notifications":
         return <NotificationSettings />;
       case "ai":

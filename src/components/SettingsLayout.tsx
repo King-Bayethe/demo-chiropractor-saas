@@ -9,7 +9,8 @@ import {
   Globe,
   Puzzle,
   Shield,
-  Brain
+  Brain,
+  Calendar
 } from "lucide-react";
 
 interface SettingsLayoutProps {
@@ -28,6 +29,11 @@ const settingsSections = [
     id: "profile",
     label: "My Profile",
     icon: User
+  },
+  {
+    id: "schedule",
+    label: "Schedule Management",
+    icon: Calendar
   },
   {
     id: "notifications",
