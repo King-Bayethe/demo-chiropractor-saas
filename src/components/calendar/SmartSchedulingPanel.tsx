@@ -331,7 +331,7 @@ export function SmartSchedulingPanel({
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
                 disabled={(date) => date < new Date()}
-                className="w-full"
+                className="w-full pointer-events-auto"
               />
             </CardContent>
           </Card>
