@@ -188,31 +188,63 @@ const handler = async (req: Request): Promise<Response> => {
         // Get calendar ID - either from data or use default
         let calendarId = data.calendarId || appointmentData.calendarId || Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
         
-        // If no calendar ID provided, try to get the first available calendar from groups
+        // If no calendar ID provided, use the calendar group ID to get available calendars
         if (!calendarId) {
-          console.log('No calendar ID provided, fetching available calendars');
-          try {
-            const groupsResponse = await fetch(
-              `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
-              { headers: ghlHeaders }
-            );
-            
-            if (groupsResponse.ok) {
-              const groupsData = await groupsResponse.json();
-              const groups = groupsData.groups || [];
-              console.log(`Found ${groups.length} calendar groups`);
+          const calendarGroupId = Deno.env.get('CALENDAR_GROUP_ID');
+          console.log('No calendar ID provided, using calendar group ID:', calendarGroupId);
+          
+          if (calendarGroupId) {
+            try {
+              // Get calendars from the specific group
+              const calendarsResponse = await fetch(
+                `https://services.leadconnectorhq.com/calendars/groups/${calendarGroupId}/calendars`,
+                { headers: ghlHeaders }
+              );
               
-              // Try to find a calendar in the first group
-              if (groups.length > 0) {
-                const firstGroup = groups[0];
-                if (firstGroup.calendars && firstGroup.calendars.length > 0) {
-                  calendarId = firstGroup.calendars[0].id;
+              if (calendarsResponse.ok) {
+                const calendarsData = await calendarsResponse.json();
+                const calendars = calendarsData.calendars || [];
+                console.log(`Found ${calendars.length} calendars in group ${calendarGroupId}`);
+                
+                // Use the first available calendar
+                if (calendars.length > 0) {
+                  calendarId = calendars[0].id;
                   console.log(`Using calendar ID: ${calendarId}`);
                 }
+              } else {
+                console.error(`Failed to fetch calendars for group ${calendarGroupId}: ${calendarsResponse.status}`);
               }
+            } catch (error) {
+              console.error('Error fetching calendars from group:', error);
             }
-          } catch (error) {
-            console.error('Error fetching calendar groups:', error);
+          }
+          
+          // Fallback: try to get the first available calendar from all groups
+          if (!calendarId) {
+            console.log('Fallback: fetching all calendar groups');
+            try {
+              const groupsResponse = await fetch(
+                `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
+                { headers: ghlHeaders }
+              );
+              
+              if (groupsResponse.ok) {
+                const groupsData = await groupsResponse.json();
+                const groups = groupsData.groups || [];
+                console.log(`Found ${groups.length} calendar groups`);
+                
+                // Try to find a calendar in the first group
+                if (groups.length > 0) {
+                  const firstGroup = groups[0];
+                  if (firstGroup.calendars && firstGroup.calendars.length > 0) {
+                    calendarId = firstGroup.calendars[0].id;
+                    console.log(`Using fallback calendar ID: ${calendarId}`);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching calendar groups:', error);
+            }
           }
         }
         
