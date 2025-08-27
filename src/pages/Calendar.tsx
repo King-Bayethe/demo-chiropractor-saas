@@ -11,6 +11,7 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useCalendars } from "@/hooks/useCalendars";
 import { AppointmentForm } from "@/components/appointments/AppointmentForm";
 import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDetailDialog";
+import { GHLHealthCheck } from "@/components/GHLHealthCheck";
 import { 
   ChevronLeft,
   ChevronRight,
@@ -330,10 +331,7 @@ export default function Calendar() {
                 <p className="text-muted-foreground">Manage appointments and schedules</p>
               </div>
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
+                <GHLHealthCheck />
                 <Button size="sm" onClick={() => setIsCreateAppointmentOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   New Appointment
