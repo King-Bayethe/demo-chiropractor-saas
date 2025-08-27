@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Clock,
   User,
@@ -16,11 +18,24 @@ import {
   Calendar as CalendarIcon,
   MapPin,
   Phone,
-  Zap
+  Zap,
+  Search,
+  Check,
+  ChevronsUpDown
 } from "lucide-react";
 import { useProviderAvailability } from "@/hooks/useProviderAvailability";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useProviders } from "@/hooks/useProviders";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+
+interface Patient {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+}
 
 interface SmartSchedulingPanelProps {
   onScheduleAppointment: (appointmentData: any) => void;
@@ -40,9 +55,10 @@ export function SmartSchedulingPanel({
   const [appointmentType, setAppointmentType] = useState<string>("");
   const [duration, setDuration] = useState<number>(30);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
-  const [patientName, setPatientName] = useState<string>("");
-  const [patientEmail, setPatientEmail] = useState<string>("");
-  const [patientPhone, setPatientPhone] = useState<string>("");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [patientSearchValue, setPatientSearchValue] = useState("");
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [notes, setNotes] = useState<string>("");
   
   const { getAvailableSlots, loading: availabilityLoading } = useProviderAvailability();
@@ -59,6 +75,29 @@ export function SmartSchedulingPanel({
     { value: "follow-up", label: "Follow-up", duration: 15, color: "bg-success" },
     { value: "therapy", label: "Physical Therapy", duration: 45, color: "bg-warning" },
   ];
+
+  // Load patients on component mount
+  useEffect(() => {
+    const loadPatients = async () => {
+      try {
+        const { data: patientsData, error } = await supabase
+          .from('patients')
+          .select('id, first_name, last_name, email, phone')
+          .eq('is_active', true)
+          .order('first_name');
+
+        if (error) {
+          console.error('Error loading patients:', error);
+          return;
+        }
+
+        setPatients(patientsData || []);
+      } catch (error) {
+        console.error('Error loading patients:', error);
+      }
+    };
+    loadPatients();
+  }, []);
 
   useEffect(() => {
     if (selectedProvider && selectedDate) {
@@ -181,19 +220,21 @@ export function SmartSchedulingPanel({
   };
 
   const handleSchedule = () => {
-    if (!selectedTimeSlot || !selectedProvider || !patientName) return;
+    if (!selectedTimeSlot || !selectedProvider || !selectedPatient) return;
     
     const startTime = new Date(`${selectedDate.toDateString()} ${selectedTimeSlot}`);
     const endTime = new Date(startTime.getTime() + duration * 60000);
     
+    const patientName = selectedPatient.first_name && selectedPatient.last_name 
+      ? `${selectedPatient.first_name} ${selectedPatient.last_name}`
+      : selectedPatient.email || 'Unknown Patient';
+    
     const appointmentData = {
       title: `${appointmentType} - ${patientName}`,
+      contact_id: selectedPatient.id,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
       provider_id: selectedProvider,
-      patient_name: patientName,
-      patient_email: patientEmail,
-      patient_phone: patientPhone,
       type: appointmentType,
       notes: notes,
       status: 'scheduled'
@@ -202,6 +243,20 @@ export function SmartSchedulingPanel({
     onScheduleAppointment(appointmentData);
     onClose();
   };
+
+  const getPatientDisplayName = (patient: Patient) => {
+    if (patient.first_name || patient.last_name) {
+      return `${patient.first_name || ''} ${patient.last_name || ''}`.trim();
+    }
+    return patient.email || 'Unknown Patient';
+  };
+
+  const filteredPatients = patients.filter(patient => {
+    const displayName = getPatientDisplayName(patient).toLowerCase();
+    const email = patient.email?.toLowerCase() || '';
+    const search = patientSearchValue.toLowerCase();
+    return displayName.includes(search) || email.includes(search);
+  });
 
   if (!isOpen) return null;
 
@@ -218,43 +273,82 @@ export function SmartSchedulingPanel({
             <Button variant="ghost" onClick={onClose}>×</Button>
           </div>
 
-          {/* Patient Information */}
+          {/* Patient Selection */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center">
                 <User className="w-4 h-4 mr-2" />
-                Patient Information
+                Select Patient
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label htmlFor="patientName">Full Name *</Label>
-                <Input
-                  id="patientName"
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                  placeholder="Enter patient name"
-                />
+                <Label htmlFor="patient">Patient *</Label>
+                <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={patientSearchOpen}
+                      className="w-full justify-between bg-background"
+                    >
+                      {selectedPatient
+                        ? getPatientDisplayName(selectedPatient)
+                        : "Select patient..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 bg-background border border-border shadow-lg z-50">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search patients..." 
+                        value={patientSearchValue}
+                        onValueChange={setPatientSearchValue}
+                      />
+                      <CommandList>
+                        <CommandEmpty>No patients found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredPatients.slice(0, 10).map((patient) => (
+                            <CommandItem
+                              key={patient.id}
+                              value={patient.id}
+                              onSelect={() => {
+                                setSelectedPatient(patient);
+                                setPatientSearchOpen(false);
+                                setPatientSearchValue("");
+                              }}
+                              className="bg-background hover:bg-muted/50 cursor-pointer"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium">{getPatientDisplayName(patient)}</span>
+                                {patient.email && (
+                                  <span className="text-xs text-muted-foreground">{patient.email}</span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
-              <div>
-                <Label htmlFor="patientEmail">Email</Label>
-                <Input
-                  id="patientEmail"
-                  type="email"
-                  value={patientEmail}
-                  onChange={(e) => setPatientEmail(e.target.value)}
-                  placeholder="patient@email.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="patientPhone">Phone</Label>
-                <Input
-                  id="patientPhone"
-                  value={patientPhone}
-                  onChange={(e) => setPatientPhone(e.target.value)}
-                  placeholder="(555) 123-4567"
-                />
-              </div>
+              
+              {selectedPatient && (
+                <div className="p-3 bg-muted/30 rounded-lg border">
+                  <div className="text-sm space-y-1">
+                    <div><strong>Name:</strong> {getPatientDisplayName(selectedPatient)}</div>
+                    {selectedPatient.email && <div><strong>Email:</strong> {selectedPatient.email}</div>}
+                    {selectedPatient.phone && <div><strong>Phone:</strong> {selectedPatient.phone}</div>}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -317,10 +411,13 @@ export function SmartSchedulingPanel({
             </CardContent>
           </Card>
 
-          {/* Date Selection */}
+          {/* Date & Time Selection */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Select Date</CardTitle>
+              <CardTitle className="text-sm flex items-center">
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                Select Date & Time
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Calendar
@@ -451,7 +548,7 @@ export function SmartSchedulingPanel({
             </Button>
             <Button 
               onClick={handleSchedule}
-              disabled={!selectedTimeSlot || !selectedProvider || !patientName}
+              disabled={!selectedTimeSlot || !selectedProvider || !selectedPatient}
               className="flex-1 bg-medical-blue hover:bg-medical-blue-dark"
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
