@@ -42,6 +42,7 @@ export default function Calendar() {
   const [editingAppointment, setEditingAppointment] = useState<DisplayAppointment | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     providers: [] as string[],
     status: [] as string[],
@@ -198,8 +199,35 @@ export default function Calendar() {
     }
   };
 
-  // Filter appointments based on current filters
+  const handleRemindersClick = () => {
+    toast({
+      title: "Reminders",
+      description: "Reminder functionality coming soon!",
+    });
+  };
+
+  const handleSettingsClick = () => {
+    toast({
+      title: "Settings",
+      description: "Calendar settings coming soon!",
+    });
+  };
+
+  // Filter appointments based on current filters and search term
   const filteredAppointments = displayAppointments.filter(apt => {
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        apt.patientName.toLowerCase().includes(searchLower) ||
+        apt.title.toLowerCase().includes(searchLower) ||
+        apt.provider.toLowerCase().includes(searchLower) ||
+        apt.type.toLowerCase().includes(searchLower) ||
+        (apt.notes && apt.notes.toLowerCase().includes(searchLower));
+      if (!matchesSearch) return false;
+    }
+    
+    // Other filters
     if (filters.status.length > 0 && !filters.status.includes(apt.status)) return false;
     if (filters.types.length > 0 && !filters.types.includes(apt.type?.toLowerCase() || '')) return false;
     if (filters.providers.length > 0 && !filters.providers.includes(apt.provider)) return false;
@@ -235,6 +263,10 @@ export default function Calendar() {
           onFiltersChange={setFilters}
           isSidebarCollapsed={isSidebarCollapsed}
           onSidebarToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onRemindersClick={handleRemindersClick}
+          onSettingsClick={handleSettingsClick}
           todaysStats={todaysStats}
         >
           {loading ? (

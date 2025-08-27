@@ -20,6 +20,10 @@ interface CalendarHeaderProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
   onCreateAppointment: () => void;
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
+  onRemindersClick?: () => void;
+  onSettingsClick?: () => void;
 }
 
 export function CalendarHeader({
@@ -27,7 +31,11 @@ export function CalendarHeader({
   onViewChange,
   currentDate,
   onDateChange,
-  onCreateAppointment
+  onCreateAppointment,
+  searchTerm = '',
+  onSearchChange,
+  onRemindersClick,
+  onSettingsClick
 }: CalendarHeaderProps) {
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
@@ -71,11 +79,19 @@ export function CalendarHeader({
           </div>
           
           <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onRemindersClick}
+            >
               <Bell className="w-4 h-4 mr-2" />
               Reminders
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onSettingsClick}
+            >
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>
@@ -133,6 +149,8 @@ export function CalendarHeader({
               <Input
                 placeholder="Search appointments..."
                 className="pl-10 w-64"
+                value={searchTerm}
+                onChange={(e) => onSearchChange?.(e.target.value)}
               />
             </div>
             
@@ -141,7 +159,7 @@ export function CalendarHeader({
                 variant={view === 'month' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => onViewChange('month')}
-                className={`rounded-none border-0 ${view === 'month' ? 'bg-medical-blue text-white' : ''}`}
+                className={`rounded-none border-0 ${view === 'month' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
               >
                 Month
               </Button>
@@ -149,7 +167,7 @@ export function CalendarHeader({
                 variant={view === 'week' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => onViewChange('week')}
-                className={`rounded-none border-0 border-l border-border ${view === 'week' ? 'bg-medical-blue text-white' : ''}`}
+                className={`rounded-none border-0 border-l border-border ${view === 'week' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
               >
                 Week
               </Button>
@@ -157,7 +175,7 @@ export function CalendarHeader({
                 variant={view === 'day' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => onViewChange('day')}
-                className={`rounded-none border-0 border-l border-border ${view === 'day' ? 'bg-medical-blue text-white' : ''}`}
+                className={`rounded-none border-0 border-l border-border ${view === 'day' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
               >
                 Day
               </Button>

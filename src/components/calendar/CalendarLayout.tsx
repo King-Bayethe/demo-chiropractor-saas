@@ -17,6 +17,10 @@ interface CalendarLayoutProps {
   onFiltersChange: (filters: any) => void;
   isSidebarCollapsed: boolean;
   onSidebarToggle: () => void;
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
+  onRemindersClick?: () => void;
+  onSettingsClick?: () => void;
   todaysStats?: {
     total: number;
     completed: number;
@@ -36,6 +40,10 @@ export function CalendarLayout({
   onFiltersChange,
   isSidebarCollapsed,
   onSidebarToggle,
+  searchTerm,
+  onSearchChange,
+  onRemindersClick,
+  onSettingsClick,
   todaysStats
 }: CalendarLayoutProps) {
   return (
@@ -59,6 +67,10 @@ export function CalendarLayout({
           currentDate={currentDate}
           onDateChange={onDateChange}
           onCreateAppointment={onCreateAppointment}
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
+          onRemindersClick={onRemindersClick}
+          onSettingsClick={onSettingsClick}
         />
         
         {/* Calendar Content */}
