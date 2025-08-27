@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.ghl-health-check]
 verify_jwt = true
+
+[functions.ghl-locations]
+verify_jwt = true
