@@ -137,18 +137,46 @@ export const useAppointments = () => {
         `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email :
         'Unknown Provider';
 
+      // Validate required fields
+      if (!appointmentData.title?.trim()) {
+        throw new Error('Appointment title is required');
+      }
+      if (!appointmentData.contact_id) {
+        throw new Error('Patient selection is required');
+      }
+      if (!appointmentData.start_time || !appointmentData.end_time) {
+        throw new Error('Start and end times are required');
+      }
+
+      // Verify patient exists
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, email')
+        .eq('id', appointmentData.contact_id)
+        .single();
+
+      if (patientError || !patientData) {
+        throw new Error('Selected patient not found');
+      }
+
+      const patientName = patientData.first_name && patientData.last_name 
+        ? `${patientData.first_name} ${patientData.last_name}`
+        : patientData.email || 'Unknown Patient';
+
       // Create appointment in Supabase
       const { data, error } = await supabase
         .from('appointments')
         .insert({
-          title: appointmentData.title,
+          title: appointmentData.title.trim(),
           patient_id: appointmentData.contact_id,
+          patient_name: patientName,
+          patient_email: patientData.email,
           start_time: appointmentData.start_time,
           end_time: appointmentData.end_time,
           status: appointmentData.status || 'scheduled',
           appointment_type: appointmentData.type || 'consultation',
-          notes: appointmentData.notes,
-          location: appointmentData.location,
+          notes: appointmentData.notes?.trim() || '',
+          location: appointmentData.location?.trim() || '',
           provider_id: appointmentData.provider_id || user.id,
           provider_name: providerName,
           confirmation_status: 'pending'

@@ -18,12 +18,12 @@ import { Calendar as CalendarType } from '@/hooks/useCalendars';
 import { Calendar } from '@/components/ui/calendar';
 
 const appointmentSchema = z.object({
-  title: z.string().optional(),
-  contact_id: z.string().optional(),
-  start_date: z.date().optional(),
-  start_time: z.string().optional(),
-  end_date: z.date().optional(),
-  end_time: z.string().optional(),
+  title: z.string().min(1, 'Title is required'),
+  contact_id: z.string().min(1, 'Contact selection is required'),
+  start_date: z.date({ required_error: 'Start date is required' }),
+  start_time: z.string().min(1, 'Start time is required'),
+  end_date: z.date({ required_error: 'End date is required' }),
+  end_time: z.string().min(1, 'End time is required'),
   status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'no_show']),
   type: z.enum(['consultation', 'treatment', 'follow_up', 'procedure']),
   notes: z.string().optional(),
@@ -77,30 +77,50 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
   const handleSubmit = async (data: AppointmentFormData) => {
     try {
+      // Validate required fields
+      if (!data.title?.trim()) {
+        throw new Error('Title is required');
+      }
+      if (!data.contact_id) {
+        throw new Error('Please select a patient');
+      }
+      if (!data.start_date || !data.start_time) {
+        throw new Error('Start date and time are required');
+      }
+      if (!data.end_date || !data.end_time) {
+        throw new Error('End date and time are required');
+      }
+
       // Combine date and time for start and end times
-      const startDateTime = new Date(data.start_date!);
-      const [startHour, startMin] = data.start_time!.split(':');
+      const startDateTime = new Date(data.start_date);
+      const [startHour, startMin] = data.start_time.split(':');
       startDateTime.setHours(parseInt(startHour), parseInt(startMin));
 
-      const endDateTime = new Date(data.end_date!);
-      const [endHour, endMin] = data.end_time!.split(':');
+      const endDateTime = new Date(data.end_date);
+      const [endHour, endMin] = data.end_time.split(':');
       endDateTime.setHours(parseInt(endHour), parseInt(endMin));
 
+      // Validate that end time is after start time
+      if (endDateTime <= startDateTime) {
+        throw new Error('End time must be after start time');
+      }
+
       const submitData: CreateAppointmentData = {
-        title: data.title,
+        title: data.title.trim(),
         contact_id: data.contact_id,
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
         status: data.status,
         type: data.type,
-        notes: data.notes,
-        location: data.location,
+        notes: data.notes?.trim() || '',
+        location: data.location?.trim() || '',
         provider_id: data.provider_id === 'none' ? '' : data.provider_id,
         calendarId: data.calendarId,
       };
       await onSubmit(submitData);
     } catch (error) {
       console.error('Error submitting appointment:', error);
+      throw error; // Re-throw to show error in form
     }
   };
 
