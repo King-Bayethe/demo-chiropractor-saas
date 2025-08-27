@@ -1017,20 +1017,11 @@ export default function PatientProfile() {
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <span>Loading patient information...</span>
-        </div>
-      </div>
-      
-      <SOAPNoteViewModal
-        noteId={selectedNoteId}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedNoteId(null);
-        }}
-      />
-    </Layout>
-  </AuthGuard>
-);
+            </div>
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
   }
 
   if (!patient) {
@@ -1750,6 +1741,18 @@ export default function PatientProfile() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <SOAPNoteViewModal
+          noteId={selectedNoteId}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedNoteId(null);
+          }}
+          onExport={(noteId) => {
+            console.log('Exporting SOAP note:', noteId);
+          }}
+        />
       </Layout>
     </AuthGuard>
   );
