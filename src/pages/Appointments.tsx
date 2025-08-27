@@ -13,6 +13,7 @@ import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { useAppointments, Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
 import { useCalendars } from '@/hooks/useCalendars';
+import { useProviders } from '@/hooks/useProviders';
 import { supabase } from '@/integrations/supabase/client';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
@@ -27,11 +28,8 @@ export default function Appointments() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [contacts, setContacts] = useState<Array<{ id: string; name: string }>>([]);
-  const [providers] = useState<Array<{ id: string; name: string }>>([
-    { id: '1', name: 'Dr. Smith' },
-    { id: '2', name: 'Dr. Johnson' },
-    { id: '3', name: 'Nurse Wilson' },
-  ]);
+  
+  const { providers, getProviderDisplayName } = useProviders();
 
   const { 
     appointments, 
@@ -265,7 +263,7 @@ export default function Appointments() {
                 </DialogTrigger>
                 <AppointmentForm
                   contacts={contacts}
-                  providers={providers}
+                  providers={providers.map(p => ({ id: p.user_id, name: getProviderDisplayName(p) }))}
                   calendars={calendars}
                   onSubmit={handleCreateAppointment}
                   onCancel={() => setIsCreateDialogOpen(false)}
@@ -371,7 +369,7 @@ export default function Appointments() {
               <AppointmentForm
                 appointment={editingAppointment}
                 contacts={contacts}
-                providers={providers}
+                providers={providers.map(p => ({ id: p.user_id, name: getProviderDisplayName(p) }))}
                 calendars={calendars}
                 onSubmit={handleUpdateAppointment}
                 onCancel={() => {

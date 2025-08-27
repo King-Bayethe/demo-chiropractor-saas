@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Settings
 } from "lucide-react";
+import { useProviders } from "@/hooks/useProviders";
 
 interface CalendarSidebarProps {
   isCollapsed: boolean;
@@ -49,11 +50,7 @@ export function CalendarSidebar({
     }
   };
 
-  const mockProviders = [
-    { id: "1", name: "Dr. Smith", isAvailable: true, appointmentCount: 5 },
-    { id: "2", name: "Dr. Johnson", isAvailable: false, appointmentCount: 3 },
-    { id: "3", name: "Dr. Brown", isAvailable: true, appointmentCount: 7 },
-  ];
+  const { providers } = useProviders();
 
   const statusOptions = [
     { value: "scheduled", label: "Scheduled", color: "bg-medical-blue" },
@@ -141,22 +138,29 @@ export function CalendarSidebar({
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="pt-0 space-y-3">
-                {mockProviders.map((provider) => (
-                  <div key={provider.id} className="flex items-center justify-between p-2 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${provider.isAvailable ? 'bg-success' : 'bg-muted-foreground'}`} />
-                      <div>
-                        <p className="text-sm font-medium">{provider.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {provider.appointmentCount} appointments
-                        </p>
+                {providers.map((provider) => {
+                  const providerName = provider.first_name && provider.last_name 
+                    ? `Dr. ${provider.first_name} ${provider.last_name}`
+                    : provider.email;
+                  const isAvailable = provider.is_active && provider.role !== 'overlord';
+                  
+                  return (
+                    <div key={provider.user_id} className="flex items-center justify-between p-2 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-success' : 'bg-muted-foreground'}`} />
+                        <div>
+                          <p className="text-sm font-medium">{providerName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {provider.role === 'doctor' ? 'Physician' : provider.role === 'overlord' ? 'Director' : 'Provider'}
+                          </p>
+                        </div>
                       </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {isAvailable ? 'Available' : provider.role === 'overlord' ? 'Director' : 'Busy'}
+                      </Badge>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {provider.isAvailable ? 'Available' : 'Busy'}
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
                 <Button variant="outline" size="sm" className="w-full">
                   <Settings className="w-4 h-4 mr-2" />
                   Manage Availability

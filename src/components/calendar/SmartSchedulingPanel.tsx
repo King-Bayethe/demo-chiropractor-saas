@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useProviderAvailability } from "@/hooks/useProviderAvailability";
 import { useAppointments } from "@/hooks/useAppointments";
+import { useProviders } from "@/hooks/useProviders";
 
 interface SmartSchedulingPanelProps {
   onScheduleAppointment: (appointmentData: any) => void;
@@ -46,15 +47,11 @@ export function SmartSchedulingPanel({
   
   const { getAvailableSlots, loading: availabilityLoading } = useProviderAvailability();
   const { checkAppointmentConflicts } = useAppointments();
+  const { providers, getProviderDisplayName } = useProviders();
   
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
   const [conflicts, setConflicts] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [providers] = useState([
-    { id: "1", name: "Dr. Smith", specialty: "General Practice" },
-    { id: "2", name: "Dr. Johnson", specialty: "Physical Therapy" },
-    { id: "3", name: "Dr. Brown", specialty: "Chiropractic" },
-  ]);
 
   const appointmentTypes = [
     { value: "consultation", label: "Consultation", duration: 30, color: "bg-primary" },
@@ -278,8 +275,8 @@ export function SmartSchedulingPanel({
                   </SelectTrigger>
                   <SelectContent>
                     {providers.map((provider) => (
-                      <SelectItem key={provider.id} value={provider.id}>
-                        {provider.name} - {provider.specialty}
+                      <SelectItem key={provider.user_id} value={provider.user_id}>
+                        {getProviderDisplayName(provider)} - {provider.role === 'doctor' ? 'Physician' : provider.role === 'overlord' ? 'Director' : 'Provider'}
                       </SelectItem>
                     ))}
                   </SelectContent>

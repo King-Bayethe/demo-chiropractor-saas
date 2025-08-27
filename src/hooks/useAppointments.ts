@@ -55,14 +55,10 @@ export const useAppointments = () => {
     try {
       console.log('Fetching appointments from Supabase...');
       
-      // Fetch appointments with patient and provider information
+      // Fetch appointments first
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          patients:patient_id(id, first_name, last_name, email, phone),
-          profiles:provider_id(id, first_name, last_name, email)
-        `)
+        .select('*')
         .order('start_time', { ascending: true });
 
       if (appointmentsError) {
@@ -77,12 +73,7 @@ export const useAppointments = () => {
         ghl_appointment_id: apt.ghl_appointment_id,
         title: apt.title,
         contact_id: apt.patient_id || '',
-        contact_name: apt.patients ? 
-          `${apt.patients.first_name || ''} ${apt.patients.last_name || ''}`.trim() || 
-          apt.patients.email || 
-          apt.patient_name || 
-          'Unknown Patient' : 
-          apt.patient_name || 'Unknown Patient',
+        contact_name: apt.patient_name || 'Unknown Patient',
         start_time: apt.start_time,
         end_time: apt.end_time,
         status: apt.status,
@@ -90,12 +81,7 @@ export const useAppointments = () => {
         notes: apt.notes,
         location: apt.location,
         provider_id: apt.provider_id,
-        provider_name: apt.profiles ? 
-          `${apt.profiles.first_name || ''} ${apt.profiles.last_name || ''}`.trim() || 
-          apt.profiles.email || 
-          apt.provider_name || 
-          'Unknown Provider' : 
-          apt.provider_name || 'Unknown Provider',
+        provider_name: apt.provider_name || 'Unknown Provider',
         created_at: apt.created_at,
         updated_at: apt.updated_at,
       }));
