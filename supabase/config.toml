@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.create-patient-from-form]
 verify_jwt = true
+
+[functions.ghl-health-check]
+verify_jwt = true

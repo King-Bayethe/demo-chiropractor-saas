@@ -251,7 +251,17 @@ const handler = async (req: Request): Promise<Response> => {
         if (!ghlResponse.ok) {
           const errorText = await ghlResponse.text();
           console.error('GoHighLevel create error:', errorText);
-          throw new Error(`Failed to create appointment in GoHighLevel: ${ghlResponse.status} - ${errorText}`);
+          
+          // Provide specific error messages for common issues
+          if (ghlResponse.status === 403) {
+            throw new Error(`Authentication failed: The API key does not have access to this location (${ghlLocationId}). Please verify that your GOHIGHLEVEL_API_KEY and GOHIGHLEVEL_LOCATION_ID are correctly paired in Supabase secrets.`);
+          } else if (ghlResponse.status === 401) {
+            throw new Error(`Authentication failed: Invalid API key. Please check your GOHIGHLEVEL_API_KEY in Supabase secrets.`);
+          } else if (ghlResponse.status === 400) {
+            throw new Error(`Bad request: ${errorText}. Please check your appointment data.`);
+          } else {
+            throw new Error(`Failed to create appointment in GoHighLevel: ${ghlResponse.status} - ${errorText}`);
+          }
         }
 
         const ghlResult = await ghlResponse.json();
