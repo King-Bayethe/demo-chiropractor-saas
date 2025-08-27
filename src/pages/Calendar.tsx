@@ -57,27 +57,29 @@ export default function Calendar() {
   useEffect(() => {
     // Convert appointments to display format when appointments change
     const convertedAppointments: DisplayAppointment[] = appointments.map(apt => {
-      // Get patient name from contacts array or build from appointment data
+      // Get patient name from appointment data or contacts array
       let patientName = 'Unknown Patient';
+      
+      // First try contact_name from appointment data
       if (apt.contact_name) {
         patientName = apt.contact_name;
       } else {
-        // Find patient in contacts array by ID
+        // Find patient in contacts array by contact_id
         const contact = contacts.find((c: any) => c.id === apt.contact_id);
         if (contact) {
           patientName = contact.name;
         }
       }
 
-      // Get provider name from providers array or use appointment data
+      // Get provider name from appointment data or providers array
       let providerName = 'Unassigned';
       if (apt.provider_name) {
         providerName = apt.provider_name;
       } else {
-        // Find provider in providers array by ID
-        const provider = providers.find((p: any) => p.id === apt.provider_id);
+        // Find provider in providers array by provider_id
+        const provider = providers.find((p: any) => p.user_id === apt.provider_id);
         if (provider) {
-          providerName = provider.name;
+          providerName = `${provider.first_name} ${provider.last_name}`.trim();
         }
       }
 
