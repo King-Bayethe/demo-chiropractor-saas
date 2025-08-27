@@ -56,21 +56,47 @@ export default function Calendar() {
 
   useEffect(() => {
     // Convert appointments to display format when appointments change
-    const convertedAppointments: DisplayAppointment[] = appointments.map(apt => ({
-      id: apt.id,
-      title: apt.title,
-      patientName: apt.contact_name || 'Unknown Patient',
-      patientId: apt.contact_id,
-      provider: apt.provider_name || 'Unassigned',
-      type: apt.type,
-      status: apt.status,
-      startTime: new Date(apt.start_time),
-      endTime: new Date(apt.end_time),
-      location: apt.location,
-      notes: apt.notes
-    }));
+    const convertedAppointments: DisplayAppointment[] = appointments.map(apt => {
+      // Get patient name from contacts array or build from appointment data
+      let patientName = 'Unknown Patient';
+      if (apt.contact_name) {
+        patientName = apt.contact_name;
+      } else {
+        // Find patient in contacts array by ID
+        const contact = contacts.find((c: any) => c.id === apt.contact_id);
+        if (contact) {
+          patientName = contact.name;
+        }
+      }
+
+      // Get provider name from providers array or use appointment data
+      let providerName = 'Unassigned';
+      if (apt.provider_name) {
+        providerName = apt.provider_name;
+      } else {
+        // Find provider in providers array by ID
+        const provider = providers.find((p: any) => p.id === apt.provider_id);
+        if (provider) {
+          providerName = provider.name;
+        }
+      }
+
+      return {
+        id: apt.id,
+        title: apt.title,
+        patientName,
+        patientId: apt.contact_id,
+        provider: providerName,
+        type: apt.type,
+        status: apt.status,
+        startTime: new Date(apt.start_time),
+        endTime: new Date(apt.end_time),
+        location: apt.location,
+        notes: apt.notes
+      };
+    });
     setDisplayAppointments(convertedAppointments);
-  }, [appointments]);
+  }, [appointments, contacts, providers]);
 
   const loadData = async () => {
     try {

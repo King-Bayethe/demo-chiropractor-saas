@@ -44,50 +44,63 @@ const AppointmentCard: React.FC<{
   onClick: () => void;
   compact?: boolean;
 }> = ({ appointment, onClick, compact = false }) => {
+  const timeDisplay = `${format(appointment.startTime, 'HH:mm')}`;
+  
   return (
     <Card 
       className={cn(
         "cursor-pointer transition-all hover:shadow-sm border-l-4",
         getStatusColor(appointment.status),
-        compact ? "p-1 mb-1" : "p-2 mb-2"
+        compact ? "p-0.5 mb-1" : "p-2 mb-2"
       )}
       onClick={onClick}
     >
       <CardContent className={compact ? "p-1" : "p-2"}>
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <h4 className={cn(
-              "font-medium truncate",
-              compact ? "text-xs" : "text-sm"
-            )}>
-              {appointment.title}
-            </h4>
-            <Badge variant="outline" className="text-xs">
-              {appointment.status}
-            </Badge>
+        {compact ? (
+          // Compact view for month and week
+          <div className="space-y-0.5">
+            <div className="font-medium text-xs text-primary leading-tight">
+              {timeDisplay}
+            </div>
+            <div className="text-xs font-medium leading-tight truncate" title={appointment.patientName}>
+              {appointment.patientName}
+            </div>
+            <div className="text-xs text-muted-foreground leading-tight truncate" title={appointment.type}>
+              {appointment.type}
+            </div>
           </div>
-          
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span className="text-xs">
-                {format(appointment.startTime, 'HH:mm')} - {format(appointment.endTime, 'HH:mm')}
-              </span>
+        ) : (
+          // Full view for day view and details
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm leading-tight">
+                {appointment.patientName}
+              </h4>
+              <Badge variant="outline" className="text-xs">
+                {appointment.status}
+              </Badge>
             </div>
             
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <User className="h-3 w-3" />
-              <span className="text-xs truncate">{appointment.patientName}</span>
-            </div>
-            
-            {!compact && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Stethoscope className="h-3 w-3" />
-                <span className="text-xs truncate">{appointment.provider}</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  {format(appointment.startTime, 'HH:mm')} - {format(appointment.endTime, 'HH:mm')}
+                </span>
               </div>
-            )}
+              
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Stethoscope className="h-4 w-4" />
+                <span className="text-sm">{appointment.type}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span className="text-sm">{appointment.provider}</span>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -147,8 +160,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                   {format(day, 'd')}
                 </Button>
                 
-                <div className="space-y-1">
-                  {dayAppointments.slice(0, 3).map((appointment) => (
+                <div className="space-y-0.5">
+                  {dayAppointments.slice(0, 4).map((appointment) => (
                     <AppointmentCard
                       key={appointment.id}
                       appointment={appointment}
@@ -156,9 +169,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                       compact
                     />
                   ))}
-                  {dayAppointments.length > 3 && (
-                    <div className="text-xs text-muted-foreground text-center py-1">
-                      +{dayAppointments.length - 3} more
+                  {dayAppointments.length > 4 && (
+                    <div className="text-xs text-muted-foreground text-center py-0.5 bg-muted/50 rounded">
+                      +{dayAppointments.length - 4} more
                     </div>
                   )}
                 </div>
@@ -213,20 +226,38 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               
               return (
                 <div key={day.toISOString()} className="bg-background">
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <div key={hour} className="h-16 border-b border-border p-1 relative">
-                      {dayAppointments
-                        .filter(apt => apt.startTime.getHours() === hour)
-                        .map((appointment) => (
-                          <AppointmentCard
+                  {Array.from({ length: 24 }, (_, hour) => {
+                    const hourAppointments = dayAppointments.filter(apt => {
+                      const appointmentHour = apt.startTime.getHours();
+                      const appointmentMinutes = apt.startTime.getMinutes();
+                      // Show appointment in the hour it starts
+                      return appointmentHour === hour;
+                    });
+
+                    return (
+                      <div key={hour} className="h-16 border-b border-border p-0.5 relative overflow-hidden">
+                        {hourAppointments.map((appointment, index) => (
+                          <div
                             key={appointment.id}
-                            appointment={appointment}
-                            onClick={() => onAppointmentClick(appointment)}
-                            compact
-                          />
+                            className="absolute inset-x-0.5 z-10"
+                            style={{
+                              top: `${(appointment.startTime.getMinutes() / 60) * 100}%`,
+                              height: `${Math.min(
+                                ((appointment.endTime.getTime() - appointment.startTime.getTime()) / (60 * 60 * 1000)) * 100,
+                                100 - (appointment.startTime.getMinutes() / 60) * 100
+                              )}%`
+                            }}
+                          >
+                            <AppointmentCard
+                              appointment={appointment}
+                              onClick={() => onAppointmentClick(appointment)}
+                              compact
+                            />
+                          </div>
                         ))}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
