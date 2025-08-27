@@ -50,7 +50,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 }) => {
   const [contactOpen, setContactOpen] = useState(false);
   const [providerOpen, setProviderOpen] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
   const form = useForm<CreateAppointmentData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -63,7 +62,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       notes: appointment?.notes || '',
       location: appointment?.location || '',
       provider_id: appointment?.provider_id || '',
-      calendarId: (appointment as any)?.calendarId || (calendars.length > 0 ? calendars[0].id : ''),
+      calendarId: calendars.length > 0 ? calendars[0].id : '',
     },
   });
 
@@ -387,88 +386,18 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
           <FormField
             control={form.control}
-            name="calendarId"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="flex items-center gap-2 text-sm font-medium">
-                  <CalendarIcon className="h-4 w-4" />
-                  Calendar
-                </FormLabel>
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={calendarOpen}
-                        className={cn(
-                          "h-11 justify-between bg-background",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value
-                          ? calendars.find((calendar) => calendar.id === field.value)?.name || "Calendar not found"
-                          : "Select a calendar"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[400px] p-0" align="start">
-                    <Command>
-                      <CommandInput 
-                        placeholder="Search calendars..." 
-                        className="h-11"
-                      />
-                      <CommandList>
-                        <CommandEmpty>No calendar found.</CommandEmpty>
-                        <CommandGroup>
-                          {calendars.map((calendar) => (
-                            <CommandItem
-                              key={calendar.id}
-                              value={calendar.name}
-                              onSelect={() => {
-                                field.onChange(calendar.id);
-                                setCalendarOpen(false);
-                              }}
-                              className="flex items-center gap-2 p-3"
-                            >
-                              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                              <span>{calendar.name}</span>
-                              <Check
-                                className={cn(
-                                  "ml-auto h-4 w-4",
-                                  calendar.id === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="notes"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-sm font-medium">
                   <FileText className="h-4 w-4" />
-                  Internal Notes (Optional)
+                  Notes (Optional)
                 </FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Add internal notes about the appointment"
-                    rows={3}
-                    className="resize-none"
-                    {...field}
+                    placeholder="Add appointment notes..." 
+                    className="min-h-[80px] resize-none"
+                    {...field} 
                   />
                 </FormControl>
                 <FormMessage />
