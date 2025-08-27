@@ -39,7 +39,6 @@ export interface CreateAppointmentData {
   notes?: string;
   location?: string;
   provider_id?: string;
-  calendarId?: string;
 }
 
 export const useAppointments = () => {
