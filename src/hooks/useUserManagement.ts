@@ -25,7 +25,14 @@ export const useUserManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Type cast the data to ensure role is properly typed
+      const typedUsers = (data || []).map(user => ({
+        ...user,
+        role: user.role as 'admin' | 'doctor' | 'nurse' | 'staff' | 'overlord'
+      }));
+      
+      setUsers(typedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
