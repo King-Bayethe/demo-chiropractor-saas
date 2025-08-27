@@ -131,7 +131,7 @@ serve(async (req) => {
         }
       } else if (formType === 'lop') {
         if (!formData.firstName && !formData.patient_name) validationIssues.push('Patient name is required');
-        if (!formData.attorney_name) validationIssues.push('Attorney name is required');
+        if (!formData.attorneyName && !formData.attorney_name) validationIssues.push('Attorney name is required');
       } else if (formType === 'cash') {
         if (!formData.firstName) validationIssues.push('First name is required');
         if (!formData.lastName) validationIssues.push('Last name is required');
@@ -210,15 +210,15 @@ serve(async (req) => {
               emergency_contact_name: formData.emergencyContact,
               emergency_contact_phone: formData.emergencyPhone,
               emergency_contact_relationship: formData.emergencyRelationship,
-              drivers_license: formData.licenseNumber, // Fixed: was driversLicense
-              drivers_license_state: formData.licenseState, // Fixed: was driversLicenseState
+              drivers_license: formData.driversLicense,
+              drivers_license_state: formData.driversLicenseState,
               social_security_number: formData.ssn,
               marital_status: formData.maritalStatus,
-              employment_status: formData.employment, // Fixed: was employmentStatus
+              employment_status: formData.employmentStatus,
               employer_name: formData.employerName,
               employer_address: formData.employerAddress,
-              student_status: formData.student, // Fixed: was studentStatus
-              auto_insurance_company: formData.autoInsuranceCo,
+              student_status: formData.studentStatus,
+              auto_insurance_company: formData.autoInsurance,
               auto_policy_number: formData.policyNumber,
               claim_number: formData.claimNumber,
               adjuster_name: formData.adjusterName,
@@ -229,17 +229,17 @@ serve(async (req) => {
               accident_date: formData.accidentDate || null,
               accident_time: formData.accidentTime || null,
               accident_description: formData.accidentDescription,
-              person_type: formData.personRole, // Fixed: was personType
-              weather_conditions: formData.weather, // Fixed: needs mapping
+              person_type: formData.roleInAccident,
+              weather_conditions: formData.weather,
               street_surface: formData.streetSurface,
-              body_part_hit: formData.hitCarDetails, // Fixed: was bodyPart
+              body_part_hit: formData.bodyPartHit,
               what_body_hit: formData.whatItHit,
-              medical_systems_review: formData.systemReview || {}, // Fixed: was systems
+              medical_systems_review: formData.systems || {},
               case_type: formType === 'cash' ? 'Cash Plan' : (formData.caseType || 'PIP'),
               pip_form_submitted_at: new Date().toISOString(),
               consent_acknowledgement: formData.consentAcknowledgement || false,
-              patient_signature: formData.patientSignature, // Fixed: was signature
-              signature_date: formData.finalDate || null, // Fixed: was date
+              patient_signature: formData.signature,
+              signature_date: formData.date || null,
               last_synced_at: new Date().toISOString(),
               // Enhanced PIP form data with correct field mapping
               pain_description: formData.painDescription || {},
@@ -249,15 +249,14 @@ serve(async (req) => {
                 ...(formData.familyHistory || {}),
                 additionalNotes: formData.familyMedicalHistory || null
               }, // Combine structured family history with text notes
-              systems_review: formData.systemReview || {},
-              alcohol_consumption: formData.drinksAlcohol, // Fixed: was alcoholConsumption
-              smoking_status: formData.smokes,
-              loss_of_consciousness: formData.lossOfConsciousness,
-              consciousness_duration: formData.consciousnessLength, // Fixed: was consciousnessDuration
-              previous_accidents: formData.previousAccidents,
+              systems_review: formData.systems || {},
+              smoking_status: formData.smokingStatus,
+              smoking_history: formData.smokingHistory,
               allergies: formData.allergies,
-              alternative_communication: formData.alternativeCommunication,
-              email_consent: formData.emailConsent,
+              past_injuries: formData.pastInjuries,
+              current_medications: formData.currentMedications,
+              chronic_conditions: formData.chronicConditions,
+              other_medical_history: formData.otherMedicalHistory,
               release_information: {
                 releasePersonOrganization: formData.releasePersonOrganization,
                 releaseAddress: formData.releaseAddress,
@@ -284,8 +283,7 @@ serve(async (req) => {
                 braceForImpact: formData.braceForImpact,
                 hitCar: formData.hitCar,
               },
-              emergency_hospital_visit: formData.wentToHospital === 'yes', // Fixed: was emergencyHospitalVisit
-              hospital_name: formData.hospitalName, // Fixed: was emergency_hospital_details
+              pain_severity: formData.painSeverity ? parseInt(formData.painSeverity) : null,
             })
             .eq('id', existingPatient.id)
             .select('id')

@@ -74,6 +74,8 @@ const PublicLOPForm = () => {
     date: "",
   });
 
+  const [honeypot, setHoneypot] = useState("");
+
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -109,7 +111,8 @@ const PublicLOPForm = () => {
       const { data, error } = await supabase.functions.invoke('submit-form', {
         body: {
           formType: 'lop',
-          formData: formData
+          formData: formData,
+          honeypot: honeypot
         }
       });
 
@@ -181,6 +184,7 @@ const PublicLOPForm = () => {
         signature: "",
         date: "",
       });
+      setHoneypot("");
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error("Failed to submit form. Please try again.");
@@ -197,6 +201,17 @@ const PublicLOPForm = () => {
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Honeypot field for bot protection - hidden from users */}
+          <input
+            type="text"
+            name="website"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            style={{ display: 'none' }}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+          
           {/* General Information Section */}
           <Collapsible defaultOpen className="border border-gray-200 rounded-lg">
             <CollapsibleTrigger className="p-4 flex justify-between items-center bg-gray-50 rounded-t-lg w-full">
