@@ -175,6 +175,9 @@ export const useAppointments = () => {
 
       console.log('Appointment created successfully:', data);
       
+      // Create or update opportunity for the appointment
+      await createOrUpdateOpportunity(patientData, data);
+      
       toast({
         title: 'Success',
         description: 'Appointment created successfully',
@@ -197,6 +200,70 @@ export const useAppointments = () => {
       throw err;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createOrUpdateOpportunity = async (patientData: any, appointmentData: any) => {
+    try {
+      // Check if an opportunity already exists for this patient
+      const { data: existingOpportunity, error: fetchError } = await supabase
+        .from('opportunities')
+        .select('id, pipeline_stage')
+        .eq('patient_id', patientData.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching existing opportunity:', fetchError);
+        return;
+      }
+
+      const patientName = patientData.first_name && patientData.last_name 
+        ? `${patientData.first_name} ${patientData.last_name}`
+        : patientData.email || 'Unknown Patient';
+
+      if (existingOpportunity) {
+        // Update existing opportunity to appointment stage
+        const { error: updateError } = await supabase
+          .from('opportunities')
+          .update({
+            pipeline_stage: 'appointment',
+            consultation_scheduled_at: appointmentData.start_time,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingOpportunity.id);
+
+        if (updateError) {
+          console.error('Error updating opportunity:', updateError);
+        } else {
+          console.log('Updated existing opportunity to appointment stage');
+        }
+      } else {
+        // Create new opportunity in appointment stage
+        const { error: createError } = await supabase
+          .from('opportunities')
+          .insert({
+            name: `Appointment - ${patientName}`,
+            description: `Opportunity created from appointment: ${appointmentData.title}`,
+            patient_id: patientData.id,
+            patient_name: patientName,
+            patient_email: patientData.email,
+            pipeline_stage: 'appointment',
+            status: 'lead',
+            priority: 'medium',
+            source: 'Appointment Booking',
+            consultation_scheduled_at: appointmentData.start_time,
+            created_by: appointmentData.provider_id,
+            attorney_referred: false
+          });
+
+        if (createError) {
+          console.error('Error creating opportunity:', createError);
+        } else {
+          console.log('Created new opportunity in appointment stage');
+        }
+      }
+    } catch (err) {
+      console.error('Error in createOrUpdateOpportunity:', err);
     }
   };
 
