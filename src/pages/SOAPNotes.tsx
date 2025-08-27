@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes, SOAPNote } from "@/hooks/useSOAPNotes";
 import { usePatients } from "@/hooks/usePatients";
-import { SOAPNoteViewModal } from "@/components/soap/SOAPNoteViewModal";
+import { ComprehensiveSOAPForm, SOAPFormData } from "@/components/soap/ComprehensiveSOAPForm";
+import { SOAPNoteDisplay } from "@/components/soap/SOAPNoteDisplay";
 import { PatientSelector } from "@/components/PatientSelector";
 import { 
   Search, 
@@ -38,7 +40,7 @@ const getPatientName = (patient: any): string => {
 
 export default function SOAPNotes() {
   const navigate = useNavigate();
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedNote, setSelectedNote] = useState<SOAPNote | null>(null);
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -59,19 +61,12 @@ export default function SOAPNotes() {
 
 
   const handleViewNote = (note: SOAPNote) => {
-    setSelectedNoteId(note.id);
+    setSelectedNote(note);
     setIsViewNoteOpen(true);
   };
 
   const handleEditNote = (note: SOAPNote) => {
     navigate(`/soap-notes/edit/${note.id}`);
-  };
-
-  const handleExportSOAPNote = (noteId: string) => {
-    toast({
-      title: "PDF Export",
-      description: "PDF exported successfully!",
-    });
   };
 
 
@@ -284,20 +279,73 @@ export default function SOAPNotes() {
           </div>
 
 
-          <SOAPNoteViewModal
-            noteId={selectedNoteId}
-            isOpen={isViewNoteOpen}
-            onClose={() => {
-              setIsViewNoteOpen(false);
-              setSelectedNoteId(null);
-            }}
-            onEdit={(noteId) => {
-              setIsViewNoteOpen(false);
-              setSelectedNoteId(null);
-              navigate(`/soap-notes/edit/${noteId}`);
-            }}
-            onExport={handleExportSOAPNote}
-          />
+          {/* View SOAP Note Modal */}
+          <Dialog open={isViewNoteOpen} onOpenChange={setIsViewNoteOpen}>
+            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-between">
+                  SOAP Note - {getPatientName(selectedNote?.patients)}
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline">
+                      {selectedNote ? new Date(selectedNote.date_of_service).toLocaleDateString() : ''}
+                    </Badge>
+                    <Button variant="ghost" size="icon" onClick={() => setIsViewNoteOpen(false)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+              
+              {selectedNote && (
+                <div className="space-y-6">
+                  <SOAPNoteDisplay 
+                    note={selectedNote} 
+                    patientName={getPatientName(selectedNote?.patients)}
+                  />
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setIsViewNoteOpen(false);
+                        if (selectedNote) {
+                          handleEditNote(selectedNote);
+                        }
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Note
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const patientName = getPatientName(selectedNote?.patients);
+                        if (selectedNote) {
+                          import('../services/pdfExport').then(({ exportSOAPNoteToPDF }) => {
+                            exportSOAPNoteToPDF(selectedNote, patientName);
+                            toast({
+                              title: "PDF Export",
+                              description: "PDF exported successfully!",
+                            });
+                          }).catch((error) => {
+                            console.error('PDF export error:', error);
+                            toast({
+                              title: "Export Error",
+                              description: "Failed to export PDF. Please try again.",
+                              variant: "destructive",
+                            });
+                          });
+                        }
+                      }}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Export PDF
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </Layout>
     </AuthGuard>
