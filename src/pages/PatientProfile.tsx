@@ -280,6 +280,7 @@ export default function PatientProfile() {
     selectAll,
     clearSelection,
     deleteSOAPNote,
+    getSOAPNote,
     bulkDelete,
     bulkExport,
     stats
@@ -1496,6 +1497,7 @@ export default function PatientProfile() {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => {
+                                        console.log("PatientProfile: Opening SOAP note modal with ID:", note.id);
                                         setSelectedNoteId(note.id);
                                         setIsModalOpen(true);
                                       }}
@@ -1749,9 +1751,7 @@ export default function PatientProfile() {
             setIsModalOpen(false);
             setSelectedNoteId(null);
           }}
-          onExport={(noteId) => {
-            console.log('Exporting SOAP note:', noteId);
-          }}
+          onExport={handleExportSOAPNote}
         />
       </Layout>
     </AuthGuard>

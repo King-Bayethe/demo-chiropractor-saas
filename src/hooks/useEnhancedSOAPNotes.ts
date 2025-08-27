@@ -28,7 +28,8 @@ export function useEnhancedSOAPNotes({
     fetchSOAPNotes, 
     deleteSOAPNote: basedeleteSOAPNote,
     createSOAPNote,
-    updateSOAPNote
+    updateSOAPNote,
+    getSOAPNote
   } = useSOAPNotes();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -302,6 +303,7 @@ export function useEnhancedSOAPNotes({
     bulkExport,
     createSOAPNote,
     updateSOAPNote,
+    getSOAPNote,
     refreshNotes: loadNotes,
     
     // Stats

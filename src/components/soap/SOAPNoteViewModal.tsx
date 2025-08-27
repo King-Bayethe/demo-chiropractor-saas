@@ -44,10 +44,17 @@ export function SOAPNoteViewModal({
 
   useEffect(() => {
     if (noteId && isOpen) {
+      console.log("SOAPNoteViewModal: Fetching note with ID:", noteId);
       setLoading(true);
       getSOAPNote(noteId)
-        .then(setSOAPNote)
-        .catch(() => setSOAPNote(null))
+        .then((note) => {
+          console.log("SOAPNoteViewModal: Fetched note:", note);
+          setSOAPNote(note);
+        })
+        .catch((error) => {
+          console.error("SOAPNoteViewModal: Error fetching note:", error);
+          setSOAPNote(null);
+        })
         .finally(() => setLoading(false));
     }
   }, [noteId, isOpen, getSOAPNote]);
