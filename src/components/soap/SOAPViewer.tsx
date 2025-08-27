@@ -96,14 +96,16 @@ export function SOAPViewer({ soapNote }: SOAPViewerProps) {
         {diagnoses.map((diagnosis, index) => (
           <div key={index} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-orange-900">{diagnosis.condition || diagnosis.name}</h4>
-              {diagnosis.icd10 && (
+              <h4 className="font-semibold text-orange-900">
+                {diagnosis.condition || diagnosis.description || diagnosis.name}
+              </h4>
+              {(diagnosis.icd10 || diagnosis.code) && (
                 <Badge variant="outline" className="text-orange-700 border-orange-300">
-                  {diagnosis.icd10}
+                  {diagnosis.icd10 || diagnosis.code}
                 </Badge>
               )}
             </div>
-            {diagnosis.description && (
+            {diagnosis.description && diagnosis.condition && (
               <p className="text-sm text-orange-800">{diagnosis.description}</p>
             )}
           </div>
@@ -137,13 +139,24 @@ export function SOAPViewer({ soapNote }: SOAPViewerProps) {
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
                   <Pill className="w-4 h-4 text-green-600" />
-                  <h4 className="font-semibold text-green-900">{med.name}</h4>
+                  <h4 className="font-semibold text-green-900">
+                    {med.brandName || med.genericName || med.name || 'Medication'}
+                  </h4>
+                  {med.isPrescribed !== undefined && (
+                    <Badge variant={med.isPrescribed ? "default" : "secondary"}>
+                      {med.isPrescribed ? "Prescribed" : "OTC"}
+                    </Badge>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm text-green-800">
-                  {med.dosage && <div><span className="font-medium">Dosage:</span> {med.dosage}</div>}
+                  {med.strength && <div><span className="font-medium">Strength:</span> {med.strength}</div>}
+                  {med.quantity && <div><span className="font-medium">Quantity:</span> {med.quantity}</div>}
                   {med.frequency && <div><span className="font-medium">Frequency:</span> {med.frequency}</div>}
+                  {med.refills && <div><span className="font-medium">Refills:</span> {med.refills}</div>}
+                  {med.dosage && <div><span className="font-medium">Dosage:</span> {med.dosage}</div>}
                   {med.duration && <div><span className="font-medium">Duration:</span> {med.duration}</div>}
                   {med.route && <div><span className="font-medium">Route:</span> {med.route}</div>}
+                  {med.diagnosisCode && <div><span className="font-medium">Diagnosis Code:</span> {med.diagnosisCode}</div>}
                 </div>
                 {med.instructions && (
                   <div className="mt-2 text-sm text-green-700">
