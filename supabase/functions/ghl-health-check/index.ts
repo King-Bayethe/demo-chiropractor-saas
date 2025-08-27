@@ -12,7 +12,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const ghlApiKey = Deno.env.get('GOHIGHLEVEL_API_KEY');
+    const ghlApiKey = Deno.env.get('GHL_API_KEY');
     const ghlLocationId = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
     const ghlDefaultCalendarId = Deno.env.get('GOHIGHLEVEL_DEFAULT_CALENDAR_ID');
 

@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const ghlApiKey = Deno.env.get('GOHIGHLEVEL_API_KEY');
+    const ghlApiKey = Deno.env.get('GHL_API_KEY');
     const ghlLocationId = Deno.env.get('GOHIGHLEVEL_LOCATION_ID');
 
     if (!ghlApiKey || !ghlLocationId) {
