@@ -1,141 +1,196 @@
+
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUsers } from '@/hooks/useUsers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Search, UserCheck, Shield } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { 
+  UserPlus, 
+  MoreHorizontal, 
+  Edit, 
+  Trash2, 
+  Search,
+  UserCheck,
+  Users as UsersIcon
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-interface UserProfile {
-  id: string;
-  user_id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-}
-
 export const UserManagement = () => {
+  // All hooks must be called at the top level, unconditionally
   const { profile, startImpersonation } = useAuth();
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [impersonationReason, setImpersonationReason] = useState('');
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const { users, loading, createUser, updateUser, deleteUser, refreshUsers } = useUsers();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [newUser, setNewUser] = useState({
+    email: '',
+    first_name: '',
+    last_name: '',
+    role: 'staff' as 'admin' | 'doctor' | 'nurse' | 'staff' | 'overlord',
+    is_active: true
+  });
 
-  // Only show to overlords
-  if (profile?.role !== 'overlord') {
+  useEffect(() => {
+    refreshUsers();
+  }, []);
+
+  // Early return check - but all hooks are already called above
+  if (!profile) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">
-            <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
-            <p className="text-muted-foreground">
-              User management is only available to overlord users.
-            </p>
+          <div className="text-center text-muted-foreground">
+            Loading user profile...
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  // Only allow admin and overlord to manage users
+  if (profile.role !== 'admin' && profile.role !== 'overlord') {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">
+            You don't have permission to manage users.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = users.filter(user => 
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredUsers(filtered);
-    } else {
-      setFilteredUsers(users);
-    }
-  }, [searchTerm, users]);
-
-  const fetchUsers = async () => {
+  const handleCreateUser = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setUsers(data || []);
+      await createUser(newUser);
+      setIsCreateDialogOpen(false);
+      setNewUser({
+        email: '',
+        first_name: '',
+        last_name: '',
+        role: 'staff',
+        is_active: true
+      });
+      toast.success('User created successfully');
     } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error('Failed to load users');
-    } finally {
-      setLoading(false);
+      console.error('Failed to create user:', error);
+      toast.error('Failed to create user');
     }
   };
 
-  const handleImpersonateUser = async (user: UserProfile) => {
-    if (!impersonationReason.trim()) {
-      toast.error('Please provide a reason for impersonation');
-      return;
-    }
-
-    const success = await startImpersonation(user.user_id, impersonationReason);
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
     
+    try {
+      await updateUser(editingUser.user_id, editingUser);
+      setEditingUser(null);
+      toast.success('User updated successfully');
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      toast.error('Failed to update user');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUserId) return;
+    
+    try {
+      await deleteUser(deleteUserId);
+      setDeleteUserId(null);
+      toast.success('User deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error('Failed to delete user');
+    }
+  };
+
+  const handleImpersonate = async (userId: string) => {
+    const success = await startImpersonation(userId, 'User management');
     if (success) {
-      toast.success(`Now impersonating ${user.first_name} ${user.last_name}`);
-      setSelectedUser(null);
-      setImpersonationReason('');
+      toast.success('Impersonation started');
     } else {
       toast.error('Failed to start impersonation');
     }
   };
 
-  const getUserDisplayName = (user: UserProfile) => {
+  const filteredUsers = users?.filter(user => {
+    const matchesSearch = searchQuery === '' || 
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+    
+    return matchesSearch && matchesRole;
+  }) || [];
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'overlord': return 'bg-purple-100 text-purple-800';
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'doctor': return 'bg-blue-100 text-blue-800';
+      case 'nurse': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getDisplayName = (user: any) => {
     if (user.first_name || user.last_name) {
       return `${user.first_name || ''} ${user.last_name || ''}`.trim();
     }
     return user.email;
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'overlord':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'admin':
-        return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-      case 'doctor':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'provider':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      default:
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+  const getInitials = (user: any) => {
+    if (user.first_name && user.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
     }
+    if (user.first_name) {
+      return user.first_name[0].toUpperCase();
+    }
+    return user.email[0].toUpperCase();
   };
 
   if (loading) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex justify-between items-center p-4 border rounded">
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-32"></div>
-                  <div className="h-3 bg-gray-200 rounded w-48"></div>
-                </div>
-                <div className="h-8 bg-gray-200 rounded w-24"></div>
-              </div>
-            ))}
+          <div className="text-center text-muted-foreground">
+            Loading users...
           </div>
         </CardContent>
       </Card>
@@ -143,108 +198,228 @@ export const UserManagement = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UserCheck className="h-5 w-5" />
-          User Management
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Manage users and impersonate them for support purposes.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users by name, email, or role..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Users List */}
-        <div className="space-y-3">
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No users found</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <UsersIcon className="h-5 w-5" />
+                User Management
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage user accounts and permissions
+              </p>
             </div>
-          ) : (
-            filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h4 className="font-medium">{getUserDisplayName(user)}</h4>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Joined {new Date(user.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedUser(user)}
-                      disabled={user.user_id === profile?.user_id}
-                    >
-                      {user.user_id === profile?.user_id ? 'Current User' : 'Login As'}
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add User
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New User</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  />
+                  <Input
+                    placeholder="First Name"
+                    value={newUser.first_name}
+                    onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Last Name"
+                    value={newUser.last_name}
+                    onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
+                  />
+                  <Select value={newUser.role} onValueChange={(value: any) => setNewUser({ ...newUser, role: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="nurse">Nurse</SelectItem>
+                      <SelectItem value="doctor">Doctor</SelectItem>
+                      {profile?.role === 'overlord' && (
+                        <>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="overlord">Overlord</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancel
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Impersonate User</DialogTitle>
-                      <DialogDescription>
-                        You are about to impersonate {getUserDisplayName(user)}. 
-                        This action will be logged for security purposes.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="reason">Reason for impersonation</Label>
-                        <Textarea
-                          id="reason"
-                          placeholder="e.g., User support, troubleshooting, account recovery..."
-                          value={impersonationReason}
-                          onChange={(e) => setImpersonationReason(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedUser(null);
-                            setImpersonationReason('');
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() => handleImpersonateUser(user)}
-                          disabled={!impersonationReason.trim()}
-                        >
-                          Start Impersonation
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    <Button onClick={handleCreateUser}>
+                      Create User
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="nurse">Nurse</SelectItem>
+                <SelectItem value="doctor">Doctor</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="overlord">Overlord</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4">
+            {filteredUsers.map((user) => (
+              <div key={user.user_id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage src={user.avatar_url} />
+                    <AvatarFallback>{getInitials(user)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium">{getDisplayName(user)}</h3>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                  <Badge className={getRoleBadgeColor(user.role)}>
+                    {user.role}
+                  </Badge>
+                  {!user.is_active && (
+                    <Badge variant="destructive">Inactive</Badge>
+                  )}
+                </div>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    {profile?.role === 'overlord' && user.user_id !== profile.user_id && (
+                      <DropdownMenuItem onClick={() => handleImpersonate(user.user_id)}>
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        Impersonate
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem 
+                      onClick={() => setDeleteUserId(user.user_id)}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Edit User Dialog */}
+      {editingUser && (
+        <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                placeholder="Email"
+                value={editingUser.email}
+                onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+              />
+              <Input
+                placeholder="First Name"
+                value={editingUser.first_name || ''}
+                onChange={(e) => setEditingUser({ ...editingUser, first_name: e.target.value })}
+              />
+              <Input
+                placeholder="Last Name"
+                value={editingUser.last_name || ''}
+                onChange={(e) => setEditingUser({ ...editingUser, last_name: e.target.value })}
+              />
+              <Select 
+                value={editingUser.role} 
+                onValueChange={(value) => setEditingUser({ ...editingUser, role: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="nurse">Nurse</SelectItem>
+                  <SelectItem value="doctor">Doctor</SelectItem>
+                  {profile?.role === 'overlord' && (
+                    <>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="overlord">Overlord</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setEditingUser(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateUser}>
+                  Update User
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteUserId(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
