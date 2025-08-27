@@ -93,22 +93,66 @@ export type Database = {
           },
         ]
       }
+      appointment_reminders: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          created_by: string
+          id: string
+          message: string | null
+          minutes_before: number
+          reminder_type: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          message?: string | null
+          minutes_before?: number
+          reminder_type: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          message?: string | null
+          minutes_before?: number
+          reminder_type?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_type: string | null
+          cancellation_reason: string | null
+          checked_in_at: string | null
+          completed_at: string | null
+          confirmation_status: string | null
           created_at: string
           description: string | null
           end_time: string
           ghl_appointment_id: string | null
           id: string
+          is_recurring: boolean | null
           location: string | null
           notes: string | null
           patient_email: string | null
           patient_id: string | null
           patient_name: string | null
+          patient_notes: string | null
           patient_phone: string | null
           provider_id: string | null
           provider_name: string | null
+          recurrence_pattern: string | null
+          recurring_appointment_id: string | null
           start_time: string
           status: string
           synced_at: string | null
@@ -117,19 +161,27 @@ export type Database = {
         }
         Insert: {
           appointment_type?: string | null
+          cancellation_reason?: string | null
+          checked_in_at?: string | null
+          completed_at?: string | null
+          confirmation_status?: string | null
           created_at?: string
           description?: string | null
           end_time: string
           ghl_appointment_id?: string | null
           id?: string
+          is_recurring?: boolean | null
           location?: string | null
           notes?: string | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
+          patient_notes?: string | null
           patient_phone?: string | null
           provider_id?: string | null
           provider_name?: string | null
+          recurrence_pattern?: string | null
+          recurring_appointment_id?: string | null
           start_time: string
           status?: string
           synced_at?: string | null
@@ -138,19 +190,27 @@ export type Database = {
         }
         Update: {
           appointment_type?: string | null
+          cancellation_reason?: string | null
+          checked_in_at?: string | null
+          completed_at?: string | null
+          confirmation_status?: string | null
           created_at?: string
           description?: string | null
           end_time?: string
           ghl_appointment_id?: string | null
           id?: string
+          is_recurring?: boolean | null
           location?: string | null
           notes?: string | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
+          patient_notes?: string | null
           patient_phone?: string | null
           provider_id?: string | null
           provider_name?: string | null
+          recurrence_pattern?: string | null
+          recurring_appointment_id?: string | null
           start_time?: string
           status?: string
           synced_at?: string | null
@@ -1216,6 +1276,48 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      provider_availability: {
+        Row: {
+          break_end_time: string | null
+          break_start_time: string | null
+          created_at: string
+          created_by: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          provider_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          created_by: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          provider_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          created_by?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          provider_id?: string
+          start_time?: string
+          updated_at?: string
         }
         Relationships: []
       }

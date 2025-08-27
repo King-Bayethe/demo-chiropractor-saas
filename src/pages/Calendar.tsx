@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useGHLApi } from "@/hooks/useGHLApi";
 import { useAppointments } from "@/hooks/useAppointments";
+import { supabase } from "@/integrations/supabase/client";
 import { useCalendars } from "@/hooks/useCalendars";
 import { AppointmentForm } from "@/components/appointments/AppointmentForm";
 import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDetailDialog";
@@ -52,7 +52,6 @@ export default function Calendar() {
   const [selectedAppointment, setSelectedAppointment] = useState<DisplayAppointment | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const { toast } = useToast();
-  const ghlApi = useGHLApi();
   const { appointments, loading, createAppointment, fetchAppointments } = useAppointments();
   const { calendars, loading: calendarsLoading } = useCalendars();
 
@@ -80,16 +79,40 @@ export default function Calendar() {
 
   const loadData = async () => {
     try {
-      // Load contacts for appointment booking
-      const contactsData = await ghlApi.contacts.getAll();
-      setContacts(contactsData.contacts || []);
-      
-      // Mock providers data - in production this could come from a providers API
-      setProviders([
-        { id: 'dr-silverman', name: 'Dr. Silverman' },
-        { id: 'pt-thompson', name: 'PT Thompson' },
-        { id: 'dr-smith', name: 'Dr. Smith' }
-      ]);
+      // Load patients from Supabase
+      const { data: patientsData, error } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, email')
+        .eq('is_active', true)
+        .order('first_name');
+
+      if (error) {
+        console.error('Error loading patients:', error);
+      } else {
+        const formattedContacts = (patientsData || []).map((patient: any) => ({
+          id: patient.id,
+          name: patient.first_name && patient.last_name 
+            ? `${patient.first_name} ${patient.last_name}`
+            : patient.email || 'Unknown Patient'
+        }));
+        setContacts(formattedContacts);
+      }
+
+      // Load providers from profiles
+      const { data: providersData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, email')
+        .eq('is_active', true)
+        .in('role', ['doctor', 'provider', 'staff'])
+        .order('first_name');
+
+      const formattedProviders = (providersData || []).map((provider: any) => ({
+        id: provider.user_id,
+        name: provider.first_name && provider.last_name 
+          ? `${provider.first_name} ${provider.last_name}`
+          : provider.email || 'Provider'
+      }));
+      setProviders(formattedProviders);
     } catch (error) {
       console.error('Failed to load calendar data:', error);
       toast({
@@ -433,10 +456,7 @@ export default function Calendar() {
           {/* Create Appointment Modal */}
           <Dialog open={isCreateAppointmentOpen} onOpenChange={setIsCreateAppointmentOpen}>
             <AppointmentForm
-              contacts={contacts.map((contact: any) => ({ 
-                id: contact.id, 
-                name: `${contact.firstNameLowerCase || ''} ${contact.lastNameLowerCase || ''}`.trim() || contact.name || 'Unknown'
-              }))}
+              contacts={contacts}
               providers={providers}
               calendars={calendars}
               onSubmit={handleCreateAppointment}

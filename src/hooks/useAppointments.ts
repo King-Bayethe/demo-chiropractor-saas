@@ -53,65 +53,54 @@ export const useAppointments = () => {
     setError(null);
     
     try {
-      console.log('Fetching appointments...');
-      const response = await supabase.functions.invoke('ghl-appointments', {
-        body: { action: 'getAll' },
-      });
+      console.log('Fetching appointments from Supabase...');
+      
+      // Fetch appointments with patient and provider information
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          patients:patient_id(id, first_name, last_name, email, phone),
+          profiles:provider_id(id, first_name, last_name, email)
+        `)
+        .order('start_time', { ascending: true });
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (appointmentsError) {
+        throw new Error(appointmentsError.message);
       }
 
-      console.log('Appointments fetched successfully:', response.data);
+      console.log('Appointments fetched successfully:', appointmentsData);
       
-      // Combine GHL and local appointments, preferring local data when available
-      const ghlAppointments = response.data.appointments || [];
-      const localAppointments = response.data.localAppointments || [];
+      // Transform data to match our interface
+      const transformedAppointments: Appointment[] = (appointmentsData || []).map((apt: any) => ({
+        id: apt.id,
+        ghl_appointment_id: apt.ghl_appointment_id,
+        title: apt.title,
+        contact_id: apt.patient_id || '',
+        contact_name: apt.patients ? 
+          `${apt.patients.first_name || ''} ${apt.patients.last_name || ''}`.trim() || 
+          apt.patients.email || 
+          apt.patient_name || 
+          'Unknown Patient' : 
+          apt.patient_name || 'Unknown Patient',
+        start_time: apt.start_time,
+        end_time: apt.end_time,
+        status: apt.status,
+        type: apt.appointment_type || 'consultation',
+        notes: apt.notes,
+        location: apt.location,
+        provider_id: apt.provider_id,
+        provider_name: apt.profiles ? 
+          `${apt.profiles.first_name || ''} ${apt.profiles.last_name || ''}`.trim() || 
+          apt.profiles.email || 
+          apt.provider_name || 
+          'Unknown Provider' : 
+          apt.provider_name || 'Unknown Provider',
+        created_at: apt.created_at,
+        updated_at: apt.updated_at,
+      }));
       
-      // Create a map of local appointments by GHL ID for quick lookup
-      const localAppointmentMap = new Map(
-        localAppointments.map((apt: Appointment) => [apt.ghl_appointment_id, apt])
-      );
-      
-      // Merge appointments, preferring local data when available
-      const mergedAppointments = ghlAppointments.map((ghlApt: any) => {
-        const localApt = localAppointmentMap.get(ghlApt.id);
-        if (localApt) {
-          return {
-            ...(localApt as Appointment),
-            contact_name: ghlApt.contactName || (localApt as any).contact_name,
-          } as Appointment;
-        }
-        
-        // Convert GHL appointment to our format
-        return {
-          id: ghlApt.id,
-          ghl_appointment_id: ghlApt.id,
-          title: ghlApt.title || '',
-          contact_id: ghlApt.contactId || '',
-          contact_name: ghlApt.contactName || '',
-          start_time: ghlApt.startTime || '',
-          end_time: ghlApt.endTime || '',
-          status: (ghlApt.appointmentStatus || 'scheduled') as Appointment['status'],
-          type: 'consultation' as const,
-          notes: ghlApt.notes || '',
-          location: ghlApt.location || '',
-          created_at: ghlApt.dateAdded || new Date().toISOString(),
-          updated_at: ghlApt.dateUpdated || new Date().toISOString(),
-        } as Appointment;
-      });
-      
-      // Add any local appointments that don't have GHL IDs
-      const localOnlyAppointments = localAppointments.filter(
-        (apt: Appointment) => !apt.ghl_appointment_id
-      );
-      
-      const allAppointments = [...mergedAppointments, ...localOnlyAppointments];
-      
-      // Sort by start time
-      allAppointments.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
-      
-      setAppointments(allAppointments);
+      setAppointments(transformedAppointments);
     } catch (err) {
       console.error('Error fetching appointments:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch appointments';
@@ -131,19 +120,47 @@ export const useAppointments = () => {
     try {
       console.log('Creating appointment:', appointmentData);
       
-      const response = await supabase.functions.invoke('ghl-appointments', {
-        body: { 
-          action: 'create',
-          appointmentData,
-          calendarId: appointmentData.calendarId
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
+      // Get current user for provider info if not specified
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
       }
 
-      console.log('Appointment created successfully:', response.data);
+      // Get user profile for provider name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', user.id)
+        .single();
+
+      const providerName = profile ? 
+        `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email :
+        'Unknown Provider';
+
+      // Create appointment in Supabase
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert({
+          title: appointmentData.title,
+          patient_id: appointmentData.contact_id,
+          start_time: appointmentData.start_time,
+          end_time: appointmentData.end_time,
+          status: appointmentData.status || 'scheduled',
+          appointment_type: appointmentData.type || 'consultation',
+          notes: appointmentData.notes,
+          location: appointmentData.location,
+          provider_id: appointmentData.provider_id || user.id,
+          provider_name: providerName,
+          confirmation_status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      console.log('Appointment created successfully:', data);
       
       toast({
         title: 'Success',
@@ -153,32 +170,17 @@ export const useAppointments = () => {
       // Refresh appointments list
       await fetchAppointments();
       
-      return response.data;
+      return data;
     } catch (err) {
       console.error('Error creating appointment:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create appointment';
       setError(errorMessage);
       
-      // Enhanced error handling for calendar permission issues
-      if (errorMessage.includes('Calendar Permission Error')) {
-        toast({
-          title: 'Calendar Permission Required',
-          description: 'Your GoHighLevel API key needs calendar permissions. Check the error details for setup instructions.',
-          variant: 'destructive',
-        });
-      } else if (errorMessage.includes('Authentication failed')) {
-        toast({
-          title: 'Authentication Error',
-          description: 'There\'s an issue with your GoHighLevel API credentials.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -190,19 +192,31 @@ export const useAppointments = () => {
     try {
       console.log('Updating appointment:', appointmentId, appointmentData);
       
-      const response = await supabase.functions.invoke('ghl-appointments', {
-        body: { 
-          action: 'update',
-          appointmentId,
-          appointmentData
-        },
-      });
+      // Update appointment in Supabase
+      const updateData: any = {};
+      
+      if (appointmentData.title) updateData.title = appointmentData.title;
+      if (appointmentData.contact_id) updateData.patient_id = appointmentData.contact_id;
+      if (appointmentData.start_time) updateData.start_time = appointmentData.start_time;
+      if (appointmentData.end_time) updateData.end_time = appointmentData.end_time;
+      if (appointmentData.status) updateData.status = appointmentData.status;
+      if (appointmentData.type) updateData.appointment_type = appointmentData.type;
+      if (appointmentData.notes) updateData.notes = appointmentData.notes;
+      if (appointmentData.location) updateData.location = appointmentData.location;
+      if (appointmentData.provider_id) updateData.provider_id = appointmentData.provider_id;
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      const { data, error } = await supabase
+        .from('appointments')
+        .update(updateData)
+        .eq('id', appointmentId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
       }
 
-      console.log('Appointment updated successfully:', response.data);
+      console.log('Appointment updated successfully:', data);
       
       toast({
         title: 'Success',
@@ -212,7 +226,7 @@ export const useAppointments = () => {
       // Refresh appointments list
       await fetchAppointments();
       
-      return response.data;
+      return data;
     } catch (err) {
       console.error('Error updating appointment:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to update appointment';
@@ -233,15 +247,14 @@ export const useAppointments = () => {
     try {
       console.log('Deleting appointment:', appointmentId);
       
-      const response = await supabase.functions.invoke('ghl-appointments', {
-        body: { 
-          action: 'delete',
-          appointmentId
-        },
-      });
+      // Delete appointment from Supabase
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentId);
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (error) {
+        throw new Error(error.message);
       }
 
       console.log('Appointment deleted successfully');
@@ -254,7 +267,7 @@ export const useAppointments = () => {
       // Refresh appointments list
       await fetchAppointments();
       
-      return response.data;
+      return { success: true };
     } catch (err) {
       console.error('Error deleting appointment:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete appointment';
@@ -270,42 +283,69 @@ export const useAppointments = () => {
     }
   };
 
-  const syncAppointments = async () => {
-    setLoading(true);
+  // Validation function to check appointment conflicts
+  const checkAppointmentConflicts = async (
+    startTime: string,
+    endTime: string,
+    providerId?: string,
+    excludeAppointmentId?: string
+  ): Promise<boolean> => {
     try {
-      console.log('Syncing appointments with GoHighLevel...');
-      
-      const response = await supabase.functions.invoke('ghl-appointments', {
-        body: { action: 'sync' },
-      });
+      let query = supabase
+        .from('appointments')
+        .select('id, start_time, end_time')
+        .neq('status', 'cancelled')
+        .or(`start_time.lt.${endTime},end_time.gt.${startTime}`);
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (providerId) {
+        query = query.eq('provider_id', providerId);
       }
 
-      console.log('Sync completed:', response.data);
-      
-      toast({
-        title: 'Sync Complete',
-        description: `Synced ${response.data.syncedCount} appointments from GoHighLevel`,
-      });
-      
-      // Refresh appointments list
-      await fetchAppointments();
-      
-      return response.data;
+      if (excludeAppointmentId) {
+        query = query.neq('id', excludeAppointmentId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error checking conflicts:', error);
+        return false;
+      }
+
+      return (data || []).length > 0;
     } catch (err) {
-      console.error('Error syncing appointments:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to sync appointments';
-      setError(errorMessage);
-      toast({
-        title: 'Sync Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      throw err;
-    } finally {
-      setLoading(false);
+      console.error('Error checking appointment conflicts:', err);
+      return false;
+    }
+  };
+
+  // Function to get available time slots for a provider on a specific date
+  const getAvailableTimeSlots = async (
+    providerId: string,
+    date: string,
+    durationMinutes: number = 60
+  ): Promise<{ start: string; end: string }[]> => {
+    try {
+      // This is a simplified version - in a real implementation,
+      // you'd check provider availability and existing appointments
+      const slots: { start: string; end: string }[] = [];
+      const startHour = 9; // 9 AM
+      const endHour = 17; // 5 PM
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        const startTime = `${date}T${hour.toString().padStart(2, '0')}:00:00`;
+        const endTime = `${date}T${hour.toString().padStart(2, '0')}:${durationMinutes.toString().padStart(2, '0')}:00`;
+        
+        const hasConflict = await checkAppointmentConflicts(startTime, endTime, providerId);
+        if (!hasConflict) {
+          slots.push({ start: startTime, end: endTime });
+        }
+      }
+      
+      return slots;
+    } catch (err) {
+      console.error('Error getting available time slots:', err);
+      return [];
     }
   };
 
@@ -321,6 +361,7 @@ export const useAppointments = () => {
     createAppointment,
     updateAppointment,
     deleteAppointment,
-    syncAppointments,
+    checkAppointmentConflicts,
+    getAvailableTimeSlots,
   };
 };

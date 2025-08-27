@@ -12,8 +12,8 @@ import { CalendarDays, Plus, RefreshCw, Search, Filter } from 'lucide-react';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { useAppointments, Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
-import { useGHLApi } from '@/hooks/useGHLApi';
 import { useCalendars } from '@/hooks/useCalendars';
+import { supabase } from '@/integrations/supabase/client';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
 
@@ -39,30 +39,38 @@ export default function Appointments() {
     error, 
     createAppointment, 
     updateAppointment, 
-    deleteAppointment, 
-    syncAppointments 
+    deleteAppointment
   } = useAppointments();
   
-  const ghlApi = useGHLApi();
   const { calendars, loading: calendarsLoading } = useCalendars();
 
-  // Load contacts on component mount
+  // Load patients on component mount
   React.useEffect(() => {
-    const loadContacts = async () => {
+    const loadPatients = async () => {
       try {
-        const contactsData = await ghlApi.contacts.getAll();
-        const formattedContacts = contactsData.contacts?.map((contact: any) => ({
-          id: contact.id,
-          name: contact.firstName && contact.lastName 
-            ? `${contact.firstName} ${contact.lastName}`
-            : contact.email || contact.phone || 'Unknown Contact'
-        })) || [];
+        const { data: patientsData, error } = await supabase
+          .from('patients')
+          .select('id, first_name, last_name, email')
+          .eq('is_active', true)
+          .order('first_name');
+
+        if (error) {
+          console.error('Error loading patients:', error);
+          return;
+        }
+
+        const formattedContacts = (patientsData || []).map((patient: any) => ({
+          id: patient.id,
+          name: patient.first_name && patient.last_name 
+            ? `${patient.first_name} ${patient.last_name}`
+            : patient.email || 'Unknown Patient'
+        }));
         setContacts(formattedContacts);
       } catch (error) {
-        console.error('Error loading contacts:', error);
+        console.error('Error loading patients:', error);
       }
     };
-    loadContacts();
+    loadPatients();
   }, []);
 
   // Filter appointments based on search and filters
@@ -247,15 +255,6 @@ export default function Appointments() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={syncAppointments}
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Sync
-              </Button>
               
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
