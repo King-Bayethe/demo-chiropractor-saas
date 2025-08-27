@@ -254,7 +254,23 @@ const handler = async (req: Request): Promise<Response> => {
           
           // Provide specific error messages for common issues
           if (ghlResponse.status === 403) {
-            throw new Error(`Authentication failed: The API key does not have access to this location (${ghlLocationId}). Please verify that your GOHIGHLEVEL_API_KEY and GOHIGHLEVEL_LOCATION_ID are correctly paired in Supabase secrets.`);
+            const errorData = JSON.parse(errorText);
+            
+            // More specific error based on the actual error message
+            if (errorData.message && errorData.message.includes('token does not have access to this location')) {
+              throw new Error(`Calendar Permission Error: Your GoHighLevel API key works for contacts but lacks calendar/appointment permissions for location ${ghlLocationId}. 
+              
+To fix this:
+1. In GoHighLevel, go to Settings > API
+2. Edit your API key permissions 
+3. Enable "Calendar" and "Appointment" scopes
+4. Or create a new API key with calendar permissions
+5. Update the GOHIGHLEVEL_API_KEY secret in Supabase
+
+Note: Contact features work because your API key has contact permissions, but calendar operations require additional permissions.`);
+            } else {
+              throw new Error(`Authentication failed: The API key does not have access to this location (${ghlLocationId}). Please verify that your GOHIGHLEVEL_API_KEY and GOHIGHLEVEL_LOCATION_ID are correctly paired in Supabase secrets.`);
+            }
           } else if (ghlResponse.status === 401) {
             throw new Error(`Authentication failed: Invalid API key. Please check your GOHIGHLEVEL_API_KEY in Supabase secrets.`);
           } else if (ghlResponse.status === 400) {

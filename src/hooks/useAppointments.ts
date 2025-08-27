@@ -158,11 +158,27 @@ export const useAppointments = () => {
       console.error('Error creating appointment:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create appointment';
       setError(errorMessage);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      
+      // Enhanced error handling for calendar permission issues
+      if (errorMessage.includes('Calendar Permission Error')) {
+        toast({
+          title: 'Calendar Permission Required',
+          description: 'Your GoHighLevel API key needs calendar permissions. Check the error details for setup instructions.',
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('Authentication failed')) {
+        toast({
+          title: 'Authentication Error',
+          description: 'There\'s an issue with your GoHighLevel API credentials.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
       throw err;
     } finally {
       setLoading(false);
