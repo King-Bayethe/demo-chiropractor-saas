@@ -30,8 +30,23 @@ export default function Settings() {
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">General settings coming soon...</p>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Company Timezone</h3>
+                <p className="text-sm text-muted-foreground">
+                  This timezone will be used for all scheduling and appointment times across the system.
+                </p>
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium">Default Timezone:</label>
+                  <span className="px-3 py-1 bg-medical-blue text-white rounded-md text-sm font-medium">
+                    Eastern Standard Time (EST)
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  All times displayed throughout the application will be shown in EST. 
+                  Provider availability and appointment scheduling will use EST as the reference timezone.
+                </p>
+              </div>
             </CardContent>
           </Card>
         );

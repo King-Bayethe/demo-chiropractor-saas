@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useProviderAvailability } from '@/hooks/useProviderAvailability';
 import { supabase } from '@/integrations/supabase/client';
+import { formatTimeWithTimezone } from '@/utils/timezone';
 import { Clock, Calendar, Plus, Edit, Trash2, Coffee } from 'lucide-react';
 
 interface ProviderAvailabilityManagerProps {
@@ -180,16 +181,16 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
                                   </Badge>
                                   {dayAvailability.is_available && (
                                     <>
-                                      <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4" />
-                                        <span>{dayAvailability.start_time} - {dayAvailability.end_time}</span>
-                                      </div>
-                                      {dayAvailability.break_start_time && (
-                                        <div className="flex items-center gap-2">
-                                          <Coffee className="h-4 w-4" />
-                                          <span>Break: {dayAvailability.break_start_time} - {dayAvailability.break_end_time}</span>
-                                        </div>
-                                      )}
+                                       <div className="flex items-center gap-2">
+                                         <Clock className="h-4 w-4" />
+                                         <span>{formatTimeWithTimezone(dayAvailability.start_time)} - {formatTimeWithTimezone(dayAvailability.end_time)}</span>
+                                       </div>
+                                       {dayAvailability.break_start_time && (
+                                         <div className="flex items-center gap-2">
+                                           <Coffee className="h-4 w-4" />
+                                           <span>Break: {formatTimeWithTimezone(dayAvailability.break_start_time)} - {formatTimeWithTimezone(dayAvailability.break_end_time)}</span>
+                                         </div>
+                                       )}
                                     </>
                                   )}
                                 </div>
@@ -237,8 +238,8 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
                             <div>
                               <h4 className="font-medium">{slot.title}</h4>
                               <p className="text-sm text-muted-foreground">
-                                {new Date(slot.start_time).toLocaleString()} - {new Date(slot.end_time).toLocaleString()}
-                              </p>
+                                 {new Date(slot.start_time).toLocaleString("en-US", { timeZone: "America/New_York", timeZoneName: "short" })} - {new Date(slot.end_time).toLocaleString("en-US", { timeZone: "America/New_York", timeZoneName: "short" })}
+                               </p>
                               {slot.reason && (
                                 <p className="text-sm text-muted-foreground mt-1">{slot.reason}</p>
                               )}
@@ -349,42 +350,42 @@ const AvailabilityEditDialog: React.FC<any> = ({ isOpen, onClose, availability, 
           {formData.is_available && (
             <>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Start Time</Label>
-                  <Input 
-                    type="time" 
-                    value={formData.start_time}
-                    onChange={(e) => setFormData({...formData, start_time: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>End Time</Label>
-                  <Input 
-                    type="time" 
-                    value={formData.end_time}
-                    onChange={(e) => setFormData({...formData, end_time: e.target.value})}
-                  />
-                </div>
+                 <div>
+                   <Label>Start Time (EST)</Label>
+                   <Input 
+                     type="time" 
+                     value={formData.start_time}
+                     onChange={(e) => setFormData({...formData, start_time: e.target.value})}
+                   />
+                 </div>
+                 <div>
+                   <Label>End Time (EST)</Label>
+                   <Input 
+                     type="time" 
+                     value={formData.end_time}
+                     onChange={(e) => setFormData({...formData, end_time: e.target.value})}
+                   />
+                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Break Start (Optional)</Label>
-                  <Input 
-                    type="time" 
-                    value={formData.break_start_time}
-                    onChange={(e) => setFormData({...formData, break_start_time: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Break End (Optional)</Label>
-                  <Input 
-                    type="time" 
-                    value={formData.break_end_time}
-                    onChange={(e) => setFormData({...formData, break_end_time: e.target.value})}
-                  />
-                </div>
-              </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <Label>Break Start (EST, Optional)</Label>
+                   <Input 
+                     type="time" 
+                     value={formData.break_start_time}
+                     onChange={(e) => setFormData({...formData, break_start_time: e.target.value})}
+                   />
+                 </div>
+                 <div>
+                   <Label>Break End (EST, Optional)</Label>
+                   <Input 
+                     type="time" 
+                     value={formData.break_end_time}
+                     onChange={(e) => setFormData({...formData, break_end_time: e.target.value})}
+                   />
+                 </div>
+               </div>
             </>
           )}
 
@@ -436,26 +437,26 @@ const BlockTimeDialog: React.FC<any> = ({ isOpen, onClose, onSave }) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Start Time</Label>
-              <Input 
-                type="datetime-local" 
-                value={formData.start_time}
-                onChange={(e) => setFormData({...formData, start_time: e.target.value})}
-                required
-              />
-            </div>
-            <div>
-              <Label>End Time</Label>
-              <Input 
-                type="datetime-local" 
-                value={formData.end_time}
-                onChange={(e) => setFormData({...formData, end_time: e.target.value})}
-                required
-              />
-            </div>
-          </div>
+           <div className="grid grid-cols-2 gap-4">
+             <div>
+               <Label>Start Time (EST)</Label>
+               <Input 
+                 type="datetime-local" 
+                 value={formData.start_time}
+                 onChange={(e) => setFormData({...formData, start_time: e.target.value})}
+                 required
+               />
+             </div>
+             <div>
+               <Label>End Time (EST)</Label>
+               <Input 
+                 type="datetime-local" 
+                 value={formData.end_time}
+                 onChange={(e) => setFormData({...formData, end_time: e.target.value})}
+                 required
+               />
+             </div>
+           </div>
 
           <div>
             <Label>Reason (Optional)</Label>
