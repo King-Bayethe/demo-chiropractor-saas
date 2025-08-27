@@ -48,7 +48,7 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { fetchUsers, getUserInitials, getUserName, getUserColor } = useUsers();
+  const { fetchUsers, getUser, getUserInitials, getUserName, getUserColor } = useUsers();
 
   // Auto-save for new note
   useAutoSave({
@@ -298,14 +298,18 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              <Avatar className="h-6 w-6 flex-shrink-0">
-                                <AvatarFallback className={cn("text-xs text-white", getUserColor(note.created_by))}>
+                              <Avatar className="h-7 w-7 flex-shrink-0 ring-2 ring-border">
+                                <AvatarImage 
+                                  src={getUser(note.created_by)?.avatar_url} 
+                                  alt={getUserName(note.created_by)}
+                                />
+                                <AvatarFallback className={cn("text-xs text-white font-medium", getUserColor(note.created_by))}>
                                   {getUserInitials(note.created_by)}
                                 </AvatarFallback>
                               </Avatar>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{getUserName(note.created_by)}</p>
+                              <p className="font-medium">{getUserName(note.created_by)}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
