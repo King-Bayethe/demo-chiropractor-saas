@@ -187,10 +187,16 @@ export function SmartSchedulingPanel({
   const checkForConflicts = async (timeSlot: string) => {
     if (!selectedProvider || !timeSlot) return;
     
-    const startTime = new Date(`${selectedDate.toDateString()} ${timeSlot}`);
-    const endTime = new Date(startTime.getTime() + duration * 60000);
-    
     try {
+      // timeSlot is an ISO string from slot.start
+      const startTime = new Date(timeSlot);
+      if (isNaN(startTime.getTime())) {
+        console.error('Invalid start time:', timeSlot);
+        return;
+      }
+      
+      const endTime = new Date(startTime.getTime() + duration * 60000);
+      
       const hasConflict = await checkAppointmentConflicts(
         startTime.toISOString(),
         endTime.toISOString(),
@@ -225,28 +231,38 @@ export function SmartSchedulingPanel({
   };
 
   const handleSchedule = () => {
-    if (!selectedTimeSlot || !selectedProvider || !selectedPatient) return;
+    if (!selectedPatient || !selectedTimeSlot || !appointmentType) return;
     
-    const startTime = new Date(`${selectedDate.toDateString()} ${selectedTimeSlot}`);
-    const endTime = new Date(startTime.getTime() + duration * 60000);
-    
-    const patientName = selectedPatient.first_name && selectedPatient.last_name 
-      ? `${selectedPatient.first_name} ${selectedPatient.last_name}`
-      : selectedPatient.email || 'Unknown Patient';
-    
-    const appointmentData = {
-      title: `${appointmentType} - ${patientName}`,
-      contact_id: selectedPatient.id,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
-      provider_id: selectedProvider,
-      type: appointmentType,
-      notes: notes,
-      status: 'scheduled'
-    };
-    
-    onScheduleAppointment(appointmentData);
-    onClose();
+    try {
+      // selectedTimeSlot is an ISO string from slot.start
+      const startTime = new Date(selectedTimeSlot);
+      if (isNaN(startTime.getTime())) {
+        console.error('Invalid start time:', selectedTimeSlot);
+        return;
+      }
+      
+      const endTime = new Date(startTime.getTime() + duration * 60000);
+      
+      const patientName = selectedPatient.first_name && selectedPatient.last_name 
+        ? `${selectedPatient.first_name} ${selectedPatient.last_name}`
+        : selectedPatient.email || 'Unknown Patient';
+      
+      const appointmentData = {
+        title: `${appointmentType} - ${patientName}`,
+        contact_id: selectedPatient.id,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        provider_id: selectedProvider,
+        type: appointmentType,
+        notes: notes,
+        status: 'scheduled'
+      };
+      
+      onScheduleAppointment(appointmentData);
+      onClose();
+    } catch (error) {
+      console.error('Error scheduling appointment:', error);
+    }
   };
 
   const getPatientDisplayName = (patient: Patient) => {
