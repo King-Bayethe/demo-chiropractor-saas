@@ -1752,6 +1752,7 @@ export default function PatientProfile() {
             setSelectedNoteId(null);
           }}
           onExport={handleExportSOAPNote}
+          getSOAPNote={getSOAPNote}
         />
       </Layout>
     </AuthGuard>

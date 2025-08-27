@@ -28,6 +28,7 @@ interface SOAPNoteViewModalProps {
   onClose: () => void;
   onEdit?: (noteId: string) => void;
   onExport?: (noteId: string) => void;
+  getSOAPNote?: (noteId: string) => Promise<SOAPNote | null>;
 }
 
 export function SOAPNoteViewModal({ 
@@ -35,12 +36,16 @@ export function SOAPNoteViewModal({
   isOpen, 
   onClose, 
   onEdit, 
-  onExport 
+  onExport,
+  getSOAPNote: propGetSOAPNote
 }: SOAPNoteViewModalProps) {
   const [soapNote, setSOAPNote] = useState<SOAPNote | null>(null);
   const [loading, setLoading] = useState(false);
-  const { getSOAPNote } = useSOAPNotes();
+  const { getSOAPNote: hookGetSOAPNote } = useSOAPNotes();
   const navigate = useNavigate();
+  
+  // Use prop function if provided, otherwise use hook function
+  const getSOAPNote = propGetSOAPNote || hookGetSOAPNote;
 
   useEffect(() => {
     if (noteId && isOpen) {
