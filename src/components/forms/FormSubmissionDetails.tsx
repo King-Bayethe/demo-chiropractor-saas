@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format } from "date-fns";
-import { Download, FileText, Copy, Check } from "lucide-react";
+import { Download, FileText, Copy, Check, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,6 +27,7 @@ export function FormSubmissionDetails({
   onExport 
 }: FormSubmissionDetailsProps) {
   const [copied, setCopied] = useState(false);
+  const [isRawDataOpen, setIsRawDataOpen] = useState(false);
 
   const copyToClipboard = async () => {
     try {
@@ -294,16 +296,31 @@ export function FormSubmissionDetails({
       </div>
 
       {/* Raw JSON data (collapsible) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Raw Form Data (JSON)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <pre className="text-xs bg-muted p-4 rounded overflow-auto max-h-60">
-            {JSON.stringify(formData, null, 2)}
-          </pre>
-        </CardContent>
-      </Card>
+      <Collapsible open={isRawDataOpen} onOpenChange={setIsRawDataOpen}>
+        <Card className="border-dashed">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Raw Form Data (JSON)
+                </CardTitle>
+                {isRawDataOpen ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <pre className="text-xs bg-muted p-4 rounded overflow-auto max-h-60 border">
+                {JSON.stringify(formData, null, 2)}
+              </pre>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 }
