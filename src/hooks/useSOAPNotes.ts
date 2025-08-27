@@ -35,16 +35,20 @@ export function useSOAPNotes() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.functions.invoke('soap-notes', {
+      const params = new URLSearchParams({
+        limit: (options?.limit || 50).toString(),
+        offset: (options?.offset || 0).toString(),
+        search: options?.search || '',
+      });
+      
+      if (options?.patientId) {
+        params.append('patientId', options.patientId);
+      }
+
+      const { data, error } = await supabase.functions.invoke(`soap-notes?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: {
-          limit: options?.limit || 50,
-          offset: options?.offset || 0,
-          search: options?.search || '',
-          patientId: options?.patientId || ''
         }
       });
 

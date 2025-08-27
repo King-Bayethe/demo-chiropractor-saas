@@ -107,8 +107,9 @@ serve(async (req) => {
           const limit = parseInt(urlObj.searchParams.get('limit') || '50');
           const offset = parseInt(urlObj.searchParams.get('offset') || '0');
           const searchTerm = urlObj.searchParams.get('search') || '';
+          const patientId = urlObj.searchParams.get('patientId') || '';
 
-          console.log('Fetching SOAP notes with params:', { limit, offset, searchTerm });
+          console.log('Fetching SOAP notes with params:', { limit, offset, searchTerm, patientId });
           let query = supabaseClient
             .from('soap_notes')
             .select(`
@@ -118,6 +119,10 @@ serve(async (req) => {
             .order('date_of_service', { ascending: false })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
+
+          if (patientId) {
+            query = query.eq('patient_id', patientId);
+          }
 
           if (searchTerm) {
             query = query.or(`chief_complaint.ilike.%${searchTerm}%,provider_name.ilike.%${searchTerm}%`);

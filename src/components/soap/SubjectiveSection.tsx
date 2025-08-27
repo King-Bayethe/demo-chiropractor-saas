@@ -247,23 +247,23 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
       }
     }
     
-    // Smart mapping for pain description
-    if (!updatedData.painDescription) {
-      let painDesc = '';
-      
-      if (patient.pain_description) {
-        if (typeof patient.pain_description === 'object') {
-          // Handle object format from PIP form
-          if (patient.pain_description && typeof patient.pain_description === 'object') {
-            const painTypes = Object.entries(patient.pain_description)
-              .filter(([key, value]) => value === true)
-              .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
-            painDesc = painTypes.length > 0 ? painTypes.join(', ') : '';
+      // Smart mapping for pain description
+      if (!updatedData.painDescription) {
+        let painDesc = '';
+        
+        if (patient.pain_description) {
+          if (typeof patient.pain_description === 'object') {
+            // Handle object format from PIP form
+            if (Object.keys(patient.pain_description).length > 0) {
+              const painTypes = Object.entries(patient.pain_description)
+                .filter(([key, value]) => value === true)
+                .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+              painDesc = painTypes.length > 0 ? painTypes.join(', ') : '';
+            }
+          } else {
+            painDesc = patient.pain_description;
           }
-        } else {
-          painDesc = patient.pain_description;
-        }
-      } else if (patient.current_symptoms) {
+        } else if (patient.current_symptoms) {
         if (typeof patient.current_symptoms === 'object') {
           painDesc = JSON.stringify(patient.current_symptoms);
         } else {
@@ -740,7 +740,18 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
               <p className="text-sm text-muted-foreground mb-2">Describe the character, location, duration, and triggers</p>
                 <Textarea
                   id="painDescription"
-                  value={typeof data.painDescription === 'string' ? data.painDescription : ''}
+                  value={(() => {
+                    if (typeof data.painDescription === 'string') {
+                      return data.painDescription;
+                    } else if (typeof data.painDescription === 'object' && data.painDescription !== null) {
+                      // Convert object to readable string
+                      const painTypes = Object.entries(data.painDescription)
+                        .filter(([key, value]) => value === true)
+                        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+                      return painTypes.length > 0 ? painTypes.join(', ') : '';
+                    }
+                    return '';
+                  })()}
                   onChange={(e) => onChange({ ...data, painDescription: e.target.value })}
                 placeholder="e.g., Sharp, stabbing pain in lower back, worse in morning, radiates to left leg..."
                 rows={3}
