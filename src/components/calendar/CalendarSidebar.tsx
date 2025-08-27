@@ -30,6 +30,12 @@ interface CalendarSidebarProps {
   };
   onFiltersChange: (filters: any) => void;
   onToggle: () => void;
+  todaysStats?: {
+    total: number;
+    completed: number;
+    pending: number;
+    cancelled: number;
+  };
 }
 
 export function CalendarSidebar({
@@ -38,7 +44,8 @@ export function CalendarSidebar({
   onDateChange,
   filters,
   onFiltersChange,
-  onToggle
+  onToggle,
+  todaysStats
 }: CalendarSidebarProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(currentDate);
   const [isFiltersOpen, setIsFiltersOpen] = useState(true);
@@ -259,19 +266,19 @@ export function CalendarSidebar({
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total Appointments</span>
-              <span className="font-medium">12</span>
+              <span className="font-medium">{todaysStats?.total || 0}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Completed</span>
-              <span className="font-medium text-success">8</span>
+              <span className="font-medium text-success">{todaysStats?.completed || 0}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Pending</span>
-              <span className="font-medium text-warning">3</span>
+              <span className="font-medium text-warning">{todaysStats?.pending || 0}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Cancelled</span>
-              <span className="font-medium text-destructive">1</span>
+              <span className="font-medium text-destructive">{todaysStats?.cancelled || 0}</span>
             </div>
           </CardContent>
         </Card>

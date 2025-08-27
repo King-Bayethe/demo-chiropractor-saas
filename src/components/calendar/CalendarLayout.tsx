@@ -17,6 +17,12 @@ interface CalendarLayoutProps {
   onFiltersChange: (filters: any) => void;
   isSidebarCollapsed: boolean;
   onSidebarToggle: () => void;
+  todaysStats?: {
+    total: number;
+    completed: number;
+    pending: number;
+    cancelled: number;
+  };
 }
 
 export function CalendarLayout({
@@ -29,7 +35,8 @@ export function CalendarLayout({
   filters,
   onFiltersChange,
   isSidebarCollapsed,
-  onSidebarToggle
+  onSidebarToggle,
+  todaysStats
 }: CalendarLayoutProps) {
   return (
     <div className="h-full flex bg-background">
@@ -41,6 +48,7 @@ export function CalendarLayout({
         filters={filters}
         onFiltersChange={onFiltersChange}
         onToggle={onSidebarToggle}
+        todaysStats={todaysStats}
       />
       
       {/* Main Content */}

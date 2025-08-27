@@ -178,10 +178,26 @@ export default function Calendar() {
   // Filter appointments based on current filters
   const filteredAppointments = displayAppointments.filter(apt => {
     if (filters.status.length > 0 && !filters.status.includes(apt.status)) return false;
-    if (filters.types.length > 0 && !filters.types.includes(apt.type.toLowerCase())) return false;
+    if (filters.types.length > 0 && !filters.types.includes(apt.type?.toLowerCase() || '')) return false;
     if (filters.providers.length > 0 && !filters.providers.includes(apt.provider)) return false;
     return true;
   });
+
+  // Calculate today's stats for sidebar
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+  
+  const todaysAppointments = filteredAppointments.filter(apt => 
+    apt.startTime >= todayStart && apt.startTime < todayEnd
+  );
+  
+  const todaysStats = {
+    total: todaysAppointments.length,
+    completed: todaysAppointments.filter(apt => apt.status === 'completed').length,
+    pending: todaysAppointments.filter(apt => apt.status === 'scheduled' || apt.status === 'confirmed').length,
+    cancelled: todaysAppointments.filter(apt => apt.status === 'cancelled').length
+  };
 
   return (
     <AuthGuard>
@@ -196,6 +212,7 @@ export default function Calendar() {
           onFiltersChange={setFilters}
           isSidebarCollapsed={isSidebarCollapsed}
           onSidebarToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          todaysStats={todaysStats}
         >
           {loading ? (
             <div className="flex items-center justify-center h-full">
