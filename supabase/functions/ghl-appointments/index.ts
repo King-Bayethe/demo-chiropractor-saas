@@ -196,23 +196,30 @@ const handler = async (req: Request): Promise<Response> => {
           if (calendarGroupId) {
             try {
               // Get calendars from the specific group
+              console.log(`Attempting to fetch calendars from group: ${calendarGroupId}`);
               const calendarsResponse = await fetch(
                 `https://services.leadconnectorhq.com/calendars/groups/${calendarGroupId}/calendars`,
                 { headers: ghlHeaders }
               );
               
+              console.log(`Calendars response status: ${calendarsResponse.status}`);
+              const calendarsText = await calendarsResponse.text();
+              console.log(`Calendars response body: ${calendarsText}`);
+              
               if (calendarsResponse.ok) {
-                const calendarsData = await calendarsResponse.json();
+                const calendarsData = JSON.parse(calendarsText);
                 const calendars = calendarsData.calendars || [];
-                console.log(`Found ${calendars.length} calendars in group ${calendarGroupId}`);
+                console.log(`Found ${calendars.length} calendars in group ${calendarGroupId}:`, calendars);
                 
                 // Use the first available calendar
                 if (calendars.length > 0) {
                   calendarId = calendars[0].id;
                   console.log(`Using calendar ID: ${calendarId}`);
+                } else {
+                  console.log('No calendars found in the specified group');
                 }
               } else {
-                console.error(`Failed to fetch calendars for group ${calendarGroupId}: ${calendarsResponse.status}`);
+                console.error(`Failed to fetch calendars for group ${calendarGroupId}: ${calendarsResponse.status} - ${calendarsText}`);
               }
             } catch (error) {
               console.error('Error fetching calendars from group:', error);
