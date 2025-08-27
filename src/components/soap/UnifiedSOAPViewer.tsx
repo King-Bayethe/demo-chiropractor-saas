@@ -196,7 +196,7 @@ export function UnifiedSOAPViewer({ soapNote, patientName }: UnifiedSOAPViewerPr
               </div>
             )}
             
-            {soapNote.subjective_data?.painDescription && (
+            {soapNote.subjective_data?.painDescription && typeof soapNote.subjective_data.painDescription === 'string' && (
               <div>
                 <h4 className="font-medium text-sm mb-2">Pain Description</h4>
                 <p className="text-sm">{soapNote.subjective_data.painDescription}</p>

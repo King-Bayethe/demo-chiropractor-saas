@@ -94,7 +94,7 @@ export function SOAPNoteDisplay({ note, patientName }: SOAPNoteDisplayProps) {
             </div>
           )}
 
-          {subjectiveData?.painDescription && (
+          {subjectiveData?.painDescription && typeof subjectiveData.painDescription === 'string' && (
             <div>
               <h4 className="font-medium text-sm mb-2">Pain Description</h4>
               <p className="text-sm bg-muted/30 p-3 rounded-md">{subjectiveData.painDescription}</p>

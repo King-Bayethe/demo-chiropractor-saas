@@ -254,7 +254,7 @@ export function SOAPViewer({ soapNote }: SOAPViewerProps) {
                           </div>
                           <div className="text-sm text-blue-700">Pain Scale</div>
                         </div>
-                        {soapNote.subjective_data.painDescription && (
+                        {soapNote.subjective_data.painDescription && typeof soapNote.subjective_data.painDescription === 'string' && (
                           <div className="mt-3 text-sm text-blue-800">
                             <span className="font-medium">Description:</span> {soapNote.subjective_data.painDescription}
                           </div>
