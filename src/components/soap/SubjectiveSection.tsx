@@ -602,12 +602,15 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
         autofillData.medicalHistory
       );
       
-      // Only autofill if there's meaningful data and current form is mostly empty
+      // In edit mode, always try to enhance existing data with patient info
+      // Check if we should autofill - either form is empty OR we're missing key patient data
       const formNeedsAutofill = (
         !data.currentSymptoms || Object.values(data.currentSymptoms || {}).every(val => !val) ||
         !data.familyHistory || Object.values(data.familyHistory || {}).every(val => !val) ||
         !data.painScale || !data.painDescription ||
-        !data.medicalHistory || (!data.medicalHistory.allergies && !data.medicalHistory.medications)
+        !data.medicalHistory || 
+        (!data.medicalHistory.allergies && patient?.allergies) ||
+        (!data.medicalHistory.medications && patient?.current_medications)
       );
       
       if (hasAutofillData && formNeedsAutofill) {
@@ -624,6 +627,9 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
           },
           medicalHistory: {
             ...data.medicalHistory,
+            // Always use patient data if available, even in edit mode
+            allergies: autofillData.medicalHistory?.allergies || data.medicalHistory?.allergies,
+            medications: autofillData.medicalHistory?.medications || data.medicalHistory?.medications,
             ...autofillData.medicalHistory
           },
           painScale: autofillData.painScale || data.painScale,
