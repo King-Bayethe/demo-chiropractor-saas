@@ -15,11 +15,14 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
 import { Calendar as CalendarType } from '@/hooks/useCalendars';
+import { Calendar } from '@/components/ui/calendar';
 
 const appointmentSchema = z.object({
   title: z.string().optional(),
   contact_id: z.string().optional(),
+  start_date: z.date().optional(),
   start_time: z.string().optional(),
+  end_date: z.date().optional(),
   end_time: z.string().optional(),
   status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'no_show']),
   type: z.enum(['consultation', 'treatment', 'follow_up', 'procedure']),
@@ -28,6 +31,8 @@ const appointmentSchema = z.object({
   provider_id: z.string().optional(),
   calendarId: z.string().optional(),
 });
+
+type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
 interface AppointmentFormProps {
   appointment?: Appointment;
@@ -47,16 +52,20 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
   onCancel,
   loading = false,
-}) => {
+ }) => {
   const [contactOpen, setContactOpen] = useState(false);
   const [providerOpen, setProviderOpen] = useState(false);
-  const form = useForm<CreateAppointmentData>({
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       title: appointment?.title || '',
       contact_id: appointment?.contact_id || '',
-      start_time: appointment?.start_time ? format(parseISO(appointment.start_time), "yyyy-MM-dd'T'HH:mm") : '',
-      end_time: appointment?.end_time ? format(parseISO(appointment.end_time), "yyyy-MM-dd'T'HH:mm") : '',
+      start_date: appointment?.start_time ? new Date(appointment.start_time) : new Date(),
+      start_time: appointment?.start_time ? format(parseISO(appointment.start_time), 'HH:mm') : '09:00',
+      end_date: appointment?.end_time ? new Date(appointment.end_time) : new Date(),
+      end_time: appointment?.end_time ? format(parseISO(appointment.end_time), 'HH:mm') : '10:00',
       status: appointment?.status || 'scheduled',
       type: appointment?.type || 'consultation',
       notes: appointment?.notes || '',
@@ -66,15 +75,28 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
     },
   });
 
-  const handleSubmit = async (data: CreateAppointmentData) => {
+  const handleSubmit = async (data: AppointmentFormData) => {
     try {
-      // Convert datetime-local format to ISO string
-      const submitData = {
-        ...data,
-        start_time: new Date(data.start_time).toISOString(),
-        end_time: new Date(data.end_time).toISOString(),
-        // Convert "none" back to empty string for provider_id
+      // Combine date and time for start and end times
+      const startDateTime = new Date(data.start_date!);
+      const [startHour, startMin] = data.start_time!.split(':');
+      startDateTime.setHours(parseInt(startHour), parseInt(startMin));
+
+      const endDateTime = new Date(data.end_date!);
+      const [endHour, endMin] = data.end_time!.split(':');
+      endDateTime.setHours(parseInt(endHour), parseInt(endMin));
+
+      const submitData: CreateAppointmentData = {
+        title: data.title,
+        contact_id: data.contact_id,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        status: data.status,
+        type: data.type,
+        notes: data.notes,
+        location: data.location,
         provider_id: data.provider_id === 'none' ? '' : data.provider_id,
+        calendarId: data.calendarId,
       };
       await onSubmit(submitData);
     } catch (error) {
@@ -186,6 +208,53 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
+              name="start_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                    <CalendarIcon className="h-4 w-4" />
+                    Start Date
+                  </FormLabel>
+                  <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-11 pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setStartDateOpen(false);
+                        }}
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="start_time"
               render={({ field }) => (
                 <FormItem>
@@ -194,8 +263,57 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
                     Start Time
                   </FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" className="h-11" {...field} />
+                    <Input type="time" className="h-11" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="end_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                    <CalendarIcon className="h-4 w-4" />
+                    End Date
+                  </FormLabel>
+                  <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-11 pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setEndDateOpen(false);
+                        }}
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -211,7 +329,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
                     End Time
                   </FormLabel>
                   <FormControl>
-                    <Input type="datetime-local" className="h-11" {...field} />
+                    <Input type="time" className="h-11" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
