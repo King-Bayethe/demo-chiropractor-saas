@@ -6,6 +6,7 @@ import { SettingsLayout } from "@/components/SettingsLayout";
 import { MyProfileSection } from "@/components/MyProfileSection";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 import { AISettings } from "@/components/settings/AISettings";
+import { UserManagement } from "@/components/settings/UserManagement";
 import { ProviderAvailabilityManager } from "@/components/calendar/ProviderAvailabilityManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -89,6 +90,8 @@ export default function Settings() {
             </CardContent>
           </Card>
         );
+      case "users":
+        return <UserManagement />;
       default:
         return <MyProfileSection />;
     }

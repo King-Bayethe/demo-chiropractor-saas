@@ -9,6 +9,14 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  // Impersonation state
+  isImpersonating: boolean;
+  originalUser: User | null;
+  originalProfile: UserProfile | null;
+  impersonatedUser: User | null;
+  impersonatedProfile: UserProfile | null;
+  startImpersonation: (targetUserId: string, reason?: string) => Promise<boolean>;
+  endImpersonation: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +38,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Impersonation state
+  const [isImpersonating, setIsImpersonating] = useState(false);
+  const [originalUser, setOriginalUser] = useState<User | null>(null);
+  const [originalProfile, setOriginalProfile] = useState<UserProfile | null>(null);
+  const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
+  const [impersonatedProfile, setImpersonatedProfile] = useState<UserProfile | null>(null);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -89,6 +104,100 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const startImpersonation = async (targetUserId: string, reason?: string): Promise<boolean> => {
+    try {
+      // Verify current user is overlord
+      if (profile?.role !== 'overlord') {
+        throw new Error('Only overlords can impersonate users');
+      }
+
+      // Fetch target user profile
+      const { data: targetProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', targetUserId)
+        .single();
+
+      if (profileError) {
+        throw new Error('Target user not found');
+      }
+
+      // Create impersonation session record
+      const { error: sessionError } = await supabase
+        .from('impersonation_sessions')
+        .insert({
+          overlord_id: user!.id,
+          impersonated_user_id: targetUserId,
+          reason: reason || 'User support',
+          ip_address: null, // Could be populated from request
+          user_agent: navigator.userAgent
+        });
+
+      if (sessionError) {
+        throw new Error('Failed to create impersonation session');
+      }
+
+      // Store original user data
+      setOriginalUser(user);
+      setOriginalProfile(profile);
+
+      // Create mock user object for impersonated user
+      const mockUser: User = {
+        id: targetUserId,
+        email: targetProfile.email,
+        user_metadata: {
+          first_name: targetProfile.first_name,
+          last_name: targetProfile.last_name
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        confirmed_at: new Date().toISOString(),
+        last_sign_in_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Update state for impersonation
+      setUser(mockUser);
+      setProfile(targetProfile);
+      setImpersonatedUser(mockUser);
+      setImpersonatedProfile(targetProfile);
+      setIsImpersonating(true);
+
+      return true;
+    } catch (error) {
+      console.error('Error starting impersonation:', error);
+      return false;
+    }
+  };
+
+  const endImpersonation = async (): Promise<void> => {
+    try {
+      if (!isImpersonating || !originalUser) return;
+
+      // End the impersonation session
+      await supabase
+        .from('impersonation_sessions')
+        .update({ 
+          ended_at: new Date().toISOString(),
+          is_active: false 
+        })
+        .eq('overlord_id', originalUser.id)
+        .eq('is_active', true);
+
+      // Restore original user state
+      setUser(originalUser);
+      setProfile(originalProfile);
+      setIsImpersonating(false);
+      setImpersonatedUser(null);
+      setImpersonatedProfile(null);
+      setOriginalUser(null);
+      setOriginalProfile(null);
+    } catch (error) {
+      console.error('Error ending impersonation:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -129,7 +238,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     profile,
     loading,
-    refreshProfile
+    refreshProfile,
+    isImpersonating,
+    originalUser,
+    originalProfile,
+    impersonatedUser,
+    impersonatedProfile,
+    startImpersonation,
+    endImpersonation
   };
 
   return (

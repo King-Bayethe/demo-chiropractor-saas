@@ -514,6 +514,48 @@ export type Database = {
           },
         ]
       }
+      impersonation_sessions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          impersonated_user_id: string
+          ip_address: unknown | null
+          is_active: boolean
+          overlord_id: string
+          reason: string | null
+          started_at: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          impersonated_user_id: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          overlord_id: string
+          reason?: string | null
+          started_at?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          impersonated_user_id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          overlord_id?: string
+          reason?: string | null
+          started_at?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       ip_whitelist: {
         Row: {
           created_at: string

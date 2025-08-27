@@ -10,7 +10,8 @@ import {
   Puzzle,
   Shield,
   Brain,
-  Calendar
+  Calendar,
+  Users
 } from "lucide-react";
 
 interface SettingsLayoutProps {
@@ -59,6 +60,11 @@ const settingsSections = [
     id: "security",
     label: "Security",
     icon: Shield
+  },
+  {
+    id: "users",
+    label: "User Management",
+    icon: Users
   }
 ];
 
