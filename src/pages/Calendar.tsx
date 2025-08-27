@@ -40,6 +40,8 @@ export default function Calendar() {
   const [isSmartSchedulingOpen, setIsSmartSchedulingOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<DisplayAppointment | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<DisplayAppointment | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [filters, setFilters] = useState({
     providers: [] as string[],
@@ -47,7 +49,7 @@ export default function Calendar() {
     types: [] as string[]
   });
   const { toast } = useToast();
-  const { appointments, loading, createAppointment, fetchAppointments } = useAppointments();
+  const { appointments, loading, createAppointment, updateAppointment, fetchAppointments } = useAppointments();
   const { calendars, loading: calendarsLoading } = useCalendars();
 
   useEffect(() => {
@@ -173,8 +175,29 @@ export default function Calendar() {
   const handleEditAppointment = (appointment: DisplayAppointment) => {
     // Close detail dialog and open edit form
     setIsDetailDialogOpen(false);
-    // TODO: Implement edit functionality
-    console.log('Edit appointment:', appointment);
+    setEditingAppointment(appointment);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateAppointment = async (appointmentData: any) => {
+    if (!editingAppointment) return;
+    
+    try {
+      await updateAppointment(editingAppointment.id, appointmentData);
+      setIsEditDialogOpen(false);
+      setEditingAppointment(null);
+      toast({
+        title: "Success",
+        description: "Appointment updated successfully",
+      });
+    } catch (error) {
+      console.error('Failed to update appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update appointment",
+        variant: "destructive",
+      });
+    }
   };
 
   // Filter appointments based on current filters
@@ -263,6 +286,37 @@ export default function Calendar() {
           onOpenChange={setIsDetailDialogOpen}
           onEdit={handleEditAppointment}
         />
+
+        {/* Edit Appointment Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <AppointmentForm
+            appointment={editingAppointment ? {
+              id: editingAppointment.id,
+              title: editingAppointment.title,
+              contact_id: editingAppointment.patientId,
+              start_time: editingAppointment.startTime.toISOString(),
+              end_time: editingAppointment.endTime.toISOString(),
+              status: editingAppointment.status,
+              type: editingAppointment.type as 'consultation' | 'treatment' | 'follow_up' | 'procedure',
+              notes: editingAppointment.notes || '',
+              location: editingAppointment.location || '',
+              provider_id: '', // Will be resolved from provider name
+              contact_name: editingAppointment.patientName,
+              provider_name: editingAppointment.provider,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            } : undefined}
+            contacts={contacts}
+            providers={providers}
+            calendars={calendars}
+            onSubmit={handleUpdateAppointment}
+            onCancel={() => {
+              setIsEditDialogOpen(false);
+              setEditingAppointment(null);
+            }}
+            loading={loading || calendarsLoading}
+          />
+        </Dialog>
       </Layout>
     </AuthGuard>
   );

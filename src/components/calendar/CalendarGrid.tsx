@@ -44,7 +44,7 @@ const AppointmentCard: React.FC<{
   onClick: () => void;
   compact?: boolean;
 }> = ({ appointment, onClick, compact = false }) => {
-  const timeDisplay = `${format(appointment.startTime, 'HH:mm')}`;
+  const timeDisplay = format(appointment.startTime, 'h:mm a');
   
   return (
     <Card 
@@ -85,7 +85,7 @@ const AppointmentCard: React.FC<{
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  {format(appointment.startTime, 'HH:mm')} - {format(appointment.endTime, 'HH:mm')}
+                  {format(appointment.startTime, 'h:mm a')} - {format(appointment.endTime, 'h:mm a')}
                 </span>
               </div>
               
@@ -213,7 +213,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             <div className="bg-background">
               {Array.from({ length: 24 }, (_, hour) => (
                 <div key={hour} className="h-16 border-b border-border p-2 text-sm text-muted-foreground">
-                  {format(new Date().setHours(hour, 0), 'HH:mm')}
+                  {format(new Date().setHours(hour, 0), 'h a')}
                 </div>
               ))}
             </div>
