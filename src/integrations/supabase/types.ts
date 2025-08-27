@@ -1763,6 +1763,10 @@ export type Database = {
         Args: { chat_id_to_check: string; user_id_to_check: string }
         Returns: boolean
       }
+      is_overlord: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_patient_access: {
         Args: {
           action_param: string

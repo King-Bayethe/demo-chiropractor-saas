@@ -40,6 +40,7 @@ export const useProviderAvailability = () => {
   const [blockedSlots, setBlockedSlots] = useState<BlockedTimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchProviderAvailability = async (providerId?: string) => {
@@ -124,6 +125,11 @@ export const useProviderAvailability = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Check permission: user can only create availability for themselves unless they're overlord
+      if (userRole !== 'overlord' && availabilityData.provider_id !== user.id) {
+        throw new Error('Permission denied: You can only manage your own schedule');
+      }
+
       const { data, error } = await supabase
         .from('provider_availability')
         .insert({
@@ -156,6 +162,14 @@ export const useProviderAvailability = () => {
 
   const updateAvailability = async (id: string, updates: Partial<ProviderAvailability>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Check permission: user can only update availability for themselves unless they're overlord  
+      if (userRole !== 'overlord' && updates.provider_id && updates.provider_id !== user.id) {
+        throw new Error('Permission denied: You can only manage your own schedule');
+      }
+
       const { data, error } = await supabase
         .from('provider_availability')
         .update(updates)
@@ -188,6 +202,11 @@ export const useProviderAvailability = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+
+      // Check permission: user can only create blocked slots for themselves unless they're overlord
+      if (userRole !== 'overlord' && blockData.provider_id && blockData.provider_id !== user.id) {
+        throw new Error('Permission denied: You can only manage your own schedule');
+      }
 
       const { data, error } = await supabase
         .from('blocked_time_slots')
@@ -303,7 +322,26 @@ export const useProviderAvailability = () => {
     }
   };
 
+  const fetchUserRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      setUserRole(data?.role || null);
+    } catch (err) {
+      console.error('Error fetching user role:', err);
+    }
+  };
+
   useEffect(() => {
+    fetchUserRole();
     fetchProviderAvailability();
     fetchBlockedSlots();
   }, []);

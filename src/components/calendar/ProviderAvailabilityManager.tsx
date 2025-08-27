@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useProviderAvailability } from '@/hooks/useProviderAvailability';
 import { supabase } from '@/integrations/supabase/client';
 import { formatTimeWithTimezone } from '@/utils/timezone';
+import { useAuth } from '@/contexts/AuthContext';
 import { Clock, Calendar, Plus, Edit, Trash2, Coffee } from 'lucide-react';
 
 interface ProviderAvailabilityManagerProps {
@@ -20,11 +21,15 @@ interface ProviderAvailabilityManagerProps {
 export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerProps> = ({
   providerId
 }) => {
-  const [providers, setProviders] = useState<Array<{ id: string; name: string }>>([]);
+  const { profile } = useAuth();
+  const [providers, setProviders] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [selectedProviderId, setSelectedProviderId] = useState(providerId || '');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingAvailability, setEditingAvailability] = useState<any>(null);
   const [isBlockTimeDialogOpen, setIsBlockTimeDialogOpen] = useState(false);
+
+  const isOverlord = profile?.role === 'overlord';
+  const canEditAnySchedule = isOverlord;
 
   const {
     availability,
@@ -52,6 +57,13 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
   }, []);
 
   useEffect(() => {
+    // Auto-select current user's profile if not overlord
+    if (profile && !canEditAnySchedule && !selectedProviderId) {
+      setSelectedProviderId(profile.user_id);
+    }
+  }, [profile, canEditAnySchedule, selectedProviderId]);
+
+  useEffect(() => {
     if (selectedProviderId) {
       fetchProviderAvailability(selectedProviderId);
       fetchBlockedSlots(selectedProviderId);
@@ -62,12 +74,13 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
     try {
       const { data } = await supabase
         .from('profiles')
-        .select('user_id, first_name, last_name, email')
+        .select('user_id, first_name, last_name, email, role')
         .eq('is_active', true)
-        .in('role', ['doctor', 'provider', 'staff']);
+        .in('role', ['doctor', 'provider', 'staff', 'overlord', 'admin']);
 
       const formattedProviders = (data || []).map((provider: any) => ({
         id: provider.user_id,
+        role: provider.role,
         name: provider.first_name && provider.last_name 
           ? `${provider.first_name} ${provider.last_name}`
           : provider.email || 'Provider'
@@ -76,7 +89,12 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
       setProviders(formattedProviders);
       
       if (!selectedProviderId && formattedProviders.length > 0) {
-        setSelectedProviderId(formattedProviders[0].id);
+        // Auto-select current user if not overlord, otherwise first provider
+        if (!canEditAnySchedule && profile) {
+          setSelectedProviderId(profile.user_id);
+        } else {
+          setSelectedProviderId(formattedProviders[0].id);
+        }
       }
     } catch (error) {
       console.error('Error loading providers:', error);
@@ -116,6 +134,9 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
     return availability.find(a => a.provider_id === selectedProviderId && a.day_of_week === dayOfWeek);
   };
 
+  const selectedProvider = providers.find(p => p.id === selectedProviderId);
+  const canEditSelectedProvider = canEditAnySchedule || selectedProviderId === profile?.user_id;
+
   return (
     <div className="space-y-6">
       <Card>
@@ -126,21 +147,30 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="provider-select">Select Provider</Label>
-            <Select value={selectedProviderId} onValueChange={setSelectedProviderId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a provider" />
-              </SelectTrigger>
-              <SelectContent>
-                {providers.map(provider => (
-                  <SelectItem key={provider.id} value={provider.id}>
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {canEditAnySchedule ? (
+            <div>
+              <Label htmlFor="provider-select">Select Provider</Label>
+              <Select value={selectedProviderId} onValueChange={setSelectedProviderId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {providers.map(provider => (
+                    <SelectItem key={provider.id} value={provider.id}>
+                      {provider.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <Label>Managing Schedule For:</Label>
+              <span className="font-medium">
+                {selectedProvider ? selectedProvider.name : 'Your Schedule'}
+              </span>
+            </div>
+          )}
 
           {selectedProviderId && (
             <Tabs defaultValue="schedule" className="w-full">
@@ -152,16 +182,18 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
               <TabsContent value="schedule" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Weekly Availability</h3>
-                  <Button 
-                    onClick={() => {
-                      setEditingAvailability(null);
-                      setIsEditDialogOpen(true);
-                    }}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Schedule
-                  </Button>
+                  {canEditSelectedProvider && (
+                    <Button 
+                      onClick={() => {
+                        setEditingAvailability(null);
+                        setIsEditDialogOpen(true);
+                      }}
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Schedule
+                    </Button>
+                  )}
                 </div>
 
                 <div className="grid gap-3">
@@ -198,16 +230,18 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
                                 <Badge variant="outline">Not Set</Badge>
                               )}
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEditingAvailability(dayAvailability || { day_of_week: day.value });
-                                setIsEditDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            {canEditSelectedProvider && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingAvailability(dayAvailability || { day_of_week: day.value });
+                                  setIsEditDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -219,13 +253,15 @@ export const ProviderAvailabilityManager: React.FC<ProviderAvailabilityManagerPr
               <TabsContent value="blocked" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Blocked Time Slots</h3>
-                  <Button 
-                    onClick={() => setIsBlockTimeDialogOpen(true)}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Block Time
-                  </Button>
+                  {canEditSelectedProvider && (
+                    <Button 
+                      onClick={() => setIsBlockTimeDialogOpen(true)}
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Block Time
+                    </Button>
+                  )}
                 </div>
 
                 <div className="grid gap-3">
