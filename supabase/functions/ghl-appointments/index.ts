@@ -195,34 +195,40 @@ const handler = async (req: Request): Promise<Response> => {
           
           if (calendarGroupId) {
             try {
-              // Get calendars from the specific group
-              console.log(`Attempting to fetch calendars from group: ${calendarGroupId}`);
-              const calendarsResponse = await fetch(
-                `https://services.leadconnectorhq.com/calendars/groups/${calendarGroupId}/calendars`,
+              // Get calendar groups and extract calendars (same approach as ghl-calendars function)
+              console.log(`Fetching calendar groups to find calendars for group: ${calendarGroupId}`);
+              const groupsResponse = await fetch(
+                `https://services.leadconnectorhq.com/calendars/groups?locationId=${ghlLocationId}`,
                 { headers: ghlHeaders }
               );
               
-              console.log(`Calendars response status: ${calendarsResponse.status}`);
-              const calendarsText = await calendarsResponse.text();
-              console.log(`Calendars response body: ${calendarsText}`);
-              
-              if (calendarsResponse.ok) {
-                const calendarsData = JSON.parse(calendarsText);
-                const calendars = calendarsData.calendars || [];
-                console.log(`Found ${calendars.length} calendars in group ${calendarGroupId}:`, calendars);
+              if (groupsResponse.ok) {
+                const groupsData = await groupsResponse.json();
+                const groups = groupsData.groups || [];
+                console.log(`Found ${groups.length} calendar groups`);
                 
-                // Use the first available calendar
-                if (calendars.length > 0) {
-                  calendarId = calendars[0].id;
-                  console.log(`Using calendar ID: ${calendarId}`);
+                // Find the specific group and its calendars
+                const targetGroup = groups.find(group => group.id === calendarGroupId);
+                if (targetGroup && targetGroup.calendars && Array.isArray(targetGroup.calendars)) {
+                  const calendars = targetGroup.calendars;
+                  console.log(`Found ${calendars.length} calendars in group ${calendarGroupId}:`, calendars);
+                  
+                  // Use the first available calendar
+                  if (calendars.length > 0) {
+                    calendarId = calendars[0].id;
+                    console.log(`Using calendar ID: ${calendarId}`);
+                  } else {
+                    console.log('No calendars found in the specified group');
+                  }
                 } else {
-                  console.log('No calendars found in the specified group');
+                  console.log(`Group ${calendarGroupId} not found or has no calendars`);
                 }
               } else {
-                console.error(`Failed to fetch calendars for group ${calendarGroupId}: ${calendarsResponse.status} - ${calendarsText}`);
+                const errorText = await groupsResponse.text();
+                console.error(`Failed to fetch calendar groups: ${groupsResponse.status} - ${errorText}`);
               }
             } catch (error) {
-              console.error('Error fetching calendars from group:', error);
+              console.error('Error fetching calendar groups:', error);
             }
           }
           
