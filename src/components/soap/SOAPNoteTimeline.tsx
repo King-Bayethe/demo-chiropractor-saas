@@ -24,6 +24,7 @@ interface SOAPNoteTimelineProps {
   soapNotes: SOAPNote[];
   onDelete?: (noteId: string) => void;
   onExport?: (noteId: string) => void;
+  onView?: (noteId: string) => void;
   selectedNotes?: string[];
   onSelectionChange?: (noteIds: string[]) => void;
   showSelection?: boolean;
@@ -36,6 +37,7 @@ export function SOAPNoteTimeline({
   soapNotes, 
   onDelete, 
   onExport,
+  onView,
   selectedNotes = [],
   onSelectionChange,
   showSelection = false,
@@ -51,7 +53,11 @@ export function SOAPNoteTimeline({
   );
 
   const handleView = (noteId: string) => {
-    navigate(`/soap-notes/view/${noteId}`);
+    if (onView) {
+      onView(noteId);
+    } else {
+      navigate(`/soap-notes/view/${noteId}`);
+    }
   };
 
   const handleEdit = (noteId: string) => {

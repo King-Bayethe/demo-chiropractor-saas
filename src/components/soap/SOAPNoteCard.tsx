@@ -19,6 +19,7 @@ interface SOAPNoteCardProps {
   note: SOAPNote;
   onDelete?: (noteId: string) => void;
   onExport?: (noteId: string) => void;
+  onView?: (noteId: string) => void;
   showPatientName?: boolean;
   compact?: boolean;
 }
@@ -27,13 +28,18 @@ export function SOAPNoteCard({
   note, 
   onDelete, 
   onExport, 
+  onView,
   showPatientName = false,
   compact = false 
 }: SOAPNoteCardProps) {
   const navigate = useNavigate();
 
   const handleView = () => {
-    navigate(`/soap-notes/view/${note.id}`);
+    if (onView) {
+      onView(note.id);
+    } else {
+      navigate(`/soap-notes/view/${note.id}`);
+    }
   };
 
   const handleEdit = () => {

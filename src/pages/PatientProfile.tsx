@@ -22,6 +22,7 @@ import { FAMILY_HISTORY_MAPPING } from "@/utils/soapFormMapping";
 import { SOAPNoteTimeline } from "@/components/soap/SOAPNoteTimeline";
 import { SOAPNoteSearch } from "@/components/soap/SOAPNoteSearch";
 import { SOAPNoteBulkActions } from "@/components/soap/SOAPNoteBulkActions";
+import { SOAPNoteViewModal } from "@/components/soap/SOAPNoteViewModal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -287,6 +288,8 @@ export default function PatientProfile() {
     pageSize: 20
   });
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleNewSOAPNote = () => {
     navigate(`/soap-notes/new?patientId=${patient?.id}`);
@@ -1014,11 +1017,20 @@ export default function PatientProfile() {
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <span>Loading patient information...</span>
-            </div>
-          </div>
-        </Layout>
-      </AuthGuard>
-    );
+        </div>
+      </div>
+      
+      <SOAPNoteViewModal
+        noteId={selectedNoteId}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedNoteId(null);
+        }}
+      />
+    </Layout>
+  </AuthGuard>
+);
   }
 
   if (!patient) {
@@ -1492,7 +1504,10 @@ export default function PatientProfile() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => navigate(`/soap-notes/${note.id}/view`)}
+                                      onClick={() => {
+                                        setSelectedNoteId(note.id);
+                                        setIsModalOpen(true);
+                                      }}
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>
