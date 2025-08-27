@@ -12,7 +12,7 @@ import {
   Bell,
   Settings
 } from "lucide-react";
-import { GHLHealthCheck } from "@/components/GHLHealthCheck";
+
 
 interface CalendarHeaderProps {
   view: 'month' | 'week' | 'day';
@@ -71,7 +71,6 @@ export function CalendarHeader({
           </div>
           
           <div className="flex items-center space-x-3">
-            <GHLHealthCheck />
             <Button variant="outline" size="sm">
               <Bell className="w-4 h-4 mr-2" />
               Reminders
