@@ -253,7 +253,13 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
       
       if (patient.pain_description) {
         if (typeof patient.pain_description === 'object') {
-          painDesc = patient.pain_description.description || JSON.stringify(patient.pain_description);
+          // Handle object format from PIP form
+          if (patient.pain_description && typeof patient.pain_description === 'object') {
+            const painTypes = Object.entries(patient.pain_description)
+              .filter(([key, value]) => value === true)
+              .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+            painDesc = painTypes.length > 0 ? painTypes.join(', ') : '';
+          }
         } else {
           painDesc = patient.pain_description;
         }
@@ -732,10 +738,10 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             <div>
               <Label htmlFor="painDescription" className="text-base font-semibold">Pain Description</Label>
               <p className="text-sm text-muted-foreground mb-2">Describe the character, location, duration, and triggers</p>
-              <Textarea
-                id="painDescription"
-                value={data.painDescription}
-                onChange={(e) => onChange({ ...data, painDescription: e.target.value })}
+                <Textarea
+                  id="painDescription"
+                  value={typeof data.painDescription === 'string' ? data.painDescription : ''}
+                  onChange={(e) => onChange({ ...data, painDescription: e.target.value })}
                 placeholder="e.g., Sharp, stabbing pain in lower back, worse in morning, radiates to left leg..."
                 rows={3}
               />
