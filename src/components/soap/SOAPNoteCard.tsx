@@ -33,11 +33,11 @@ export function SOAPNoteCard({
   const navigate = useNavigate();
 
   const handleView = () => {
-    navigate(`/soap-notes/${note.id}/view`);
+    navigate(`/soap-notes/view/${note.id}`);
   };
 
   const handleEdit = () => {
-    navigate(`/soap-notes/${note.id}/edit`);
+    navigate(`/soap-notes/edit/${note.id}`);
   };
 
   const handleExport = () => {

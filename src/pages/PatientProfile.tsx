@@ -1492,7 +1492,7 @@ export default function PatientProfile() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => navigate(`/soap-notes/view/${note.id}`)}
+                                      onClick={() => navigate(`/soap-notes/${note.id}/view`)}
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>

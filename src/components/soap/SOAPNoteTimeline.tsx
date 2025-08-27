@@ -51,11 +51,11 @@ export function SOAPNoteTimeline({
   );
 
   const handleView = (noteId: string) => {
-    navigate(`/soap-notes/${noteId}/view`);
+    navigate(`/soap-notes/view/${noteId}`);
   };
 
   const handleEdit = (noteId: string) => {
-    navigate(`/soap-notes/${noteId}/edit`);
+    navigate(`/soap-notes/edit/${noteId}`);
   };
 
   const handleNoteSelection = (noteId: string, checked: boolean) => {

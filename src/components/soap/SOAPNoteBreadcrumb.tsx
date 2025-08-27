@@ -38,7 +38,7 @@ export function SOAPNoteBreadcrumb({
   if (currentPage === 'view' && soapNoteId) {
     breadcrumbItems.push({
       label: "View Note",
-      path: `/soap-notes/${soapNoteId}/view`,
+      path: `/soap-notes/view/${soapNoteId}`,
       icon: FileText,
       isActive: true
     });
@@ -47,7 +47,7 @@ export function SOAPNoteBreadcrumb({
   if (currentPage === 'edit' && soapNoteId) {
     breadcrumbItems.push({
       label: "Edit Note",
-      path: `/soap-notes/${soapNoteId}/edit`,
+      path: `/soap-notes/edit/${soapNoteId}`,
       icon: FileText,
       isActive: true
     });
