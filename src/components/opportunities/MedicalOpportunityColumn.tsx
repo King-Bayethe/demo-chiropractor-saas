@@ -14,9 +14,18 @@ interface MedicalOpportunityColumnProps {
   opportunities: Opportunity[];
   onEdit?: (opportunity: Opportunity) => void;
   onDelete?: (id: string) => void;
+  onMoveToPrevious?: (id: string, currentStage: string) => void;
+  onMoveToNext?: (id: string, currentStage: string) => void;
 }
 
-export function MedicalOpportunityColumn({ stage, opportunities, onEdit, onDelete }: MedicalOpportunityColumnProps) {
+export function MedicalOpportunityColumn({ 
+  stage, 
+  opportunities, 
+  onEdit, 
+  onDelete, 
+  onMoveToPrevious, 
+  onMoveToNext 
+}: MedicalOpportunityColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -60,12 +69,14 @@ export function MedicalOpportunityColumn({ stage, opportunities, onEdit, onDelet
         <SortableContext items={opportunities.map(o => o.id)} strategy={verticalListSortingStrategy}>
           <div className="h-full overflow-y-auto space-y-2 pr-2">
             {opportunities.map((opportunity) => (
-              <MedicalOpportunityCard
-                key={opportunity.id}
-                opportunity={opportunity}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
+            <MedicalOpportunityCard
+              key={opportunity.id}
+              opportunity={opportunity}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onMoveToPrevious={onMoveToPrevious}
+              onMoveToNext={onMoveToNext}
+            />
             ))}
             {opportunities.length === 0 && (
               <div className="flex items-center justify-center h-32">

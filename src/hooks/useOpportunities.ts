@@ -186,6 +186,22 @@ export const useOpportunities = () => {
     return updateOpportunity(id, { pipeline_stage: newStage });
   };
 
+  const moveOpportunityToPreviousStage = async (id: string, currentStage: string) => {
+    const currentIndex = MEDICAL_PIPELINE_STAGES.findIndex(stage => stage.id === currentStage);
+    if (currentIndex > 0) {
+      const previousStage = MEDICAL_PIPELINE_STAGES[currentIndex - 1];
+      return updateOpportunityStage(id, previousStage.id);
+    }
+  };
+
+  const moveOpportunityToNextStage = async (id: string, currentStage: string) => {
+    const currentIndex = MEDICAL_PIPELINE_STAGES.findIndex(stage => stage.id === currentStage);
+    if (currentIndex < MEDICAL_PIPELINE_STAGES.length - 1) {
+      const nextStage = MEDICAL_PIPELINE_STAGES[currentIndex + 1];
+      return updateOpportunityStage(id, nextStage.id);
+    }
+  };
+
   const deleteOpportunity = async (id: string) => {
     try {
       const { error } = await supabase
@@ -222,6 +238,8 @@ export const useOpportunities = () => {
     createOpportunity,
     updateOpportunity,
     updateOpportunityStage,
+    moveOpportunityToPreviousStage,
+    moveOpportunityToNextStage,
     deleteOpportunity,
   };
 };

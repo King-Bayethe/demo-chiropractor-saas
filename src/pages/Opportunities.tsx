@@ -41,6 +41,8 @@ export default function Opportunities() {
     createOpportunity,
     updateOpportunityStage,
     updateOpportunity,
+    moveOpportunityToPreviousStage,
+    moveOpportunityToNextStage,
     deleteOpportunity,
   } = useOpportunities();
 
@@ -294,6 +296,8 @@ export default function Opportunities() {
                         opportunities={getOpportunitiesByStage(stage.id)}
                         onEdit={handleEditOpportunity}
                         onDelete={handleDeleteOpportunity}
+                        onMoveToPrevious={moveOpportunityToPreviousStage}
+                        onMoveToNext={moveOpportunityToNextStage}
                       />
                     </div>
                   ))}

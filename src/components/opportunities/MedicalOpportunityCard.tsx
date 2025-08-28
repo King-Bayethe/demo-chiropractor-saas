@@ -13,9 +13,11 @@ import {
   User,
   Scale,
   Clock,
-  Mail
+  Mail,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { Opportunity } from '@/hooks/useOpportunities';
+import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 import { getCaseTypeVariant, getCaseTypeDisplayName } from '@/utils/patientMapping';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -24,9 +26,18 @@ interface MedicalOpportunityCardProps {
   isDragging?: boolean;
   onEdit?: (opportunity: Opportunity) => void;
   onDelete?: (id: string) => void;
+  onMoveToPrevious?: (id: string, currentStage: string) => void;
+  onMoveToNext?: (id: string, currentStage: string) => void;
 }
 
-export function MedicalOpportunityCard({ opportunity, isDragging, onEdit, onDelete }: MedicalOpportunityCardProps) {
+export function MedicalOpportunityCard({ 
+  opportunity, 
+  isDragging, 
+  onEdit, 
+  onDelete, 
+  onMoveToPrevious, 
+  onMoveToNext 
+}: MedicalOpportunityCardProps) {
   const {
     attributes,
     listeners,
@@ -60,6 +71,10 @@ export function MedicalOpportunityCard({ opportunity, isDragging, onEdit, onDele
     return new Date(dateString).toLocaleDateString();
   };
 
+  const currentStageIndex = MEDICAL_PIPELINE_STAGES.findIndex(stage => stage.id === opportunity.pipeline_stage);
+  const canMovePrevious = currentStageIndex > 0;
+  const canMoveNext = currentStageIndex < MEDICAL_PIPELINE_STAGES.length - 1;
+
   return (
     <Card
       ref={setNodeRef}
@@ -86,6 +101,31 @@ export function MedicalOpportunityCard({ opportunity, isDragging, onEdit, onDele
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* Navigation arrows */}
+            {canMovePrevious && onMoveToPrevious && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0" 
+                onClick={() => onMoveToPrevious(opportunity.id, opportunity.pipeline_stage)}
+                title={`Move to ${MEDICAL_PIPELINE_STAGES[currentStageIndex - 1]?.title}`}
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </Button>
+            )}
+            
+            {canMoveNext && onMoveToNext && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0" 
+                onClick={() => onMoveToNext(opportunity.id, opportunity.pipeline_stage)}
+                title={`Move to ${MEDICAL_PIPELINE_STAGES[currentStageIndex + 1]?.title}`}
+              >
+                <ChevronRight className="h-3 w-3" />
+              </Button>
+            )}
+            
             <Button
               variant="ghost"
               size="sm"
