@@ -16,7 +16,8 @@ import {
   Smile,
   Users,
   Loader2,
-  Volume2
+  Volume2,
+  Plus
 } from "lucide-react";
 
 // --- UI Components ---
@@ -33,6 +34,9 @@ import { useToast } from "@/hooks/use-toast";
 import { WebAudioApiPlayer } from "@/components/WebAudioApiPlayer";
 import { TranscriptionDownload } from "@/components/TranscriptionDownload";
 import { AudioDownloadButton } from "@/components/AudioDownloadButton";
+import { FileAttachment } from "@/components/conversations/FileAttachment";
+import { MessageStatusIndicator } from "@/components/conversations/MessageStatusIndicator";
+import { FileUploadButton } from "@/components/conversations/FileUploadButton";
 
 
 // --- Main Conversations Component ---
@@ -45,6 +49,7 @@ export default function Conversations() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [recordingUrls, setRecordingUrls] = useState(new Map());
   const [transcriptions, setTranscriptions] = useState(new Map());
 
@@ -343,7 +348,7 @@ export default function Conversations() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversation) return;
+    if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedConversation) return;
 
     setIsSending(true);
     const tempId = `temp_${Date.now()}`;
@@ -351,26 +356,70 @@ export default function Conversations() {
       id: tempId,
       sender: 'agent',
       content: newMessage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      attachments: selectedFiles.map(file => ({
+        id: file.name,
+        url: URL.createObjectURL(file),
+        type: file.type,
+        name: file.name
+      })),
+      deliveryStatus: 'sending' as const
     };
     
     setMessages(prev => [...prev, optimisticMessage]);
     const messageToSend = newMessage;
+    const filesToSend = [...selectedFiles];
     setNewMessage("");
+    setSelectedFiles([]);
 
     try {
+      let attachmentData;
+      
+      // Upload files first if any
+      if (filesToSend.length > 0) {
+        attachmentData = [];
+        for (const file of filesToSend) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('conversationId', selectedConversation.id);
+          
+          const { data: uploadData, error: uploadError } = await supabase.functions.invoke('ghl-file-upload', {
+            body: formData
+          });
+          
+          if (uploadError) throw uploadError;
+          
+          if (uploadData?.url) {
+            attachmentData.push({
+              id: uploadData.id || file.name,
+              url: uploadData.url,
+              type: file.type,
+              name: file.name
+            });
+          }
+        }
+      }
+
       const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
         body: {
           method: 'POST',
-          contactId: selectedConversation.contactId, // Use contactId to send message
+          contactId: selectedConversation.contactId,
           message: messageToSend,
-          type: 'SMS' // Assuming SMS, could be dynamic
+          type: 'SMS',
+          ...(attachmentData && { attachments: attachmentData })
         }
       });
 
       if (funcError) throw funcError;
       
       toast({ title: "Message Sent!", description: "Your message has been sent successfully", variant: "default" });
+      
+      // Update message status to delivered
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId 
+          ? { ...msg, deliveryStatus: 'delivered' as const }
+          : msg
+      ));
       
       // Refresh messages
       const { data: messagesData } = await supabase.functions.invoke('ghl-messages', {
@@ -385,7 +434,9 @@ export default function Conversations() {
             messageType: msg.messageType,
             duration: msg.meta?.call?.duration,
             hasRecording: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL',
-            hasTranscription: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL'
+            hasTranscription: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL',
+            attachments: msg.attachments || [],
+            deliveryStatus: msg.status || 'delivered'
           })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
           setMessages(transformed);
       }
@@ -393,16 +444,63 @@ export default function Conversations() {
       loadConversations();
 
     } catch (err) {
-      // Check if the error is due to DND being active
+      // Update message status to failed
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId 
+          ? { ...msg, deliveryStatus: 'failed' as const, errorInfo: err.message }
+          : msg
+      ));
+      
       let errorMessage = err.message;
       if (err.message.includes("Cannot send message as DND is active") || err.message.includes("DND is active")) {
         errorMessage = "Cannot send message to a patient that has dnd on";
       }
       
       toast({ title: "Failed to Send Message", description: errorMessage, variant: "destructive" });
-      setMessages(prev => prev.filter(msg => msg.id !== tempId));
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleRetryMessage = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message || !selectedConversation) return;
+
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, deliveryStatus: 'sending' as const }
+        : msg
+    ));
+
+    try {
+      const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
+        body: {
+          method: 'POST',
+          contactId: selectedConversation.contactId,
+          message: message.content,
+          type: 'SMS',
+          ...(message.attachments && { attachments: message.attachments })
+        }
+      });
+
+      if (funcError) throw funcError;
+      
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, deliveryStatus: 'delivered' as const }
+          : msg
+      ));
+      
+      toast({ title: "Message Sent!", description: "Your message has been resent successfully", variant: "default" });
+      
+    } catch (err) {
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, deliveryStatus: 'failed' as const, errorInfo: err.message }
+          : msg
+      ));
+      
+      toast({ title: "Failed to Resend Message", description: err.message, variant: "destructive" });
     }
   };
 
@@ -510,73 +608,137 @@ export default function Conversations() {
                         <div className="flex items-center justify-center p-8 h-full"><div className="text-center text-muted-foreground"><MessageSquare className="h-8 w-8 mx-auto mb-2" /><p>No messages yet. Be the first to reply!</p></div></div>
                       ) : (
                         <div className="space-y-4">
-                           {messages.map((message) => (
-                             <div key={message.id} className={`flex items-start gap-2 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
-                                {message.sender === 'customer' && <Avatar className="h-8 w-8"><AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback></Avatar>}
-                               <div className={`space-y-2 max-w-xs lg:max-w-md ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
-                                  <div className={`px-4 py-2 rounded-2xl ${message.sender === 'agent' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border text-foreground rounded-bl-none'}`}>
-                                    {message.hasRecording && (
-                                      <div className="mb-2 flex items-center gap-2 text-xs opacity-75">
-                                        <Volume2 className="h-3 w-3" />
-                                        <span>
-                                          {message.messageType === 'TYPE_CALL' ? 'Call Recording' : 'Voicemail'}
-                                          {message.duration && ` (${Math.floor(message.duration / 60)}:${String(message.duration % 60).padStart(2, '0')})`}
-                                        </span>
-                                      </div>
-                                    )}
-                                    <p className="text-sm" style={{ opacity: message.id.startsWith('temp_') ? 0.7 : 1 }}>{message.content}</p>
-                                     {message.hasTranscription && transcriptions.has(message.id) && (
-                                       <div className="mt-2 pt-2 border-t border-border/50">
-                                         <div className="flex items-center justify-between mb-1">
-                                           <p className="text-xs opacity-75">Transcription:</p>
-                                           <TranscriptionDownload 
-                                             transcriptionText={transcriptions.get(message.id)}
-                                             fileName={`transcription_${message.id}`}
-                                           />
-                                         </div>
-                                         <p className="text-sm">{transcriptions.get(message.id)}</p>
+                            {messages.map((message) => (
+                              <div key={message.id} className={`flex items-start gap-2 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                                 {message.sender === 'customer' && <Avatar className="h-8 w-8"><AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback></Avatar>}
+                                <div className={`space-y-2 max-w-xs lg:max-w-md ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
+                                   <div className={`px-4 py-2 rounded-2xl ${message.sender === 'agent' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border text-foreground rounded-bl-none'}`}>
+                                     {message.hasRecording && (
+                                       <div className="mb-2 flex items-center gap-2 text-xs opacity-75">
+                                         <Volume2 className="h-3 w-3" />
+                                         <span>
+                                           {message.messageType === 'TYPE_CALL' ? 'Call Recording' : 'Voicemail'}
+                                           {message.duration && ` (${Math.floor(message.duration / 60)}:${String(message.duration % 60).padStart(2, '0')})`}
+                                         </span>
                                        </div>
                                      )}
-                                  </div>
-                                 {message.hasRecording && recordingUrls.has(message.id) && (
-                                  <>
-                                     <WebAudioApiPlayer 
-                                       audioUrl={(() => {
-                                         const url = recordingUrls.get(message.id);
-                                         console.log(`🎵 Passing to WebAudioApiPlayer for ${message.id}:`, typeof url, url);
-                                         return url;
-                                       })()} 
+                                     
+                                     {message.content && (
+                                       <p className="text-sm" style={{ opacity: message.id.startsWith('temp_') ? 0.7 : 1 }}>
+                                         {message.content}
+                                       </p>
+                                     )}
+                                     
+                                     {message.attachments && message.attachments.length > 0 && (
+                                       <div className="mt-2 space-y-2">
+                                         {message.attachments.map((attachment, index) => (
+                                           <FileAttachment
+                                             key={`${attachment.id}-${index}`}
+                                             attachment={attachment}
+                                             size="md"
+                                           />
+                                         ))}
+                                       </div>
+                                     )}
+                                     
+                                      {message.hasTranscription && transcriptions.has(message.id) && (
+                                        <div className="mt-2 pt-2 border-t border-border/50">
+                                          <div className="flex items-center justify-between mb-1">
+                                            <p className="text-xs opacity-75">Transcription:</p>
+                                            <TranscriptionDownload 
+                                              transcriptionText={transcriptions.get(message.id)}
+                                              fileName={`transcription_${message.id}`}
+                                            />
+                                          </div>
+                                          <p className="text-sm">{transcriptions.get(message.id)}</p>
+                                        </div>
+                                      )}
+                                   </div>
+                                   
+                                  {message.hasRecording && recordingUrls.has(message.id) && (
+                                   <>
+                                      <WebAudioApiPlayer 
+                                        audioUrl={(() => {
+                                          const url = recordingUrls.get(message.id);
+                                          console.log(`🎵 Passing to WebAudioApiPlayer for ${message.id}:`, typeof url, url);
+                                          return url;
+                                        })()} 
+                                        fileName={`recording_${message.id}`}
+                                        className={message.sender === 'agent' ? 'self-end' : 'self-start'}
+                                      />
+                                     <AudioDownloadButton
+                                       audioUrl={recordingUrls.get(message.id)}
                                        fileName={`recording_${message.id}`}
-                                       className={message.sender === 'agent' ? 'self-end' : 'self-start'}
+                                       variant="outline"
+                                       size="sm"
+                                       className={`mt-2 ${message.sender === 'agent' ? 'self-end' : 'self-start'}`}
                                      />
-                                    <AudioDownloadButton
-                                      audioUrl={recordingUrls.get(message.id)}
-                                      fileName={`recording_${message.id}`}
-                                      variant="outline"
-                                      size="sm"
-                                      className={`mt-2 ${message.sender === 'agent' ? 'self-end' : 'self-start'}`}
-                                    />
-                                  </>
+                                   </>
+                                    )}
+                                    
+                                 <div className={`flex items-center gap-2 text-xs mt-1 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                                   <span className={message.sender === 'agent' ? 'text-primary/70' : 'text-muted-foreground'}>
+                                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                   </span>
+                                   {message.sender === 'agent' && message.deliveryStatus && (
+                                     <MessageStatusIndicator
+                                       status={message.deliveryStatus}
+                                       errorInfo={message.errorInfo}
+                                       onRetry={message.deliveryStatus === 'failed' ? () => handleRetryMessage(message.id) : undefined}
+                                     />
                                    )}
-                                <p className={`text-xs mt-1 text-right ${message.sender === 'agent' ? 'text-primary/70' : 'text-muted-foreground'}`}>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                              </div>
-                            </div>
-                          ))}
+                                 </div>
+                               </div>
+                             </div>
+                           ))}
                           <div ref={messagesEndRef} />
                         </div>
                       )}
                     </CardContent>
 
-                    <form onSubmit={handleSendMessage} className="border-t border-border p-4 bg-card">
-                      <div className="flex items-center gap-2">
-                         <div className="flex-1 relative">
-                          <Input placeholder="Type your message..." className="pr-10" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} disabled={!selectedConversation || isSending} />
-                          <Button type="button" variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"><Smile className="h-5 w-5 text-muted-foreground" /></Button>
+                    <form onSubmit={handleSendMessage} className="border-t border-border bg-card">
+                      {selectedFiles.length > 0 && (
+                        <div className="p-4 border-b border-border">
+                          <FileUploadButton
+                            onFilesSelected={setSelectedFiles}
+                            selectedFiles={selectedFiles}
+                            onRemoveFile={(index) => {
+                              setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            disabled={isSending}
+                          />
                         </div>
-                         <Button type="button" variant="outline" size="sm" disabled={!selectedConversation || isSending}><Paperclip className="h-4 w-4" /></Button>
-                        <Button type="submit" disabled={!selectedConversation || !newMessage.trim() || isSending}>
-                          {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                        </Button>
+                      )}
+                      
+                      <div className="p-4">
+                        <div className="flex items-center gap-2">
+                           <div className="flex-1 relative">
+                            <Input 
+                              placeholder="Type your message..." 
+                              className="pr-10" 
+                              value={newMessage} 
+                              onChange={(e) => setNewMessage(e.target.value)} 
+                              disabled={!selectedConversation || isSending} 
+                            />
+                            <Button type="button" variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0">
+                              <Smile className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                          </div>
+                          
+                           <FileUploadButton
+                             onFilesSelected={(files) => setSelectedFiles(prev => [...prev, ...files])}
+                             selectedFiles={[]}
+                             onRemoveFile={() => {}}
+                             disabled={!selectedConversation || isSending}
+                           />
+                           
+                          <Button 
+                            type="submit" 
+                            disabled={!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || isSending}
+                          >
+                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                          </Button>
+                        </div>
                       </div>
                     </form>
                   </Card>

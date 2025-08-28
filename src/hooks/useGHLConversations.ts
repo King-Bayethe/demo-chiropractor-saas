@@ -58,6 +58,8 @@ export interface GHLMessage {
     text: string;
     confidence?: number;
   };
+  deliveryStatus?: 'sending' | 'delivered' | 'failed' | 'read';
+  errorInfo?: string;
 }
 
 export const useGHLConversations = () => {
@@ -136,7 +138,7 @@ export const useGHLConversations = () => {
     }
   }, [ghlApi]);
 
-  const sendMessage = useCallback(async (conversationId: string, content: string) => {
+  const sendMessage = useCallback(async (conversationId: string, content: string, attachments?: File[]) => {
     if (!ghlApi) return false;
     
     try {
@@ -145,12 +147,35 @@ export const useGHLConversations = () => {
         throw new Error('Conversation not found');
       }
 
-      console.log('Sending message to GHL:', { conversationId, content });
+      console.log('Sending message to GHL:', { conversationId, content, attachments: attachments?.length });
+      
+      let attachmentData: Array<{ id: string; url: string; type: string; name?: string }> | undefined;
+      
+      // Upload attachments if any
+      if (attachments && attachments.length > 0) {
+        attachmentData = [];
+        for (const file of attachments) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('conversationId', conversationId);
+          
+          const uploadResult = await ghlApi.files.upload(formData);
+          if (uploadResult?.url) {
+            attachmentData.push({
+              id: uploadResult.id || file.name,
+              url: uploadResult.url,
+              type: file.type,
+              name: file.name
+            });
+          }
+        }
+      }
       
       const messageData = {
         contactId: conversation.contactId,
         message: content,
-        type: 'SMS' as const
+        type: 'SMS' as const,
+        ...(attachmentData && { attachments: attachmentData })
       };
       
       const result = await ghlApi.conversations.sendMessage(messageData);
@@ -166,6 +191,44 @@ export const useGHLConversations = () => {
       return false;
     }
   }, [ghlApi, conversations, fetchMessages]);
+
+  const uploadFile = useCallback(async (conversationId: string, file: File) => {
+    if (!ghlApi) return null;
+    
+    try {
+      console.log('Uploading file to GHL:', { conversationId, fileName: file.name });
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('conversationId', conversationId);
+      
+      const result = await ghlApi.files.upload(formData);
+      console.log('File upload result:', result);
+      
+      return result;
+    } catch (err: any) {
+      console.error('Error uploading file:', err);
+      setError(err.message || 'Failed to upload file');
+      return null;
+    }
+  }, [ghlApi]);
+
+  const updateMessageStatus = useCallback(async (messageId: string, status: string, errorInfo?: string) => {
+    if (!ghlApi) return false;
+    
+    try {
+      console.log('Updating message status:', { messageId, status, errorInfo });
+      
+      const result = await ghlApi.messages.updateStatus(messageId, { status, errorInfo });
+      console.log('Message status update result:', result);
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error updating message status:', err);
+      setError(err.message || 'Failed to update message status');
+      return false;
+    }
+  }, [ghlApi]);
 
   const createConversation = useCallback(async (patientId: string, title?: string) => {
     // GHL conversations are created automatically when messages are sent
@@ -200,6 +263,8 @@ export const useGHLConversations = () => {
     fetchConversations,
     fetchMessages,
     sendMessage,
+    uploadFile,
+    updateMessageStatus,
     createConversation,
     markAsRead,
     syncGHLConversations,

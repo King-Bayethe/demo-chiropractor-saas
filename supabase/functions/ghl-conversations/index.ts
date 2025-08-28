@@ -12,6 +12,12 @@ interface MessageData {
   contactId: string;
   message: string;
   type?: 'SMS' | 'Email';
+  attachments?: Array<{
+    id: string;
+    url: string;
+    type: string;
+    name?: string;
+  }>;
 }
 
 interface GHLConversation {
@@ -217,6 +223,7 @@ const handler = async (req: Request): Promise<Response> => {
         contactId: messageData.contactId,
         message: messageData.message,
         type: messageData.type || 'SMS',
+        ...(messageData.attachments && { attachments: messageData.attachments }),
       };
 
       console.log('Sending message to GHL:', { contactId: messageData.contactId, type: ghlMessage.type });

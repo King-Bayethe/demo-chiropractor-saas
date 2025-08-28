@@ -96,10 +96,25 @@ export const useGHLApi = () => {
     }),
   };
 
+  const files = {
+    upload: (formData: FormData) => callGHLFunction('ghl-file-upload', {
+      body: formData,
+    }),
+  };
+
+  const messages = {
+    updateStatus: (messageId: string, statusData: any) => callGHLFunction(`ghl-message-status/${messageId}`, {
+      body: JSON.stringify(statusData),
+    }),
+    getStatus: (messageId: string) => callGHLFunction(`ghl-message-status/${messageId}`),
+  };
+
   return {
     contacts,
     opportunities,
     conversations,
     emails,
+    files,
+    messages,
   };
 };
