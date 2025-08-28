@@ -125,9 +125,15 @@ const PublicLOPForm = () => {
       // Redirect to thank you page
       navigate('/thank-you?type=lop');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
-      toast.error("Failed to submit form. Please try again.");
+      
+      // Check if it's a rate limit error
+      if (error?.message?.includes('rate limit') || error?.code === 'RATE_LIMIT_EXCEEDED') {
+        toast.error("Too many form submissions. Please wait a few minutes before trying again due to rate limits.");
+      } else {
+        toast.error("Failed to submit form. Please try again.");
+      }
     }
   };
 
