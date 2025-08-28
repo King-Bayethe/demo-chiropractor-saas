@@ -285,21 +285,25 @@ export const useProviderAvailability = () => {
           }
         }
 
-        // Check for existing appointments and blocked slots
+        // Check for existing appointments and blocked slots using proper overlap detection
+        // Two time ranges overlap if: start1 < end2 AND start2 < end1
+        const slotStart = current.toISOString();
+        const slotEndISO = slotEnd.toISOString();
+
         const { data: appointments } = await supabase
           .from('appointments')
           .select('start_time, end_time')
           .eq('provider_id', providerId)
           .neq('status', 'cancelled')
-          .gte('start_time', current.toISOString())
-          .lt('start_time', slotEndWithBuffer.toISOString());
+          .lt('start_time', slotEndISO)
+          .gt('end_time', slotStart);
 
         const { data: blocked } = await supabase
           .from('blocked_time_slots')
           .select('start_time, end_time')
           .eq('provider_id', providerId)
-          .gte('start_time', current.toISOString())
-          .lt('start_time', slotEndWithBuffer.toISOString());
+          .lt('start_time', slotEndISO)
+          .gt('end_time', slotStart);
 
         const hasConflict = (appointments || []).length > 0 || (blocked || []).length > 0;
 

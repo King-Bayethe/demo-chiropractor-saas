@@ -399,11 +399,19 @@ export const useAppointments = () => {
     excludeAppointmentId?: string
   ): Promise<boolean> => {
     try {
+      // Normalize times to ISO strings to ensure consistent comparison
+      const normalizedStartTime = new Date(startTime).toISOString();
+      const normalizedEndTime = new Date(endTime).toISOString();
+
+      // Build the query with proper overlap detection:
+      // Two time ranges overlap if: start1 < end2 AND start2 < end1
+      // For appointments, this means: appointment.start_time < new_end_time AND appointment.end_time > new_start_time
       let query = supabase
         .from('appointments')
-        .select('id, start_time, end_time')
+        .select('id, start_time, end_time, title, provider_name')
         .neq('status', 'cancelled')
-        .or(`start_time.lt.${endTime},end_time.gt.${startTime}`);
+        .lt('start_time', normalizedEndTime)
+        .gt('end_time', normalizedStartTime);
 
       if (providerId) {
         query = query.eq('provider_id', providerId);
@@ -418,6 +426,14 @@ export const useAppointments = () => {
       if (error) {
         console.error('Error checking conflicts:', error);
         return false;
+      }
+
+      // Log conflicts for debugging
+      if ((data || []).length > 0) {
+        console.log('Conflict detected:', {
+          newSlot: { startTime: normalizedStartTime, endTime: normalizedEndTime },
+          conflictingAppointments: data
+        });
       }
 
       return (data || []).length > 0;
