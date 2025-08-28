@@ -1286,11 +1286,15 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          dark_mode: boolean | null
           email: string
+          email_signature: string | null
           first_name: string | null
           id: string
           is_active: boolean | null
+          language_preference: string | null
           last_name: string | null
+          phone: string | null
           role: string | null
           updated_at: string
           user_id: string
@@ -1298,11 +1302,15 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          dark_mode?: boolean | null
           email: string
+          email_signature?: string | null
           first_name?: string | null
           id?: string
           is_active?: boolean | null
+          language_preference?: string | null
           last_name?: string | null
+          phone?: string | null
           role?: string | null
           updated_at?: string
           user_id: string
@@ -1310,11 +1318,15 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          dark_mode?: boolean | null
           email?: string
+          email_signature?: string | null
           first_name?: string | null
           id?: string
           is_active?: boolean | null
+          language_preference?: string | null
           last_name?: string | null
+          phone?: string | null
           role?: string | null
           updated_at?: string
           user_id?: string
@@ -1522,6 +1534,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_settings: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       team_chat_participants: {
         Row: {
@@ -1749,6 +1797,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

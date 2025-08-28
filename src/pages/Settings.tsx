@@ -8,6 +8,9 @@ import { NotificationSettings } from "@/components/notifications/NotificationSet
 import { AISettings } from "@/components/settings/AISettings";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { ProviderAvailabilityManager } from "@/components/calendar/ProviderAvailabilityManager";
+import { GeneralSettings } from "@/components/settings/GeneralSettings";
+import { SecuritySettings } from "@/components/settings/SecuritySettings";
+import { LanguageSettings } from "@/components/settings/LanguageSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Settings() {
@@ -26,31 +29,7 @@ export default function Settings() {
       case "profile":
         return <MyProfileSection />;
       case "general":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Company Timezone</h3>
-                <p className="text-sm text-muted-foreground">
-                  This timezone will be used for all scheduling and appointment times across the system.
-                </p>
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium">Default Timezone:</label>
-                  <span className="px-3 py-1 bg-medical-blue text-white rounded-md text-sm font-medium">
-                    Eastern Standard Time (EST)
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  All times displayed throughout the application will be shown in EST. 
-                  Provider availability and appointment scheduling will use EST as the reference timezone.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        );
+        return <GeneralSettings />;
       case "schedule":
         return <ProviderAvailabilityManager />;
       case "notifications":
@@ -58,16 +37,7 @@ export default function Settings() {
       case "ai":
         return <AISettings />;
       case "language":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Language Preferences</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Language settings coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <LanguageSettings />;
       case "integrations":
         return (
           <Card>
@@ -80,16 +50,7 @@ export default function Settings() {
           </Card>
         );
       case "security":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Security settings coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <SecuritySettings />;
       case "users":
         return <UserManagement />;
       default:
