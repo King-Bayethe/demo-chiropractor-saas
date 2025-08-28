@@ -205,9 +205,17 @@ export const useAppointments = () => {
 
   const createOrUpdateOpportunity = async (patientData: any, appointmentData: any) => {
     try {
+      // Get current user ID for created_by field
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       console.log('Starting createOrUpdateOpportunity with:', { 
         patientId: patientData.id, 
-        appointmentTitle: appointmentData.title 
+        appointmentTitle: appointmentData.title,
+        currentUserId: user.id,
+        providerId: appointmentData.provider_id
       });
 
       // Check if an opportunity already exists for this patient
@@ -234,6 +242,7 @@ export const useAppointments = () => {
           .update({
             pipeline_stage: 'appointment',
             consultation_scheduled_at: appointmentData.start_time,
+            assigned_to: appointmentData.provider_id,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingOpportunity.id)
@@ -264,7 +273,8 @@ export const useAppointments = () => {
             priority: 'medium',
             source: 'Appointment Booking',
             consultation_scheduled_at: appointmentData.start_time,
-            created_by: appointmentData.provider_id,
+            created_by: user.id,
+            assigned_to: appointmentData.provider_id,
             attorney_referred: false
           })
           .select()
