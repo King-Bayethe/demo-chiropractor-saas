@@ -122,8 +122,8 @@ const PublicLOPForm = () => {
         throw error;
       }
 
-      // Redirect to thank you page
-      navigate('/thank-you?type=lop');
+      // Show success message instead of redirecting
+      toast.success("Your LOP form has been submitted successfully! We will contact you soon.");
       
     } catch (error: any) {
       console.error('Error submitting form:', error);

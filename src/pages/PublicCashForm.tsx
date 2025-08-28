@@ -184,8 +184,8 @@ const PublicCashForm = () => {
         throw error;
       }
 
-      // Redirect to thank you page
-      navigate('/thank-you?type=cash');
+      // Show success message instead of redirecting
+      toast.success("Your cash form has been submitted successfully! We will contact you soon.");
       
     } catch (error: any) {
       console.error('Error submitting form:', error);

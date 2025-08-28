@@ -256,8 +256,8 @@ const PublicPIPForm = () => {
         throw error;
       }
 
-      // Redirect to thank you page
-      navigate('/thank-you?type=pip');
+      // Show success message instead of redirecting
+      toast.success("Your PIP form has been submitted successfully! We will contact you soon.");
       
       // Reset form would go here if needed
     } catch (error: any) {
