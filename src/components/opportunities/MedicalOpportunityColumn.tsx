@@ -69,14 +69,14 @@ export function MedicalOpportunityColumn({
         <SortableContext items={opportunities.map(o => o.id)} strategy={verticalListSortingStrategy}>
           <div className="h-full overflow-y-auto space-y-2 pr-2">
             {opportunities.map((opportunity) => (
-            <MedicalOpportunityCard
-              key={opportunity.id}
-              opportunity={opportunity}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onMoveToPrevious={onMoveToPrevious}
-              onMoveToNext={onMoveToNext}
-            />
+              <MedicalOpportunityCard
+                key={opportunity.id}
+                opportunity={opportunity}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onMoveToPrevious={onMoveToPrevious}
+                onMoveToNext={onMoveToNext}
+              />
             ))}
             {opportunities.length === 0 && (
               <div className="flex items-center justify-center h-32">
