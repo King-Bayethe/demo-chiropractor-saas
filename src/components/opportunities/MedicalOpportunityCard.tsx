@@ -93,7 +93,7 @@ export function MedicalOpportunityCard({
             </Avatar>
             <div className="flex-1 min-w-0">
               <h4 className="font-semibold text-sm truncate">
-                {opportunity.name}
+                {opportunity.name?.replace(/^Appointment\s*-\s*/, '') || opportunity.name}
               </h4>
               <p className="text-xs text-muted-foreground truncate">
                 {opportunity.patient_name}
