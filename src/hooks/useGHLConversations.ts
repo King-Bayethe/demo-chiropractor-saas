@@ -230,18 +230,83 @@ export const useGHLConversations = () => {
     }
   }, [ghlApi]);
 
-  const createConversation = useCallback(async (patientId: string, title?: string) => {
-    // GHL conversations are created automatically when messages are sent
-    // For now, we'll just refresh conversations to see if any new ones exist
-    await fetchConversations();
-    return true;
-  }, [fetchConversations]);
+  const createConversation = useCallback(async (contactId: string, locationId?: string) => {
+    if (!ghlApi) return false;
+    
+    try {
+      console.log('Creating new conversation:', { contactId, locationId });
+      
+      const result = await ghlApi.conversations.create({
+        contactId,
+        locationId: locationId || 'o7jUs6rjNvBfap2u6VIy' // Default location ID
+      });
+      
+      console.log('Conversation created:', result);
+      
+      // Refresh conversations after creating
+      await fetchConversations();
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error creating conversation:', err);
+      setError(err.message || 'Failed to create conversation');
+      return false;
+    }
+  }, [ghlApi, fetchConversations]);
 
   const markAsRead = useCallback(async (conversationId: string) => {
     // GHL doesn't have a direct mark as read API, so we'll handle this in the UI
     console.log('Marking conversation as read:', conversationId);
     return true;
   }, []);
+
+  const addInboundMessage = useCallback(async (conversationId: string, messageData: any) => {
+    if (!ghlApi) return false;
+    
+    try {
+      console.log('Adding inbound message:', { conversationId, ...messageData });
+      
+      const result = await ghlApi.conversations.addInboundMessage({
+        conversationId,
+        ...messageData
+      });
+      
+      console.log('Inbound message added:', result);
+      
+      // Refresh messages after adding
+      await fetchMessages(conversationId);
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error adding inbound message:', err);
+      setError(err.message || 'Failed to add inbound message');
+      return false;
+    }
+  }, [ghlApi, fetchMessages]);
+
+  const addOutboundCall = useCallback(async (conversationId: string, callData: any) => {
+    if (!ghlApi) return false;
+    
+    try {
+      console.log('Adding outbound call:', { conversationId, ...callData });
+      
+      const result = await ghlApi.conversations.addOutboundCall({
+        conversationId,
+        ...callData
+      });
+      
+      console.log('Outbound call added:', result);
+      
+      // Refresh messages after adding
+      await fetchMessages(conversationId);
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error adding outbound call:', err);
+      setError(err.message || 'Failed to add outbound call');
+      return false;
+    }
+  }, [ghlApi, fetchMessages]);
 
   const syncGHLConversations = useCallback(async () => {
     await fetchConversations();
@@ -266,6 +331,8 @@ export const useGHLConversations = () => {
     uploadFile,
     updateMessageStatus,
     createConversation,
+    addInboundMessage,
+    addOutboundCall,
     markAsRead,
     syncGHLConversations,
   };

@@ -37,6 +37,8 @@ import { AudioDownloadButton } from "@/components/AudioDownloadButton";
 import { FileAttachment } from "@/components/conversations/FileAttachment";
 import { MessageStatusIndicator } from "@/components/conversations/MessageStatusIndicator";
 import { FileUploadButton } from "@/components/conversations/FileUploadButton";
+import { CreateConversationDialog } from "@/components/conversations/CreateConversationDialog";
+import { AddMessageDialog } from "@/components/conversations/AddMessageDialog";
 
 
 // --- Main Conversations Component ---
@@ -539,10 +541,13 @@ export default function Conversations() {
                 <div className="lg:col-span-1 xl:col-span-1">
                   <Card className="card-professional h-[700px] flex flex-col">
                     <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>All Conversations</CardTitle>
-                        <Badge variant="secondary">{conversations.length}</Badge>
-                      </div>
+                       <div className="flex items-center justify-between">
+                         <CardTitle>All Conversations</CardTitle>
+                         <div className="flex items-center gap-2">
+                           <CreateConversationDialog />
+                           <Badge variant="secondary">{conversations.length}</Badge>
+                         </div>
+                       </div>
                       <div className="relative mt-2">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input placeholder="Search conversations..." className="pl-10" />
@@ -594,7 +599,10 @@ export default function Conversations() {
                               </div>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm"><MoreHorizontal className="h-4 w-4" /></Button>
+                          <div className="flex items-center gap-2">
+                            <AddMessageDialog conversationId={selectedConversation.id} />
+                            <Button variant="ghost" size="sm"><MoreHorizontal className="h-4 w-4" /></Button>
+                          </div>
                         </div>
                       ) : <div className="h-[57px]"></div>}
                     </CardHeader>

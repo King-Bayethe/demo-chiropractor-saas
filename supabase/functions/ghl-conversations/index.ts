@@ -192,6 +192,146 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Handle creating a new conversation
+    if (requestBody?.action === 'create') {
+      console.log('Creating new conversation:', requestBody);
+      
+      const endpoint = `${GHL_API_BASE}/conversations/`;
+      
+      const createPayload = {
+        locationId: requestBody.locationId,
+        contactId: requestBody.contactId
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(createPayload)
+      });
+
+      console.log('GHL conversation create response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL conversation create error:', response.status, errorText);
+        
+        return new Response(
+          JSON.stringify({ 
+            error: `Failed to create conversation: ${response.status} ${response.statusText}`,
+            details: errorText 
+          }),
+          {
+            status: response.status,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
+
+      const data = await response.json();
+      console.log('Conversation created successfully');
+
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
+    // Handle adding an inbound message
+    if (requestBody?.action === 'addInbound') {
+      console.log('Adding inbound message:', requestBody);
+      
+      const endpoint = `${GHL_API_BASE}/conversations/messages/inbound`;
+      
+      const inboundPayload = {
+        type: requestBody.type || 'SMS',
+        attachments: requestBody.attachments || [],
+        message: requestBody.message,
+        conversationId: requestBody.conversationId,
+        conversationProviderId: requestBody.conversationProviderId,
+        html: requestBody.html
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(inboundPayload)
+      });
+
+      console.log('GHL inbound message response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL inbound message error:', response.status, errorText);
+        
+        return new Response(
+          JSON.stringify({ 
+            error: `Failed to add inbound message: ${response.status} ${response.statusText}`,
+            details: errorText 
+          }),
+          {
+            status: response.status,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
+
+      const data = await response.json();
+      console.log('Inbound message added successfully');
+
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
+    // Handle adding an external outbound call
+    if (requestBody?.action === 'addOutboundCall') {
+      console.log('Adding external outbound call:', requestBody);
+      
+      const endpoint = `${GHL_API_BASE}/conversations/messages/outbound`;
+      
+      const outboundPayload = {
+        type: requestBody.type || 'Call',
+        attachments: requestBody.attachments || [],
+        conversationId: requestBody.conversationId,
+        conversationProviderId: requestBody.conversationProviderId,
+        altId: requestBody.altId,
+        date: requestBody.date || new Date().toISOString()
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(outboundPayload)
+      });
+
+      console.log('GHL outbound call response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GHL outbound call error:', response.status, errorText);
+        
+        return new Response(
+          JSON.stringify({ 
+            error: `Failed to add outbound call: ${response.status} ${response.statusText}`,
+            details: errorText 
+          }),
+          {
+            status: response.status,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
+
+      const data = await response.json();
+      console.log('Outbound call added successfully');
+
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
     if (method === 'POST' || req.method === 'POST') {
       console.log('Sending message to GHL...');
       

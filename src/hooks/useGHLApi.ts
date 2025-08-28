@@ -86,6 +86,15 @@ export const useGHLApi = () => {
     sendMessage: (messageData: any) => callGHLFunction('ghl-conversations', {
       body: JSON.stringify({ method: 'POST', ...messageData }),
     }),
+    create: (conversationData: any) => callGHLFunction('ghl-conversations', {
+      body: JSON.stringify({ action: 'create', ...conversationData }),
+    }),
+    addInboundMessage: (messageData: any) => callGHLFunction('ghl-conversations', {
+      body: JSON.stringify({ action: 'addInbound', ...messageData }),
+    }),
+    addOutboundCall: (callData: any) => callGHLFunction('ghl-conversations', {
+      body: JSON.stringify({ action: 'addOutboundCall', ...callData }),
+    }),
   };
 
   const emails = {
