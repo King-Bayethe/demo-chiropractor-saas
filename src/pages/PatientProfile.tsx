@@ -38,7 +38,7 @@ import {
   ArrowLeft, Phone, Mail, Calendar as CalendarIcon, FileText, MessageSquare, DollarSign,
   User, Clock, MapPin, Plus, Download, Eye, Upload, Edit, Shield, AlertTriangle,
   BarChart3, Save, X, Check, Gavel, Car, HeartPulse, Briefcase, Lock, CheckSquare, CreditCard, IdCard,
-  Activity, Scale, AlertCircle
+  Activity, Scale, AlertCircle, Calendar
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { EnhancedDateInput } from "@/components/EnhancedDateInput";
@@ -180,8 +180,10 @@ type PatientFormData = z.infer<typeof patientFormSchema>;
 // Form schema for booking an appointment
 const appointmentFormSchema = z.object({
     calendarId: z.string().optional(),
-    title: z.string().optional(),
-    startTime: z.date().optional(),
+    title: z.string().min(1, "Title is required"),
+    startTime: z.date({
+      required_error: "Please select a date and time",
+    }),
     notes: z.string().optional(),
 });
 type AppointmentFormData = z.infer<typeof appointmentFormSchema>;
@@ -803,24 +805,43 @@ export default function PatientProfile() {
   };
 
   const handleCreateAppointment = async (data: AppointmentFormData) => {
-    try {
-      // Mock calendar booking since GHL API is not available
-      const mockAppointment = {
-        id: `mock-${Date.now()}`,
-        title: data.title,
-        start_time: data.startTime.toISOString(),
-        end_time: setHours(setMinutes(data.startTime, data.startTime.getMinutes() + 60), data.startTime.getHours()).toISOString(),
-        patient_id: patient?.id,
-        patient_name: `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim(),
-        patient_email: patient?.email,
-        patient_phone: patient?.phone,
-        notes: data.notes || "",
-        status: "scheduled",
-        calendar_id: data.calendarId,
-        provider_name: "Dr. Silverman"
-      };
+    if (!patient?.id || !data.startTime) {
+      toast({
+        title: "Error",
+        description: "Missing required appointment information.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      setAppointments(prev => [mockAppointment, ...prev]);
+    try {
+      // Calculate end time (1 hour after start time)
+      const endTime = new Date(data.startTime);
+      endTime.setHours(endTime.getHours() + 1);
+
+      // Create appointment in database
+      const { data: appointmentData, error } = await supabase
+        .from('appointments')
+        .insert({
+          title: data.title || 'Appointment',
+          start_time: data.startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          patient_id: patient.id,
+          patient_name: `${patient.first_name || ''} ${patient.last_name || ''}`.trim(),
+          patient_email: patient.email,
+          patient_phone: patient.phone || patient.cell_phone,
+          notes: data.notes || "",
+          status: "scheduled",
+          provider_name: "Dr. Silverman",
+          appointment_type: "Consultation"
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to local state
+      setAppointments(prev => [appointmentData, ...prev]);
       setIsBookingModalOpen(false);
       appointmentForm.reset();
       
@@ -828,10 +849,11 @@ export default function PatientProfile() {
         title: "Success",
         description: "Appointment scheduled successfully!",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error creating appointment:', error);
       toast({
         title: "Error",
-        description: "Failed to schedule appointment.",
+        description: error.message || "Failed to schedule appointment.",
         variant: "destructive",
       });
     }
@@ -1484,15 +1506,35 @@ export default function PatientProfile() {
                         ) : (
                           <div className="grid gap-4">
                             {filteredNotes.map((note) => (
-                              <Card key={note.id} className="p-4">
+                              <Card key={note.id} className="p-4 hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="font-semibold">{note.chief_complaint || 'SOAP Note'}</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                      {format(new Date(note.date_of_service), 'PPP')} - {note.provider_name}
-                                    </p>
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold">
+                                      {note.chief_complaint || 'SOAP Note'}
+                                      {!note.chief_complaint && (
+                                        <span className="text-sm text-muted-foreground ml-2">
+                                          (No chief complaint)
+                                        </span>
+                                      )}
+                                    </h4>
+                                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        {format(new Date(note.date_of_service), 'PPP')}
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <User className="h-3 w-3" />
+                                        {note.provider_name}
+                                      </span>
+                                      <Badge 
+                                        variant={note.is_draft ? "secondary" : "default"}
+                                        className="text-xs"
+                                      >
+                                        {note.is_draft ? 'Draft' : 'Complete'}
+                                      </Badge>
+                                    </div>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-2 ml-4">
                                     <Button
                                       variant="outline"
                                       size="sm"
@@ -1501,6 +1543,7 @@ export default function PatientProfile() {
                                         setSelectedNoteId(note.id);
                                         setIsModalOpen(true);
                                       }}
+                                      className="shrink-0"
                                     >
                                       <Eye className="h-4 w-4 mr-1" />
                                       View
@@ -1509,6 +1552,7 @@ export default function PatientProfile() {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleExportSOAPNote(note.id)}
+                                      className="shrink-0"
                                     >
                                       <Download className="h-4 w-4 mr-1" />
                                       Export
@@ -1597,14 +1641,15 @@ export default function PatientProfile() {
                   name="calendarId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Calendar</FormLabel>
+                      <FormLabel>Calendar (Optional)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select calendar" />
+                            <SelectValue placeholder="Select calendar (optional)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="default">Default Calendar</SelectItem>
                           {calendars.map((calendar) => (
                             <SelectItem key={calendar.id} value={calendar.id}>
                               {calendar.name}
@@ -1621,9 +1666,12 @@ export default function PatientProfile() {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Title</FormLabel>
+                      <FormLabel>Title *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Appointment title" {...field} />
+                        <Input 
+                          placeholder="e.g., Consultation, Follow-up, Treatment" 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1634,7 +1682,7 @@ export default function PatientProfile() {
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date & Time</FormLabel>
+                      <FormLabel>Date & Time *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
