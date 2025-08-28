@@ -288,7 +288,7 @@ export default function Opportunities() {
                   strategy={horizontalListSortingStrategy}
                 >
                   {MEDICAL_PIPELINE_STAGES.map(stage => (
-                    <div key={stage.id} className="min-w-[320px]">
+                    <div key={stage.id} className="min-w-[350px] max-w-[400px] flex-shrink-0">
                       <MedicalOpportunityColumn
                         stage={stage}
                         opportunities={getOpportunitiesByStage(stage.id)}
