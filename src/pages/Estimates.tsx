@@ -23,23 +23,14 @@ const Estimates = () => {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="mr-2 h-5 w-5" />
-                Recent Estimates
-              </CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">No estimates yet</h3>
-                <p className="text-muted-foreground">
-                  Start by creating your first treatment estimate.
+              <div className="text-center py-16">
+                <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Treatment estimate and pricing features are currently in development. 
+                  Check back soon for updates.
                 </p>
-                <Button className="mt-4">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create First Estimate
-                </Button>
               </div>
             </CardContent>
           </Card>

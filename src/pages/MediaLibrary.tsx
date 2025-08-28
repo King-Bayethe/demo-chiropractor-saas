@@ -23,23 +23,14 @@ const MediaLibrary = () => {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Image className="mr-2 h-5 w-5" />
-                Media Files
-              </CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Image className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">No media files yet</h3>
-                <p className="text-muted-foreground">
-                  Upload images, videos, and other media files for your practice.
+              <div className="text-center py-16">
+                <Image className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Media library and file management features are currently in development. 
+                  Check back soon for updates.
                 </p>
-                <Button className="mt-4">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload First File
-                </Button>
               </div>
             </CardContent>
           </Card>

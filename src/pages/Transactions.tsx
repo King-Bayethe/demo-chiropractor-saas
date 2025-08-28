@@ -23,18 +23,13 @@ const Transactions = () => {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <ArrowUpDown className="mr-2 h-5 w-5" />
-                Transaction History
-              </CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <ArrowUpDown className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">No transactions yet</h3>
-                <p className="text-muted-foreground">
-                  Transaction history will appear here once payments are processed.
+              <div className="text-center py-16">
+                <ArrowUpDown className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Transaction history and financial reporting features are currently in development. 
+                  Check back soon for updates.
                 </p>
               </div>
             </CardContent>

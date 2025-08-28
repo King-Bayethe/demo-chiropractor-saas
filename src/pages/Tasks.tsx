@@ -23,23 +23,14 @@ const Tasks = () => {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CheckSquare className="mr-2 h-5 w-5" />
-                Task Management
-              </CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <CheckSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">No tasks yet</h3>
-                <p className="text-muted-foreground">
-                  Create and assign tasks to team members with due dates.
+              <div className="text-center py-16">
+                <CheckSquare className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Task management and assignment features are currently in development. 
+                  Check back soon for updates.
                 </p>
-                <Button className="mt-4">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create First Task
-                </Button>
               </div>
             </CardContent>
           </Card>
