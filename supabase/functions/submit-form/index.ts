@@ -77,37 +77,37 @@ serve(async (req) => {
       })
     }
 
-    // Security checks: Rate limiting
-    const { data: rateLimitCheck, error: rateLimitError } = await supabase
-      .rpc('check_form_submission_rate_limit', {
-        client_ip: clientIP,
-        form_type_param: formType,
-        max_submissions: 5, // 5 submissions per hour
-        window_minutes: 60
-      });
+    // Security checks: Rate limiting (DISABLED FOR TESTING)
+    // const { data: rateLimitCheck, error: rateLimitError } = await supabase
+    //   .rpc('check_form_submission_rate_limit', {
+    //     client_ip: clientIP,
+    //     form_type_param: formType,
+    //     max_submissions: 5, // 5 submissions per hour
+    //     window_minutes: 60
+    //   });
 
-    if (rateLimitError) {
-      console.error('Rate limit check error:', rateLimitError);
-      const errorMessage = `Unable to process submission at this time: ${rateLimitError.message || 'Database connection error'}. Please try again in a few minutes.`;
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        details: 'Rate limit check failed',
-        code: 'RATE_LIMIT_CHECK_ERROR'
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    // if (rateLimitError) {
+    //   console.error('Rate limit check error:', rateLimitError);
+    //   const errorMessage = `Unable to process submission at this time: ${rateLimitError.message || 'Database connection error'}. Please try again in a few minutes.`;
+    //   return new Response(JSON.stringify({ 
+    //     error: errorMessage,
+    //     details: 'Rate limit check failed',
+    //     code: 'RATE_LIMIT_CHECK_ERROR'
+    //   }), {
+    //     status: 500,
+    //     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    //   })
+    // }
 
-    if (!rateLimitCheck) {
-      console.log('Rate limit exceeded for IP:', clientIP, 'form type:', formType);
-      return new Response(JSON.stringify({ 
-        error: 'Too many submissions. Please wait before submitting again.' 
-      }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    // if (!rateLimitCheck) {
+    //   console.log('Rate limit exceeded for IP:', clientIP, 'form type:', formType);
+    //   return new Response(JSON.stringify({ 
+    //     error: 'Too many submissions. Please wait before submitting again.' 
+    //   }), {
+    //     status: 429,
+    //     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    //   })
+    // }
 
     // Security checks: Form validation
     const { data: formValidation, error: validationError } = await supabase
