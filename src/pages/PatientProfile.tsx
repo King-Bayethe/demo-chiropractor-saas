@@ -1625,26 +1625,30 @@ export default function PatientProfile() {
           </div>
         </div>
 
-        {/* Appointment Booking Dialog */}
+        {/* Enhanced Appointment Booking Dialog */}
         <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Book New Appointment</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="pb-3">
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <CalendarIcon className="h-4 w-4 text-primary" />
+                Book New Appointment
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
                 Schedule a new appointment for {patientName}
               </DialogDescription>
             </DialogHeader>
+            
             <Form {...appointmentForm}>
-              <form onSubmit={appointmentForm.handleSubmit(handleCreateAppointment)} className="space-y-4">
+              <form onSubmit={appointmentForm.handleSubmit(handleCreateAppointment)} className="space-y-6">
                 <FormField
                   control={appointmentForm.control}
                   name="calendarId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Calendar (Optional)</FormLabel>
+                      <FormLabel className="text-sm font-medium">Calendar (Optional)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-11">
                             <SelectValue placeholder="Select calendar (optional)" />
                           </SelectTrigger>
                         </FormControl>
@@ -1661,15 +1665,20 @@ export default function PatientProfile() {
                     </FormItem>
                   )}
                 />
+                
                 <FormField
                   control={appointmentForm.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Title *</FormLabel>
+                      <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                        <FileText className="h-4 w-4" />
+                        Title *
+                      </FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g., Consultation, Follow-up, Treatment" 
+                          className="h-11"
                           {...field} 
                         />
                       </FormControl>
@@ -1677,24 +1686,28 @@ export default function PatientProfile() {
                     </FormItem>
                   )}
                 />
+                
                 <FormField
                   control={appointmentForm.control}
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date & Time *</FormLabel>
+                      <FormLabel className="flex items-center gap-2 text-sm font-medium">
+                        <Clock className="h-4 w-4" />
+                        Date & Time *
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full pl-3 text-left font-normal",
+                                "h-11 w-full pl-3 text-left font-normal",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "PPP HH:mm")
+                                format(field.value, "PPP 'at' HH:mm")
                               ) : (
                                 <span>Pick date and time</span>
                               )}
@@ -1710,38 +1723,72 @@ export default function PatientProfile() {
                             disabled={(date) => date < new Date()}
                             initialFocus
                           />
+                          <div className="p-3 border-t">
+                            <Input
+                              type="time"
+                              value={field.value ? format(field.value, 'HH:mm') : '09:00'}
+                              onChange={(e) => {
+                                if (field.value) {
+                                  const [hours, minutes] = e.target.value.split(':');
+                                  const newDate = new Date(field.value);
+                                  newDate.setHours(parseInt(hours), parseInt(minutes));
+                                  field.onChange(newDate);
+                                } else {
+                                  const [hours, minutes] = e.target.value.split(':');
+                                  const newDate = new Date();
+                                  newDate.setHours(parseInt(hours), parseInt(minutes));
+                                  field.onChange(newDate);
+                                }
+                              }}
+                              className="h-9"
+                            />
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                
                 <FormField
                   control={appointmentForm.control}
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes (Optional)</FormLabel>
+                      <FormLabel className="text-sm font-medium">Notes (Optional)</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Additional notes for the appointment"
-                          className="resize-none"
-                          {...field}
+                          className="resize-none min-h-[80px]"
+                          {...field} 
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)}>
+                
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsBookingModalOpen(false);
+                      appointmentForm.reset();
+                    }}
+                    className="flex-1 h-11"
+                  >
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    <Plus className="h-4 w-4 mr-2" />
+                  <Button 
+                    type="submit" 
+                    disabled={saving}
+                    className="flex-1 h-11"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
                     Book Appointment
                   </Button>
-                </DialogFooter>
+                </div>
               </form>
             </Form>
           </DialogContent>
