@@ -62,7 +62,7 @@ export function SOAPNoteViewModal({
         })
         .finally(() => setLoading(false));
     }
-  }, [noteId, isOpen, getSOAPNote]);
+  }, [noteId, isOpen]);
 
   const handleEdit = () => {
     if (soapNote) {
