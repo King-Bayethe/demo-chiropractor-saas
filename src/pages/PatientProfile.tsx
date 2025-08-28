@@ -23,6 +23,7 @@ import { SOAPNoteTimeline } from "@/components/soap/SOAPNoteTimeline";
 import { SOAPNoteSearch } from "@/components/soap/SOAPNoteSearch";
 import { SOAPNoteBulkActions } from "@/components/soap/SOAPNoteBulkActions";
 import { SOAPNoteViewModal } from "@/components/soap/SOAPNoteViewModal";
+import { SmartSchedulingPanel } from "@/components/calendar/SmartSchedulingPanel";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -804,36 +805,23 @@ export default function PatientProfile() {
     resetFormToPatientData();
   };
 
-  const handleCreateAppointment = async (data: AppointmentFormData) => {
-    if (!patient?.id || !data.startTime) {
-      toast({
-        title: "Error",
-        description: "Missing required appointment information.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleCreateAppointment = async (appointmentData: any) => {
     try {
-      // Calculate end time (1 hour after start time)
-      const endTime = new Date(data.startTime);
-      endTime.setHours(endTime.getHours() + 1);
-
       // Create appointment in database
-      const { data: appointmentData, error } = await supabase
+      const { data: newAppointment, error } = await supabase
         .from('appointments')
         .insert({
-          title: data.title || 'Appointment',
-          start_time: data.startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          patient_id: patient.id,
-          patient_name: `${patient.first_name || ''} ${patient.last_name || ''}`.trim(),
-          patient_email: patient.email,
-          patient_phone: patient.phone || patient.cell_phone,
-          notes: data.notes || "",
-          status: "scheduled",
-          provider_name: "Dr. Silverman",
-          appointment_type: "Consultation"
+          title: appointmentData.title,
+          start_time: appointmentData.start_time,
+          end_time: appointmentData.end_time,
+          patient_id: appointmentData.contact_id,
+          patient_name: `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim(),
+          patient_email: patient?.email,
+          patient_phone: patient?.phone || patient?.cell_phone,
+          notes: appointmentData.notes || "",
+          status: appointmentData.status || "scheduled",
+          provider_id: appointmentData.provider_id,
+          appointment_type: appointmentData.type || "Consultation"
         })
         .select()
         .single();
@@ -841,9 +829,8 @@ export default function PatientProfile() {
       if (error) throw error;
 
       // Add to local state
-      setAppointments(prev => [appointmentData, ...prev]);
+      setAppointments(prev => [newAppointment, ...prev]);
       setIsBookingModalOpen(false);
-      appointmentForm.reset();
       
       toast({
         title: "Success",
@@ -1625,174 +1612,13 @@ export default function PatientProfile() {
           </div>
         </div>
 
-        {/* Enhanced Appointment Booking Dialog */}
-        <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="pb-3">
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <CalendarIcon className="h-4 w-4 text-primary" />
-                Book New Appointment
-              </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
-                Schedule a new appointment for {patientName}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Form {...appointmentForm}>
-              <form onSubmit={appointmentForm.handleSubmit(handleCreateAppointment)} className="space-y-6">
-                <FormField
-                  control={appointmentForm.control}
-                  name="calendarId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Calendar (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select calendar (optional)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="default">Default Calendar</SelectItem>
-                          {calendars.map((calendar) => (
-                            <SelectItem key={calendar.id} value={calendar.id}>
-                              {calendar.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={appointmentForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-sm font-medium">
-                        <FileText className="h-4 w-4" />
-                        Title *
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., Consultation, Follow-up, Treatment" 
-                          className="h-11"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={appointmentForm.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-sm font-medium">
-                        <Clock className="h-4 w-4" />
-                        Date & Time *
-                      </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "h-11 w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP 'at' HH:mm")
-                              ) : (
-                                <span>Pick date and time</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                          />
-                          <div className="p-3 border-t">
-                            <Input
-                              type="time"
-                              value={field.value ? format(field.value, 'HH:mm') : '09:00'}
-                              onChange={(e) => {
-                                if (field.value) {
-                                  const [hours, minutes] = e.target.value.split(':');
-                                  const newDate = new Date(field.value);
-                                  newDate.setHours(parseInt(hours), parseInt(minutes));
-                                  field.onChange(newDate);
-                                } else {
-                                  const [hours, minutes] = e.target.value.split(':');
-                                  const newDate = new Date();
-                                  newDate.setHours(parseInt(hours), parseInt(minutes));
-                                  field.onChange(newDate);
-                                }
-                              }}
-                              className="h-9"
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={appointmentForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Notes (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Additional notes for the appointment"
-                          className="resize-none min-h-[80px]"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex gap-3 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsBookingModalOpen(false);
-                      appointmentForm.reset();
-                    }}
-                    className="flex-1 h-11"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={saving}
-                    className="flex-1 h-11"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Book Appointment
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        {/* Smart Scheduling Panel - Same as Calendar */}
+        <SmartSchedulingPanel
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          onScheduleAppointment={handleCreateAppointment}
+          patientId={patient?.id}
+        />
 
         {/* Document Upload Dialog */}
         <Dialog open={isDocumentUploadOpen} onOpenChange={setIsDocumentUploadOpen}>
