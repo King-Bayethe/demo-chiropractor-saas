@@ -1502,14 +1502,16 @@ export default function PatientProfile() {
                                         setIsModalOpen(true);
                                       }}
                                     >
-                                      <Eye className="h-4 w-4" />
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      View
                                     </Button>
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleExportSOAPNote(note.id)}
                                     >
-                                      <Download className="h-4 w-4" />
+                                      <Download className="h-4 w-4 mr-1" />
+                                      Export
                                     </Button>
                                   </div>
                                 </div>
