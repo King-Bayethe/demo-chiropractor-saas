@@ -90,35 +90,42 @@ export const useOpportunities = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Ensure required fields are present
+      // Helper function to process date fields
+      const processDateField = (dateValue: any): string | null => {
+        if (!dateValue) return null;
+        if (typeof dateValue === 'string' && dateValue.trim() === '') return null;
+        return dateValue;
+      };
+
+      // Ensure required fields are present and process dates properly
       const insertData = {
         name: opportunityData.name || 'New Opportunity',
-        description: opportunityData.description,
+        description: opportunityData.description || null,
         status: opportunityData.status || 'lead',
         priority: opportunityData.priority || 'medium',
-        patient_id: opportunityData.patient_id,
-        patient_name: opportunityData.patient_name,
-        patient_email: opportunityData.patient_email,
-        patient_phone: opportunityData.patient_phone,
-        case_type: opportunityData.case_type,
-        estimated_value: opportunityData.estimated_value,
-        insurance_coverage_amount: opportunityData.insurance_coverage_amount,
+        patient_id: opportunityData.patient_id || null,
+        patient_name: opportunityData.patient_name || null,
+        patient_email: opportunityData.patient_email || null,
+        patient_phone: opportunityData.patient_phone || null,
+        case_type: opportunityData.case_type || null,
+        estimated_value: opportunityData.estimated_value || null,
+        insurance_coverage_amount: opportunityData.insurance_coverage_amount || null,
         attorney_referred: opportunityData.attorney_referred || false,
-        attorney_name: opportunityData.attorney_name,
-        attorney_contact: opportunityData.attorney_contact,
+        attorney_name: opportunityData.attorney_name || null,
+        attorney_contact: opportunityData.attorney_contact || null,
         pipeline_stage: opportunityData.pipeline_stage || 'lead',
-        expected_close_date: opportunityData.expected_close_date,
-        consultation_scheduled_at: opportunityData.consultation_scheduled_at,
-        treatment_start_date: opportunityData.treatment_start_date,
-        source: opportunityData.source,
-        referral_source: opportunityData.referral_source,
-        form_submission_id: opportunityData.form_submission_id,
-        assigned_to: opportunityData.assigned_to,
-        assigned_provider_name: opportunityData.assigned_provider_name,
-        tags: opportunityData.tags,
-        notes: opportunityData.notes,
-        last_contact_date: opportunityData.last_contact_date,
-        next_follow_up_date: opportunityData.next_follow_up_date,
+        expected_close_date: processDateField(opportunityData.expected_close_date),
+        consultation_scheduled_at: processDateField(opportunityData.consultation_scheduled_at),
+        treatment_start_date: processDateField(opportunityData.treatment_start_date),
+        source: opportunityData.source || null,
+        referral_source: opportunityData.referral_source || null,
+        form_submission_id: opportunityData.form_submission_id || null,
+        assigned_to: opportunityData.assigned_to || null,
+        assigned_provider_name: opportunityData.assigned_provider_name || null,
+        tags: opportunityData.tags || null,
+        notes: opportunityData.notes || null,
+        last_contact_date: processDateField(opportunityData.last_contact_date),
+        next_follow_up_date: processDateField(opportunityData.next_follow_up_date),
         created_by: user.id,
       };
 

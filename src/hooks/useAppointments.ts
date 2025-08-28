@@ -205,6 +205,11 @@ export const useAppointments = () => {
 
   const createOrUpdateOpportunity = async (patientData: any, appointmentData: any) => {
     try {
+      console.log('Starting createOrUpdateOpportunity with:', { 
+        patientId: patientData.id, 
+        appointmentTitle: appointmentData.title 
+      });
+
       // Check if an opportunity already exists for this patient
       const { data: existingOpportunity, error: fetchError } = await supabase
         .from('opportunities')
@@ -214,39 +219,46 @@ export const useAppointments = () => {
 
       if (fetchError) {
         console.error('Error fetching existing opportunity:', fetchError);
-        return;
+        throw new Error(`Failed to fetch existing opportunity: ${fetchError.message}`);
       }
 
       const patientName = patientData.first_name && patientData.last_name 
-        ? `${patientData.first_name} ${patientData.last_name}`
+        ? `${patientData.first_name} ${patientData.last_name}`.trim()
         : patientData.email || 'Unknown Patient';
 
       if (existingOpportunity) {
+        console.log('Updating existing opportunity:', existingOpportunity.id);
         // Update existing opportunity to appointment stage
-        const { error: updateError } = await supabase
+        const { data: updatedData, error: updateError } = await supabase
           .from('opportunities')
           .update({
             pipeline_stage: 'appointment',
             consultation_scheduled_at: appointmentData.start_time,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingOpportunity.id);
+          .eq('id', existingOpportunity.id)
+          .select()
+          .single();
 
         if (updateError) {
           console.error('Error updating opportunity:', updateError);
+          throw new Error(`Failed to update opportunity: ${updateError.message}`);
         } else {
-          console.log('Updated existing opportunity to appointment stage');
+          console.log('Successfully updated existing opportunity to appointment stage:', updatedData);
+          return updatedData;
         }
       } else {
+        console.log('Creating new opportunity for patient:', patientName);
         // Create new opportunity in appointment stage
-        const { error: createError } = await supabase
+        const { data: newOpportunity, error: createError } = await supabase
           .from('opportunities')
           .insert({
             name: `Appointment - ${patientName}`,
             description: `Opportunity created from appointment: ${appointmentData.title}`,
             patient_id: patientData.id,
             patient_name: patientName,
-            patient_email: patientData.email,
+            patient_email: patientData.email || null,
+            patient_phone: patientData.phone || null,
             pipeline_stage: 'appointment',
             status: 'lead',
             priority: 'medium',
@@ -254,16 +266,22 @@ export const useAppointments = () => {
             consultation_scheduled_at: appointmentData.start_time,
             created_by: appointmentData.provider_id,
             attorney_referred: false
-          });
+          })
+          .select()
+          .single();
 
         if (createError) {
           console.error('Error creating opportunity:', createError);
+          throw new Error(`Failed to create opportunity: ${createError.message}`);
         } else {
-          console.log('Created new opportunity in appointment stage');
+          console.log('Successfully created new opportunity in appointment stage:', newOpportunity);
+          return newOpportunity;
         }
       }
     } catch (err) {
       console.error('Error in createOrUpdateOpportunity:', err);
+      // Re-throw the error so it can be handled by the calling function
+      throw err;
     }
   };
 

@@ -81,8 +81,26 @@ export function AddMedicalOpportunityForm({ onSubmit, onCancel }: AddMedicalOppo
   const attorneyReferred = form.watch('attorney_referred');
 
   const handleFormSubmit = (values: z.infer<typeof formSchema>) => {
-    const submissionData = {
+    // Convert empty date strings to null to avoid database errors
+    const processedValues = {
       ...values,
+      expected_close_date: values.expected_close_date && values.expected_close_date.trim() !== '' 
+        ? values.expected_close_date 
+        : null,
+      // Convert empty strings to null for other optional fields
+      name: values.name && values.name.trim() !== '' ? values.name : null,
+      description: values.description && values.description.trim() !== '' ? values.description : null,
+      case_type: values.case_type && values.case_type.trim() !== '' ? values.case_type : null,
+      attorney_name: values.attorney_name && values.attorney_name.trim() !== '' ? values.attorney_name : null,
+      attorney_contact: values.attorney_contact && values.attorney_contact.trim() !== '' ? values.attorney_contact : null,
+      source: values.source && values.source.trim() !== '' ? values.source : null,
+      referral_source: values.referral_source && values.referral_source.trim() !== '' ? values.referral_source : null,
+      assigned_provider_name: values.assigned_provider_name && values.assigned_provider_name.trim() !== '' ? values.assigned_provider_name : null,
+      notes: values.notes && values.notes.trim() !== '' ? values.notes : null,
+    };
+
+    const submissionData = {
+      ...processedValues,
       patient_id: selectedPatient?.id,
       patient_name: selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}`.trim() : undefined,
       patient_email: selectedPatient?.email,
