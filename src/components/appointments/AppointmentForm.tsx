@@ -35,7 +35,6 @@ type AppointmentFormData = z.infer<typeof appointmentSchema>;
 interface AppointmentFormProps {
   appointment?: Appointment;
   contacts: Array<{ id: string; name: string }>;
-  providers: Array<{ id: string; name: string }>;
   onSubmit: (data: CreateAppointmentData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
@@ -44,13 +43,11 @@ interface AppointmentFormProps {
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   appointment,
   contacts,
-  providers,
   onSubmit,
   onCancel,
   loading = false,
  }) => {
   const [contactOpen, setContactOpen] = useState(false);
-  const [providerOpen, setProviderOpen] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const form = useForm<AppointmentFormData>({
@@ -66,7 +63,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       type: appointment?.type || 'consultation',
       notes: appointment?.notes || '',
       location: appointment?.location || '',
-      provider_id: appointment?.provider_id || '',
+      provider_id: '',
     },
   });
 
@@ -109,7 +106,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         type: data.type,
         notes: data.notes?.trim() || '',
         location: data.location?.trim() || '',
-        provider_id: data.provider_id === 'none' ? '' : data.provider_id,
+        provider_id: '',
       };
       await onSubmit(submitData);
     } catch (error) {
@@ -408,92 +405,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="provider_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="flex items-center gap-2 text-sm font-medium">
-                  <Stethoscope className="h-4 w-4" />
-                  Provider (Optional)
-                </FormLabel>
-                <Popover open={providerOpen} onOpenChange={setProviderOpen}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={providerOpen}
-                        className={cn(
-                          "h-11 justify-between bg-background",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value && field.value !== 'none'
-                          ? providers.find((provider) => provider.id === field.value)?.name || "Provider not found"
-                          : "Select a provider"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[400px] p-0" align="start">
-                    <Command>
-                      <CommandInput 
-                        placeholder="Search providers..." 
-                        className="h-11"
-                      />
-                      <CommandList>
-                        <CommandEmpty>No provider found.</CommandEmpty>
-                        <CommandGroup>
-                          <CommandItem
-                            value="none"
-                            onSelect={() => {
-                              field.onChange('none');
-                              setProviderOpen(false);
-                            }}
-                            className="flex items-center gap-2 p-3"
-                          >
-                            <span className="text-muted-foreground">No provider assigned</span>
-                            <Check
-                              className={cn(
-                                "ml-auto h-4 w-4",
-                                (!field.value || field.value === 'none')
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                          {providers.map((provider) => (
-                            <CommandItem
-                              key={provider.id}
-                              value={provider.name}
-                              onSelect={() => {
-                                field.onChange(provider.id);
-                                setProviderOpen(false);
-                              }}
-                              className="flex items-center gap-2 p-3"
-                            >
-                              <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                              <span>{provider.name}</span>
-                              <Check
-                                className={cn(
-                                  "ml-auto h-4 w-4",
-                                  provider.id === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}

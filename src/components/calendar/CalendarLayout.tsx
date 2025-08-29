@@ -10,7 +10,6 @@ interface CalendarLayoutProps {
   onDateChange: (date: Date) => void;
   onCreateAppointment: () => void;
   filters: {
-    providers: string[];
     status: string[];
     types: string[];
   };

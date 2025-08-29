@@ -20,7 +20,6 @@ interface DisplayAppointment {
   title: string;
   patientName: string;
   patientId: string;
-  provider: string;
   type: string;
   status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   startTime: Date;
@@ -34,7 +33,6 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [displayAppointments, setDisplayAppointments] = useState<DisplayAppointment[]>([]);
   const [contacts, setContacts] = useState([]);
-  const [providers, setProviders] = useState([]);
   const [isCreateAppointmentOpen, setIsCreateAppointmentOpen] = useState(false);
   const [isSmartSchedulingOpen, setIsSmartSchedulingOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<DisplayAppointment | null>(null);
@@ -44,7 +42,6 @@ export default function Calendar() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    providers: [] as string[],
     status: [] as string[],
     types: [] as string[]
   });
@@ -72,24 +69,11 @@ export default function Calendar() {
         }
       }
 
-      // Get provider name from appointment data or providers array
-      let providerName = 'Unassigned';
-      if (apt.provider_name) {
-        providerName = apt.provider_name;
-      } else {
-        // Find provider in providers array by provider_id
-        const provider = providers.find((p: any) => p.user_id === apt.provider_id);
-        if (provider) {
-          providerName = `${provider.first_name} ${provider.last_name}`.trim();
-        }
-      }
-
       return {
         id: apt.id,
         title: apt.title,
         patientName,
         patientId: apt.contact_id,
-        provider: providerName,
         type: apt.type,
         status: apt.status,
         startTime: new Date(apt.start_time),
@@ -99,7 +83,7 @@ export default function Calendar() {
       };
     });
     setDisplayAppointments(convertedAppointments);
-  }, [appointments, contacts, providers]);
+  }, [appointments, contacts]);
 
   const loadData = async () => {
     try {
@@ -121,22 +105,6 @@ export default function Calendar() {
         }));
         setContacts(formattedContacts);
       }
-
-      // Load providers from profiles
-      const { data: providersData } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name, email')
-        .eq('is_active', true)
-        .in('role', ['doctor', 'provider', 'staff'])
-        .order('first_name');
-
-      const formattedProviders = (providersData || []).map((provider: any) => ({
-        id: provider.user_id,
-        name: provider.first_name && provider.last_name 
-          ? `${provider.first_name} ${provider.last_name}`
-          : provider.email || 'Provider'
-      }));
-      setProviders(formattedProviders);
     } catch (error) {
       console.error('Failed to load calendar data:', error);
       toast({
@@ -221,7 +189,6 @@ export default function Calendar() {
       const matchesSearch = 
         apt.patientName.toLowerCase().includes(searchLower) ||
         apt.title.toLowerCase().includes(searchLower) ||
-        apt.provider.toLowerCase().includes(searchLower) ||
         apt.type.toLowerCase().includes(searchLower) ||
         (apt.notes && apt.notes.toLowerCase().includes(searchLower));
       if (!matchesSearch) return false;
@@ -230,7 +197,6 @@ export default function Calendar() {
     // Other filters
     if (filters.status.length > 0 && !filters.status.includes(apt.status)) return false;
     if (filters.types.length > 0 && !filters.types.includes(apt.type?.toLowerCase() || '')) return false;
-    if (filters.providers.length > 0 && !filters.providers.includes(apt.provider)) return false;
     return true;
   });
 
@@ -313,7 +279,6 @@ export default function Calendar() {
         <Dialog open={isCreateAppointmentOpen} onOpenChange={setIsCreateAppointmentOpen}>
           <AppointmentForm
             contacts={contacts}
-            providers={providers}
             onSubmit={handleCreateAppointment}
             onCancel={() => setIsCreateAppointmentOpen(false)}
             loading={loading}
@@ -341,14 +306,13 @@ export default function Calendar() {
                 type: editingAppointment.type as 'consultation' | 'treatment' | 'follow_up' | 'procedure',
                 notes: editingAppointment.notes || '',
                 location: editingAppointment.location || '',
-                provider_id: '', // Will be resolved from provider name
+                provider_id: '',
                 contact_name: editingAppointment.patientName,
-                provider_name: editingAppointment.provider,
+                provider_name: '',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               } : undefined}
               contacts={contacts}
-              providers={providers}
               onSubmit={handleUpdateAppointment}
               onCancel={() => {
                 setIsEditDialogOpen(false);

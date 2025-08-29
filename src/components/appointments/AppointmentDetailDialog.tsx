@@ -17,7 +17,6 @@ interface DisplayAppointment {
   title: string;
   patientName: string;
   patientId: string;
-  provider: string;
   type: string;
   status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   startTime: Date;
@@ -132,13 +131,6 @@ export function AppointmentDetailDialog({
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <div className="text-sm font-medium">Provider</div>
-                <div className="text-sm text-muted-foreground">{appointment.provider}</div>
-              </div>
-            </div>
 
             {appointment.location && (
               <div className="flex items-center space-x-3">

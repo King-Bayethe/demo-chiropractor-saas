@@ -260,7 +260,6 @@ export default function Appointments() {
                 </DialogTrigger>
                 <AppointmentForm
                   contacts={contacts}
-                  providers={providers.map(p => ({ id: p.user_id, name: getProviderDisplayName(p) }))}
                   onSubmit={handleCreateAppointment}
                   onCancel={() => setIsCreateDialogOpen(false)}
                   loading={loading}
@@ -365,7 +364,6 @@ export default function Appointments() {
               <AppointmentForm
                 appointment={editingAppointment}
                 contacts={contacts}
-                providers={providers.map(p => ({ id: p.user_id, name: getProviderDisplayName(p) }))}
                 onSubmit={handleUpdateAppointment}
                 onCancel={() => {
                   setIsEditDialogOpen(false);

@@ -23,9 +23,6 @@ import {
   Check,
   ChevronsUpDown
 } from "lucide-react";
-import { useProviderAvailability } from "@/hooks/useProviderAvailability";
-import { useAppointments } from "@/hooks/useAppointments";
-import { useProviders } from "@/hooks/useProviders";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatTimeSlot } from "@/utils/timezone";
@@ -52,7 +49,6 @@ export function SmartSchedulingPanel({
   onClose
 }: SmartSchedulingPanelProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [appointmentType, setAppointmentType] = useState<string>("");
   const [duration, setDuration] = useState<number>(30);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
@@ -62,12 +58,6 @@ export function SmartSchedulingPanel({
   const [patients, setPatients] = useState<Patient[]>([]);
   const [notes, setNotes] = useState<string>("");
   
-  const { getAvailableSlots, loading: availabilityLoading } = useProviderAvailability();
-  const { checkAppointmentConflicts } = useAppointments();
-  const { providers, getProviderDisplayName } = useProviders();
-  
-  const [availableSlots, setAvailableSlots] = useState<any[]>([]);
-  const [conflicts, setConflicts] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
 
   const appointmentTypes = [
@@ -101,12 +91,6 @@ export function SmartSchedulingPanel({
   }, []);
 
   useEffect(() => {
-    if (selectedProvider && selectedDate) {
-      loadAvailableSlots();
-    }
-  }, [selectedProvider, selectedDate, duration]);
-
-  useEffect(() => {
     if (appointmentType) {
       const type = appointmentTypes.find(t => t.value === appointmentType);
       if (type) {
@@ -115,68 +99,38 @@ export function SmartSchedulingPanel({
     }
   }, [appointmentType]);
 
-  const loadAvailableSlots = async () => {
-    if (!selectedProvider) return;
-    
-    try {
-      const slots = await getAvailableSlots(
-        selectedProvider,
-        selectedDate.toISOString().split('T')[0],
-        duration
-      );
-      setAvailableSlots(slots);
-      generateRecommendations(slots);
-    } catch (error) {
-      console.error('Error loading available slots:', error);
-    }
-  };
-
-  const generateRecommendations = (slots: any[]) => {
+  const generateRecommendations = () => {
     const recommendations = [];
     
-    // Morning slots recommendation
-    const morningSlots = slots.filter(slot => {
-      const startDate = new Date(slot.start);
-      if (isNaN(startDate.getTime())) return false;
-      const hour = startDate.getHours();
-      return hour >= 8 && hour < 12;
-    });
-    
-    if (morningSlots.length > 0) {
+    // Time-based recommendations
+    const hour = selectedDate.getHours();
+    if (hour >= 8 && hour < 12) {
       recommendations.push({
         type: "optimal",
-        title: "Morning Availability",
-        description: `${morningSlots.length} morning slots available - ideal for new patients`,
+        title: "Morning Slot",
+        description: "Morning appointments often have better patient attendance",
         icon: Clock,
         priority: "high"
       });
     }
 
-    // Back-to-back prevention
+    // Appointment type specific recommendations
     if (appointmentType === "treatment") {
       recommendations.push({
         type: "tip",
         title: "Treatment Scheduling",
-        description: "Consider 15-minute buffer between treatments for better patient care",
+        description: "Consider allowing extra time for treatment setup and cleanup",
         icon: Lightbulb,
         priority: "medium"
       });
     }
 
-    // Lunch break warning
-    const lunchSlots = slots.filter(slot => {
-      const startDate = new Date(slot.start);
-      if (isNaN(startDate.getTime())) return false;
-      const hour = startDate.getHours();
-      return hour >= 12 && hour < 14;
-    });
-    
-    if (lunchSlots.length > 0) {
+    if (appointmentType === "consultation") {
       recommendations.push({
-        type: "warning",
-        title: "Lunch Period",
-        description: "Some slots during lunch hours - confirm provider availability",
-        icon: AlertTriangle,
+        type: "tip",
+        title: "First-time Patient",
+        description: "New consultations may require additional documentation time",
+        icon: User,
         priority: "medium"
       });
     }
@@ -184,61 +138,26 @@ export function SmartSchedulingPanel({
     setRecommendations(recommendations);
   };
 
-  const checkForConflicts = async (timeSlot: string) => {
-    if (!selectedProvider || !timeSlot) return;
-    
-    try {
-      // timeSlot is an ISO string from slot.start
-      const startTime = new Date(timeSlot);
-      if (isNaN(startTime.getTime())) {
-        console.error('Invalid start time:', timeSlot);
-        return;
-      }
-      
-      const endTime = new Date(startTime.getTime() + duration * 60000);
-      
-      const hasConflict = await checkAppointmentConflicts(
-        startTime.toISOString(),
-        endTime.toISOString(),
-        selectedProvider
-      );
-      
-      const conflictList = [];
-      if (hasConflict) {
-        conflictList.push("Time slot conflicts with existing appointment");
-      }
-      
-      // Check for lunch break
-      const hour = startTime.getHours();
-      if (hour >= 12 && hour < 13) {
-        conflictList.push("Scheduled during typical lunch break");
-      }
-      
-      // Check for end of day
-      if (hour >= 17) {
-        conflictList.push("Scheduled after typical business hours");
-      }
-      
-      setConflicts(conflictList);
-    } catch (error) {
-      console.error('Error checking conflicts:', error);
+  useEffect(() => {
+    if (selectedDate && appointmentType) {
+      generateRecommendations();
     }
-  };
-
-  const handleSlotSelect = (slot: any) => {
-    setSelectedTimeSlot(slot.start);
-    checkForConflicts(slot.start);
-  };
+  }, [selectedDate, appointmentType]);
 
   const handleSchedule = () => {
-    if (!selectedPatient || !selectedTimeSlot || !appointmentType) return;
+    if (!selectedPatient || !selectedDate || !appointmentType) return;
     
     try {
-      // selectedTimeSlot is an ISO string from slot.start
-      const startTime = new Date(selectedTimeSlot);
-      if (isNaN(startTime.getTime())) {
-        console.error('Invalid start time:', selectedTimeSlot);
-        return;
+      // Create appointment start time from selected date and current time or default time
+      const startTime = new Date(selectedDate);
+      if (selectedTimeSlot) {
+        const [hours, minutes] = selectedTimeSlot.split(':').map(Number);
+        startTime.setHours(hours, minutes, 0, 0);
+      } else {
+        // Default to next available hour if no specific time selected
+        const now = new Date();
+        const nextHour = now.getHours() + 1;
+        startTime.setHours(nextHour, 0, 0, 0);
       }
       
       const endTime = new Date(startTime.getTime() + duration * 60000);
@@ -252,7 +171,7 @@ export function SmartSchedulingPanel({
         contact_id: selectedPatient.id,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        provider_id: selectedProvider,
+        provider_id: '',
         type: appointmentType,
         notes: notes,
         status: 'scheduled'
@@ -278,6 +197,22 @@ export function SmartSchedulingPanel({
     const search = patientSearchValue.toLowerCase();
     return displayName.includes(search) || email.includes(search);
   });
+
+  // Generate available time slots for the selected date
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 8; // 8 AM
+    const endHour = 18; // 6 PM
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+    
+    return slots;
+  };
+
+  const availableTimeSlots = generateTimeSlots();
 
   if (!isOpen) return null;
 
@@ -383,22 +318,6 @@ export function SmartSchedulingPanel({
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label htmlFor="provider">Provider *</Label>
-                <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {providers.map((provider) => (
-                      <SelectItem key={provider.user_id} value={provider.user_id}>
-                        {getProviderDisplayName(provider)} - {provider.role === 'doctor' ? 'Physician' : provider.role === 'overlord' ? 'Director' : 'Provider'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <Label htmlFor="appointmentType">Appointment Type *</Label>
                 <Select value={appointmentType} onValueChange={setAppointmentType}>
                   <SelectTrigger>
@@ -452,57 +371,33 @@ export function SmartSchedulingPanel({
           </Card>
 
           {/* Available Time Slots */}
-          {selectedProvider && availableSlots.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  Available Time Slots
-                  <Badge variant="secondary" className="bg-success/10 text-success">
-                    {availableSlots.length} slots
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-2">
-                  {availableSlots.map((slot, index) => (
-                    <Button
-                      key={index}
-                      variant={selectedTimeSlot === slot.start ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleSlotSelect(slot)}
-                      className="text-xs"
-                    >
-                      {(() => {
-                        try {
-                          const startDate = new Date(slot.start);
-                          if (isNaN(startDate.getTime())) return 'Invalid Date';
-                          return startDate.toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            timeZone: 'America/New_York'
-                          });
-                        } catch (error) {
-                          console.error('Error formatting slot time:', error, slot);
-                          return 'Invalid Date';
-                        }
-                      })()}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center justify-between">
+                Available Time Slots
+                <Badge variant="secondary" className="bg-success/10 text-success">
+                  {availableTimeSlots.length} slots
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-2">
+                {availableTimeSlots.map((slot, index) => (
+                  <Button
+                    key={index}
+                    variant={selectedTimeSlot === slot ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedTimeSlot(slot)}
+                    className="text-xs"
+                  >
+                    {slot}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-          {availableSlots.length === 0 && selectedProvider && !availabilityLoading && (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Clock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No available slots for selected date</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Recommendations */}
+          {/* Smart Recommendations */}
           {recommendations.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
@@ -511,48 +406,22 @@ export function SmartSchedulingPanel({
                   Smart Recommendations
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {recommendations.map((rec, index) => (
-                  <div key={index} className={`p-3 rounded-lg border ${
-                    rec.priority === 'high' ? 'bg-success/5 border-success/20' :
-                    rec.type === 'warning' ? 'bg-warning/5 border-warning/20' :
-                    'bg-muted/30 border-border'
-                  }`}>
-                    <div className="flex items-start space-x-2">
-                      <rec.icon className={`w-4 h-4 mt-0.5 ${
-                        rec.priority === 'high' ? 'text-success' :
-                        rec.type === 'warning' ? 'text-warning' :
-                        'text-muted-foreground'
+              <CardContent className="space-y-3">
+                {recommendations.map((rec, index) => {
+                  const IconComponent = rec.icon;
+                  return (
+                    <div key={index} className="flex items-start space-x-3 p-3 rounded-lg border border-border/50 bg-muted/20">
+                      <IconComponent className={`w-4 h-4 mt-0.5 ${
+                        rec.type === 'optimal' ? 'text-success' : 
+                        rec.type === 'warning' ? 'text-warning' : 'text-primary'
                       }`} />
-                      <div>
-                        <p className="text-sm font-medium">{rec.title}</p>
+                      <div className="flex-1 space-y-1">
+                        <h4 className="text-sm font-medium">{rec.title}</h4>
                         <p className="text-xs text-muted-foreground">{rec.description}</p>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Conflicts */}
-          {conflicts.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center text-destructive">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  Potential Conflicts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {conflicts.map((conflict, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-sm text-destructive">
-                      <div className="w-1 h-1 rounded-full bg-destructive" />
-                      <span>{conflict}</span>
-                    </div>
-                  ))}
-                </div>
+                  );
+                })}
               </CardContent>
             </Card>
           )}
@@ -560,29 +429,28 @@ export function SmartSchedulingPanel({
           {/* Notes */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Additional Notes</CardTitle>
+              <CardTitle className="text-sm">Notes (Optional)</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
+                placeholder="Add any additional notes for this appointment..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any special requirements or notes..."
-                rows={3}
+                className="min-h-[80px]"
               />
             </CardContent>
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex space-x-3">
+          <div className="flex gap-3 pt-4 border-t">
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
             <Button 
               onClick={handleSchedule}
-              disabled={!selectedTimeSlot || !selectedProvider || !selectedPatient}
-              className="flex-1 bg-medical-blue hover:bg-medical-blue-dark"
+              disabled={!selectedPatient || !appointmentType}
+              className="flex-1"
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
               Schedule Appointment
             </Button>
           </div>

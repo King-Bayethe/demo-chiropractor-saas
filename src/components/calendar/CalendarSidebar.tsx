@@ -17,14 +17,13 @@ import {
   ChevronDown,
   Settings
 } from "lucide-react";
-import { useProviders } from "@/hooks/useProviders";
+
 
 interface CalendarSidebarProps {
   isCollapsed: boolean;
   currentDate: Date;
   onDateChange: (date: Date) => void;
   filters: {
-    providers: string[];
     status: string[];
     types: string[];
   };
@@ -49,7 +48,6 @@ export function CalendarSidebar({
 }: CalendarSidebarProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(currentDate);
   const [isFiltersOpen, setIsFiltersOpen] = useState(true);
-  const [isProvidersOpen, setIsProvidersOpen] = useState(true);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -58,8 +56,6 @@ export function CalendarSidebar({
     }
   };
 
-  const { providers } = useProviders();
-  const navigate = useNavigate();
 
   const statusOptions = [
     { value: "scheduled", label: "Scheduled", color: "bg-medical-blue" },
@@ -89,7 +85,6 @@ export function CalendarSidebar({
         <div className="w-8 h-px bg-border"></div>
         <CalendarIcon className="w-5 h-5 text-muted-foreground" />
         <Filter className="w-5 h-5 text-muted-foreground" />
-        <Users className="w-5 h-5 text-muted-foreground" />
       </div>
     );
   }
@@ -131,58 +126,6 @@ export function CalendarSidebar({
           </CardContent>
         </Card>
 
-        {/* Provider Availability */}
-        <Card>
-          <Collapsible open={isProvidersOpen} onOpenChange={setIsProvidersOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-2" />
-                    Providers Today
-                  </div>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isProvidersOpen ? 'rotate-180' : ''}`} />
-                </CardTitle>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-0 space-y-3">
-                {providers.map((provider) => {
-                  const providerName = provider.first_name && provider.last_name 
-                    ? `Dr. ${provider.first_name} ${provider.last_name}`
-                    : provider.email;
-                  const isAvailable = provider.is_active && provider.role !== 'overlord';
-                  
-                  return (
-                    <div key={provider.user_id} className="flex items-center justify-between p-2 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-success' : 'bg-muted-foreground'}`} />
-                        <div>
-                          <p className="text-sm font-medium">{providerName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {provider.role === 'doctor' ? 'Physician' : provider.role === 'overlord' ? 'Director' : 'Provider'}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {isAvailable ? 'Available' : provider.role === 'overlord' ? 'Director' : 'Busy'}
-                      </Badge>
-                    </div>
-                  );
-                })}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => navigate('/settings?section=schedule')}
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Manage Availability
-                </Button>
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
 
         {/* Filters */}
         <Card>

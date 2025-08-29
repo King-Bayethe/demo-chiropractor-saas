@@ -11,7 +11,6 @@ interface DisplayAppointment {
   title: string;
   patientName: string;
   patientId: string;
-  provider: string;
   type: string;
   status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   startTime: Date;
@@ -95,10 +94,6 @@ const AppointmentCard: React.FC<{
                 <span className="text-sm">{appointment.type}</span>
               </div>
               
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <User className="h-4 w-4" />
-                <span className="text-sm">{appointment.provider}</span>
-              </div>
             </div>
           </div>
         )}
@@ -427,12 +422,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     </div>
                     {height > 60 && (
                       <>
-                        <div className="text-sm text-muted-foreground truncate mt-1">
-                          {appointment.type}
-                        </div>
-                        <div className="text-sm text-muted-foreground truncate">
-                          Dr. {appointment.provider}
-                        </div>
+                         <div className="text-sm text-muted-foreground truncate mt-1">
+                           {appointment.type}
+                         </div>
                       </>
                     )}
                   </div>
