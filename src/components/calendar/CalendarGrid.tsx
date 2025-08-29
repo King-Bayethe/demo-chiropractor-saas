@@ -27,6 +27,7 @@ interface CalendarGridProps {
   onAppointmentClick: (appointment: DisplayAppointment) => void;
   onAppointmentEdit: (appointment: DisplayAppointment) => void;
   onDateSelect: (date: Date) => void;
+  onTimeSlotClick?: (date: Date, time: string) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -113,6 +114,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onAppointmentClick,
   onAppointmentEdit,
   onDateSelect,
+  onTimeSlotClick,
 }) => {
   if (view === 'month') {
     const monthStart = startOfMonth(currentDate);
@@ -190,16 +192,21 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       end: endOfWeek(currentDate) 
     });
 
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+
     return (
-      <div className="h-full flex flex-col">
-        <div className="grid grid-cols-8 border-b border-border">
-          <div className="p-3 border-r border-border"></div>
+      <div className="h-full flex flex-col bg-background">
+        {/* Header with days */}
+        <div className="grid grid-cols-8 border-b border-border bg-background sticky top-0 z-20">
+          <div className="p-3 border-r border-border text-center text-sm font-medium text-muted-foreground">
+            Time
+          </div>
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className="p-3 text-center">
-              <div className="font-medium">{format(day, 'EEE')}</div>
+            <div key={day.toISOString()} className="p-3 text-center border-r border-border last:border-r-0">
+              <div className="font-medium text-sm">{format(day, 'EEE')}</div>
               <div className={cn(
-                "text-sm",
-                isToday(day) && "font-bold text-primary"
+                "text-lg font-semibold mt-1",
+                isToday(day) && "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto"
               )}>
                 {format(day, 'd')}
               </div>
@@ -207,54 +214,104 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-8 gap-px bg-border">
-            {/* Time column */}
-            <div className="bg-background">
-              {Array.from({ length: 24 }, (_, hour) => (
-                <div key={hour} className="h-16 border-b border-border p-2 text-sm text-muted-foreground">
-                  {format(new Date().setHours(hour, 0), 'h a')}
+        {/* Main calendar grid */}
+        <div className="flex-1 overflow-auto">
+          <div className="grid grid-cols-8 min-h-full">
+            {/* Time labels column */}
+            <div className="bg-background border-r border-border sticky left-0 z-10">
+              {hours.map((hour) => (
+                <div key={hour} className="h-20 border-b border-border flex items-start justify-end pr-3 pt-1">
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {hour === 0 ? '12 AM' : 
+                     hour === 12 ? '12 PM' :
+                     hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
+                  </span>
                 </div>
               ))}
             </div>
 
             {/* Day columns */}
-            {weekDays.map((day) => {
+            {weekDays.map((day, dayIndex) => {
               const dayAppointments = appointments.filter(apt => 
                 isSameDay(apt.startTime, day)
               );
               
               return (
-                <div key={day.toISOString()} className="bg-background">
-                  {Array.from({ length: 24 }, (_, hour) => {
-                    const hourAppointments = dayAppointments.filter(apt => {
-                      const appointmentHour = apt.startTime.getHours();
-                      const appointmentMinutes = apt.startTime.getMinutes();
-                      // Show appointment in the hour it starts
-                      return appointmentHour === hour;
-                    });
-
+                <div key={day.toISOString()} className="border-r border-border last:border-r-0 relative">
+                  {hours.map((hour) => {
+                    const cellDate = new Date(day);
+                    cellDate.setHours(hour, 0, 0, 0);
+                    
                     return (
-                      <div key={hour} className="h-16 border-b border-border p-0.5 relative overflow-hidden">
-                        {hourAppointments.map((appointment, index) => (
-                          <div
-                            key={appointment.id}
-                            className="absolute inset-x-0.5 z-10"
-                            style={{
-                              top: `${(appointment.startTime.getMinutes() / 60) * 100}%`,
-                              height: `${Math.min(
-                                ((appointment.endTime.getTime() - appointment.startTime.getTime()) / (60 * 60 * 1000)) * 100,
-                                100 - (appointment.startTime.getMinutes() / 60) * 100
-                              )}%`
-                            }}
-                          >
-                            <AppointmentCard
-                              appointment={appointment}
-                              onClick={() => onAppointmentClick(appointment)}
-                              compact
-                            />
+                      <div 
+                        key={hour} 
+                        className="h-20 border-b border-border relative cursor-pointer hover:bg-muted/30 transition-colors"
+                        onClick={() => onTimeSlotClick?.(day, `${hour.toString().padStart(2, '0')}:00`)}
+                      >
+                        {/* 30-minute divider */}
+                        <div className="absolute top-1/2 left-0 right-0 h-px bg-border/50"></div>
+                        
+                        {/* Half-hour click zones */}
+                        <div 
+                          className="absolute top-0 left-0 right-0 h-1/2 cursor-pointer hover:bg-primary/5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTimeSlotClick?.(day, `${hour.toString().padStart(2, '0')}:00`);
+                          }}
+                        />
+                        <div 
+                          className="absolute bottom-0 left-0 right-0 h-1/2 cursor-pointer hover:bg-primary/5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTimeSlotClick?.(day, `${hour.toString().padStart(2, '0')}:30`);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Absolute positioned appointments */}
+                  {dayAppointments.map((appointment) => {
+                    const startHour = appointment.startTime.getHours();
+                    const startMinutes = appointment.startTime.getMinutes();
+                    const durationMs = appointment.endTime.getTime() - appointment.startTime.getTime();
+                    const durationHours = durationMs / (1000 * 60 * 60);
+                    
+                    // Calculate position and height
+                    const topPosition = (startHour * 80) + (startMinutes / 60 * 80); // 80px per hour (h-20)
+                    const height = Math.max(durationHours * 80, 20); // Minimum 20px height
+                    
+                    return (
+                      <div
+                        key={appointment.id}
+                        className="absolute left-1 right-1 z-10 rounded-md shadow-sm"
+                        style={{
+                          top: `${topPosition}px`,
+                          height: `${height}px`,
+                        }}
+                      >
+                        <div 
+                          className={cn(
+                            "h-full rounded-md border-l-4 p-1 overflow-hidden cursor-pointer",
+                            "bg-primary/10 border-primary hover:bg-primary/20 transition-colors"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAppointmentClick(appointment);
+                          }}
+                        >
+                          <div className="text-xs font-medium text-primary truncate">
+                            {appointment.patientName}
                           </div>
-                        ))}
+                          <div className="text-xs text-muted-foreground truncate">
+                            {format(appointment.startTime, 'h:mm a')}
+                          </div>
+                          {height > 40 && (
+                            <div className="text-xs text-muted-foreground truncate">
+                              {appointment.type}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -267,37 +324,123 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     );
   }
 
-  // Day view
+  // Day view - Google Calendar style
   const dayAppointments = appointments.filter(apt => 
     isSameDay(apt.startTime, currentDate)
   ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-border">
+    <div className="h-full flex flex-col bg-background">
+      {/* Day header */}
+      <div className="p-4 border-b border-border bg-background sticky top-0 z-20">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />
-          {format(currentDate, 'EEEE, MMMM d, yyyy')}
+          <span>{format(currentDate, 'EEEE, MMMM d, yyyy')}</span>
+          {isToday(currentDate) && (
+            <Badge variant="secondary" className="bg-primary/10 text-primary">Today</Badge>
+          )}
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        {dayAppointments.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No appointments scheduled for this day</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {dayAppointments.map((appointment) => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment}
-                onClick={() => onAppointmentClick(appointment)}
-              />
+      {/* Time grid */}
+      <div className="flex-1 overflow-auto">
+        <div className="grid grid-cols-12 min-h-full">
+          {/* Time labels column */}
+          <div className="col-span-2 bg-background border-r border-border sticky left-0 z-10">
+            {hours.map((hour) => (
+              <div key={hour} className="h-20 border-b border-border flex items-start justify-end pr-3 pt-1">
+                <span className="text-sm text-muted-foreground font-medium">
+                  {hour === 0 ? '12:00 AM' : 
+                   hour === 12 ? '12:00 PM' :
+                   hour < 12 ? `${hour}:00 AM` : `${hour - 12}:00 PM`}
+                </span>
+              </div>
             ))}
           </div>
-        )}
+
+          {/* Main appointment area */}
+          <div className="col-span-10 relative">
+            {hours.map((hour) => (
+              <div 
+                key={hour} 
+                className="h-20 border-b border-border relative cursor-pointer hover:bg-muted/30 transition-colors"
+                onClick={() => onTimeSlotClick?.(currentDate, `${hour.toString().padStart(2, '0')}:00`)}
+              >
+                {/* 30-minute divider */}
+                <div className="absolute top-1/2 left-0 right-0 h-px bg-border/50"></div>
+                
+                {/* Half-hour click zones */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-1/2 cursor-pointer hover:bg-primary/5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTimeSlotClick?.(currentDate, `${hour.toString().padStart(2, '0')}:00`);
+                  }}
+                />
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-1/2 cursor-pointer hover:bg-primary/5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTimeSlotClick?.(currentDate, `${hour.toString().padStart(2, '0')}:30`);
+                  }}
+                />
+              </div>
+            ))}
+            
+            {/* Absolute positioned appointments */}
+            {dayAppointments.map((appointment) => {
+              const startHour = appointment.startTime.getHours();
+              const startMinutes = appointment.startTime.getMinutes();
+              const durationMs = appointment.endTime.getTime() - appointment.startTime.getTime();
+              const durationHours = durationMs / (1000 * 60 * 60);
+              
+              // Calculate position and height
+              const topPosition = (startHour * 80) + (startMinutes / 60 * 80); // 80px per hour (h-20)
+              const height = Math.max(durationHours * 80, 20); // Minimum 20px height
+              
+              return (
+                <div
+                  key={appointment.id}
+                  className="absolute left-2 right-2 z-10 rounded-md shadow-sm"
+                  style={{
+                    top: `${topPosition}px`,
+                    height: `${height}px`,
+                  }}
+                >
+                  <div 
+                    className={cn(
+                      "h-full rounded-md border-l-4 p-2 overflow-hidden cursor-pointer",
+                      "bg-primary/10 border-primary hover:bg-primary/20 transition-colors"
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAppointmentClick(appointment);
+                    }}
+                  >
+                    <div className="font-medium text-sm text-primary truncate">
+                      {appointment.patientName}
+                    </div>
+                    <div className="text-sm text-muted-foreground truncate">
+                      {format(appointment.startTime, 'h:mm a')} - {format(appointment.endTime, 'h:mm a')}
+                    </div>
+                    {height > 60 && (
+                      <>
+                        <div className="text-sm text-muted-foreground truncate mt-1">
+                          {appointment.type}
+                        </div>
+                        <div className="text-sm text-muted-foreground truncate">
+                          Dr. {appointment.provider}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -285,6 +285,18 @@ export default function Calendar() {
                 onAppointmentClick={handleAppointmentClick}
                 onAppointmentEdit={handleEditAppointment}
                 onDateSelect={setCurrentDate}
+                onTimeSlotClick={(date, time) => {
+                  const [hours, minutes] = time.split(':').map(Number);
+                  const startTime = new Date(date);
+                  startTime.setHours(hours, minutes, 0, 0);
+                  
+                  // Set default end time to 1 hour later
+                  const endTime = new Date(startTime);
+                  endTime.setHours(endTime.getHours() + 1);
+                  
+                  // Open smart scheduling with pre-filled time
+                  setIsSmartSchedulingOpen(true);
+                }}
               />
             </div>
           )}
