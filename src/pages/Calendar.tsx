@@ -306,9 +306,7 @@ export default function Calendar() {
                 type: editingAppointment.type as 'consultation' | 'treatment' | 'follow_up' | 'procedure',
                 notes: editingAppointment.notes || '',
                 location: editingAppointment.location || '',
-                provider_id: '',
                 contact_name: editingAppointment.patientName,
-                provider_name: '',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               } : undefined}

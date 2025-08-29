@@ -7,7 +7,7 @@ import { MyProfileSection } from "@/components/MyProfileSection";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 import { AISettings } from "@/components/settings/AISettings";
 import { UserManagement } from "@/components/settings/UserManagement";
-import { ProviderAvailabilityManager } from "@/components/calendar/ProviderAvailabilityManager";
+
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { LanguageSettings } from "@/components/settings/LanguageSettings";
@@ -31,7 +31,16 @@ export default function Settings() {
       case "general":
         return <GeneralSettings />;
       case "schedule":
-        return <ProviderAvailabilityManager />;
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Schedule Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Schedule management has been simplified. Use the calendar to manage your appointments directly.</p>
+            </CardContent>
+          </Card>
+        );
       case "notifications":
         return <NotificationSettings />;
       case "ai":

@@ -14,8 +14,6 @@ export interface Appointment {
   type: 'consultation' | 'treatment' | 'follow_up' | 'procedure';
   notes?: string;
   location?: string;
-  provider_id?: string;
-  provider_name?: string;
   created_at: string;
   updated_at: string;
   appointment_notes?: AppointmentNote[];
@@ -38,7 +36,7 @@ export interface CreateAppointmentData {
   type?: Appointment['type'];
   notes?: string;
   location?: string;
-  provider_id?: string;
+  
 }
 
 export const useAppointments = () => {
@@ -79,8 +77,6 @@ export const useAppointments = () => {
         type: apt.appointment_type || 'consultation',
         notes: apt.notes,
         location: apt.location,
-        provider_id: apt.provider_id,
-        provider_name: apt.provider_name || 'Unknown Provider',
         created_at: apt.created_at,
         updated_at: apt.updated_at,
       }));
@@ -105,22 +101,11 @@ export const useAppointments = () => {
     try {
       console.log('Creating appointment:', appointmentData);
       
-      // Get current user for provider info if not specified
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
-
-      // Get user profile for provider name
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, email')
-        .eq('user_id', user.id)
-        .single();
-
-      const providerName = profile ? 
-        `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email :
-        'Unknown Provider';
 
       // Validate required fields
       if (!appointmentData.title?.trim()) {
@@ -162,8 +147,6 @@ export const useAppointments = () => {
           appointment_type: appointmentData.type || 'consultation',
           notes: appointmentData.notes?.trim() || '',
           location: appointmentData.location?.trim() || '',
-          provider_id: appointmentData.provider_id || user.id,
-          provider_name: providerName,
           confirmation_status: 'pending'
         })
         .select()
@@ -214,8 +197,7 @@ export const useAppointments = () => {
       console.log('Starting createOrUpdateOpportunity with:', { 
         patientId: patientData.id, 
         appointmentTitle: appointmentData.title,
-        currentUserId: user.id,
-        providerId: appointmentData.provider_id
+        currentUserId: user.id
       });
 
       // Check if an opportunity already exists for this patient
@@ -242,7 +224,7 @@ export const useAppointments = () => {
           .update({
             pipeline_stage: 'appointment',
             consultation_scheduled_at: appointmentData.start_time,
-            assigned_to: appointmentData.provider_id,
+            assigned_to: user.id,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingOpportunity.id)
@@ -274,7 +256,7 @@ export const useAppointments = () => {
             source: 'Appointment Booking',
             consultation_scheduled_at: appointmentData.start_time,
             created_by: user.id,
-            assigned_to: appointmentData.provider_id,
+            assigned_to: user.id,
             attorney_referred: false
           })
           .select()
@@ -311,7 +293,7 @@ export const useAppointments = () => {
       if (appointmentData.type) updateData.appointment_type = appointmentData.type;
       if (appointmentData.notes) updateData.notes = appointmentData.notes;
       if (appointmentData.location) updateData.location = appointmentData.location;
-      if (appointmentData.provider_id) updateData.provider_id = appointmentData.provider_id;
+      
 
       const { data, error } = await supabase
         .from('appointments')
@@ -395,7 +377,6 @@ export const useAppointments = () => {
   const checkAppointmentConflicts = async (
     startTime: string,
     endTime: string,
-    providerId?: string,
     excludeAppointmentId?: string
   ): Promise<boolean> => {
     try {
@@ -408,14 +389,10 @@ export const useAppointments = () => {
       // For appointments, this means: appointment.start_time < new_end_time AND appointment.end_time > new_start_time
       let query = supabase
         .from('appointments')
-        .select('id, start_time, end_time, title, provider_name')
+        .select('id, start_time, end_time, title')
         .neq('status', 'cancelled')
         .lt('start_time', normalizedEndTime)
         .gt('end_time', normalizedStartTime);
-
-      if (providerId) {
-        query = query.eq('provider_id', providerId);
-      }
 
       if (excludeAppointmentId) {
         query = query.neq('id', excludeAppointmentId);
@@ -443,15 +420,12 @@ export const useAppointments = () => {
     }
   };
 
-  // Function to get available time slots for a provider on a specific date
+  // Function to get available time slots on a specific date
   const getAvailableTimeSlots = async (
-    providerId: string,
     date: string,
     durationMinutes: number = 60
   ): Promise<{ start: string; end: string }[]> => {
     try {
-      // This is a simplified version - in a real implementation,
-      // you'd check provider availability and existing appointments
       const slots: { start: string; end: string }[] = [];
       const startHour = 9; // 9 AM
       const endHour = 17; // 5 PM
@@ -460,7 +434,7 @@ export const useAppointments = () => {
         const startTime = `${date}T${hour.toString().padStart(2, '0')}:00:00`;
         const endTime = `${date}T${hour.toString().padStart(2, '0')}:${durationMinutes.toString().padStart(2, '0')}:00`;
         
-        const hasConflict = await checkAppointmentConflicts(startTime, endTime, providerId);
+        const hasConflict = await checkAppointmentConflicts(startTime, endTime);
         if (!hasConflict) {
           slots.push({ start: startTime, end: endTime });
         }

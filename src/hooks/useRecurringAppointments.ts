@@ -44,6 +44,9 @@ export const useRecurringAppointments = () => {
   const fetchRecurringSeries = async () => {
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error: fetchError } = await supabase
         .from('appointments')
         .select('*')
@@ -68,13 +71,12 @@ export const useRecurringAppointments = () => {
               type: apt.appointment_type,
               notes: apt.notes,
               location: apt.location,
-              provider_id: apt.provider_id
             },
             created_instances: 0,
             last_generated: apt.created_at,
             is_active: true,
             created_at: apt.created_at,
-            created_by: apt.provider_id
+            created_by: user.id
           });
         }
         seriesMap.get(apt.recurring_appointment_id).created_instances++;
@@ -115,7 +117,7 @@ export const useRecurringAppointments = () => {
             appointment_type: apt.type || 'consultation',
             notes: apt.notes,
             location: apt.location,
-            provider_id: apt.provider_id || user.id,
+            
             provider_name: 'Provider', // Will be updated by trigger
             is_recurring: true,
             recurring_appointment_id: seriesId,
@@ -236,7 +238,7 @@ export const useRecurringAppointments = () => {
           appointment_type: updates.type,
           notes: updates.notes,
           location: updates.location,
-          provider_id: updates.provider_id
+          
         })
         .eq('recurring_appointment_id', seriesId)
         .gte('start_time', fromDate);

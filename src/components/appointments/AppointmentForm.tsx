@@ -106,7 +106,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         type: data.type,
         notes: data.notes?.trim() || '',
         location: data.location?.trim() || '',
-        provider_id: '',
       };
       await onSubmit(submitData);
     } catch (error) {

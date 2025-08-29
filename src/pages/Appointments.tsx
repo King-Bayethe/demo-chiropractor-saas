@@ -12,7 +12,7 @@ import { CalendarDays, Plus, RefreshCw, Search, Filter } from 'lucide-react';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { useAppointments, Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
-import { useProviders } from '@/hooks/useProviders';
+
 import { supabase } from '@/integrations/supabase/client';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
@@ -28,7 +28,7 @@ export default function Appointments() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [contacts, setContacts] = useState<Array<{ id: string; name: string }>>([]);
   
-  const { providers, getProviderDisplayName } = useProviders();
+  
 
   const { 
     appointments, 

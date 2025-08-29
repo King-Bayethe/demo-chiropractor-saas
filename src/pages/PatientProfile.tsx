@@ -46,7 +46,7 @@ import { EnhancedDateInput } from "@/components/EnhancedDateInput";
 import { PatientNotesFixed } from "@/components/PatientNotesFixed";
 import { PatientFiles } from "@/components/PatientFiles";
 import { PatientFormDisplay } from "@/components/forms/PatientFormDisplay";
-import { PatientAssignment } from "@/components/PatientAssignment";
+
 
 // Import new patient card components
 import { DemographicsCard } from "@/components/patient/DemographicsCard";
@@ -1588,16 +1588,14 @@ export default function PatientProfile() {
                       </TabsContent>
 
                       <TabsContent value="providers" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
-                        <PatientAssignment 
-                          patientId={patient?.id || ""} 
-                          onAssignmentChange={() => {
-                            // Refresh conversations when assignment changes
-                            toast({
-                              title: "Success",
-                              description: "Provider assignment updated. Patient conversations have been refreshed.",
-                            });
-                          }}
-                        />
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Provider Management</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-muted-foreground">Provider assignments have been simplified. Each user manages their own calendar directly.</p>
+                          </CardContent>
+                        </Card>
                       </TabsContent>
                     </Tabs>
                   </CardContent>
