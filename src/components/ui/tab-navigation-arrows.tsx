@@ -41,19 +41,19 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
   };
 
   return (
-    <div className={cn("relative", className)}>
-      <div className="flex items-center justify-between">
+    <div className={cn("relative w-full", className)}>
+      <div className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="sm"
           onClick={handlePrevious}
-          className="h-6 w-6 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+          className="h-8 w-8 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity flex-shrink-0"
           aria-label="Previous tab"
         >
-          <ChevronLeft className="h-3 w-3" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
         
-        <div className="flex-1 mx-2">
+        <div className="flex-1 min-w-0 overflow-hidden">
           {children}
         </div>
         
@@ -61,10 +61,10 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
           variant="ghost"
           size="sm"
           onClick={handleNext}
-          className="h-6 w-6 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+          className="h-8 w-8 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity flex-shrink-0"
           aria-label="Next tab"
         >
-          <ChevronRight className="h-3 w-3" />
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>
