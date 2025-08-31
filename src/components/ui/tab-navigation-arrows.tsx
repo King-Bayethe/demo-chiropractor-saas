@@ -58,36 +58,39 @@ export function TabNavigationArrows({
 
   return (
     <div className={cn("relative w-full tab-navigation-container", className)}>
-      {/* Left Arrow */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handlePrevious}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background shadow-sm"
-        aria-label={`Previous tab: ${tabs[currentIndex === 0 ? totalTabs - 1 : currentIndex - 1]?.label}`}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+      {/* Navigation Controls Container */}
+      <div className="flex items-center justify-between mb-2">
+        {/* Left Arrow */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handlePrevious}
+          className="h-8 w-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background shadow-sm shrink-0"
+          aria-label={`Previous tab: ${tabs[currentIndex === 0 ? totalTabs - 1 : currentIndex - 1]?.label}`}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
 
-      {/* Tab Content */}
-      <div className="px-10">
-        {children}
+        {/* Tab Position Indicator */}
+        <div className="text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-3 py-1 rounded-md border border-border/50">
+          {currentIndex + 1} of {totalTabs}
+        </div>
+
+        {/* Right Arrow */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleNext}
+          className="h-8 w-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background shadow-sm shrink-0"
+          aria-label={`Next tab: ${tabs[currentIndex === totalTabs - 1 ? 0 : currentIndex + 1]?.label}`}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Right Arrow */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleNext}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background shadow-sm"
-        aria-label={`Next tab: ${tabs[currentIndex === totalTabs - 1 ? 0 : currentIndex + 1]?.label}`}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-
-      {/* Tab Position Indicator */}
-      <div className="absolute top-0 right-2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-b-md border-x border-b border-border/50">
-        {currentIndex + 1} of {totalTabs}
+      {/* Tab Content - Full Width */}
+      <div className="w-full overflow-x-auto scrollbar-hide">
+        {children}
       </div>
     </div>
   )
