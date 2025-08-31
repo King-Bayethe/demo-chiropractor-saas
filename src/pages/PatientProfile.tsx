@@ -58,7 +58,6 @@ import { AccidentDetailsCard } from "@/components/patient/AccidentDetailsCard";
 import { PainAssessmentCard } from "@/components/patient/PainAssessmentCard";
 import { SystemsReviewCard } from "@/components/patient/SystemsReviewCard";
 import { CommunicationsCard } from "@/components/patient/CommunicationsCard";
-import { TabNavigationArrows } from "@/components/ui/tab-navigation-arrows";
 
 // Form schema for the main patient profile
 const patientFormSchema = z.object({
@@ -266,33 +265,7 @@ export default function PatientProfile() {
   const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
   const [uploadDocumentType, setUploadDocumentType] = useState<'id-front' | 'id-back' | 'insurance-front' | 'insurance-back' | null>(null);
 
-  // Tab navigation state
-  const [currentPatientInfoTab, setCurrentPatientInfoTab] = useState("demographics");
-  const [currentFunctionalTab, setCurrentFunctionalTab] = useState("appointments");
-
   const { updatePatient } = usePatients();
-
-  // Define tab arrays for navigation
-  const patientInfoTabs = [
-    { value: "demographics", label: "Demographics", icon: User },
-    { value: "accident", label: "Accident Details", icon: Car },
-    { value: "pain", label: "Pain Assessment", icon: HeartPulse },
-    { value: "medical", label: "Medical History", icon: Activity },
-    { value: "systems", label: "Systems Review", icon: BarChart3 },
-    { value: "insurance", label: "Insurance", icon: Shield },
-    { value: "legal", label: "Legal Information", icon: Scale },
-    { value: "communications", label: "Communications", icon: MessageSquare },
-    { value: "emergency", label: "Emergency Contact", icon: AlertCircle },
-  ];
-
-  const functionalTabs = [
-    { value: "appointments", label: "Appointments", icon: CalendarIcon },
-    { value: "soap-notes", label: "SOAP Notes", icon: FileText },
-    { value: "files", label: "Files", icon: Upload },
-    { value: "invoices", label: "Invoices", icon: DollarSign },
-    { value: "forms", label: "Forms", icon: CheckSquare },
-    { value: "providers", label: "Providers", icon: User },
-  ];
   
   // Enhanced SOAP notes hook with search, pagination, and bulk operations
   const {
@@ -1265,13 +1238,8 @@ export default function PatientProfile() {
 
                   <CardContent className="p-6">
                     {/* Patient Information Tabs */}
-                    <Tabs value={currentPatientInfoTab} onValueChange={setCurrentPatientInfoTab} className="w-full mb-8">
-                      <TabNavigationArrows
-                        tabs={patientInfoTabs}
-                        currentValue={currentPatientInfoTab}
-                        onTabChange={setCurrentPatientInfoTab}
-                        className="mb-4"
-                      >
+                    <Tabs defaultValue="demographics" className="w-full mb-8">
+                      <div className="w-full overflow-x-auto scrollbar-hide">
                         <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
                           <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap">
                             <User className="h-4 w-4" />
@@ -1310,7 +1278,7 @@ export default function PatientProfile() {
                             Emergency Contact
                           </TabsTrigger>
                         </TabsList>
-                      </TabNavigationArrows>
+                      </div>
 
                       <TabsContent value="demographics" className="mt-6">
                         <DemographicsCard
@@ -1404,13 +1372,8 @@ export default function PatientProfile() {
                     </Tabs>
 
                     {/* Functional Tabs */}
-                    <Tabs value={currentFunctionalTab} onValueChange={setCurrentFunctionalTab} className="w-full">
-                      <TabNavigationArrows
-                        tabs={functionalTabs}
-                        currentValue={currentFunctionalTab}
-                        onTabChange={setCurrentFunctionalTab}
-                        className="mb-4"
-                      >
+                    <Tabs defaultValue="appointments" className="w-full">
+                      <div className="w-full overflow-x-auto scrollbar-hide">
                         <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
                           <TabsTrigger value="appointments" className="flex items-center gap-2 whitespace-nowrap">
                             <CalendarIcon className="h-4 w-4" />
@@ -1443,7 +1406,7 @@ export default function PatientProfile() {
                             Providers
                           </TabsTrigger>
                         </TabsList>
-                      </TabNavigationArrows>
+                      </div>
 
                       <TabsContent value="appointments" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
