@@ -259,21 +259,6 @@ export default function Opportunities() {
                   <UserPlus className="h-4 w-4 mr-2" />
                   New Lead Intake
                 </Button>
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <Button onClick={() => setIsAddDialogOpen(true)} variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add to Pipeline
-                  </Button>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Add New Medical Pipeline Entry</DialogTitle>
-                    </DialogHeader>
-                    <AddMedicalOpportunityForm 
-                      onSubmit={handleAddOpportunity}
-                      onCancel={() => setIsAddDialogOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
               </div>
 
               {/* Metrics */}
