@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGoHighLevel } from "@/hooks/useGoHighLevel";
+import { apiRequestManager } from "@/utils/apiRequestManager";
 
 // --- UI Component Imports ---
 import { 
@@ -187,135 +188,162 @@ export default function Conversations() {
     });
   };
   
-  // Rate limiting state
-  const [lastApiCall, setLastApiCall] = useState(0);
-  const [apiCallQueue, setApiCallQueue] = useState([]);
-  const API_RATE_LIMIT = 1000; // 1 second between calls
-
-  // Rate-limited API call wrapper
-  const rateLimit = useCallback(async (apiCall) => {
-    const now = Date.now();
-    const timeSinceLastCall = now - lastApiCall;
-    
-    if (timeSinceLastCall < API_RATE_LIMIT) {
-      const delay = API_RATE_LIMIT - timeSinceLastCall;
-      await new Promise(resolve => setTimeout(resolve, delay));
+  // Fetch conversations from Supabase Edge Function with request deduplication
+  const loadConversations = useCallback(async (forceRefresh: boolean = false) => {
+    if (!forceRefresh && conversationsLoading) {
+      console.log('Conversations already loading, skipping...');
+      return;
     }
-    
-    setLastApiCall(Date.now());
-    return apiCall();
-  }, [lastApiCall]);
 
-  // Fetch conversations from Supabase Edge Function
-  const loadConversations = useCallback(async () => {
-    if (conversationsLoading) return; // Prevent multiple concurrent calls
-    
-    setConversationsLoading(true);
-    setError(null);
-    
-    try {
-      const result = await rateLimit(async () => {
-        const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
-          body: { method: 'GET' }
-        });
-        if (funcError) throw funcError;
-        return data;
-      });
+    return apiRequestManager.makeRequest(
+      'load-conversations',
+      async () => {
+        setConversationsLoading(true);
+        setError(null);
+        
+        try {
+          console.log('Making GHL conversations API call...');
+          const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
+            body: { method: 'GET' }
+          });
+          
+          if (funcError) throw funcError;
 
-      if (result?.conversations) {
-        const transformed = transformConversationData(result.conversations);
-        setConversations(transformed);
-        // Only set selected conversation if none is currently selected
-        if (!selectedConversation && transformed.length > 0) {
-          setSelectedConversation(transformed[0]);
+          if (data?.conversations) {
+            const transformed = transformConversationData(data.conversations);
+            setConversations(transformed);
+            // Only set selected conversation if none is currently selected
+            if (!selectedConversation && transformed.length > 0) {
+              setSelectedConversation(transformed[0]);
+            }
+            console.log(`Loaded ${transformed.length} conversations`);
+          } else {
+            setConversations([]);
+          }
+        } catch (err: any) {
+          console.error('Error loading conversations:', err);
+          setError(err.message);
+          toast({ 
+            title: "Error Loading Conversations", 
+            description: err.message.includes('429') 
+              ? "Too many requests. Please wait a moment and try again." 
+              : err.message, 
+            variant: "destructive" 
+          });
+        } finally {
+          setConversationsLoading(false);
         }
-      } else {
-        setConversations([]);
-      }
-    } catch (err) {
-      console.error('Error loading conversations:', err);
-      setError(err.message);
-      toast({ 
-        title: "Error Loading Conversations", 
-        description: err.message.includes('429') 
-          ? "Too many requests. Please wait a moment and try again." 
-          : err.message, 
-        variant: "destructive" 
-      });
-    } finally {
-      setConversationsLoading(false);
-    }
-  }, [conversationsLoading, rateLimit, toast]); // Removed selectedConversation dependency
+      },
+      forceRefresh
+    );
+  }, [conversationsLoading, selectedConversation, toast]);
 
   // Load conversations only once on mount
   useEffect(() => {
-    loadConversations();
-  }, []); // Empty dependency array to prevent re-runs
-
-  // Fetch messages for the selected conversation using rate limiting
-  useEffect(() => {
-    const loadMessages = async () => {
-      if (!selectedConversation?.id) {
-        setMessages([]);
-        return;
-      }
-      
-      if (messagesLoading) return; // Prevent concurrent calls
-      
-      setMessagesLoading(true);
-      try {
-        const result = await rateLimit(async () => {
-          const { data, error: funcError } = await supabase.functions.invoke('ghl-messages', {
-            body: { conversationId: selectedConversation.id }
-          });
-          if (funcError) throw funcError;
-          return data;
-        });
-
-        // Handle the messages array returned by ghl-messages function
-        const messagesArray = result?.messages || [];
-        if (Array.isArray(messagesArray) && messagesArray.length > 0) {
-          const transformed = messagesArray.map((msg) => ({
-            id: msg.id,
-            sender: msg.direction === 'outbound' ? 'agent' : 'customer',
-            content: msg.body || '',
-            timestamp: new Date(msg.dateAdded).toISOString(),
-            read: true,
-            type: msg.messageType || 'TYPE_SMS',
-            messageType: msg.messageType,
-            duration: msg.meta?.call?.duration,
-            hasRecording: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL',
-            hasTranscription: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL'
-          })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-          setMessages(transformed);
-          
-          // Check for recordings and transcriptions for call/voicemail messages
-          const callMessages = transformed.filter(msg => msg.hasRecording || msg.hasTranscription);
-          if (callMessages.length > 0) {
-            loadRecordings(callMessages);
-            loadTranscriptions(callMessages);
-          }
-        } else {
-          setMessages([]);
-        }
-      } catch (err) {
-        console.error('Error loading messages:', err);
-        toast({ 
-          title: "Error Loading Messages", 
-          description: err.message.includes('429') 
-            ? "Too many requests. Please wait a moment and try again." 
-            : err.message, 
-          variant: "destructive" 
-        });
-      } finally {
-        setMessagesLoading(false);
+    let mounted = true;
+    
+    const loadInitialConversations = async () => {
+      if (mounted) {
+        await loadConversations();
       }
     };
     
+    loadInitialConversations();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []); // Empty dependency array to prevent re-runs
+
+  // Fetch messages for the selected conversation with request deduplication
+  useEffect(() => {
+    if (!selectedConversation?.id) {
+      setMessages([]);
+      return;
+    }
+
+    let mounted = true;
+
+    const loadMessages = async () => {
+      if (!mounted || messagesLoading) return;
+
+      return apiRequestManager.makeRequest(
+        `load-messages-${selectedConversation.id}`,
+        async () => {
+          setMessagesLoading(true);
+          
+          try {
+            console.log(`Loading messages for conversation: ${selectedConversation.id}`);
+            const { data, error: funcError } = await supabase.functions.invoke('ghl-messages', {
+              body: { conversationId: selectedConversation.id }
+            });
+            
+            if (funcError) throw funcError;
+
+            // Handle the messages array returned by ghl-messages function
+            const messagesArray = data?.messages || [];
+            if (Array.isArray(messagesArray) && messagesArray.length > 0) {
+              const transformed = messagesArray.map((msg) => ({
+                id: msg.id,
+                sender: msg.direction === 'outbound' ? 'agent' : 'customer',
+                content: msg.body || '',
+                timestamp: new Date(msg.dateAdded).toISOString(),
+                read: true,
+                type: msg.messageType || 'TYPE_SMS',
+                messageType: msg.messageType,
+                duration: msg.meta?.call?.duration,
+                hasRecording: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL',
+                hasTranscription: msg.messageType === 'TYPE_CALL' || msg.messageType === 'TYPE_VOICEMAIL'
+              })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+              
+              if (mounted) {
+                setMessages(transformed);
+                console.log(`Loaded ${transformed.length} messages`);
+                
+                // Check for recordings and transcriptions for call/voicemail messages
+                const callMessages = transformed.filter(msg => msg.hasRecording || msg.hasTranscription);
+                if (callMessages.length > 0) {
+                  loadRecordings(callMessages);
+                  loadTranscriptions(callMessages);
+                }
+              }
+            } else {
+              if (mounted) {
+                setMessages([]);
+              }
+            }
+          } catch (err: any) {
+            console.error('Error loading messages:', err);
+            if (mounted) {
+              toast({ 
+                title: "Error Loading Messages", 
+                description: err.message.includes('429') 
+                  ? "Too many requests. Please wait a moment and try again." 
+                  : err.message, 
+                variant: "destructive" 
+              });
+            }
+          } finally {
+            if (mounted) {
+              setMessagesLoading(false);
+            }
+          }
+        }
+      );
+    };
+    
     // Add a small delay to prevent rapid successive calls when switching conversations
-    const timeoutId = setTimeout(loadMessages, 300);
-    return () => clearTimeout(timeoutId);
-  }, [selectedConversation?.id, rateLimit, toast]); // Removed messagesLoading from dependencies
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        loadMessages();
+      }
+    }, 500);
+    
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [selectedConversation?.id, toast]); // Removed other dependencies
 
   // Load recordings for call/voicemail messages
   const loadRecordings = useCallback(async (callMessages) => {
@@ -573,8 +601,8 @@ export default function Conversations() {
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => loadConversations()}
-                disabled={conversationsLoading}
+                onClick={() => loadConversations(true)}
+                disabled={conversationsLoading || apiRequestManager.isRequestPending('load-conversations')}
               >
                 {conversationsLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
