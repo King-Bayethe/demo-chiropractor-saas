@@ -1254,7 +1254,7 @@ export default function PatientProfile() {
                         className="mb-4"
                       >
                         <div className="w-full">
-                          <TabsList className="w-full justify-start gap-1 overflow-hidden">
+                          <TabsList className="inline-flex w-max justify-start gap-1">
                           <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap">
                             <User className="h-4 w-4" />
                             Demographics
@@ -1395,7 +1395,7 @@ export default function PatientProfile() {
                         className="mb-4"
                       >
                         <div className="w-full">
-                          <TabsList className="w-full justify-start gap-1 overflow-hidden">
+                          <TabsList className="inline-flex w-max justify-start gap-1">
                           <TabsTrigger value="appointments" className="flex items-center gap-2 whitespace-nowrap">
                             <CalendarIcon className="h-4 w-4" />
                             Appointments 
