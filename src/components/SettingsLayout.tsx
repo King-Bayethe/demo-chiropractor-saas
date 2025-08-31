@@ -11,7 +11,8 @@ import {
   Shield,
   Brain,
   Calendar,
-  Users
+  Users,
+  Clock
 } from "lucide-react";
 
 interface SettingsLayoutProps {
@@ -65,6 +66,11 @@ const settingsSections = [
     id: "users",
     label: "User Management",
     icon: Users
+  },
+  {
+    id: "coming-soon",
+    label: "Coming Soon",
+    icon: Clock
   }
 ];
 

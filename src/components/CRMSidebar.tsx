@@ -81,23 +81,18 @@ const navigationGroups = [
     title: "Scheduling & Tasks",
     items: [
       { title: "Calendar", url: "/calendar", icon: Calendar, collapsedIcon: CalendarDays },
-      { title: "Tasks", url: "/tasks", icon: CheckSquare, collapsedIcon: CheckCircle },
     ]
   },
   {
     title: "Billing & Finance",
     items: [
       { title: "Invoices", url: "/invoices", icon: FileText, collapsedIcon: Receipt },
-      { title: "Estimates", url: "/estimates", icon: FileText, collapsedIcon: FileSpreadsheet },
-      { title: "Payment Orders", url: "/payment-orders", icon: CreditCard, collapsedIcon: Wallet },
-      { title: "Transactions", url: "/transactions", icon: ArrowUpDown, collapsedIcon: RefreshCw },
     ]
   },
   {
     title: "Files & Media",
     items: [
       { title: "Documents", url: "/documents", icon: FolderOpen, collapsedIcon: Files },
-      { title: "Media Library", url: "/media-library", icon: Image, collapsedIcon: ImageIcon },
     ]
   },
   {
