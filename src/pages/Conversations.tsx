@@ -40,6 +40,7 @@ import { MessageStatusIndicator } from "@/components/conversations/MessageStatus
 import { FileUploadButton } from "@/components/conversations/FileUploadButton";
 import { CreateConversationDialog } from "@/components/conversations/CreateConversationDialog";
 import { AddMessageDialog } from "@/components/conversations/AddMessageDialog";
+import { QuickActionsDropdown } from "@/components/conversations/QuickActionsDropdown";
 
 
 // --- Main Conversations Component ---
@@ -804,19 +805,22 @@ export default function Conversations() {
                         </div>
                       )}
                       
-                      <div className="p-4">
+                       <div className="p-4">
                         <div className="flex items-center gap-2">
                            <div className="flex-1 relative">
                             <Input 
                               placeholder="Type your message..." 
-                              className="pr-10" 
+                              className="pr-20" 
                               value={newMessage} 
                               onChange={(e) => setNewMessage(e.target.value)} 
                               disabled={!selectedConversation || isSending} 
                             />
-                            <Button type="button" variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0">
-                              <Smile className="h-5 w-5 text-muted-foreground" />
-                            </Button>
+                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                              <QuickActionsDropdown onSendMessage={(message) => setNewMessage(message)} />
+                              <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Smile className="h-5 w-5 text-muted-foreground" />
+                              </Button>
+                            </div>
                           </div>
                           
                            <FileUploadButton
