@@ -205,7 +205,7 @@ export const PatientChatSection = () => {
         <div className="text-center">
           <p className="text-destructive mb-2">Error loading conversations</p>
           <p className="text-sm text-muted-foreground mb-4">{error}</p>
-          <Button onClick={fetchConversations} variant="outline">
+          <Button onClick={() => fetchConversations(true)} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             Retry
           </Button>

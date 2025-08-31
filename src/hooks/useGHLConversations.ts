@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGHLApi } from '@/hooks/useGHLApi';
 import { usePatients } from '@/hooks/usePatients';
+import { apiRequestManager } from '@/utils/apiRequestManager';
 
 export interface GHLConversation {
   id: string;
@@ -68,6 +69,7 @@ export const useGHLConversations = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const mountedRef = useRef(true);
   
   const ghlApi = useGHLApi();
   const { patients } = usePatients();
@@ -76,42 +78,65 @@ export const useGHLConversations = () => {
     return patients.find(p => p.ghl_contact_id === contactId);
   }, [patients]);
 
-  const fetchConversations = useCallback(async () => {
-    if (!ghlApi) return;
+  const fetchConversations = useCallback(async (forceRefresh = false) => {
+    if (!ghlApi || !mountedRef.current) return;
+    
+    const requestKey = 'ghl-conversations-fetch';
     
     try {
-      setLoading(true);
-      setError(null);
-      console.log('Fetching GHL conversations...');
+      const result = await apiRequestManager.makeRequest(
+        requestKey,
+        async () => {
+          if (!mountedRef.current) throw new Error('Component unmounted');
+          
+          setLoading(true);
+          setError(null);
+          console.log('Fetching GHL conversations...');
+          
+          const data = await ghlApi.conversations.getAll();
+          console.log('Raw GHL conversations:', data);
+          
+          if (!mountedRef.current) return { conversations: [] };
+          
+          if (data?.conversations) {
+            const mappedConversations: GHLConversation[] = data.conversations.map((conv: any) => {
+              const patient = mapContactToPatient(conv.contactId);
+              return {
+                ...conv,
+                patient: patient ? {
+                  id: patient.id,
+                  first_name: patient.first_name,
+                  last_name: patient.last_name,
+                  email: patient.email,
+                  phone: patient.phone,
+                } : undefined
+              };
+            });
+            
+            console.log('Mapped conversations with patients:', mappedConversations);
+            setConversations(mappedConversations);
+            return { conversations: mappedConversations };
+          } else {
+            setConversations([]);
+            return { conversations: [] };
+          }
+        },
+        forceRefresh
+      );
       
-      const data = await ghlApi.conversations.getAll();
-      console.log('Raw GHL conversations:', data);
-      
-      if (data?.conversations) {
-        const mappedConversations: GHLConversation[] = data.conversations.map((conv: any) => {
-          const patient = mapContactToPatient(conv.contactId);
-          return {
-            ...conv,
-            patient: patient ? {
-              id: patient.id,
-              first_name: patient.first_name,
-              last_name: patient.last_name,
-              email: patient.email,
-              phone: patient.phone,
-            } : undefined
-          };
-        });
-        
-        console.log('Mapped conversations with patients:', mappedConversations);
-        setConversations(mappedConversations);
-      } else {
-        setConversations([]);
-      }
+      return result;
     } catch (err: any) {
+      if (!mountedRef.current) return;
       console.error('Error fetching GHL conversations:', err);
-      setError(err.message || 'Failed to fetch conversations');
+      if (err.message.includes('429') || err.message.includes('Too Many Requests')) {
+        setError('Too many requests. Please wait before refreshing.');
+      } else {
+        setError(err.message || 'Failed to fetch conversations');
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [ghlApi, mapContactToPatient]);
 
@@ -312,12 +337,19 @@ export const useGHLConversations = () => {
     await fetchConversations();
   }, [fetchConversations]);
 
-  // Auto-fetch conversations when component mounts or patients change
+  // Auto-fetch conversations when component mounts
   useEffect(() => {
-    if (patients.length > 0) {
+    mountedRef.current = true;
+    
+    // Only fetch if we have patients and this is the first load
+    if (patients.length > 0 && conversations.length === 0) {
       fetchConversations();
     }
-  }, [fetchConversations, patients.length]);
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [patients.length]); // Remove fetchConversations from dependencies to prevent loops
 
   return {
     conversations,
