@@ -301,7 +301,7 @@ export default function PatientProfile() {
 
   // Define tab arrays
   const patientInfoTabs = ["demographics", "accident", "pain", "medical", "systems", "insurance", "legal", "communications", "emergency"];
-  const functionalTabs = ["appointments", "soap-notes", "files", "invoices", "forms", "providers"];
+  const functionalTabs = ["appointments", "soap-notes", "files", "invoices", "forms"];
 
   const handleNewSOAPNote = () => {
     navigate(`/soap-notes/new?patientId=${patient?.id}`);
@@ -1422,10 +1422,6 @@ export default function PatientProfile() {
                             Forms 
                             <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{forms.length}</Badge>
                           </TabsTrigger>
-                          <TabsTrigger value="providers" className="flex items-center gap-2 whitespace-nowrap">
-                            <User className="h-4 w-4" />
-                            Providers
-                          </TabsTrigger>
                           </TabsList>
                         </div>
                       </TabNavigationArrows>
@@ -1603,16 +1599,6 @@ export default function PatientProfile() {
                         <PatientFormDisplay forms={forms} loading={formsLoading} />
                       </TabsContent>
 
-                      <TabsContent value="providers" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Provider Management</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-muted-foreground">Provider assignments have been simplified. Each user manages their own calendar directly.</p>
-                          </CardContent>
-                        </Card>
-                      </TabsContent>
                     </Tabs>
                   </CardContent>
                 </Card>
