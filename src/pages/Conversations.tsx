@@ -187,19 +187,45 @@ export default function Conversations() {
     });
   };
   
+  // Rate limiting state
+  const [lastApiCall, setLastApiCall] = useState(0);
+  const [apiCallQueue, setApiCallQueue] = useState([]);
+  const API_RATE_LIMIT = 1000; // 1 second between calls
+
+  // Rate-limited API call wrapper
+  const rateLimit = useCallback(async (apiCall) => {
+    const now = Date.now();
+    const timeSinceLastCall = now - lastApiCall;
+    
+    if (timeSinceLastCall < API_RATE_LIMIT) {
+      const delay = API_RATE_LIMIT - timeSinceLastCall;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    setLastApiCall(Date.now());
+    return apiCall();
+  }, [lastApiCall]);
+
   // Fetch conversations from Supabase Edge Function
   const loadConversations = useCallback(async () => {
+    if (conversationsLoading) return; // Prevent multiple concurrent calls
+    
     setConversationsLoading(true);
     setError(null);
+    
     try {
-      const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
-        body: { method: 'GET' }
+      const result = await rateLimit(async () => {
+        const { data, error: funcError } = await supabase.functions.invoke('ghl-conversations', {
+          body: { method: 'GET' }
+        });
+        if (funcError) throw funcError;
+        return data;
       });
-      if (funcError) throw funcError;
 
-      if (data?.conversations) {
-        const transformed = transformConversationData(data.conversations);
+      if (result?.conversations) {
+        const transformed = transformConversationData(result.conversations);
         setConversations(transformed);
+        // Only set selected conversation if none is currently selected
         if (!selectedConversation && transformed.length > 0) {
           setSelectedConversation(transformed[0]);
         }
@@ -207,18 +233,26 @@ export default function Conversations() {
         setConversations([]);
       }
     } catch (err) {
+      console.error('Error loading conversations:', err);
       setError(err.message);
-      toast({ title: "Error Loading Conversations", description: err.message, variant: "destructive" });
+      toast({ 
+        title: "Error Loading Conversations", 
+        description: err.message.includes('429') 
+          ? "Too many requests. Please wait a moment and try again." 
+          : err.message, 
+        variant: "destructive" 
+      });
     } finally {
       setConversationsLoading(false);
     }
-  }, [toast, selectedConversation]);
+  }, [conversationsLoading, rateLimit, toast]); // Removed selectedConversation dependency
 
+  // Load conversations only once on mount
   useEffect(() => {
     loadConversations();
-  }, [loadConversations]);
+  }, []); // Empty dependency array to prevent re-runs
 
-  // Fetch messages for the selected conversation using the new dedicated function
+  // Fetch messages for the selected conversation using rate limiting
   useEffect(() => {
     const loadMessages = async () => {
       if (!selectedConversation?.id) {
@@ -226,16 +260,20 @@ export default function Conversations() {
         return;
       }
       
+      if (messagesLoading) return; // Prevent concurrent calls
+      
       setMessagesLoading(true);
       try {
-        // UPDATED: Call the new 'ghl-messages-edge-function'
-        const { data, error: funcError } = await supabase.functions.invoke('ghl-messages', {
-          body: { conversationId: selectedConversation.id }
+        const result = await rateLimit(async () => {
+          const { data, error: funcError } = await supabase.functions.invoke('ghl-messages', {
+            body: { conversationId: selectedConversation.id }
+          });
+          if (funcError) throw funcError;
+          return data;
         });
-        if (funcError) throw funcError;
 
         // Handle the messages array returned by ghl-messages function
-        const messagesArray = data?.messages || [];
+        const messagesArray = result?.messages || [];
         if (Array.isArray(messagesArray) && messagesArray.length > 0) {
           const transformed = messagesArray.map((msg) => ({
             id: msg.id,
@@ -261,13 +299,23 @@ export default function Conversations() {
           setMessages([]);
         }
       } catch (err) {
-        toast({ title: "Error Loading Messages", description: err.message, variant: "destructive" });
+        console.error('Error loading messages:', err);
+        toast({ 
+          title: "Error Loading Messages", 
+          description: err.message.includes('429') 
+            ? "Too many requests. Please wait a moment and try again." 
+            : err.message, 
+          variant: "destructive" 
+        });
       } finally {
         setMessagesLoading(false);
       }
     };
-    loadMessages();
-  }, [selectedConversation, toast]);
+    
+    // Add a small delay to prevent rapid successive calls when switching conversations
+    const timeoutId = setTimeout(loadMessages, 300);
+    return () => clearTimeout(timeoutId);
+  }, [selectedConversation?.id, rateLimit, toast]); // Removed messagesLoading from dependencies
 
   // Load recordings for call/voicemail messages
   const loadRecordings = useCallback(async (callMessages) => {
@@ -523,6 +571,18 @@ export default function Conversations() {
               <p className="text-muted-foreground">Manage patient communications and inquiries</p>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => loadConversations()}
+                disabled={conversationsLoading}
+              >
+                {conversationsLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                )}
+                Refresh
+              </Button>
               <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filter</Button>
               <Button><MessageSquare className="mr-2 h-4 w-4" /> New Message</Button>
             </div>
