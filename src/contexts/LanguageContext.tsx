@@ -5,6 +5,7 @@ interface LanguageContextType {
   language: string;
   setLanguage: (language: string) => void;
   t: (key: string) => string;
+  availableLanguages: { code: string; name: string; nativeName: string; flag: string }[];
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -51,6 +52,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [language, setLanguageState] = useState<string>('en');
   const { profile, updateProfile } = useProfile();
 
+  const availableLanguages = [
+    { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  ];
+
   // Initialize language from profile or localStorage
   useEffect(() => {
     if (profile?.language_preference) {
@@ -76,7 +82,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, availableLanguages }}>
       {children}
     </LanguageContext.Provider>
   );

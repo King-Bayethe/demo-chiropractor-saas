@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useLanguage } from "@/contexts/EnhancedLanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { Globe, MessageCircle, Calendar, FileText } from "lucide-react";
