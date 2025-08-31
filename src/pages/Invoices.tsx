@@ -147,11 +147,18 @@ export default function Invoices() {
       <Layout>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-              <p className="text-muted-foreground">
-                Manage patient billing and payment tracking
-              </p>
+            <div className="flex items-center gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+                  <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700">
+                    Coming Soon
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground">
+                  Manage patient billing and payment tracking
+                </p>
+              </div>
             </div>
           </div>
 

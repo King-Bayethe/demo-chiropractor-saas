@@ -136,22 +136,27 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border/50 shadow-sm relative">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Revenue (YTD)</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm text-muted-foreground">Revenue (YTD)</p>
+                  <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs">
+                    Coming Soon
+                  </Badge>
+                </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold text-success">
-                    ${mockData.stats.revenueCollected.toLocaleString()}
+                  <span className="text-2xl font-bold text-muted-foreground">
+                    ${mockData.stats.revenueCollected.toLocaleString()}*
                   </span>
-                  <Badge variant="secondary" className="bg-success/10 text-success">
+                  <Badge variant="secondary" className="bg-muted/10 text-muted-foreground">
                     <TrendingUp className="w-3 h-3 mr-1" />
-                    +18%
+                    Sample Data
                   </Badge>
                 </div>
               </div>
-              <DollarSign className="w-8 h-8 text-success" />
+              <DollarSign className="w-8 h-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -183,7 +188,14 @@ export function Dashboard() {
             {mockData.salesPipeline.map((stage, index) => (
               <div key={stage.stage} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{stage.stage}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{stage.stage}</span>
+                    {stage.stage === "Billing Pending" && (
+                      <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs">
+                        Coming Soon
+                      </Badge>
+                    )}
+                  </div>
                   <span className="text-muted-foreground">{stage.count} patients</span>
                 </div>
                 <Progress 

@@ -1392,7 +1392,9 @@ export default function PatientProfile() {
                           <TabsTrigger value="invoices" className="flex items-center gap-2 whitespace-nowrap">
                             <DollarSign className="h-4 w-4" />
                             Invoices 
-                            <Badge variant="secondary" className="ml-1 text-xs h-5 min-w-5 rounded-full">{invoices.length}</Badge>
+                            <Badge variant="secondary" className="ml-1 bg-yellow-500/10 text-yellow-700 text-xs">
+                              Coming Soon
+                            </Badge>
                           </TabsTrigger>
                           <TabsTrigger value="forms" className="flex items-center gap-2 whitespace-nowrap">
                             <CheckSquare className="h-4 w-4" />
@@ -1557,29 +1559,21 @@ export default function PatientProfile() {
                       </TabsContent>
 
                       <TabsContent value="invoices" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold">Invoices</h3>
-                          <Badge variant="outline">${invoices.reduce((sum, inv) => sum + inv.amount, 0).toFixed(2)} total</Badge>
-                        </div>
-                        <div className="grid gap-4">
-                          {invoices.map((invoice) => (
-                            <Card key={invoice.id} className="p-4">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-semibold">{invoice.id}</h4>
-                                  <p className="text-sm text-muted-foreground">{invoice.description}</p>
-                                  <p className="text-sm text-muted-foreground">{format(invoice.date, 'PPP')}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">{formatCurrency(invoice.amount)}</p>
-                                  <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
-                                    {invoice.status}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
+                        <Card>
+                          <CardContent className="p-16 text-center">
+                            <DollarSign className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <h3 className="text-2xl font-semibold">Invoice Management</h3>
+                              <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700">
+                                Coming Soon
+                              </Badge>
+                            </div>
+                            <p className="text-muted-foreground max-w-md mx-auto">
+                              Patient billing and invoice management features are currently in development. 
+                              Check back soon for updates on payment tracking and billing workflows.
+                            </p>
+                          </CardContent>
+                        </Card>
                       </TabsContent>
 
                       <TabsContent value="forms" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
