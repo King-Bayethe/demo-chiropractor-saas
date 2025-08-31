@@ -7,14 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar } from 'lucide-react';
+import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
 import { MedicalOpportunityColumn } from '@/components/opportunities/MedicalOpportunityColumn';
 import { AddMedicalOpportunityForm } from '@/components/opportunities/AddMedicalOpportunityForm';
 import { MedicalOpportunityCard } from '@/components/opportunities/MedicalOpportunityCard';
+import { LeadIntakeForm } from '@/components/LeadIntakeForm';
 import { useOpportunities, MEDICAL_PIPELINE_STAGES, Opportunity } from '@/hooks/useOpportunities';
 import { getCaseTypeDisplayName } from '@/utils/patientMapping';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const CASE_TYPE_FILTERS = [
   'All Cases',
@@ -33,6 +36,7 @@ export default function Opportunities() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [showLeadIntakeForm, setShowLeadIntakeForm] = useState(false);
 
   const {
     opportunities,
@@ -44,6 +48,7 @@ export default function Opportunities() {
     moveOpportunityToPreviousStage,
     moveOpportunityToNextStage,
     deleteOpportunity,
+    fetchOpportunities,
   } = useOpportunities();
 
   // Filter opportunities based on search and case type
@@ -137,6 +142,82 @@ export default function Opportunities() {
     }
   };
 
+  const handleLeadIntakeSubmit = async (data: any) => {
+    try {
+      // Create/update patient with case type information
+      const patientData = {
+        first_name: data.firstName || '',
+        last_name: data.lastName || '',
+        email: data.email || null,
+        phone: data.phone || null,
+        case_type: data.caseType || null,
+        tags: data.caseType ? [data.caseType.toLowerCase().replace(/ /g, '-')] : [],
+      };
+
+      let patientId = null;
+
+      // Try to find existing patient
+      if (data.email || data.phone) {
+        const { data: existingPatient } = await supabase
+          .from('patients')
+          .select('id')
+          .or(`email.eq.${data.email || ''},phone.eq.${data.phone || ''}`)
+          .maybeSingle();
+
+        if (existingPatient) {
+          // Update existing patient
+          await supabase
+            .from('patients')
+            .update(patientData)
+            .eq('id', existingPatient.id);
+          patientId = existingPatient.id;
+        } else {
+          // Create new patient
+          const { data: newPatient } = await supabase
+            .from('patients')
+            .insert(patientData)
+            .select('id')
+            .single();
+          patientId = newPatient?.id;
+        }
+      }
+
+      // Compile medical history for notes
+      const medicalNotes = [];
+      if (data.currentSymptoms) medicalNotes.push(`Current Symptoms: ${data.currentSymptoms}`);
+      if (data.painSeverity) medicalNotes.push(`Pain Severity: ${data.painSeverity}/10`);
+      if (data.medicalHistory) medicalNotes.push(`Medical History: ${data.medicalHistory}`);
+      if (data.previousTreatments) medicalNotes.push(`Previous Treatments: ${data.previousTreatments}`);
+      if (data.currentMedications) medicalNotes.push(`Current Medications: ${data.currentMedications}`);
+
+      // Create opportunity directly in "lead" stage
+      const opportunityData = {
+        name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'New Lead',
+        patient_name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+        patient_email: data.email || null,
+        patient_phone: data.phone || null,
+        case_type: data.caseType || null,
+        attorney_name: data.referredBy || null,
+        source: 'Lead Intake Form',
+        pipeline_stage: 'lead', // Directly into "New Lead" stage
+        notes: medicalNotes.join('\n\n'),
+        patient_id: patientId,
+        status: 'lead',
+      };
+
+      await createOpportunity(opportunityData);
+
+      toast.success("Lead created successfully and added to pipeline");
+      setShowLeadIntakeForm(false);
+      
+      // Refresh opportunities to show new lead
+      await fetchOpportunities();
+    } catch (error) {
+      console.error('Error creating lead:', error);
+      toast.error("Failed to create lead");
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -171,8 +252,15 @@ export default function Opportunities() {
                   <h1 className="text-3xl font-bold tracking-tight">Medical Pipeline</h1>
                   <p className="text-muted-foreground">Track patients through your medical pipeline</p>
                 </div>
+                <Button 
+                  onClick={() => setShowLeadIntakeForm(true)}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  New Lead Intake
+                </Button>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Button onClick={() => setIsAddDialogOpen(true)} variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
                     Add to Pipeline
                   </Button>
@@ -315,6 +403,19 @@ export default function Opportunities() {
             </DndContext>
           </div>
         </div>
+
+        {/* Lead Intake Form Dialog */}
+        <Dialog open={showLeadIntakeForm} onOpenChange={setShowLeadIntakeForm}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>New Lead Intake Form</DialogTitle>
+            </DialogHeader>
+            <LeadIntakeForm 
+              onSubmit={handleLeadIntakeSubmit}
+              onCancel={() => setShowLeadIntakeForm(false)}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

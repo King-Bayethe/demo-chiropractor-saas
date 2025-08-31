@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChiropracticSOAPQuestionnaire } from "@/components/ChiropracticSOAPQuestionnaire";
-import { LeadIntakeForm } from "@/components/LeadIntakeForm";
+
 import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
 import { exportFormToCSV, exportFormToPDF, exportMultipleFormsToCSV } from "@/utils/formExport";
 import { toast } from "sonner";
@@ -26,7 +26,6 @@ import {
   Filter,
   Plus,
   Stethoscope,
-  UserPlus,
   FileDown,
   Package
 } from "lucide-react";
@@ -51,7 +50,6 @@ export default function Forms() {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [showSOAPQuestionnaire, setShowSOAPQuestionnaire] = useState(false);
-  const [showLeadIntakeForm, setShowLeadIntakeForm] = useState(false);
 
   useEffect(() => {
     fetchSubmissions();
@@ -120,7 +118,7 @@ export default function Forms() {
       case 'soap_questionnaire':
         return { name: 'Chiropractic SOAP Questionnaire', icon: Stethoscope, color: 'bg-medical-teal/10 text-medical-teal' };
       case 'lead_intake':
-        return { name: 'Lead Intake Form', icon: UserPlus, color: 'bg-orange-500/10 text-orange-700' };
+        return { name: 'Lead Intake Form', icon: User, color: 'bg-orange-500/10 text-orange-700' };
       default:
         return { name: type, icon: FileText, color: 'bg-gray-500/10 text-gray-700' };
     }
@@ -178,68 +176,6 @@ export default function Forms() {
     }
   };
 
-  const handleLeadIntakeSubmit = async (data: any) => {
-    try {
-      // Create/update patient with case type information
-      const patientData = {
-        first_name: data.firstName || '',
-        last_name: data.lastName || '',
-        email: data.email || null,
-        phone: data.phone || null,
-        case_type: data.caseType || null,
-        tags: data.caseType ? [data.caseType.toLowerCase().replace(/ /g, '-')] : [],
-      };
-
-      let patientId = null;
-
-      // Try to find existing patient
-      if (data.email || data.phone) {
-        const { data: existingPatient } = await supabase
-          .from('patients')
-          .select('id')
-          .or(`email.eq.${data.email || ''},phone.eq.${data.phone || ''}`)
-          .maybeSingle();
-
-        if (existingPatient) {
-          // Update existing patient
-          await supabase
-            .from('patients')
-            .update(patientData)
-            .eq('id', existingPatient.id);
-          patientId = existingPatient.id;
-        } else {
-          // Create new patient
-          const { data: newPatient } = await supabase
-            .from('patients')
-            .insert(patientData)
-            .select('id')
-            .single();
-          patientId = newPatient?.id;
-        }
-      }
-
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert({
-          form_type: 'lead_intake',
-          form_data: data,
-          patient_id: patientId,
-          patient_name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
-          patient_email: data.email || null,
-          patient_phone: data.phone || null,
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast.success("Lead Intake Form submitted successfully");
-      setShowLeadIntakeForm(false);
-      fetchSubmissions(); // Refresh the list
-    } catch (error) {
-      console.error('Error submitting lead intake form:', error);
-      toast.error("Failed to submit lead intake form");
-    }
-  };
 
   const stats = {
     total: submissions.length,
@@ -283,13 +219,6 @@ export default function Forms() {
               >
                 <Package className="w-4 h-4 mr-2" />
                 Export All CSV
-              </Button>
-              <Button 
-                onClick={() => setShowLeadIntakeForm(true)}
-                className="bg-orange-500 hover:bg-orange-600"
-              >
-                <UserPlus className="w-4 h-4 mr-2" />
-                New Lead Intake
               </Button>
               <Button 
                 onClick={() => setShowSOAPQuestionnaire(true)}
@@ -530,23 +459,6 @@ export default function Forms() {
             onSave={handleSOAPQuestionnaireSubmit}
           />
 
-          {/* Lead Intake Form Modal */}
-          {showLeadIntakeForm && (
-            <Dialog open={showLeadIntakeForm} onOpenChange={setShowLeadIntakeForm}>
-              <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Lead Intake Form</DialogTitle>
-                  <DialogDescription>
-                    Collect lead information for new potential patients
-                  </DialogDescription>
-                </DialogHeader>
-                <LeadIntakeForm 
-                  onSubmit={handleLeadIntakeSubmit}
-                  onCancel={() => setShowLeadIntakeForm(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
       </Layout>
     </AuthGuard>
