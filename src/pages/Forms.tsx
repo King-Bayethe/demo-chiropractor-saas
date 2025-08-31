@@ -230,6 +230,47 @@ export default function Forms() {
             </div>
           </div>
 
+          {/* Public Forms Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Public Forms
+              </CardTitle>
+              <CardDescription>
+                Access public patient intake forms
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-2"
+                  onClick={() => window.open('/public/pip-form', '_blank')}
+                >
+                  <ClipboardList className="w-6 h-6 text-blue-600" />
+                  <span>PIP Form</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-2"
+                  onClick={() => window.open('/public/lop-form', '_blank')}
+                >
+                  <FileText className="w-6 h-6 text-green-600" />
+                  <span>LOP Form</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-2"
+                  onClick={() => window.open('/public/cash-form', '_blank')}
+                >
+                  <Users className="w-6 h-6 text-purple-600" />
+                  <span>Cash Form</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
             <Card>

@@ -70,14 +70,6 @@ const navigationGroups = [
     ]
   },
   {
-    title: "Public Forms",
-    items: [
-      { title: "PIP Form", url: "/public/pip-form", icon: FileText, collapsedIcon: FileText },
-      { title: "LOP Form", url: "/public/lop-form", icon: FileText, collapsedIcon: FileText },
-      { title: "Cash Form", url: "/public/cash-form", icon: FileText, collapsedIcon: FileText },
-    ]
-  },
-  {
     title: "Scheduling & Tasks",
     items: [
       { title: "Calendar", url: "/calendar", icon: Calendar, collapsedIcon: CalendarDays },
