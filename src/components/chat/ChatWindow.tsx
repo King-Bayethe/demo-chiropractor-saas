@@ -10,6 +10,7 @@ import {
   Smile,
   MessageCircle
 } from 'lucide-react';
+import { QuickActionsDropdown } from '@/components/conversations/QuickActionsDropdown';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -241,6 +242,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 maxLength={1000}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                <QuickActionsDropdown onSendMessage={onSendMessage} />
                 <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <Paperclip className="w-4 h-4" />
                 </Button>
