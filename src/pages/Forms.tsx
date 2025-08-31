@@ -205,24 +205,25 @@ export default function Forms() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="container mx-auto p-6 space-y-6">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto p-4 sm:p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Form Submissions</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Form Submissions</h1>
               <p className="text-muted-foreground">View and manage patient form submissions</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 variant="outline"
                 onClick={() => exportMultipleFormsToCSV(filteredSubmissions)}
                 disabled={filteredSubmissions.length === 0}
+                className="w-full sm:w-auto"
               >
                 <Package className="w-4 h-4 mr-2" />
                 Export All CSV
               </Button>
               <Button 
                 onClick={() => setShowSOAPQuestionnaire(true)}
-                className="bg-medical-teal hover:bg-medical-teal/80"
+                className="bg-accent hover:bg-accent/80 w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New SOAP Questionnaire
@@ -242,77 +243,80 @@ export default function Forms() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Button 
                   variant="outline" 
-                  className="h-16 flex flex-col gap-2"
+                  className="h-20 flex flex-col gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-primary/50"
                   onClick={() => window.open('/public/pip-form', '_blank')}
                 >
-                  <ClipboardList className="w-6 h-6 text-blue-600" />
-                  <span>PIP Form</span>
+                  <ClipboardList className="w-8 h-8 text-primary" />
+                  <span className="font-medium">PIP Form</span>
+                  <span className="text-xs text-muted-foreground">Personal Injury Protection</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-16 flex flex-col gap-2"
+                  className="h-20 flex flex-col gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-success/50"
                   onClick={() => window.open('/public/lop-form', '_blank')}
                 >
-                  <FileText className="w-6 h-6 text-green-600" />
-                  <span>LOP Form</span>
+                  <FileText className="w-8 h-8 text-success" />
+                  <span className="font-medium">LOP Form</span>
+                  <span className="text-xs text-muted-foreground">Letter of Protection</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-16 flex flex-col gap-2"
+                  className="h-20 flex flex-col gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-accent/50 sm:col-span-2 lg:col-span-1"
                   onClick={() => window.open('/public/cash-form', '_blank')}
                 >
-                  <Users className="w-6 h-6 text-purple-600" />
-                  <span>Cash Form</span>
+                  <Users className="w-8 h-8 text-accent" />
+                  <span className="font-medium">Cash Form</span>
+                  <span className="text-xs text-muted-foreground">Cash Payment Intake</span>
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-            <Card>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary">{stats.total}</div>
-                <div className="text-sm text-muted-foreground">Total Submissions</div>
+                <div className="text-sm text-muted-foreground">Total</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                <div className="text-sm text-muted-foreground">Pending Review</div>
+                <div className="text-2xl font-bold text-warning">{stats.pending}</div>
+                <div className="text-sm text-muted-foreground">Pending</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.pip}</div>
-                <div className="text-sm text-muted-foreground">PIP Forms</div>
+                <div className="text-2xl font-bold text-primary">{stats.pip}</div>
+                <div className="text-sm text-muted-foreground">PIP</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.lop}</div>
-                <div className="text-sm text-muted-foreground">LOP Forms</div>
+                <div className="text-2xl font-bold text-success">{stats.lop}</div>
+                <div className="text-sm text-muted-foreground">LOP</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">{stats.cash}</div>
-                <div className="text-sm text-muted-foreground">Cash Forms</div>
+                <div className="text-2xl font-bold text-accent">{stats.cash}</div>
+                <div className="text-sm text-muted-foreground">Cash</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-medical-teal">{stats.soap}</div>
-                <div className="text-sm text-muted-foreground">SOAP Forms</div>
+                <div className="text-2xl font-bold text-accent">{stats.soap}</div>
+                <div className="text-sm text-muted-foreground">SOAP</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600">{stats.lead}</div>
-                <div className="text-sm text-muted-foreground">Lead Intake</div>
+                <div className="text-2xl font-bold text-warning">{stats.lead}</div>
+                <div className="text-sm text-muted-foreground">Leads</div>
               </CardContent>
             </Card>
           </div>
@@ -326,8 +330,8 @@ export default function Forms() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4">
-                <div className="flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Form Type</label>
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger>
@@ -343,7 +347,7 @@ export default function Forms() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-1">
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>

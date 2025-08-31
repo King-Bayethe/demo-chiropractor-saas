@@ -1253,43 +1253,52 @@ export default function PatientProfile() {
                         onTabChange={setPatientInfoTab}
                         className="mb-4"
                       >
-                        <div className="w-full">
-                          <TabsList className="inline-flex w-max justify-start gap-1">
-                          <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap">
+                        <div className="w-full overflow-hidden">
+                          <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
+                          <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <User className="h-4 w-4" />
-                            Demographics
+                            <span className="hidden sm:inline">Demographics</span>
+                            <span className="sm:hidden">Demo</span>
                           </TabsTrigger>
-                          <TabsTrigger value="accident" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="accident" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <Car className="h-4 w-4" />
-                            Accident Details
+                            <span className="hidden sm:inline">Accident Details</span>
+                            <span className="sm:hidden">Accident</span>
                           </TabsTrigger>
-                          <TabsTrigger value="pain" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="pain" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <HeartPulse className="h-4 w-4" />
-                            Pain Assessment
+                            <span className="hidden sm:inline">Pain Assessment</span>
+                            <span className="sm:hidden">Pain</span>
                           </TabsTrigger>
-                          <TabsTrigger value="medical" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="medical" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <Activity className="h-4 w-4" />
-                            Medical History
+                            <span className="hidden sm:inline">Medical History</span>
+                            <span className="sm:hidden">Medical</span>
                           </TabsTrigger>
-                          <TabsTrigger value="systems" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="systems" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <BarChart3 className="h-4 w-4" />
-                            Systems Review
+                            <span className="hidden sm:inline">Systems Review</span>
+                            <span className="sm:hidden">Systems</span>
                           </TabsTrigger>
-                          <TabsTrigger value="insurance" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="insurance" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <Shield className="h-4 w-4" />
-                            Insurance
+                            <span className="hidden sm:inline">Insurance</span>
+                            <span className="sm:hidden">Ins</span>
                           </TabsTrigger>
-                          <TabsTrigger value="legal" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="legal" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <Scale className="h-4 w-4" />
-                            Legal Information
+                            <span className="hidden sm:inline">Legal Information</span>
+                            <span className="sm:hidden">Legal</span>
                           </TabsTrigger>
-                          <TabsTrigger value="communications" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="communications" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <MessageSquare className="h-4 w-4" />
-                            Communications
+                            <span className="hidden sm:inline">Communications</span>
+                            <span className="sm:hidden">Comm</span>
                           </TabsTrigger>
-                          <TabsTrigger value="emergency" className="flex items-center gap-2 whitespace-nowrap">
+                          <TabsTrigger value="emergency" className="flex items-center gap-2 whitespace-nowrap min-w-fit">
                             <AlertCircle className="h-4 w-4" />
-                            Emergency Contact
+                            <span className="hidden sm:inline">Emergency Contact</span>
+                            <span className="sm:hidden">Emergency</span>
                           </TabsTrigger>
                           </TabsList>
                         </div>
