@@ -90,10 +90,7 @@ export const SettingsLayout = ({ children, activeSection, onSectionChange }: Set
                     <Button
                       key={section.id}
                       variant={activeSection === section.id ? "default" : "ghost"}
-                      className={cn(
-                        "w-full justify-start",
-                        activeSection === section.id && "bg-medical-blue text-white"
-                      )}
+                      className="w-full justify-start"
                       onClick={() => onSectionChange(section.id)}
                     >
                       <Icon className="w-4 h-4 mr-3" />

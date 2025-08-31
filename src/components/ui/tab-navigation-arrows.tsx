@@ -38,15 +38,27 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
     const container = containerRef.current;
     const tabsContainer = tabsRef.current;
     const containerWidth = container.offsetWidth;
-    const tabsWidth = tabsContainer.offsetWidth;
-    const tabWidth = tabsWidth / tabs.length;
+    const tabsWidth = tabsContainer.scrollWidth; // Use scrollWidth for accurate measurement
     
-    // Calculate the scroll position to center the active tab
-    const targetScroll = (index * tabWidth) - (containerWidth / 2) + (tabWidth / 2);
-    const maxScroll = tabsWidth - containerWidth;
-    const newScrollPosition = Math.max(0, Math.min(targetScroll, maxScroll));
+    if (tabsWidth <= containerWidth) {
+      setScrollPosition(0);
+      return;
+    }
     
-    setScrollPosition(newScrollPosition);
+    // Calculate tab positions more accurately
+    const children = Array.from(tabsContainer.children) as HTMLElement[];
+    if (children[index]) {
+      const targetTab = children[index];
+      const tabLeft = targetTab.offsetLeft;
+      const tabWidth = targetTab.offsetWidth;
+      
+      // Center the tab in the container
+      const targetScroll = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+      const maxScroll = tabsWidth - containerWidth;
+      const newScrollPosition = Math.max(0, Math.min(targetScroll, maxScroll));
+      
+      setScrollPosition(newScrollPosition);
+    }
   };
 
   const handlePrevious = () => {
@@ -68,7 +80,7 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
           variant="ghost"
           size="sm"
           onClick={handlePrevious}
-          className="h-8 w-8 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity flex-shrink-0"
+          className="h-8 w-8 p-0 rounded-full opacity-60 hover:opacity-100 transition-all duration-200 hover:scale-105 flex-shrink-0"
           aria-label="Previous tab"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -94,7 +106,7 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
           variant="ghost"
           size="sm"
           onClick={handleNext}
-          className="h-8 w-8 p-0 rounded-full opacity-60 hover:opacity-100 transition-opacity flex-shrink-0"
+          className="h-8 w-8 p-0 rounded-full opacity-60 hover:opacity-100 transition-all duration-200 hover:scale-105 flex-shrink-0"
           aria-label="Next tab"
         >
           <ChevronRight className="h-4 w-4" />

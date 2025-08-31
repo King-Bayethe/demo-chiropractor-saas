@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { AIProvider } from "@/contexts/AIContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -44,7 +45,8 @@ const App = () => (
     <ThemeProvider defaultTheme="light" storageKey="crm-ui-theme">
       <AuthProvider>
         <NotificationProvider>
-          <LanguageProvider>
+          <AIProvider>
+            <LanguageProvider>
           <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -83,7 +85,8 @@ const App = () => (
         </Routes>
       </BrowserRouter>
           </TooltipProvider>
-        </LanguageProvider>
+            </LanguageProvider>
+          </AIProvider>
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>

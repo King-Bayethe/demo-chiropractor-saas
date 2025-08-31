@@ -7,10 +7,11 @@ import { MyProfileSection } from "@/components/MyProfileSection";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 import { AISettings } from "@/components/settings/AISettings";
 import { UserManagement } from "@/components/settings/UserManagement";
-
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { LanguageSettings } from "@/components/settings/LanguageSettings";
+import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
+import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckSquare, FileText, CreditCard, ArrowUpDown, Image } from "lucide-react";
 
@@ -32,16 +33,7 @@ export default function Settings() {
       case "general":
         return <GeneralSettings />;
       case "schedule":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Schedule Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Schedule management has been simplified. Use the calendar to manage your appointments directly.</p>
-            </CardContent>
-          </Card>
-        );
+        return <ScheduleSettings />;
       case "notifications":
         return <NotificationSettings />;
       case "ai":
@@ -49,16 +41,7 @@ export default function Settings() {
       case "language":
         return <LanguageSettings />;
       case "integrations":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Integrations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Integration settings coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <IntegrationSettings />;
       case "security":
         return <SecuritySettings />;
       case "users":
