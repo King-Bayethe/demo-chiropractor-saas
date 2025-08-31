@@ -13,7 +13,7 @@ import { LanguageSettings } from "@/components/settings/LanguageSettings";
 import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, FileText, CreditCard, ArrowUpDown, Image } from "lucide-react";
+import { CheckSquare, FileText, CreditCard, ArrowUpDown, Image, Mail } from "lucide-react";
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState("profile");
@@ -91,6 +91,13 @@ export default function Settings() {
                     <div>
                       <h4 className="font-medium">Transaction History</h4>
                       <p className="text-sm text-muted-foreground">Comprehensive financial reporting and ledger view</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <h4 className="font-medium">Email Management</h4>
+                      <p className="text-sm text-muted-foreground">Patient communications and email campaigns</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
