@@ -190,11 +190,6 @@ export default function Conversations() {
   
   // Fetch conversations from Supabase Edge Function with request deduplication
   const loadConversations = useCallback(async (forceRefresh: boolean = false) => {
-    if (!forceRefresh && conversationsLoading) {
-      console.log('Conversations already loading, skipping...');
-      return;
-    }
-
     return apiRequestManager.makeRequest(
       'load-conversations',
       async () => {
@@ -213,9 +208,12 @@ export default function Conversations() {
             const transformed = transformConversationData(data.conversations);
             setConversations(transformed);
             // Only set selected conversation if none is currently selected
-            if (!selectedConversation && transformed.length > 0) {
-              setSelectedConversation(transformed[0]);
-            }
+            setSelectedConversation(prev => {
+              if (!prev && transformed.length > 0) {
+                return transformed[0];
+              }
+              return prev;
+            });
             console.log(`Loaded ${transformed.length} conversations`);
           } else {
             setConversations([]);
@@ -236,7 +234,7 @@ export default function Conversations() {
       },
       forceRefresh
     );
-  }, [conversationsLoading, selectedConversation, toast]);
+  }, [toast]);
 
   // Load conversations only once on mount
   useEffect(() => {
