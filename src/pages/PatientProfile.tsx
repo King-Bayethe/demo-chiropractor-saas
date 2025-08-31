@@ -46,7 +46,7 @@ import { EnhancedDateInput } from "@/components/EnhancedDateInput";
 import { PatientNotesFixed } from "@/components/PatientNotesFixed";
 import { PatientFiles } from "@/components/PatientFiles";
 import { PatientFormDisplay } from "@/components/forms/PatientFormDisplay";
-
+import { TabNavigationArrows } from "@/components/ui/tab-navigation-arrows";
 
 // Import new patient card components
 import { DemographicsCard } from "@/components/patient/DemographicsCard";
@@ -294,6 +294,14 @@ export default function PatientProfile() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Tab navigation state
+  const [patientInfoTab, setPatientInfoTab] = useState("demographics");
+  const [functionalTab, setFunctionalTab] = useState("appointments");
+
+  // Define tab arrays
+  const patientInfoTabs = ["demographics", "accident", "pain", "medical", "systems", "insurance", "legal", "communications", "emergency"];
+  const functionalTabs = ["appointments", "soap-notes", "files", "invoices", "forms", "providers"];
 
   const handleNewSOAPNote = () => {
     navigate(`/soap-notes/new?patientId=${patient?.id}`);
@@ -1238,9 +1246,15 @@ export default function PatientProfile() {
 
                   <CardContent className="p-6">
                     {/* Patient Information Tabs */}
-                    <Tabs defaultValue="demographics" className="w-full mb-8">
-                      <div className="w-full overflow-x-auto scrollbar-hide">
-                        <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
+                    <Tabs value={patientInfoTab} onValueChange={setPatientInfoTab} className="w-full mb-8">
+                      <TabNavigationArrows
+                        tabs={patientInfoTabs}
+                        currentTab={patientInfoTab}
+                        onTabChange={setPatientInfoTab}
+                        className="mb-4"
+                      >
+                        <div className="w-full overflow-x-auto scrollbar-hide">
+                          <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
                           <TabsTrigger value="demographics" className="flex items-center gap-2 whitespace-nowrap">
                             <User className="h-4 w-4" />
                             Demographics
@@ -1277,8 +1291,9 @@ export default function PatientProfile() {
                             <AlertCircle className="h-4 w-4" />
                             Emergency Contact
                           </TabsTrigger>
-                        </TabsList>
-                      </div>
+                          </TabsList>
+                        </div>
+                      </TabNavigationArrows>
 
                       <TabsContent value="demographics" className="mt-6">
                         <DemographicsCard
@@ -1372,9 +1387,15 @@ export default function PatientProfile() {
                     </Tabs>
 
                     {/* Functional Tabs */}
-                    <Tabs defaultValue="appointments" className="w-full">
-                      <div className="w-full overflow-x-auto scrollbar-hide">
-                        <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
+                    <Tabs value={functionalTab} onValueChange={setFunctionalTab} className="w-full">
+                      <TabNavigationArrows
+                        tabs={functionalTabs}
+                        currentTab={functionalTab}
+                        onTabChange={setFunctionalTab}
+                        className="mb-4"
+                      >
+                        <div className="w-full overflow-x-auto scrollbar-hide">
+                          <TabsList className="inline-flex w-max min-w-full justify-start gap-1">
                           <TabsTrigger value="appointments" className="flex items-center gap-2 whitespace-nowrap">
                             <CalendarIcon className="h-4 w-4" />
                             Appointments 
@@ -1405,8 +1426,9 @@ export default function PatientProfile() {
                             <User className="h-4 w-4" />
                             Providers
                           </TabsTrigger>
-                        </TabsList>
-                      </div>
+                          </TabsList>
+                        </div>
+                      </TabNavigationArrows>
 
                       <TabsContent value="appointments" className="space-y-4 mt-6 bg-card/30 rounded-lg p-6 border border-border/30 backdrop-blur-sm">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
