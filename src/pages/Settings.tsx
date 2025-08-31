@@ -85,6 +85,13 @@ export default function Settings() {
                   <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <div>
+                      <h4 className="font-medium">Invoices</h4>
+                      <p className="text-sm text-muted-foreground">Patient billing and invoice management</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
                       <h4 className="font-medium">Treatment Estimates</h4>
                       <p className="text-sm text-muted-foreground">Estimate creation and pricing for patient cases</p>
                     </div>

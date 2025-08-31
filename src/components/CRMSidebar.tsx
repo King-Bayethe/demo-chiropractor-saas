@@ -84,12 +84,6 @@ const navigationGroups = [
     ]
   },
   {
-    title: "Billing & Finance",
-    items: [
-      { title: "Invoices", url: "/invoices", icon: FileText, collapsedIcon: Receipt },
-    ]
-  },
-  {
     title: "Files & Media",
     items: [
       { title: "Documents", url: "/documents", icon: FolderOpen, collapsedIcon: Files },
