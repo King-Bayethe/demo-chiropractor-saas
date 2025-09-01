@@ -81,7 +81,8 @@ export function Layout({ children }: LayoutProps) {
 
   const getRoleDisplay = () => {
     if (!profile) return "Staff Member";
-    return profile.role === 'admin' ? 'Administrator' : 
+    return profile.role === 'overlord' ? 'Overlord' :
+           profile.role === 'admin' ? 'Administrator' : 
            profile.role === 'doctor' ? 'Doctor' : 
            profile.role === 'nurse' ? 'Nurse' : 
            'Staff Member';
