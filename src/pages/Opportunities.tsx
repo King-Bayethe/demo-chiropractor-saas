@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from '@dnd-kit/core';
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,17 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
-import { MedicalOpportunityColumn } from '@/components/opportunities/MedicalOpportunityColumn';
+import { PipelineFlowHeader } from '@/components/opportunities/PipelineFlowHeader';
+import { PipelineStageSummary } from '@/components/opportunities/PipelineStageSummary';
+import { OpportunityListView } from '@/components/opportunities/OpportunityListView';
 import { AddMedicalOpportunityForm } from '@/components/opportunities/AddMedicalOpportunityForm';
-import { MedicalOpportunityCard } from '@/components/opportunities/MedicalOpportunityCard';
 import { LeadIntakeForm } from '@/components/LeadIntakeForm';
 import { useOpportunities, MEDICAL_PIPELINE_STAGES, Opportunity } from '@/hooks/useOpportunities';
 import { getCaseTypeDisplayName } from '@/utils/patientMapping';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useIsMobile, useDeviceType } from '@/hooks/use-breakpoints';
+import { useIsMobile } from '@/hooks/use-breakpoints';
 import { cn } from '@/lib/utils';
-import { ResponsiveLayout, ResponsiveGrid, ResponsiveStack } from '@/components/ui/responsive-layout';
 
 const CASE_TYPE_FILTERS = [
   'All Cases',
@@ -40,9 +38,8 @@ export default function Opportunities() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showLeadIntakeForm, setShowLeadIntakeForm] = useState(false);
-  const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [selectedStageFilter, setSelectedStageFilter] = useState<string>('all');
   const isMobile = useIsMobile();
-  const deviceType = useDeviceType();
 
   const {
     opportunities,
@@ -57,7 +54,7 @@ export default function Opportunities() {
     fetchOpportunities,
   } = useOpportunities();
 
-  // Filter opportunities based on search and case type
+  // Filter opportunities based on search, case type, and stage
   const filteredOpportunities = opportunities.filter(opp => {
     const matchesSearch = !searchTerm || 
       opp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,7 +65,10 @@ export default function Opportunities() {
     const matchesCaseType = selectedCaseType === 'All Cases' || 
       opp.case_type === selectedCaseType;
 
-    return matchesSearch && matchesCaseType;
+    const matchesStage = selectedStageFilter === 'all' || 
+      opp.pipeline_stage === selectedStageFilter;
+
+    return matchesSearch && matchesCaseType && matchesStage;
   });
 
   // Calculate metrics
@@ -81,36 +81,27 @@ export default function Opportunities() {
       : 0,
   };
 
-  const getOpportunitiesByStage = (stageId: string) => {
-    return filteredOpportunities.filter(opp => opp.pipeline_stage === stageId);
-  };
+  // Pipeline flow data for header
+  const pipelineFlowData = MEDICAL_PIPELINE_STAGES.map(stage => ({
+    id: stage.id,
+    title: stage.title,
+    color: stage.color,
+    count: opportunities.filter(opp => opp.pipeline_stage === stage.id).length,
+  }));
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+  // Stage summary data for footer
+  const stageSummaryData = MEDICAL_PIPELINE_STAGES.map(stage => {
+    const count = opportunities.filter(opp => opp.pipeline_stage === stage.id).length;
+    const percentage = opportunities.length > 0 ? Math.round((count / opportunities.length) * 100) : 0;
+    return {
+      id: stage.id,
+      title: stage.title,
+      color: stage.color,
+      count,
+      percentage,
+    };
+  });
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
-    
-    const opportunityId = active.id as string;
-    const newStage = over.id as string;
-    
-    // Check if dropped on a valid stage column
-    if (MEDICAL_PIPELINE_STAGES.some(stage => stage.id === newStage)) {
-      try {
-        await updateOpportunityStage(opportunityId, newStage);
-      } catch (error) {
-        console.error('Error updating opportunity stage:', error);
-      }
-    }
-    
-    setActiveId(null);
-  };
 
   const handleAddOpportunity = async (data: any) => {
     try {
@@ -145,6 +136,20 @@ export default function Opportunities() {
       } catch (error) {
         console.error('Error deleting opportunity:', error);
       }
+    }
+  };
+
+  const handleMoveToPrevious = async (id: string) => {
+    const opportunity = opportunities.find(opp => opp.id === id);
+    if (opportunity) {
+      await moveOpportunityToPreviousStage(id, opportunity.pipeline_stage);
+    }
+  };
+
+  const handleMoveToNext = async (id: string) => {
+    const opportunity = opportunities.find(opp => opp.id === id);
+    if (opportunity) {
+      await moveOpportunityToNextStage(id, opportunity.pipeline_stage);
     }
   };
 
@@ -357,97 +362,31 @@ export default function Opportunities() {
             </div>
           </div>
 
-          {/* Kanban Board */}
-          <div className="flex-1 overflow-x-auto overflow-y-hidden">
-            {isMobile ? (
-              /* Mobile View - Single Column with Stage Navigation */
-              <div className="flex flex-col h-full">
-                {/* Mobile Stage Navigation */}
-                <div className="flex items-center justify-between p-3 border-b bg-muted/20">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setCurrentStageIndex(Math.max(0, currentStageIndex - 1))}
-                    disabled={currentStageIndex === 0}
-                    className="h-8"
-                  >
-                    ← Previous
-                  </Button>
-                  
-                  <div className="text-center flex-1 px-2">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${MEDICAL_PIPELINE_STAGES[currentStageIndex]?.color}`} />
-                      <span className="font-medium text-sm">
-                        {MEDICAL_PIPELINE_STAGES[currentStageIndex]?.title}
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {currentStageIndex + 1} of {MEDICAL_PIPELINE_STAGES.length}
-                    </div>
-                  </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setCurrentStageIndex(Math.min(MEDICAL_PIPELINE_STAGES.length - 1, currentStageIndex + 1))}
-                    disabled={currentStageIndex === MEDICAL_PIPELINE_STAGES.length - 1}
-                    className="h-8"
-                  >
-                    Next →
-                  </Button>
-                </div>
-                
-                {/* Mobile Stage Content */}
-                <div className="flex-1 p-3">
-                  <MedicalOpportunityColumn
-                    stage={MEDICAL_PIPELINE_STAGES[currentStageIndex]}
-                    opportunities={getOpportunitiesByStage(MEDICAL_PIPELINE_STAGES[currentStageIndex].id)}
-                    onEdit={handleEditOpportunity}
-                    onDelete={handleDeleteOpportunity}
-                    onMoveToPrevious={moveOpportunityToPreviousStage}
-                    onMoveToNext={moveOpportunityToNextStage}
-                  />
-                </div>
-              </div>
-            ) : (
-              /* Desktop View - Horizontal Kanban */
-              <DndContext
-                collisionDetection={closestCorners}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="flex h-full overflow-x-auto overflow-y-hidden pb-6">
-                  <div className="flex gap-6 px-6 pt-6" style={{ minWidth: 'max-content' }}>
-                    <SortableContext 
-                      items={MEDICAL_PIPELINE_STAGES.map(stage => stage.id)} 
-                      strategy={horizontalListSortingStrategy}
-                    >
-                      {MEDICAL_PIPELINE_STAGES.map(stage => (
-                        <div key={stage.id} className="w-80 flex-shrink-0">
-                          <MedicalOpportunityColumn
-                            stage={stage}
-                            opportunities={getOpportunitiesByStage(stage.id)}
-                            onEdit={handleEditOpportunity}
-                            onDelete={handleDeleteOpportunity}
-                            onMoveToPrevious={moveOpportunityToPreviousStage}
-                            onMoveToNext={moveOpportunityToNextStage}
-                          />
-                        </div>
-                      ))}
-                    </SortableContext>
-                  </div>
-                </div>
-                
-                <DragOverlay>
-                  {activeId ? (
-                    <MedicalOpportunityCard
-                      opportunity={opportunities.find(o => o.id === activeId)!}
-                      isDragging
-                    />
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
-            )}
+          {/* Pipeline Flow Header */}
+          <div className="px-3 md:px-6">
+            <PipelineFlowHeader stages={pipelineFlowData} />
+          </div>
+
+          {/* Opportunity List */}
+          <div className="flex-1 px-3 md:px-6 py-4">
+            <OpportunityListView
+              opportunities={filteredOpportunities}
+              selectedStage={selectedStageFilter}
+              onStageChange={setSelectedStageFilter}
+              onEdit={handleEditOpportunity}
+              onDelete={handleDeleteOpportunity}
+              onMoveToPrevious={handleMoveToPrevious}
+              onMoveToNext={handleMoveToNext}
+              onUpdateStage={updateOpportunityStage}
+            />
+          </div>
+
+          {/* Pipeline Stage Summary */}
+          <div className="px-3 md:px-6 pb-4">
+            <PipelineStageSummary 
+              stages={stageSummaryData} 
+              totalOpportunities={opportunities.length} 
+            />
           </div>
         </div>
 
