@@ -1913,6 +1913,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_colleague_basic_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          first_name: string
+          is_active: boolean
+          last_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
