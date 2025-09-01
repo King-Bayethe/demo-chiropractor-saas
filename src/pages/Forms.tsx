@@ -476,7 +476,7 @@ export default function Forms() {
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <Select 
-                                  value={submission.status} 
+                                  value={submission.status || "pending"} 
                                   onValueChange={(value) => updateSubmissionStatus(submission.id, value)}
                                 >
                                   <SelectTrigger className="w-full md:w-32">
