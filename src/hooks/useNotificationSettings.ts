@@ -17,6 +17,7 @@ export interface NotificationPreferences {
   };
   delivery_methods: {
     critical: string[];
+    high: string[];
     normal: string[];
     low: string[];
   };
@@ -36,6 +37,7 @@ const defaultPreferences: NotificationPreferences = {
   },
   delivery_methods: {
     critical: ['push', 'email'],
+    high: ['push', 'email'],
     normal: ['push'],
     low: ['in_app']
   }
@@ -162,7 +164,7 @@ export const useNotificationSettings = () => {
     return currentTime >= start && currentTime <= end;
   }, [preferences.quiet_hours]);
 
-  const shouldSendNotification = useCallback((type: string, priority: 'critical' | 'high' | 'normal' | 'low' = 'normal') => {
+  const shouldSendNotification = useCallback((type: string, priority: 'low' | 'normal' | 'high' | 'critical' = 'normal') => {
     // Check if notification type is enabled
     const typeEnabled = preferences[type as keyof NotificationPreferences] as boolean;
     if (!typeEnabled) return false;
@@ -171,7 +173,7 @@ export const useNotificationSettings = () => {
     if (priority === 'critical') return true;
 
     // Check quiet hours for non-critical notifications
-    if (isInQuietHours() && priority !== 'critical') return false;
+    if (isInQuietHours() && (priority as string) !== 'critical') return false;
 
     return true;
   }, [preferences, isInQuietHours]);
