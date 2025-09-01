@@ -3,49 +3,28 @@ import { Handle, Position } from '@xyflow/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, GripVertical } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  CSS,
-} from '@dnd-kit/utilities';
-import { StageDropZone } from './PipelineDragProvider';
 
 interface OpportunityCardProps {
   opportunity: any;
   stageColor: string;
+  canMovePrevious: boolean;
+  canMoveNext: boolean;
+  onMovePrevious: () => void;
+  onMoveNext: () => void;
 }
 
-function OpportunityCard({ opportunity, stageColor }: OpportunityCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: opportunity.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
+function OpportunityCard({ 
+  opportunity, 
+  stageColor, 
+  canMovePrevious, 
+  canMoveNext, 
+  onMovePrevious, 
+  onMoveNext 
+}: OpportunityCardProps) {
   return (
-    <div 
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      className={cn(
-        "bg-white/10 backdrop-blur-sm rounded-lg p-3 text-white space-y-2 cursor-grab active:cursor-grabbing",
-        isDragging && "shadow-lg"
-      )}
-    >
+    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-white space-y-2">
       <div className="flex items-start justify-between">
         <div className="font-medium text-sm truncate flex-1">
           {opportunity.patient_name || 'Unknown Contact'}
@@ -54,8 +33,25 @@ function OpportunityCard({ opportunity, stageColor }: OpportunityCardProps) {
           <div className="text-xs text-white/80">
             ${opportunity.estimated_value?.toLocaleString() || '0'}
           </div>
-          <div {...listeners} className="cursor-grab active:cursor-grabbing">
-            <GripVertical className="h-4 w-4 text-white/60" />
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onMovePrevious}
+              disabled={!canMovePrevious}
+              className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20 disabled:opacity-30"
+            >
+              <ChevronLeft className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onMoveNext}
+              disabled={!canMoveNext}
+              className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20 disabled:opacity-30"
+            >
+              <ChevronRight className="h-3 w-3" />
+            </Button>
           </div>
         </div>
       </div>
@@ -115,12 +111,13 @@ interface PipelineStageNodeProps {
       position: number;
     };
     opportunities: any[];
+    allStages: any[];
     onMoveOpportunity?: (opportunityId: string, targetStageId: string) => void;
   };
 }
 
 export function PipelineStageNode({ data }: PipelineStageNodeProps) {
-  const { stage, opportunities, onMoveOpportunity } = data;
+  const { stage, opportunities, allStages, onMoveOpportunity } = data;
   
   // Filter opportunities for this stage
   const stageOpportunities = opportunities.filter(
@@ -131,6 +128,12 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
     (sum, opp) => sum + (opp.estimated_value || 0), 
     0
   );
+
+  // Get stage navigation helpers
+  const sortedStages = allStages.sort((a, b) => a.position - b.position);
+  const currentStageIndex = sortedStages.findIndex(s => s.id === stage.id);
+  const previousStage = currentStageIndex > 0 ? sortedStages[currentStageIndex - 1] : null;
+  const nextStage = currentStageIndex < sortedStages.length - 1 ? sortedStages[currentStageIndex + 1] : null;
 
 
   const getColorClass = (color: string) => {
@@ -150,46 +153,51 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
     <div className="relative">
       <Handle type="target" position={Position.Left} style={{ background: 'transparent', border: 'none' }} />
       
-      <StageDropZone stageId={stage.id} className="w-80">
-        <Card className={cn("w-full min-h-[400px] shadow-lg border-2", getColorClass(stage.color))}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-white">
-                {stage.title}
-              </CardTitle>
-              <Badge variant="secondary" className="bg-white/20 text-white">
-                {stageOpportunities.length}
-              </Badge>
-            </div>
-            <div className="text-white/90 text-sm font-medium">
-              ${stageValue.toLocaleString()}
-            </div>
-          </CardHeader>
-          
-          <CardContent className="pt-0">
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              <SortableContext 
-                items={stageOpportunities.map(opp => opp.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {stageOpportunities.map((opportunity) => (
-                  <OpportunityCard
-                    key={opportunity.id}
-                    opportunity={opportunity}
-                    stageColor={stage.color}
-                  />
-                ))}
-              </SortableContext>
-              
-              {stageOpportunities.length === 0 && (
-                <div className="text-center text-white/60 text-sm py-4 border-2 border-dashed border-white/20 rounded-lg">
-                  Drop opportunities here
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </StageDropZone>
+      <Card className={cn("w-80 min-h-[400px] shadow-lg border-2", getColorClass(stage.color))}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-white">
+              {stage.title}
+            </CardTitle>
+            <Badge variant="secondary" className="bg-white/20 text-white">
+              {stageOpportunities.length}
+            </Badge>
+          </div>
+          <div className="text-white/90 text-sm font-medium">
+            ${stageValue.toLocaleString()}
+          </div>
+        </CardHeader>
+        
+        <CardContent className="pt-0">
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {stageOpportunities.map((opportunity) => (
+              <OpportunityCard
+                key={opportunity.id}
+                opportunity={opportunity}
+                stageColor={stage.color}
+                canMovePrevious={!!previousStage}
+                canMoveNext={!!nextStage}
+                onMovePrevious={() => {
+                  if (previousStage && onMoveOpportunity) {
+                    onMoveOpportunity(opportunity.id, previousStage.id);
+                  }
+                }}
+                onMoveNext={() => {
+                  if (nextStage && onMoveOpportunity) {
+                    onMoveOpportunity(opportunity.id, nextStage.id);
+                  }
+                }}
+              />
+            ))}
+            
+            {stageOpportunities.length === 0 && (
+              <div className="text-center text-white/60 text-sm py-4">
+                No opportunities
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
       
       <Handle type="source" position={Position.Right} style={{ background: 'transparent', border: 'none' }} />
     </div>
