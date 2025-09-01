@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface FormSubmission {
   id: string;
@@ -50,6 +52,7 @@ export default function Forms() {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [showSOAPQuestionnaire, setShowSOAPQuestionnaire] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchSubmissions();
@@ -205,25 +208,27 @@ export default function Forms() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="container mx-auto p-4 sm:p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Form Submissions</h1>
-              <p className="text-muted-foreground">View and manage patient form submissions</p>
+        <div className="container mx-auto p-3 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-hidden">
+          <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center justify-between">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl md:text-3xl font-bold text-foreground break-words">Form Submissions</h1>
+              <p className="text-sm md:text-base text-muted-foreground">View and manage patient form submissions</p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col md:flex-row gap-2 md:gap-2 flex-shrink-0">
               <Button 
                 variant="outline"
                 onClick={() => exportMultipleFormsToCSV(filteredSubmissions)}
                 disabled={filteredSubmissions.length === 0}
-                className="w-full sm:w-auto"
+                className="w-full md:w-auto"
+                size={isMobile ? "sm" : "default"}
               >
                 <Package className="w-4 h-4 mr-2" />
                 Export All CSV
               </Button>
               <Button 
                 onClick={() => setShowSOAPQuestionnaire(true)}
-                className="bg-accent hover:bg-accent/80 w-full sm:w-auto"
+                className="bg-accent hover:bg-accent/80 w-full md:w-auto"
+                size={isMobile ? "sm" : "default"}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New SOAP Questionnaire
@@ -243,80 +248,89 @@ export default function Forms() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 <Button 
                   variant="outline" 
-                  className="h-20 flex flex-col gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-primary/50"
+                  className={cn(
+                    "h-16 md:h-20 flex flex-col gap-2 md:gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-primary/50",
+                    "text-xs md:text-sm"
+                  )}
                   onClick={() => window.open('/public/pip-form', '_blank')}
                 >
-                  <ClipboardList className="w-8 h-8 text-primary" />
+                  <ClipboardList className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                   <span className="font-medium">PIP Form</span>
-                  <span className="text-xs text-muted-foreground">Personal Injury Protection</span>
+                  <span className="text-xs text-muted-foreground hidden md:block">Personal Injury Protection</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-20 flex flex-col gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-success/50"
+                  className={cn(
+                    "h-16 md:h-20 flex flex-col gap-2 md:gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-success/50",
+                    "text-xs md:text-sm"
+                  )}
                   onClick={() => window.open('/public/lop-form', '_blank')}
                 >
-                  <FileText className="w-8 h-8 text-success" />
+                  <FileText className="w-6 h-6 md:w-8 md:h-8 text-success" />
                   <span className="font-medium">LOP Form</span>
-                  <span className="text-xs text-muted-foreground">Letter of Protection</span>
+                  <span className="text-xs text-muted-foreground hidden md:block">Letter of Protection</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-20 flex flex-col gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-accent/50 sm:col-span-2 lg:col-span-1"
+                  className={cn(
+                    "h-16 md:h-20 flex flex-col gap-2 md:gap-3 hover:scale-105 transition-transform duration-200 border-2 hover:border-accent/50",
+                    "text-xs md:text-sm md:col-span-2 lg:col-span-1"
+                  )}
                   onClick={() => window.open('/public/cash-form', '_blank')}
                 >
-                  <Users className="w-8 h-8 text-accent" />
+                  <Users className="w-6 h-6 md:w-8 md:h-8 text-accent" />
                   <span className="font-medium">Cash Form</span>
-                  <span className="text-xs text-muted-foreground">Cash Payment Intake</span>
+                  <span className="text-xs text-muted-foreground hidden md:block">Cash Payment Intake</span>
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-4">
             <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{stats.total}</div>
-                <div className="text-sm text-muted-foreground">Total</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-primary">{stats.total}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Total</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-warning">{stats.pending}</div>
-                <div className="text-sm text-muted-foreground">Pending</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-warning">{stats.pending}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Pending</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{stats.pip}</div>
-                <div className="text-sm text-muted-foreground">PIP</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-primary">{stats.pip}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">PIP</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-success">{stats.lop}</div>
-                <div className="text-sm text-muted-foreground">LOP</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-success">{stats.lop}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">LOP</div>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow md:col-span-2 lg:col-span-1">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-accent">{stats.cash}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Cash</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-accent">{stats.cash}</div>
-                <div className="text-sm text-muted-foreground">Cash</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-accent">{stats.soap}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">SOAP</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-accent">{stats.soap}</div>
-                <div className="text-sm text-muted-foreground">SOAP</div>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-warning">{stats.lead}</div>
-                <div className="text-sm text-muted-foreground">Leads</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="text-lg md:text-2xl font-bold text-warning">{stats.lead}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Leads</div>
               </CardContent>
             </Card>
           </div>
@@ -330,7 +344,7 @@ export default function Forms() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Form Type</label>
                   <Select value={filterType} onValueChange={setFilterType}>
@@ -389,37 +403,37 @@ export default function Forms() {
                       <Dialog key={submission.id}>
                         <DialogTrigger asChild>
                           <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className={`p-2 rounded-lg ${formDisplay.color}`}>
-                                    <FormIcon className="w-5 h-5" />
+                            <CardContent className="p-3 md:p-4">
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+                                <div className="flex items-start md:items-center gap-3 min-w-0 flex-1">
+                                  <div className={`p-2 rounded-lg ${formDisplay.color} flex-shrink-0`}>
+                                    <FormIcon className="w-4 h-4 md:w-5 md:h-5" />
                                   </div>
-                                  <div>
-                                    <h3 className="font-semibold">{formDisplay.name}</h3>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <div className="min-w-0 flex-1">
+                                    <h3 className="font-semibold text-sm md:text-base break-words">{formDisplay.name}</h3>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-xs md:text-sm text-muted-foreground">
                                       {submission.patient_name && (
-                                        <span className="flex items-center gap-1">
-                                          <User className="w-3 h-3" />
-                                          {submission.patient_name}
+                                        <span className="flex items-center gap-1 break-words">
+                                          <User className="w-3 h-3 flex-shrink-0" />
+                                          <span className="break-words">{submission.patient_name}</span>
                                         </span>
                                       )}
                                       {submission.patient_email && (
-                                        <span className="flex items-center gap-1">
-                                          <Mail className="w-3 h-3" />
-                                          {submission.patient_email}
+                                        <span className="flex items-center gap-1 break-all">
+                                          <Mail className="w-3 h-3 flex-shrink-0" />
+                                          <span className="break-all">{submission.patient_email}</span>
                                         </span>
                                       )}
                                       <span className="flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
+                                        <Calendar className="w-3 h-3 flex-shrink-0" />
                                         {new Date(submission.submitted_at).toLocaleDateString()}
                                       </span>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                   {getStatusBadge(submission.status)}
-                                  <Button variant="ghost" size="sm">
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                     <Eye className="w-4 h-4" />
                                   </Button>
                                 </div>
@@ -427,45 +441,45 @@ export default function Forms() {
                             </CardContent>
                           </Card>
                         </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[80vh]">
+                        <DialogContent className={cn("max-h-[80vh]", isMobile ? "max-w-[95vw] mx-2" : "max-w-4xl")}>
                           <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <FormIcon className="w-5 h-5" />
-                              {formDisplay.name} - Submission Details
+                            <DialogTitle className="flex items-center gap-2 text-sm md:text-base">
+                              <FormIcon className="w-4 h-4 md:w-5 md:h-5" />
+                              <span className="break-words">{formDisplay.name} - Submission Details</span>
                             </DialogTitle>
-                            <DialogDescription>
+                            <DialogDescription className="text-xs md:text-sm">
                               Submitted on {new Date(submission.submitted_at).toLocaleString()}
                             </DialogDescription>
                           </DialogHeader>
                           
-                          <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
+                          <div className="space-y-4 md:space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+                              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 min-w-0">
                                 {submission.patient_name && (
-                                  <span className="flex items-center gap-1 text-sm">
-                                    <User className="w-4 h-4" />
-                                    {submission.patient_name}
+                                  <span className="flex items-center gap-1 text-xs md:text-sm break-words">
+                                    <User className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                    <span className="break-words">{submission.patient_name}</span>
                                   </span>
                                 )}
                                 {submission.patient_email && (
-                                  <span className="flex items-center gap-1 text-sm">
-                                    <Mail className="w-4 h-4" />
-                                    {submission.patient_email}
+                                  <span className="flex items-center gap-1 text-xs md:text-sm break-all">
+                                    <Mail className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                    <span className="break-all">{submission.patient_email}</span>
                                   </span>
                                 )}
                                 {submission.patient_phone && (
-                                  <span className="flex items-center gap-1 text-sm">
-                                    <Phone className="w-4 h-4" />
-                                    {submission.patient_phone}
+                                  <span className="flex items-center gap-1 text-xs md:text-sm break-all">
+                                    <Phone className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                    <span className="break-all">{submission.patient_phone}</span>
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 <Select 
                                   value={submission.status} 
                                   onValueChange={(value) => updateSubmissionStatus(submission.id, value)}
                                 >
-                                  <SelectTrigger className="w-32">
+                                  <SelectTrigger className="w-full md:w-32">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -477,7 +491,7 @@ export default function Forms() {
                               </div>
                             </div>
 
-                            <ScrollArea className="h-96">
+                            <ScrollArea className={cn(isMobile ? "h-64" : "h-96")}>
                               <FormSubmissionDetails
                                 formData={submission.form_data}
                                 formType={submission.form_type}
