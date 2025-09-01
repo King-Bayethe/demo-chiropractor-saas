@@ -49,7 +49,7 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
     <div className="relative">
       <Handle type="target" position={Position.Left} style={{ background: 'transparent', border: 'none' }} />
       
-      <Card className={cn("w-80 min-h-[300px] shadow-lg border-2", getColorClass(stage.color))}>
+      <Card className={cn("w-80 min-h-[400px] shadow-lg border-2", getColorClass(stage.color))}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-white">
@@ -65,8 +65,8 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
         </CardHeader>
         
         <CardContent className="pt-0">
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {stageOpportunities.slice(0, 6).map((opportunity) => (
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {stageOpportunities.map((opportunity) => (
               <div 
                 key={opportunity.id}
                 className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-white space-y-2"
@@ -121,11 +121,6 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
               </div>
             ))}
             
-            {stageOpportunities.length > 6 && (
-              <div className="text-center text-white/80 text-xs py-2">
-                +{stageOpportunities.length - 6} more
-              </div>
-            )}
             
             {stageOpportunities.length === 0 && (
               <div className="text-center text-white/60 text-sm py-4">
