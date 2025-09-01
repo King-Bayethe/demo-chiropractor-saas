@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { PipelineStageNode } from "@/components/pipeline/PipelineStageNode";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
+import { PipelineDragProvider } from "@/components/pipeline/PipelineDragProvider";
 import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
 
 const nodeTypes = {
@@ -161,20 +162,28 @@ export default function Opportunities() {
             </CardHeader>
             <CardContent className="p-0">
               <div style={{ width: "100%", height: "600px" }}>
-                <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
-                  nodeTypes={nodeTypes}
-                  fitView
-                  fitViewOptions={{ padding: 50 }}
-                  minZoom={0.5}
-                  maxZoom={1.5}
-                  defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
-                  proOptions={{ hideAttribution: true }}
+                <PipelineDragProvider
+                  onMoveOpportunity={(opportunityId, targetStageId) => {
+                    updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
+                  }}
+                  opportunities={opportunities}
+                  stages={stages}
                 >
-                  <Controls />
-                  <Background color="hsl(var(--muted-foreground))" gap={16} />
-                </ReactFlow>
+                  <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    nodeTypes={nodeTypes}
+                    fitView
+                    fitViewOptions={{ padding: 50 }}
+                    minZoom={0.5}
+                    maxZoom={1.5}
+                    defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+                    proOptions={{ hideAttribution: true }}
+                  >
+                    <Controls />
+                    <Background color="hsl(var(--muted-foreground))" gap={16} />
+                  </ReactFlow>
+                </PipelineDragProvider>
               </div>
             </CardContent>
           </Card>
