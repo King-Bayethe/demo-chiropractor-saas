@@ -90,9 +90,10 @@ const navigationGroups = [
 
 interface CRMSidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
+  onMobileClose?: () => void;
 }
 
-export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
+export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps = {}) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
@@ -194,6 +195,7 @@ export function CRMSidebar({ onCollapseChange }: CRMSidebarProps = {}) {
                       <NavLink
                         key={item.title}
                         to={item.url}
+                        onClick={() => isMobile && onMobileClose?.()}
                         className={cn(
                           "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                           active

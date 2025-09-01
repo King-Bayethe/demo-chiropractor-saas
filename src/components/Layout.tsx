@@ -2,7 +2,8 @@ import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CRMSidebar } from "./CRMSidebar";
 import { ThemeToggle } from "./ThemeToggle";
-import { Bell, Search, User, LogOut, Settings as SettingsIcon, UserCircle } from "lucide-react";
+import { Bell, Search, User, LogOut, Settings as SettingsIcon, UserCircle, Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +31,9 @@ export function Layout({ children }: LayoutProps) {
   const { profile } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -84,32 +87,58 @@ export function Layout({ children }: LayoutProps) {
            'Staff Member';
   };
 
-  // Clean layout without sidebar
+  // Responsive layout with mobile support
   return (
     <div className="h-screen flex w-full bg-background">
-      <div className="fixed left-0 top-0 h-screen z-40">
-        <CRMSidebar onCollapseChange={setSidebarCollapsed} />
+      {/* Mobile Overlay */}
+      {isMobile && mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`${isMobile ? 'fixed' : 'fixed'} left-0 top-0 h-screen z-50 transition-transform duration-300 ${
+        isMobile && !mobileMenuOpen ? '-translate-x-full' : 'translate-x-0'
+      }`}>
+        <CRMSidebar 
+          onCollapseChange={setSidebarCollapsed}
+          onMobileClose={() => setMobileMenuOpen(false)}
+        />
       </div>
       
-      <div className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${
+        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+      }`}>
         {/* Top Header */}
-        <header className="h-16 border-b border-border/50 bg-card px-6 flex items-center justify-between shadow-sm flex-shrink-0">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
+        <header className="h-16 border-b border-border/50 bg-card px-4 sm:px-6 flex items-center justify-between shadow-sm flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {isMobile && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(true)}
+                className="sm:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
+            <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
                 placeholder="Search patients, cases, or contacts..." 
-                className="pl-10 w-80 bg-background border-border/50"
+                className="pl-10 w-60 lg:w-80 bg-background border-border/50"
               />
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
             <NotificationBell />
             
-            <div className="flex items-center space-x-3">
-              <div className="text-right">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium">{getDisplayName()}</p>
                 <p className="text-xs text-muted-foreground">{getRoleDisplay()}</p>
               </div>
