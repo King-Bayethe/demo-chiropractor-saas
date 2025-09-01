@@ -1952,6 +1952,10 @@ export type Database = {
         Args: { chat_id_to_check: string; user_id_to_check: string }
         Returns: boolean
       }
+      is_chat_participant: {
+        Args: { chat_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       is_overlord: {
         Args: Record<PropertyKey, never>
         Returns: boolean
