@@ -103,6 +103,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       const lastName = otherParticipant.last_name || '';
       const email = otherParticipant.email || '';
       
+      // Debug logging to help identify data issues
+      console.log('Chat participant data:', {
+        firstName,
+        lastName,
+        email,
+        userId: otherParticipant.id
+      });
+      
       // Try to get initials from first and last name
       if (firstName && lastName) {
         return `${firstName[0]}${lastName[0]}`.toUpperCase();
