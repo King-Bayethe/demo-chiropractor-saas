@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { X, Plus, Search, Check } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface AssessmentSectionProps {
   data: AssessmentData;
@@ -62,6 +64,7 @@ const commonICD10Codes: ICD10Code[] = [
 ];
 
 export function AssessmentSection({ data, onChange }: AssessmentSectionProps) {
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -219,7 +222,10 @@ export function AssessmentSection({ data, onChange }: AssessmentSectionProps) {
         {data.diagnoses.length > 0 && (
           <div className="bg-muted/50 rounded-lg p-4">
             <h4 className="text-sm font-medium mb-2">Assessment Summary</h4>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className={cn(
+              "grid gap-4 text-sm",
+              isMobile ? "grid-cols-1" : "grid-cols-3"
+            )}>
               <div>
                 <span className="text-muted-foreground">Primary Diagnosis:</span>
                 <p className="font-medium">{data.diagnoses[0]?.code}</p>

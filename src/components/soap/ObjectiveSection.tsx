@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Plus, X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface ObjectiveSectionProps {
   data: ObjectiveData;
@@ -125,6 +127,7 @@ const commonSpecialTests = [
 ];
 
 export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
+  const isMobile = useIsMobile();
   const [openSystems, setOpenSystems] = useState<string[]>(['Musculoskeletal']);
 
   const toggleSystem = (system: string) => {
@@ -249,7 +252,10 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
         {/* Vital Signs */}
         <div>
           <Label className="text-base font-semibold mb-3 block">Vital Signs</Label>
-          <div className="grid grid-cols-4 gap-4">
+          <div className={cn(
+            "grid gap-4",
+            isMobile ? "grid-cols-1" : "grid-cols-4"
+          )}>
             <div>
               <Label htmlFor="height" className="text-sm">Height</Label>
               <Input
@@ -343,7 +349,10 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="px-3 pb-3">
                     <div className="space-y-3 border-l-2 border-border/50 pl-4">
-                      <div className="flex items-center space-x-4">
+                      <div className={cn(
+                        "flex items-center space-x-4",
+                        isMobile && "flex-col space-y-3 space-x-0 items-start"
+                      )}>
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             id={`${system}-normal`}
@@ -403,8 +412,14 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
           </div>
           <div className="space-y-3">
             {(data.specialTests || []).map((test, index) => (
-              <div key={index} className="flex items-center space-x-2 p-3 border border-border rounded-lg">
-                <div className="flex-1 grid grid-cols-3 gap-2">
+              <div key={index} className={cn(
+                "p-3 border border-border rounded-lg space-y-2",
+                isMobile ? "space-y-3" : "flex items-center space-x-2 space-y-0"
+              )}>
+                <div className={cn(
+                  "flex-1",
+                  isMobile ? "space-y-2" : "grid grid-cols-3 gap-2"
+                )}>
                   <div>
                     <Label className="text-xs">Test Name</Label>
                     <Input
@@ -436,14 +451,16 @@ export function ObjectiveSection({ data, onChange }: ObjectiveSectionProps) {
                     />
                   </div>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSpecialTest(index)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                <div className={cn(isMobile ? "flex justify-end" : "")}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeSpecialTest(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
             {(data.specialTests || []).length === 0 && (

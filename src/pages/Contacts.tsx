@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useGHLApi } from "@/hooks/useGHLApi";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { 
   Search, 
   Filter, 
@@ -34,6 +36,7 @@ import {
 
 
 export default function Contacts() {
+  const isMobile = useIsMobile();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
@@ -153,19 +156,22 @@ export default function Contacts() {
         {/* Fixed Header Section */}
         <div className="flex-shrink-0 p-6 space-y-6 bg-background border-b border-border/50">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Contacts</h1>
-              <p className="text-muted-foreground">Manage patients, leads, and attorney contacts</p>
+          <div className={cn(
+            "flex items-center justify-between",
+            isMobile && "flex-col gap-4"
+          )}>
+            <div className={isMobile ? "text-center" : ""}>
+              <h1 className={cn("font-bold text-foreground", isMobile ? "text-2xl" : "text-3xl")}>Contacts</h1>
+              <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "")}>Manage patients, leads, and attorney contacts</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+            <div className={cn("flex items-center space-x-2", isMobile && "w-full")}>
+              <Button variant="outline" size="sm" className={isMobile ? "flex-1" : ""}>
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
-              <Button size="sm" onClick={() => setIsAddContactOpen(true)}>
+              <Button size="sm" onClick={() => setIsAddContactOpen(true)} className={isMobile ? "flex-1" : ""}>
                 <Plus className="w-4 h-4 mr-2" />
-                Add Contact
+                {isMobile ? "Add" : "Add Contact"}
               </Button>
             </div>
           </div>
@@ -173,23 +179,34 @@ export default function Contacts() {
           {/* Search and Filters */}
           <Card className="border border-border/50 shadow-sm">
             <CardContent className="p-4">
-              <div className="flex items-center space-x-4">
-                <div className="relative flex-1">
+              <div className={cn(
+                "flex items-center space-x-4",
+                isMobile && "flex-col space-y-4 space-x-0"
+              )}>
+                <div className={cn("relative", isMobile ? "w-full" : "flex-1")}>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input 
                     placeholder="Search by name, phone, email..." 
                     className="pl-10"
                   />
                 </div>
-                <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary">Total: {contacts.length}</Badge>
-                  <Badge variant="outline" className="bg-success/10 text-success">
-                    Active: {contacts.length}
-                  </Badge>
+                <div className={cn(
+                  "flex items-center space-x-2",
+                  isMobile && "w-full justify-between"
+                )}>
+                  <Button variant="outline" size="sm">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filters
+                  </Button>
+                  <div className={cn(
+                    "flex items-center space-x-2",
+                    isMobile && "flex-col space-y-1 space-x-0"
+                  )}>
+                    <Badge variant="secondary">Total: {contacts.length}</Badge>
+                    <Badge variant="outline" className="bg-success/10 text-success">
+                      Active: {contacts.length}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -200,108 +217,164 @@ export default function Contacts() {
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           <div className="flex-1 overflow-auto px-6 py-6 space-y-6">
 
-        {/* Contacts Table */}
+        {/* Contacts List - Table on Desktop, Cards on Mobile */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader>
             <CardTitle>All Contacts</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b border-border/50 bg-muted/30">
-                  <tr>
-                    <th className="text-left p-4 font-medium text-sm">Contact</th>
-                    <th className="text-left p-4 font-medium text-sm">Phone</th>
-                    <th className="text-left p-4 font-medium text-sm">Email</th>
-                    <th className="text-left p-4 font-medium text-sm">Type</th>
-                    <th className="text-left p-4 font-medium text-sm">Status</th>
-                    <th className="text-left p-4 font-medium text-sm">Attorney</th>
-                    <th className="text-left p-4 font-medium text-sm">Last Activity</th>
-                    <th className="text-left p-4 font-medium text-sm"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
-                        Loading contacts...
-                      </td>
-                    </tr>
-                   ) : contacts.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
-                        No contacts found
-                      </td>
-                    </tr>
-                  ) : (
-                    currentContacts.map((contact: any) => (
-                      <tr key={contact.id} className="hover:bg-muted/20 transition-colors">
-                        <td className="p-4">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
-                                {`${contact.firstNameLowerCase?.[0]?.toUpperCase() || ''}${contact.lastNameLowerCase?.[0]?.toUpperCase() || ''}` || contact.name?.[0] || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-sm">
-                                {contact.firstNameLowerCase && contact.lastNameLowerCase 
-                                  ? `${contact.firstNameLowerCase.charAt(0).toUpperCase() + contact.firstNameLowerCase.slice(1)} ${contact.lastNameLowerCase.charAt(0).toUpperCase() + contact.lastNameLowerCase.slice(1)}`
-                                  : contact.name || "No Name"}
-                              </p>
-                              <p className="text-xs text-muted-foreground">ID: {contact.id}</p>
-                            </div>
+            {isMobile ? (
+              /* Mobile Card View */
+              <div className="space-y-3 p-4">
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Loading contacts...
+                  </div>
+                ) : contacts.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No contacts found
+                  </div>
+                ) : (
+                  currentContacts.map((contact: any) => (
+                    <Card key={contact.id} className="p-4 border border-border/30">
+                      <div className="flex items-start space-x-3">
+                        <Avatar className="h-10 w-10 mt-1">
+                          <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
+                            {`${contact.firstNameLowerCase?.[0]?.toUpperCase() || ''}${contact.lastNameLowerCase?.[0]?.toUpperCase() || ''}` || contact.name?.[0] || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {contact.firstNameLowerCase && contact.lastNameLowerCase 
+                              ? `${contact.firstNameLowerCase.charAt(0).toUpperCase() + contact.firstNameLowerCase.slice(1)} ${contact.lastNameLowerCase.charAt(0).toUpperCase() + contact.lastNameLowerCase.slice(1)}`
+                              : contact.name || "No Name"}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Phone className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">{contact.phone || 'No phone'}</span>
                           </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center space-x-2">
-                            <Phone className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{contact.phone || '-'}</span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          {contact.email ? (
-                            <div className="flex items-center space-x-2">
-                              <Mail className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm text-medical-blue hover:underline cursor-pointer">
-                                {contact.email}
-                              </span>
+                          {contact.email && (
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Mail className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-xs text-medical-blue truncate">{contact.email}</span>
                             </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">No email</span>
                           )}
-                        </td>
-                        <td className="p-4">
-                          <Badge variant="secondary" className="bg-primary/10 text-primary">
-                            {contact.tags?.[0] || 'Contact'}
-                          </Badge>
-                        </td>
-                        <td className="p-4">
-                          <Badge variant="secondary" className="bg-success/10 text-success">
-                            Active
-                          </Badge>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm">
-                            {contact.customFields?.find((f: any) => f.key === 'referred_by')?.field_value || '-'}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(contact.dateAdded || contact.createdAt || Date.now()).toLocaleDateString()}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                              {contact.tags?.[0] || 'Contact'}
+                            </Badge>
+                            <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                              Active
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            ) : (
+              /* Desktop Table View */
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b border-border/50 bg-muted/30">
+                    <tr>
+                      <th className="text-left p-4 font-medium text-sm">Contact</th>
+                      <th className="text-left p-4 font-medium text-sm">Phone</th>
+                      <th className="text-left p-4 font-medium text-sm">Email</th>
+                      <th className="text-left p-4 font-medium text-sm">Type</th>
+                      <th className="text-left p-4 font-medium text-sm">Status</th>
+                      <th className="text-left p-4 font-medium text-sm">Attorney</th>
+                      <th className="text-left p-4 font-medium text-sm">Last Activity</th>
+                      <th className="text-left p-4 font-medium text-sm"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {loading ? (
+                      <tr>
+                        <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                          Loading contacts...
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                     ) : contacts.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                          No contacts found
+                        </td>
+                      </tr>
+                    ) : (
+                      currentContacts.map((contact: any) => (
+                        <tr key={contact.id} className="hover:bg-muted/20 transition-colors">
+                          <td className="p-4">
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
+                                  {`${contact.firstNameLowerCase?.[0]?.toUpperCase() || ''}${contact.lastNameLowerCase?.[0]?.toUpperCase() || ''}` || contact.name?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {contact.firstNameLowerCase && contact.lastNameLowerCase 
+                                    ? `${contact.firstNameLowerCase.charAt(0).toUpperCase() + contact.firstNameLowerCase.slice(1)} ${contact.lastNameLowerCase.charAt(0).toUpperCase() + contact.lastNameLowerCase.slice(1)}`
+                                    : contact.name || "No Name"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">ID: {contact.id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center space-x-2">
+                              <Phone className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm">{contact.phone || '-'}</span>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            {contact.email ? (
+                              <div className="flex items-center space-x-2">
+                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm text-medical-blue hover:underline cursor-pointer">
+                                  {contact.email}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">No email</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <Badge variant="secondary" className="bg-primary/10 text-primary">
+                              {contact.tags?.[0] || 'Contact'}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant="secondary" className="bg-success/10 text-success">
+                              Active
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm">
+                              {contact.customFields?.find((f: any) => f.key === 'referred_by')?.field_value || '-'}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(contact.dateAdded || contact.createdAt || Date.now()).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
 

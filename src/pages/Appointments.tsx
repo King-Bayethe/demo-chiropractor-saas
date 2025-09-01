@@ -12,14 +12,17 @@ import { CalendarDays, Plus, RefreshCw, Search, Filter } from 'lucide-react';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { useAppointments, Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 import { supabase } from '@/integrations/supabase/client';
 
 type CalendarView = 'month' | 'week' | 'day' | 'list';
 
 export default function Appointments() {
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<CalendarView>('month');
+  const [view, setView] = useState<CalendarView>(isMobile ? 'list' : 'month');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -240,22 +243,24 @@ export default function Appointments() {
     <AuthGuard>
       <Layout>
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className={cn(
+            "flex items-center justify-between",
+            isMobile && "flex-col gap-4"
+          )}>
             <div className="flex items-center gap-3">
-              <CalendarDays className="h-8 w-8 text-primary" />
+              <CalendarDays className={cn("text-primary", isMobile ? "h-6 w-6" : "h-8 w-8")} />
               <div>
-                <h1 className="text-3xl font-bold">Appointments</h1>
-                <p className="text-muted-foreground">Manage your appointments and schedule</p>
+                <h1 className={cn("font-bold", isMobile ? "text-2xl" : "text-3xl")}>Appointments</h1>
+                <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "")}>Manage your appointments and schedule</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              
+            <div className={cn("flex items-center gap-2", isMobile && "w-full justify-center")}>
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button size={isMobile ? "sm" : "default"} className={isMobile ? "flex-1" : ""}>
                     <Plus className="h-4 w-4 mr-2" />
-                    New Appointment
+                    {isMobile ? "New" : "New Appointment"}
                   </Button>
                 </DialogTrigger>
                 <AppointmentForm
@@ -271,21 +276,27 @@ export default function Appointments() {
           {/* Filters and Search */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
+              <div className={cn(
+                "flex items-center gap-4",
+                isMobile ? "flex-col space-y-4" : "flex-wrap"
+              )}>
+                <div className={cn("flex items-center gap-2", isMobile && "w-full")}>
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search appointments..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64"
+                    className={cn(isMobile ? "flex-1" : "w-64")}
                   />
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className={cn(
+                  "flex items-center gap-2",
+                  isMobile ? "w-full justify-between" : ""
+                )}>
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className={cn(isMobile ? "flex-1" : "w-32")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -299,7 +310,7 @@ export default function Appointments() {
                   </Select>
                   
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className={cn(isMobile ? "flex-1" : "w-32")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -326,35 +337,41 @@ export default function Appointments() {
           {/* Calendar Header */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Button variant="outline" onClick={() => navigateDate('prev')}>
+              <div className={cn(
+                "flex items-center justify-between",
+                isMobile && "flex-col gap-4"
+              )}>
+                <div className={cn(
+                  "flex items-center gap-4",
+                  isMobile && "w-full justify-center"
+                )}>
+                  <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={() => navigateDate('prev')}>
                     ←
                   </Button>
-                  <h2 className="text-xl font-semibold">{getDateRangeText()}</h2>
-                  <Button variant="outline" onClick={() => navigateDate('next')}>
+                  <h2 className={cn("font-semibold", isMobile ? "text-lg" : "text-xl")}>{getDateRangeText()}</h2>
+                  <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={() => navigateDate('next')}>
                     →
                   </Button>
-                  <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
+                  <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={() => setCurrentDate(new Date())}>
                     Today
                   </Button>
                 </div>
                 
                 <Select value={view} onValueChange={(value: CalendarView) => setView(value)}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className={cn(isMobile ? "w-full" : "w-32")}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="month">Month</SelectItem>
-                    <SelectItem value="week">Week</SelectItem>
-                    <SelectItem value="day">Day</SelectItem>
+                    {!isMobile && <SelectItem value="month">Month</SelectItem>}
+                    {!isMobile && <SelectItem value="week">Week</SelectItem>}
+                    {!isMobile && <SelectItem value="day">Day</SelectItem>}
                     <SelectItem value="list">List</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </CardHeader>
             <CardContent>
-              {view === 'month' ? renderMonthView() : renderListView()}
+              {(view === 'month' && !isMobile) ? renderMonthView() : renderListView()}
             </CardContent>
           </Card>
 
