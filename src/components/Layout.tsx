@@ -101,7 +101,7 @@ export function Layout({ children }: LayoutProps) {
       )}
       
       {/* Sidebar */}
-      <div className={`${isMobile ? 'fixed' : 'fixed'} left-0 top-0 h-screen z-50 transition-transform duration-300 ${
+      <div className={`${isMobile ? 'fixed' : 'relative'} left-0 top-0 h-screen z-50 transition-transform duration-300 ${
         isMobile && !mobileMenuOpen ? '-translate-x-full' : 'translate-x-0'
       }`}>
         <CRMSidebar 
@@ -111,7 +111,7 @@ export function Layout({ children }: LayoutProps) {
       </div>
       
       <div className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+        isMobile ? 'ml-0' : ''
       }`}>
         {/* Top Header */}
         <header className="h-16 border-b border-border/50 bg-card px-4 sm:px-6 flex items-center justify-between shadow-sm flex-shrink-0">
