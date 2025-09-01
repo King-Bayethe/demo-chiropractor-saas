@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { 
   User, 
   Calendar, 
@@ -33,6 +35,7 @@ export const EnhancedPatientContextHeader: React.FC<EnhancedPatientContextHeader
   showNavigationButton = true
 }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     painAssessment: false,
     medicalHistory: false,
@@ -165,88 +168,130 @@ export const EnhancedPatientContextHeader: React.FC<EnhancedPatientContextHeader
   };
 
   return (
-    <Card className="mb-6 shadow-lg border-primary/20">
-      <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-primary" />
+    <Card className={cn("mb-6 shadow-lg border-primary/20", isMobile ? "mx-0" : "")}>
+      <CardHeader className={cn("bg-gradient-to-r from-primary/5 to-primary/10 border-b", 
+        isMobile ? "p-4" : ""
+      )}>
+        <div className={cn("flex justify-between",
+          isMobile ? "flex-col space-y-3" : "items-center"
+        )}>
+          <div className={cn("flex space-x-4",
+            isMobile ? "items-start" : "items-center"
+          )}>
+            <div className={cn("bg-primary/20 rounded-full flex items-center justify-center",
+              isMobile ? "w-10 h-10 mt-1" : "w-12 h-12"
+            )}>
+              <User className={cn("text-primary", isMobile ? "w-5 h-5" : "w-6 h-6")} />
             </div>
-            <div>
-              <CardTitle className="text-xl font-bold text-foreground">
+            <div className="flex-1">
+              <CardTitle className={cn("font-bold text-foreground",
+                isMobile ? "text-lg" : "text-xl"
+              )}>
                 {getPatientName()}
               </CardTitle>
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+              <div className={cn("text-sm text-muted-foreground mt-1",
+                isMobile ? "flex flex-col space-y-1" : "flex items-center space-x-4"
+              )}>
                 {patient?.case_type && (
-                  <Badge variant="outline" className="bg-accent/20">
+                  <Badge variant="outline" className={cn("bg-accent/20",
+                    isMobile ? "self-start text-xs" : ""
+                  )}>
                     {patient.case_type}
                   </Badge>
                 )}
                 {patient?.date_of_birth && (
                   <div className="flex items-center space-x-1">
                     <Calendar className="w-3 h-3" />
-                    <span>DOB: {new Date(patient.date_of_birth).toLocaleDateString()}</span>
-                    {getPatientAge() && (
-                      <span className="text-xs">({getPatientAge()} years old)</span>
-                    )}
+                    <span className={isMobile ? "text-xs" : ""}>
+                      DOB: {new Date(patient.date_of_birth).toLocaleDateString()}
+                      {getPatientAge() && (
+                        <span className="text-xs ml-1">({getPatientAge()} years)</span>
+                      )}
+                    </span>
                   </div>
                 )}
-                {patient?.phone && (
+                {patient?.phone && !isMobile && (
                   <div className="flex items-center space-x-1">
                     <Phone className="w-3 h-3" />
                     <span>{patient.phone}</span>
                   </div>
                 )}
-                {(patient?.city || patient?.state) && (
+                {(patient?.city || patient?.state) && !isMobile && (
                   <div className="flex items-center space-x-1">
                     <MapPin className="w-3 h-3" />
                     <span>{[patient.city, patient.state].filter(Boolean).join(', ')}</span>
                   </div>
                 )}
               </div>
+              
+              {/* Mobile-specific contact info */}
+              {isMobile && (patient?.phone || patient?.city || patient?.state) && (
+                <div className="flex flex-col space-y-1 mt-2 text-xs text-muted-foreground">
+                  {patient?.phone && (
+                    <div className="flex items-center space-x-1">
+                      <Phone className="w-3 h-3" />
+                      <span>{patient.phone}</span>
+                    </div>
+                  )}
+                  {(patient?.city || patient?.state) && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="w-3 h-3" />
+                      <span>{[patient.city, patient.state].filter(Boolean).join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {showNavigationButton && (
             <Button 
               onClick={handleViewProfile} 
               variant="outline" 
-              size="sm"
-              className="flex items-center gap-2"
+              size={isMobile ? "sm" : "default"}
+              className={cn("flex items-center gap-2",
+                isMobile ? "self-start text-xs px-3 py-1.5" : ""
+              )}
             >
-              <ExternalLink className="h-4 w-4" />
-              View Full Profile
+              <ExternalLink className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
+              {isMobile ? "View Profile" : "View Full Profile"}
             </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 p-6">
+      <CardContent className={cn("space-y-4", isMobile ? "p-4" : "p-6")}>
         {/* Pain Assessment Section */}
         {hasPainData && (
           <Collapsible open={openSections.painAssessment} onOpenChange={() => toggleSection('painAssessment')}>
             <CollapsibleTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full justify-between p-3 h-auto border rounded-lg hover:bg-muted/50"
+                className={cn("w-full justify-between border rounded-lg hover:bg-muted/50",
+                  isMobile ? "p-2 h-auto" : "p-3 h-auto"
+                )}
               >
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-red-500" />
-                  <span className="font-medium">Pain Assessment</span>
+                  <Activity className={cn("text-red-500", isMobile ? "h-3 w-3" : "h-4 w-4")} />
+                  <span className={cn("font-medium", isMobile ? "text-sm" : "")}>Pain Assessment</span>
                   {patient?.pain_severity !== null && (
-                    <Badge variant="secondary" className="ml-2 bg-red-100 text-red-700">
+                    <Badge variant="secondary" className={cn("bg-red-100 text-red-700",
+                      isMobile ? "ml-1 text-xs px-1.5 py-0.5" : "ml-2"
+                    )}>
                       {patient.pain_severity}/10
                     </Badge>
                   )}
                 </div>
                 {openSections.painAssessment ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
                 )}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200 space-y-3">
+              <div className={cn("bg-red-50 rounded-lg border border-red-200 space-y-3",
+                isMobile ? "p-3" : "p-4"
+              )}>
                 {patient?.pain_location && (
                   <div>
                     <span className="text-xs font-medium text-red-600 flex items-center gap-1">

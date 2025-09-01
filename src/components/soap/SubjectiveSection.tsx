@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { PatientMedicalSummary } from "./PatientMedicalSummary";
 import { autofillSOAPFromPatient, convertCurrentSymptomsToSOAP, convertFamilyHistoryToSOAP, FAMILY_HISTORY_MAPPING } from "@/utils/soapFormMapping";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface SubjectiveSectionProps {
   data: SubjectiveData;
@@ -159,6 +161,8 @@ const painFaces = [
 ];
 
 export function SubjectiveSection({ data, onChange, patient }: SubjectiveSectionProps) {
+  const isMobile = useIsMobile();
+  
   // Helper function to intelligently map patient data to SOAP fields
   const mapPatientDataToSOAP = () => {
     if (!patient) return;
@@ -693,13 +697,21 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className={cn(isMobile ? "p-4" : "")}>
+        <div className={cn("flex justify-between",
+          isMobile ? "flex-col space-y-3" : "items-center"
+        )}>
           <div>
-            <CardTitle className="text-lg text-primary">S - Subjective</CardTitle>
-            <p className="text-sm text-muted-foreground">Patient's reported symptoms and history</p>
+            <CardTitle className={cn("text-primary",
+              isMobile ? "text-base" : "text-lg"
+            )}>S - Subjective</CardTitle>
+            <p className={cn("text-muted-foreground",
+              isMobile ? "text-xs" : "text-sm"
+            )}>Patient's reported symptoms and history</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className={cn("flex space-x-4",
+            isMobile ? "items-start" : "items-center"
+          )}>
             <div className="flex items-center space-x-2">
               <Switch
                 id="wnl"
@@ -710,7 +722,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                   isRefused: checked ? false : data.isRefused 
                 })}
               />
-              <Label htmlFor="wnl" className="text-sm">WNL</Label>
+              <Label htmlFor="wnl" className={cn(isMobile ? "text-xs" : "text-sm")}>WNL</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Switch
@@ -722,12 +734,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                   isWithinNormalLimits: checked ? false : data.isWithinNormalLimits 
                 })}
               />
-              <Label htmlFor="refused" className="text-sm">Refused</Label>
+              <Label htmlFor="refused" className={cn(isMobile ? "text-xs" : "text-sm")}>Refused</Label>
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className={cn("space-y-6", isMobile ? "p-4" : "")}>
         {data.isWithinNormalLimits && (
           <div className="text-center py-4">
             <Badge variant="secondary" className="bg-success/10 text-success">
@@ -748,8 +760,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
           <>
             {/* Pain Description - First question */}
             <div>
-              <Label htmlFor="painDescription" className="text-base font-semibold">Pain Description</Label>
-              <p className="text-sm text-muted-foreground mb-2">Describe the character, location, duration, and triggers</p>
+              <Label htmlFor="painDescription" className={cn("font-semibold",
+                isMobile ? "text-sm" : "text-base"
+              )}>Pain Description</Label>
+              <p className={cn("text-muted-foreground mb-2",
+                isMobile ? "text-xs" : "text-sm"
+              )}>Describe the character, location, duration, and triggers</p>
                 <Textarea
                   id="painDescription"
                   value={(() => {
@@ -773,9 +789,13 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
             <Separator />
 
             {/* Pain Aggravating/Alleviating Factors */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={cn("grid gap-4",
+              isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+            )}>
               <div>
-                <Label htmlFor="painWorse" className="text-base font-semibold">What makes it worse?</Label>
+                <Label htmlFor="painWorse" className={cn("font-semibold",
+                  isMobile ? "text-sm" : "text-base"
+                )}>What makes it worse?</Label>
                 <Textarea
                   id="painWorse"
                   value={data.painWorse || ''}
@@ -786,7 +806,9 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                 />
               </div>
               <div>
-                <Label htmlFor="painBetter" className="text-base font-semibold">What makes it better?</Label>
+                <Label htmlFor="painBetter" className={cn("font-semibold",
+                  isMobile ? "text-sm" : "text-base"
+                )}>What makes it better?</Label>
                 <Textarea
                   id="painBetter"
                   value={data.painBetter || ''}
@@ -802,12 +824,18 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
             {/* Current Symptoms */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-primary">Current Symptoms</h4>
+              <h4 className={cn("font-medium text-primary",
+                isMobile ? "text-xs" : "text-sm"
+              )}>Current Symptoms</h4>
               
               {/* Head & Neck */}
               <div className="space-y-3">
-                <h5 className="text-sm font-medium text-muted-foreground">Head & Neck</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <h5 className={cn("font-medium text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Head & Neck</h5>
+                <div className={cn("grid gap-3",
+                  isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+                )}>
                   {[
                     { key: 'headache', label: 'Headache' },
                     { key: 'neck_pain', label: 'Neck Pain' },
@@ -821,7 +849,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
                         onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
                       />
-                      <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                      <Label htmlFor={`current-${key}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{label}</Label>
                     </div>
                   ))}
                 </div>
@@ -829,8 +857,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
               {/* Arms & Hands */}
               <div className="space-y-3">
-                <h5 className="text-sm font-medium text-muted-foreground">Arms & Hands</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <h5 className={cn("font-medium text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Arms & Hands</h5>
+                <div className={cn("grid gap-3",
+                  isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+                )}>
                    {[
                      { key: 'arm_pain', label: 'Arm Pain' },
                      { key: 'shoulder_pain', label: 'Shoulder Pain' },
@@ -847,7 +879,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
                         onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
                       />
-                      <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                      <Label htmlFor={`current-${key}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{label}</Label>
                     </div>
                   ))}
                 </div>
@@ -855,8 +887,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
               {/* Back & Core */}
               <div className="space-y-3">
-                <h5 className="text-sm font-medium text-muted-foreground">Back & Core</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <h5 className={cn("font-medium text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Back & Core</h5>
+                <div className={cn("grid gap-3",
+                  isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+                )}>
                   {[
                     { key: 'upper_back_pain', label: 'Upper Back Pain' },
                     { key: 'mid_back_pain', label: 'Mid Back Pain' },
@@ -871,7 +907,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
                         onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
                       />
-                      <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                      <Label htmlFor={`current-${key}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{label}</Label>
                     </div>
                   ))}
                 </div>
@@ -879,8 +915,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
               {/* Legs & Feet */}
               <div className="space-y-3">
-                <h5 className="text-sm font-medium text-muted-foreground">Legs & Feet</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <h5 className={cn("font-medium text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Legs & Feet</h5>
+                <div className={cn("grid gap-3",
+                  isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+                )}>
                    {[
                      { key: 'hip_pain', label: 'Hip Pain' },
                      { key: 'thigh_pain', label: 'Thigh Pain' },
@@ -898,7 +938,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
                         onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
                       />
-                      <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                      <Label htmlFor={`current-${key}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{label}</Label>
                     </div>
                   ))}
                 </div>
@@ -906,8 +946,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
               {/* Neurological */}
               <div className="space-y-3">
-                <h5 className="text-sm font-medium text-muted-foreground">Neurological</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <h5 className={cn("font-medium text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Neurological</h5>
+                <div className={cn("grid gap-3",
+                  isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+                )}>
                   {[
                     { key: 'dizziness', label: 'Dizziness' },
                     { key: 'vision_problems', label: 'Vision Problems' },
@@ -922,7 +966,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
                         onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
                       />
-                      <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                      <Label htmlFor={`current-${key}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{label}</Label>
                     </div>
                   ))}
                 </div>
@@ -930,8 +974,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
             {/* General */}
             <div className="space-y-3">
-              <h5 className="text-sm font-medium text-muted-foreground">General</h5>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <h5 className={cn("font-medium text-muted-foreground",
+                isMobile ? "text-xs" : "text-sm"
+              )}>General</h5>
+              <div className={cn("grid gap-3",
+                isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+              )}>
                  {[
                    { key: 'fatigue', label: 'Fatigue' },
                    { key: 'sleep_problems', label: 'Sleep Problems' },
@@ -947,7 +995,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                       checked={data.currentSymptoms?.[key as keyof typeof data.currentSymptoms] || false}
                       onCheckedChange={(checked) => handleCurrentSymptomsChange(key, checked as boolean)}
                     />
-                    <Label htmlFor={`current-${key}`} className="text-sm">{label}</Label>
+                    <Label htmlFor={`current-${key}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{label}</Label>
                   </div>
                 ))}
               </div>
@@ -955,7 +1003,9 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
             {/* Other Symptoms */}
             <div className="space-y-2">
-              <Label htmlFor="other-symptoms" className="text-sm font-medium text-muted-foreground">
+              <Label htmlFor="other-symptoms" className={cn("font-medium text-muted-foreground",
+                isMobile ? "text-xs" : "text-sm"
+              )}>
                 Other Symptoms
               </Label>
               <Textarea
@@ -972,12 +1022,18 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
             {/* Pain Scale */}
             <div>
-              <Label className="text-base font-semibold">Pain Assessment</Label>
-              <p className="text-sm text-muted-foreground mb-4">Rate current pain level</p>
+              <Label className={cn("font-semibold",
+                isMobile ? "text-sm" : "text-base"
+              )}>Pain Assessment</Label>
+              <p className={cn("text-muted-foreground mb-4",
+                isMobile ? "text-xs" : "text-sm"
+              )}>Rate current pain level</p>
               
               {/* Numerical Scale */}
               <div className="mb-4">
-                <Label className="text-sm mb-2 block">Numerical Scale (0-10)</Label>
+                <Label className={cn("mb-2 block",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Numerical Scale (0-10)</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     type="number"
@@ -988,26 +1044,34 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                     placeholder="0"
                     className="w-20"
                   />
-                  <span className="text-sm text-muted-foreground">/ 10</span>
+                  <span className={cn("text-muted-foreground",
+                    isMobile ? "text-xs" : "text-sm"
+                  )}>/ 10</span>
                 </div>
               </div>
 
               {/* Faces Scale */}
               <div>
-                <Label className="text-sm mb-2 block">Faces Pain Scale</Label>
-                <div className="grid grid-cols-6 gap-2">
+                <Label className={cn("mb-2 block",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>Faces Pain Scale</Label>
+                <div className={cn("grid gap-2",
+                  isMobile ? "grid-cols-3" : "grid-cols-6"
+                )}>
                   {painFaces.map((face) => (
                     <Button
                       key={face.value}
                       type="button"
                       variant={data.painScale === face.value ? "default" : "outline"}
-                      size="sm"
+                      size={isMobile ? "sm" : "default"}
                       onClick={() => handlePainScaleChange(face.value)}
-                      className="flex flex-col items-center p-2 h-auto"
+                      className={cn("flex flex-col items-center h-auto",
+                        isMobile ? "p-1.5 text-xs" : "p-2"
+                      )}
                     >
-                      <span className="text-lg mb-1">{face.emoji}</span>
+                      <span className={cn("mb-1", isMobile ? "text-sm" : "text-lg")}>{face.emoji}</span>
                       <span className="text-xs">{face.value}</span>
-                      <span className="text-xs">{face.label}</span>
+                      <span className="text-xs">{isMobile ? face.value : face.label}</span>
                     </Button>
                   ))}
                 </div>
@@ -1018,10 +1082,16 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
             {/* Medical History */}
             <div>
-              <Label className="text-base font-semibold">Medical History</Label>
+              <Label className={cn("font-semibold",
+                isMobile ? "text-sm" : "text-base"
+              )}>Medical History</Label>
               <div className="space-y-4 mt-3">
-                <div className="flex items-center space-x-2">
-                  <Label className="text-sm font-medium">Have you ever been in our office before?</Label>
+                <div className={cn("flex space-x-2",
+                  isMobile ? "flex-col space-y-2 space-x-0" : "items-center"
+                )}>
+                  <Label className={cn("font-medium",
+                    isMobile ? "text-xs" : "text-sm"
+                  )}>Have you ever been in our office before?</Label>
                   <div className="flex space-x-4">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -1029,7 +1099,7 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.medicalHistory?.previousOfficeVisit === true}
                         onCheckedChange={(checked) => handleMedicalHistoryChange('previousOfficeVisit', checked)}
                       />
-                      <Label htmlFor="previous-yes" className="text-sm">Yes</Label>
+                      <Label htmlFor="previous-yes" className={cn(isMobile ? "text-xs" : "text-sm")}>Yes</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -1037,13 +1107,15 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                         checked={data.medicalHistory?.previousOfficeVisit === false}
                         onCheckedChange={(checked) => handleMedicalHistoryChange('previousOfficeVisit', !checked)}
                       />
-                      <Label htmlFor="previous-no" className="text-sm">No</Label>
+                      <Label htmlFor="previous-no" className={cn(isMobile ? "text-xs" : "text-sm")}>No</Label>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="previousAccidents" className="text-sm font-medium">List any previous accidents (automobile, on the job injuries, slips, falls, sports, etc.) and date:</Label>
+                  <Label htmlFor="previousAccidents" className={cn("font-medium",
+                    isMobile ? "text-xs" : "text-sm"
+                  )}>List any previous accidents (automobile, on the job injuries, slips, falls, sports, etc.) and date:</Label>
                   <Textarea
                     id="previousAccidents"
                     value={data.medicalHistory?.previousAccidents || ''}
@@ -1055,7 +1127,9 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                 </div>
 
                 <div>
-                  <Label htmlFor="illness" className="text-sm font-medium">Illness:</Label>
+                  <Label htmlFor="illness" className={cn("font-medium",
+                    isMobile ? "text-xs" : "text-sm"
+                  )}>Illness:</Label>
                   <Input
                     id="illness"
                     value={data.medicalHistory?.illness || ''}
@@ -1114,8 +1188,12 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
 
              {/* Family Medical History - Using standardized mapping */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-primary">Family Medical History</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h4 className={cn("font-medium text-primary",
+                isMobile ? "text-xs" : "text-sm"
+              )}>Family Medical History</h4>
+              <div className={cn("grid gap-4",
+                isMobile ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"
+              )}>
                  {FAMILY_HISTORY_MAPPING.map(({ soapField, description }) => (
                   <div key={soapField} className="flex items-center space-x-2">
                      <Checkbox
@@ -1123,14 +1201,16 @@ export function SubjectiveSection({ data, onChange, patient }: SubjectiveSection
                        checked={Boolean(data.familyHistory?.[soapField as keyof typeof data.familyHistory])}
                        onCheckedChange={(checked) => handleFamilyHistoryChange(soapField, Boolean(checked))}
                      />
-                    <Label htmlFor={`family-${soapField}`} className="text-sm">{description}</Label>
+                    <Label htmlFor={`family-${soapField}`} className={cn(isMobile ? "text-xs" : "text-sm")}>{description}</Label>
                   </div>
                 ))}
               </div>
               
               {/* Other Family Conditions */}
               <div className="space-y-2">
-                <Label htmlFor="other-family-conditions" className="text-sm font-medium">
+                <Label htmlFor="other-family-conditions" className={cn("font-medium",
+                  isMobile ? "text-xs" : "text-sm"
+                )}>
                   Other Family Conditions
                 </Label>
                  <Textarea

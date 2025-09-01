@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, Phone, Mail, MapPin, FileText, Clock } from "lucide-react";
 import { Patient } from "@/hooks/usePatients";
 import { mapSupabasePatientToProfileHeader } from "@/utils/patientMapping";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface PatientProfileHeaderProps {
   patient: Patient;
@@ -15,6 +17,7 @@ interface PatientProfileHeaderProps {
 export function PatientProfileHeader({ patient, isQuickNote = false, onToggleMode }: PatientProfileHeaderProps) {
   // Map Supabase patient data to display format
   const displayPatient = mapSupabasePatientToProfileHeader(patient);
+  const isMobile = useIsMobile();
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -22,25 +25,39 @@ export function PatientProfileHeader({ patient, isQuickNote = false, onToggleMod
 
   return (
     <Card className="mb-6">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-16 w-16">
+      <CardContent className={cn(isMobile ? "p-4" : "p-6")}>
+        <div className={cn("flex justify-between",
+          isMobile ? "flex-col space-y-4" : "items-start"
+        )}>
+          <div className={cn("flex space-x-4",
+            isMobile ? "items-start" : "items-start"
+          )}>
+            <Avatar className={cn(isMobile ? "h-12 w-12" : "h-16 w-16")}>
               <AvatarImage src={displayPatient.avatar} alt={displayPatient.name} />
-              <AvatarFallback className="bg-primary/10 text-primary text-lg">
+              <AvatarFallback className={cn("bg-primary/10 text-primary",
+                isMobile ? "text-sm" : "text-lg"
+              )}>
                 {getInitials(displayPatient.name)}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <h2 className="text-2xl font-bold text-foreground">{displayPatient.name}</h2>
-                <Badge variant="outline" className="text-xs">
+              <div className={cn("flex mb-2",
+                isMobile ? "flex-col space-y-2" : "items-center space-x-3"
+              )}>
+                <h2 className={cn("font-bold text-foreground",
+                  isMobile ? "text-lg" : "text-2xl"
+                )}>{displayPatient.name}</h2>
+                <Badge variant="outline" className={cn(
+                  isMobile ? "text-xs self-start" : "text-xs"
+                )}>
                   ID: {displayPatient.id.slice(-8)}
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className={cn("text-sm",
+                isMobile ? "grid grid-cols-1 gap-2" : "grid grid-cols-2 md:grid-cols-4 gap-4"
+              )}>
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <div>
@@ -90,16 +107,23 @@ export function PatientProfileHeader({ patient, isQuickNote = false, onToggleMod
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className={cn("flex items-center space-x-2",
+            isMobile ? "self-start" : ""
+          )}>
             {onToggleMode && (
               <Button
                 variant="outline"
-                size="sm"
+                size={isMobile ? "sm" : "default"}
                 onClick={onToggleMode}
-                className="flex items-center space-x-2"
+                className={cn("flex items-center space-x-2",
+                  isMobile ? "text-xs px-3 py-1.5" : ""
+                )}
               >
-                {isQuickNote ? <FileText className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
-                <span>{isQuickNote ? 'Full Assessment' : 'Quick Note'}</span>
+                {isQuickNote ? 
+                  <FileText className={cn(isMobile ? "w-3 h-3" : "w-4 h-4")} /> : 
+                  <Clock className={cn(isMobile ? "w-3 h-3" : "w-4 h-4")} />
+                }
+                <span>{isQuickNote ? 'Full' : 'Quick'}</span>
               </Button>
             )}
           </div>
