@@ -16,6 +16,7 @@ import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { PipelineStageNode } from "@/components/pipeline/PipelineStageNode";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
+import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 
 const nodeTypes = {
   stageNode: PipelineStageNode,
@@ -27,6 +28,8 @@ export default function Opportunities() {
   const { data: opportunities = [], isLoading: opportunitiesLoading } = usePipelineOpportunities();
   const { stats, stageStats } = usePipelineStats();
   const { updateOpportunityStage } = usePipelineMutations();
+  const isMobile = useIsMobile();
+  const deviceType = useDeviceType();
 
   const { nodes, edges } = useMemo(() => {
     if (!stages.length) return { nodes: [], edges: [] };
@@ -34,7 +37,9 @@ export default function Opportunities() {
     const stageNodes: Node[] = stages.map((stage, index) => ({
       id: `stage-${stage.id}`,
       type: "stageNode",
-      position: { x: index * 400, y: 100 },
+      position: isMobile 
+        ? { x: 50, y: index * 300 } // Vertical layout for mobile
+        : { x: index * 350, y: 100 }, // Horizontal layout for desktop
       data: {
         stage,
         opportunities,
@@ -42,6 +47,7 @@ export default function Opportunities() {
         onMoveOpportunity: (opportunityId: string, targetStageId: string) => {
           updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
         },
+        isMobile,
       },
     }));
 
@@ -59,12 +65,12 @@ export default function Opportunities() {
       },
       style: { 
         stroke: "hsl(var(--border))",
-        strokeWidth: 2,
+        strokeWidth: isMobile ? 3 : 2, // Thicker lines for mobile
       },
     }));
 
     return { nodes: stageNodes, edges: stageEdges };
-  }, [stages, opportunities, updateOpportunityStage]);
+  }, [stages, opportunities, updateOpportunityStage, isMobile]);
 
   if (stagesLoading || opportunitiesLoading) {
     return (
@@ -81,23 +87,23 @@ export default function Opportunities() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="space-y-6">
+        <div className="space-y-4 p-4 sm:p-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Medical Pipeline</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Medical Pipeline</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Track patients through your medical pipeline
               </p>
             </div>
-            <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
+            <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Add Opportunity
             </Button>
           </div>
 
           {/* Pipeline Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Pipeline</CardTitle>
@@ -157,24 +163,50 @@ export default function Opportunities() {
 
           {/* Pipeline Flow */}
           <Card className="p-0 overflow-hidden">
-            <CardHeader>
-              <CardTitle>Medical Pipeline Flow</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">Medical Pipeline Flow</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div style={{ width: "100%", height: "600px" }}>
+              <div style={{ 
+                width: "100%", 
+                height: isMobile ? "800px" : "600px",
+                minHeight: isMobile ? "600px" : "500px"
+              }}>
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
                   nodeTypes={nodeTypes}
                   fitView
-                  fitViewOptions={{ padding: 50 }}
-                  minZoom={0.5}
-                  maxZoom={1.5}
-                  defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+                  fitViewOptions={{ 
+                    padding: isMobile ? 20 : 50,
+                    includeHiddenNodes: false
+                  }}
+                  minZoom={isMobile ? 0.3 : 0.5}
+                  maxZoom={isMobile ? 1.0 : 1.5}
+                  defaultViewport={{ 
+                    x: 0, 
+                    y: 0, 
+                    zoom: isMobile ? 0.6 : 0.8 
+                  }}
                   proOptions={{ hideAttribution: true }}
+                  panOnScroll={!isMobile}
+                  zoomOnScroll={!isMobile}
+                  zoomOnPinch={isMobile}
+                  panOnDrag={!isMobile}
+                  selectionOnDrag={false}
+                  preventScrolling={isMobile}
                 >
-                  <Controls />
-                  <Background color="hsl(var(--muted-foreground))" gap={16} />
+                  <Controls 
+                    position={isMobile ? "bottom-left" : "bottom-right"}
+                    showZoom={!isMobile}
+                    showFitView={true}
+                    showInteractive={false}
+                  />
+                  <Background 
+                    color="hsl(var(--muted-foreground))" 
+                    gap={isMobile ? 12 : 16}
+                    size={isMobile ? 0.5 : 1}
+                  />
                 </ReactFlow>
               </div>
             </CardContent>
@@ -182,11 +214,11 @@ export default function Opportunities() {
 
           {/* Stage Summary */}
           <Card>
-            <CardHeader>
-              <CardTitle>Stage Summary</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">Stage Summary</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+            <CardContent className="p-4 sm:p-6 pt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
                 {stageStats.map((stage) => {
                   const getStageColorClass = (color: string) => {
                     const colorMap: Record<string, string> = {
@@ -203,11 +235,11 @@ export default function Opportunities() {
 
                   return (
                     <div key={stage.id} className="text-center space-y-2">
-                      <div className={`w-12 h-12 rounded-full ${getStageColorClass(stage.color)} mx-auto flex items-center justify-center text-white font-bold text-lg`}>
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${getStageColorClass(stage.color)} mx-auto flex items-center justify-center text-white font-bold text-sm sm:text-lg`}>
                         {stage.count}
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{stage.name}</p>
+                        <p className="text-xs sm:text-sm font-medium leading-tight">{stage.name}</p>
                         <p className="text-xs text-muted-foreground">
                           ${stage.value.toLocaleString()}
                         </p>

@@ -113,11 +113,12 @@ interface PipelineStageNodeProps {
     opportunities: any[];
     allStages: any[];
     onMoveOpportunity?: (opportunityId: string, targetStageId: string) => void;
+    isMobile?: boolean;
   };
 }
 
 export function PipelineStageNode({ data }: PipelineStageNodeProps) {
-  const { stage, opportunities, allStages, onMoveOpportunity } = data;
+  const { stage, opportunities, allStages, onMoveOpportunity, isMobile } = data;
   
   // Filter opportunities for this stage
   const stageOpportunities = opportunities.filter(
@@ -151,25 +152,42 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
 
   return (
     <div className="relative">
-      <Handle type="target" position={Position.Left} style={{ background: 'transparent', border: 'none' }} />
+      <Handle 
+        type="target" 
+        position={isMobile ? Position.Top : Position.Left} 
+        style={{ background: 'transparent', border: 'none' }} 
+      />
       
-      <Card className={cn("w-80 min-h-[400px] shadow-lg border-2", getColorClass(stage.color))}>
-        <CardHeader className="pb-3">
+      <Card className={cn(
+        "shadow-lg border-2", 
+        isMobile ? "w-72 min-h-[350px]" : "w-80 min-h-[400px]",
+        getColorClass(stage.color)
+      )}>
+        <CardHeader className={cn("pb-3", isMobile ? "p-3" : "p-6")}>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-white">
+            <CardTitle className={cn(
+              "font-semibold text-white",
+              isMobile ? "text-base" : "text-lg"
+            )}>
               {stage.title}
             </CardTitle>
             <Badge variant="secondary" className="bg-white/20 text-white">
               {stageOpportunities.length}
             </Badge>
           </div>
-          <div className="text-white/90 text-sm font-medium">
+          <div className={cn(
+            "text-white/90 font-medium",
+            isMobile ? "text-xs" : "text-sm"
+          )}>
             ${stageValue.toLocaleString()}
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0">
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+        <CardContent className={cn("pt-0", isMobile ? "p-3" : "p-6")}>
+          <div className={cn(
+            "space-y-2 overflow-y-auto",
+            isMobile ? "max-h-80" : "max-h-96"
+          )}>
             {stageOpportunities.map((opportunity) => (
               <OpportunityCard
                 key={opportunity.id}
@@ -191,7 +209,10 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
             ))}
             
             {stageOpportunities.length === 0 && (
-              <div className="text-center text-white/60 text-sm py-4">
+              <div className={cn(
+                "text-center text-white/60 py-4",
+                isMobile ? "text-xs" : "text-sm"
+              )}>
                 No opportunities
               </div>
             )}
@@ -199,7 +220,11 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
         </CardContent>
       </Card>
       
-      <Handle type="source" position={Position.Right} style={{ background: 'transparent', border: 'none' }} />
+      <Handle 
+        type="source" 
+        position={isMobile ? Position.Bottom : Position.Right} 
+        style={{ background: 'transparent', border: 'none' }} 
+      />
     </div>
   );
 }
