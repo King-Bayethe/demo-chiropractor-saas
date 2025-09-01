@@ -42,54 +42,54 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="crm-ui-theme">
-      <AuthProvider>
-        <NotificationProvider>
-          <AIProvider>
-            <LanguageProvider>
-          <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/patients" element={<Patients />} />
-          <Route path="/patients/:patientId" element={<PatientProfile />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/soap-notes" element={<SOAPNotes />} />
-          <Route path="/soap-notes/new" element={<NewSOAPNote />} />
-          <Route path="/soap-notes/view/:id" element={<ViewSOAPNote />} />
-          <Route path="/soap-notes/edit/:id" element={<EditSOAPNote />} />
-          
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/conversations" element={<Conversations />} />
-          <Route path="/team-chat" element={<TeamChat />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/opportunities" element={<Opportunities />} />
-          <Route path="/forms" element={<Forms />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/emails" element={<Emails />} />
-          <Route path="/estimates" element={<Estimates />} />
-          <Route path="/payment-orders" element={<PaymentOrders />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/media-library" element={<MediaLibrary />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/public/pip-form" element={<PublicPIPForm />} />
-          <Route path="/public/lop-form" element={<PublicLOPForm />} />
-          <Route path="/public/cash-form" element={<PublicCashForm />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-          </TooltipProvider>
-            </LanguageProvider>
-          </AIProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="light" storageKey="crm-ui-theme">
+        <AuthProvider>
+          <NotificationProvider>
+            <AIProvider>
+              <LanguageProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/patients" element={<Patients />} />
+                    <Route path="/patients/:patientId" element={<PatientProfile />} />
+                    <Route path="/calendar" element={<Calendar />} />
+                    <Route path="/soap-notes" element={<SOAPNotes />} />
+                    <Route path="/soap-notes/new" element={<NewSOAPNote />} />
+                    <Route path="/soap-notes/view/:id" element={<ViewSOAPNote />} />
+                    <Route path="/soap-notes/edit/:id" element={<EditSOAPNote />} />
+                    
+                    <Route path="/invoices" element={<Invoices />} />
+                    <Route path="/conversations" element={<Conversations />} />
+                    <Route path="/team-chat" element={<TeamChat />} />
+                    <Route path="/contacts" element={<Contacts />} />
+                    <Route path="/opportunities" element={<Opportunities />} />
+                    <Route path="/forms" element={<Forms />} />
+                    <Route path="/documents" element={<Documents />} />
+                    <Route path="/emails" element={<Emails />} />
+                    <Route path="/estimates" element={<Estimates />} />
+                    <Route path="/payment-orders" element={<PaymentOrders />} />
+                    <Route path="/transactions" element={<Transactions />} />
+                    <Route path="/media-library" element={<MediaLibrary />} />
+                    <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/public/pip-form" element={<PublicPIPForm />} />
+                    <Route path="/public/lop-form" element={<PublicLOPForm />} />
+                    <Route path="/public/cash-form" element={<PublicCashForm />} />
+                    
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </TooltipProvider>
+              </LanguageProvider>
+            </AIProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
