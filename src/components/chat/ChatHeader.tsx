@@ -13,6 +13,7 @@ import { useProfile } from "@/hooks/useProfile";
 
 interface Participant {
   id: string;
+  user_id: string;
   first_name?: string;
   last_name?: string;
   email?: string;
@@ -48,8 +49,41 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => {
   const { profile } = useProfile();
 
-  const getCurrentUserDisplayName = (): string => {
-    if (!profile) return 'User';
+  const getDisplayInfo = () => {
+    // For direct messages, show the OTHER participant's info
+    if (selectedChat?.type === 'direct') {
+      const otherParticipant = selectedChat.participants?.find(
+        (p: Participant) => p.user_id !== currentUserId
+      );
+      
+      if (otherParticipant) {
+        const firstName = otherParticipant.first_name || '';
+        const lastName = otherParticipant.last_name || '';
+        const role = otherParticipant.role === 'admin' ? '(Admin)' : 
+                     otherParticipant.role === 'doctor' ? '(Dr.)' : 
+                     otherParticipant.role === 'nurse' ? '(RN)' : 
+                     otherParticipant.role === 'overlord' ? '(Admin)' : '';
+        
+        const fullName = `${firstName} ${lastName} ${role}`.trim();
+        const displayName = fullName || otherParticipant.email || 'Unknown User';
+        
+        const avatar = `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 
+                      otherParticipant.email?.[0]?.toUpperCase() || 'U';
+        
+        return { displayName, avatar };
+      }
+    }
+    
+    // For group chats or fallback, show chat name or current user
+    if (selectedChat?.type === 'group') {
+      return { 
+        displayName: selectedChat.name || 'Medical Team Group', 
+        avatar: 'GT' 
+      };
+    }
+    
+    // Fallback to current user (shouldn't happen for direct messages)
+    if (!profile) return { displayName: 'User', avatar: 'U' };
     
     const firstName = profile.first_name || '';
     const lastName = profile.last_name || '';
@@ -59,15 +93,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                  profile.role === 'overlord' ? '(Admin)' : '';
     
     const fullName = `${firstName} ${lastName} ${role}`.trim();
-    return fullName || profile.email || 'User';
-  };
-
-  const getCurrentUserAvatar = (): string => {
-    if (!profile) return 'U';
-    
-    const firstName = profile.first_name || '';
-    const lastName = profile.last_name || '';
-    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || profile.email?.[0]?.toUpperCase() || 'U';
+    const displayName = fullName || profile.email || 'User';
+    const avatar = `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 
+                   profile.email?.[0]?.toUpperCase() || 'U';
+                   
+    return { displayName, avatar };
   };
 
   if (!selectedChat) {
@@ -99,7 +129,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <div className="relative">
             <Avatar className="w-8 h-8 md:w-10 md:h-10">
               <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs md:text-sm">
-                {getCurrentUserAvatar()}
+                {getDisplayInfo().avatar}
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-background" />
@@ -107,7 +137,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
           <div className="min-w-0">
             <h2 className="font-semibold text-foreground text-sm md:text-base truncate">
-              {getCurrentUserDisplayName()}
+              {getDisplayInfo().displayName}
             </h2>
             <div className="flex items-center space-x-1 md:space-x-2">
               <div className="flex items-center space-x-1">
