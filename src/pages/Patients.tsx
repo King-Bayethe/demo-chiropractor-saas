@@ -14,6 +14,7 @@ import { usePatients, Patient } from "@/hooks/usePatients";
 import { useNavigate } from "react-router-dom";
 import { mapSupabasePatientToListItem, getPatientType, getCaseTypeVariant, getCaseTypeDisplayName } from "@/utils/patientMapping";
 import { createPatientFromCashForm } from "@/utils/createCashPatient";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Search, 
   Filter, 
@@ -25,7 +26,8 @@ import {
   MessageSquare,
   User,
   Clock,
-  Activity
+  Activity,
+  MoreVertical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +45,7 @@ export default function Patients() {
   const { toast } = useToast();
   const { patients, loading, error, fetchPatients, syncWithGHL, createPatient, updatePatient } = usePatients();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     filterPatients();
@@ -182,26 +185,43 @@ export default function Patients() {
       <Layout>
         <div className="h-full flex flex-col">
           {/* Header Section */}
-          <div className="flex-shrink-0 p-6 space-y-6 bg-background border-b border-border/50">
-            <div className="flex items-center justify-between">
+          <div className={cn("flex-shrink-0 space-y-6 bg-background border-b border-border/50",
+            isMobile ? "p-4" : "p-6"
+          )}>
+            <div className={cn("flex justify-between",
+              isMobile ? "flex-col space-y-4" : "items-center"
+            )}>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Patients</h1>
-                <p className="text-muted-foreground">Manage patient records and treatment history</p>
+                <h1 className={cn("font-bold text-foreground",
+                  isMobile ? "text-xl" : "text-3xl"
+                )}>Patients</h1>
+                <p className={cn("text-muted-foreground",
+                  isMobile ? "text-sm" : ""
+                )}>Manage patient records and treatment history</p>
               </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Export Records
-                </Button>
+              <div className={cn("flex space-x-2",
+                isMobile ? "flex-col space-y-2 space-x-0" : "items-center"
+              )}>
+                {!isMobile && (
+                  <Button variant="outline" size="sm">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export Records
+                  </Button>
+                )}
                 <Button 
                   variant="secondary" 
-                  size="sm" 
+                  size={isMobile ? "default" : "sm"}
                   onClick={handleCreateCashPatient}
                   disabled={isSubmitting}
+                  className={cn(isMobile ? "w-full" : "")}
                 >
-                  {isSubmitting ? "Creating..." : "Create Cash Patient"}
+                  {isSubmitting ? "Creating..." : isMobile ? "Cash Patient" : "Create Cash Patient"}
                 </Button>
-                <Button size="sm" onClick={handleAddPatient}>
+                <Button 
+                  size={isMobile ? "default" : "sm"} 
+                  onClick={handleAddPatient}
+                  className={cn(isMobile ? "w-full" : "")}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Patient
                 </Button>
@@ -210,21 +230,25 @@ export default function Patients() {
 
             {/* Search and Filters */}
             <Card className="border border-border/50 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4">
+              <CardContent className={cn(isMobile ? "p-3" : "p-4")}>
+                <div className={cn("space-y-4",
+                  isMobile ? "" : "lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4"
+                )}>
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input 
-                      placeholder="Search patients by name, phone, email..." 
+                      placeholder={isMobile ? "Search patients..." : "Search patients by name, phone, email..."} 
                       className="pl-10"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className={cn("flex space-x-2",
+                    isMobile ? "grid grid-cols-2 gap-2 space-x-0" : "items-center"
+                  )}>
                     <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger className="w-40">
+                      <SelectTrigger className={cn(isMobile ? "text-sm" : "w-40")}>
                         <SelectValue placeholder="All Types" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border shadow-lg z-50">
@@ -239,7 +263,7 @@ export default function Patients() {
                     </Select>
 
                     <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className={cn(isMobile ? "text-sm" : "w-32")}>
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border shadow-lg z-50">
@@ -250,14 +274,22 @@ export default function Patients() {
                     </Select>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">Total: {patients.length}</Badge>
-                    <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
-                      PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP').length}
+                  <div className={cn("flex space-x-2",
+                    isMobile ? "flex-wrap gap-1" : "items-center"
+                  )}>
+                    <Badge variant="secondary" className={cn(isMobile ? "text-xs" : "")}>
+                      Total: {patients.length}
                     </Badge>
-                    <Badge variant="outline" className="bg-case-insurance/10 text-case-insurance">
-                      Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Insurance').length}
-                    </Badge>
+                    {!isMobile && (
+                      <>
+                        <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
+                          PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP').length}
+                        </Badge>
+                        <Badge variant="outline" className="bg-case-insurance/10 text-case-insurance">
+                          Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Insurance').length}
+                        </Badge>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -265,114 +297,213 @@ export default function Patients() {
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 min-h-0 overflow-auto px-6 py-6">
+          <div className={cn("flex-1 min-h-0 overflow-auto",
+            isMobile ? "px-4 py-4" : "px-6 py-6"
+          )}>
             <Card className="border border-border/50 shadow-sm">
-              <CardHeader>
-                <CardTitle>All Patients ({filteredPatients.length})</CardTitle>
+              <CardHeader className={cn(isMobile ? "p-4" : "")}>
+                <CardTitle className={cn(isMobile ? "text-lg" : "")}>
+                  All Patients ({filteredPatients.length})
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="border-b border-border/50 bg-muted/30">
-                      <tr>
-                        <th className="text-left p-4 font-medium text-sm">Patient</th>
-                        <th className="text-left p-4 font-medium text-sm">Contact</th>
-                        <th className="text-left p-4 font-medium text-sm">Type</th>
-                        <th className="text-left p-4 font-medium text-sm">Last Appointment</th>
-                        <th className="text-left p-4 font-medium text-sm">Total Visits</th>
-                        <th className="text-left p-4 font-medium text-sm">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/50">
-                      {loading ? (
-                        <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr>
-                      ) : currentPatients.length === 0 ? (
-                        <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr>
-                       ) : (
-                        currentPatients.map((patient: Patient) => {
-                          const patientType = getPatientType(patient);
-                          const caseTypeDisplay = getCaseTypeDisplayName(patientType);
-                          const caseTypeVariant = getCaseTypeVariant(patientType);
-                          const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
-                          return (
-                            <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
-                              <td className="p-4">
-                                <div className="flex items-center space-x-3">
+                {isMobile ? (
+                  // Mobile Card View
+                  <div className="space-y-3 p-4">
+                    {loading ? (
+                      <div className="text-center py-8 text-muted-foreground">Loading patients...</div>
+                    ) : currentPatients.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        {searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}
+                      </div>
+                    ) : (
+                      currentPatients.map((patient: Patient) => {
+                        const patientType = getPatientType(patient);
+                        const caseTypeDisplay = getCaseTypeDisplayName(patientType);
+                        const caseTypeVariant = getCaseTypeVariant(patientType);
+                        const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
+                        return (
+                          <Card key={patient.id} className="hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center space-x-3 flex-1">
                                   <Avatar className="h-10 w-10">
-                                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
+                                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium text-sm">
                                       {`${patient.first_name?.[0]?.toUpperCase() || ''}${patient.last_name?.[0]?.toUpperCase() || ''}` || 'P'}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div>
-                                    <p className="font-medium text-sm cursor-pointer hover:text-medical-blue" onClick={() => handlePatientSelect(patient)}>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm cursor-pointer hover:text-medical-blue truncate" onClick={() => handlePatientSelect(patient)}>
                                       {[patient.first_name, patient.last_name].filter(Boolean).join(' ') || "Unknown Patient"}
                                     </p>
                                     <p className="text-xs text-muted-foreground">ID: {patient.id.slice(-8)}</p>
                                   </div>
                                 </div>
-                              </td>
+                                <Badge className={cn("text-xs", caseTypeVariant)}>
+                                  {caseTypeDisplay}
+                                </Badge>
+                              </div>
+                              
+                              <div className="space-y-2 text-sm">
+                                {displayPhone && (
+                                  <div className="flex items-center space-x-2">
+                                    <Phone className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-xs">{displayPhone}</span>
+                                  </div>
+                                )}
+                                {patient.email && (
+                                  <div className="flex items-center space-x-2">
+                                    <Mail className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-xs text-medical-blue truncate">{patient.email}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="w-3 h-3 text-muted-foreground" />
+                                  <span className="text-xs">{getLastAppointment(patient)}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Activity className="w-3 h-3 text-success" />
+                                  <span className="text-xs font-medium">{getTotalVisits(patient)} visits</span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex space-x-1 mt-3 pt-3 border-t">
+                                <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)} className="flex-1 text-xs px-2 py-1">
+                                  <MessageSquare className="w-3 h-3 mr-1" />Message
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)} className="flex-1 text-xs px-2 py-1">
+                                  <Calendar className="w-3 h-3 mr-1" />Book
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)} className="flex-1 text-xs px-2 py-1">
+                                  <User className="w-3 h-3 mr-1" />View
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </div>
+                ) : (
+                  // Desktop Table View
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="border-b border-border/50 bg-muted/30">
+                        <tr>
+                          <th className="text-left p-4 font-medium text-sm">Patient</th>
+                          <th className="text-left p-4 font-medium text-sm">Contact</th>
+                          <th className="text-left p-4 font-medium text-sm">Type</th>
+                          <th className="text-left p-4 font-medium text-sm">Last Appointment</th>
+                          <th className="text-left p-4 font-medium text-sm">Total Visits</th>
+                          <th className="text-left p-4 font-medium text-sm">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {loading ? (
+                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr>
+                        ) : currentPatients.length === 0 ? (
+                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr>
+                         ) : (
+                          currentPatients.map((patient: Patient) => {
+                            const patientType = getPatientType(patient);
+                            const caseTypeDisplay = getCaseTypeDisplayName(patientType);
+                            const caseTypeVariant = getCaseTypeVariant(patientType);
+                            const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
+                            return (
+                              <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
+                                <td className="p-4">
+                                  <div className="flex items-center space-x-3">
+                                    <Avatar className="h-10 w-10">
+                                      <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium">
+                                        {`${patient.first_name?.[0]?.toUpperCase() || ''}${patient.last_name?.[0]?.toUpperCase() || ''}` || 'P'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium text-sm cursor-pointer hover:text-medical-blue" onClick={() => handlePatientSelect(patient)}>
+                                        {[patient.first_name, patient.last_name].filter(Boolean).join(' ') || "Unknown Patient"}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">ID: {patient.id.slice(-8)}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="space-y-1">
+                                    {displayPhone && (
+                                      <div className="flex items-center space-x-2">
+                                        <Phone className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-sm">{displayPhone}</span>
+                                      </div>
+                                    )}
+                                    {patient.email && (
+                                      <div className="flex items-center space-x-2">
+                                        <Mail className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-sm text-medical-blue">{patient.email}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <Badge className={cn("border", caseTypeVariant)}>
+                                    {caseTypeDisplay}
+                                  </Badge>
+                                </td>
                               <td className="p-4">
-                                <div className="space-y-1">
-                                  {displayPhone && (
-                                    <div className="flex items-center space-x-2">
-                                      <Phone className="w-4 h-4 text-muted-foreground" />
-                                      <span className="text-sm">{displayPhone}</span>
-                                    </div>
-                                  )}
-                                  {patient.email && (
-                                    <div className="flex items-center space-x-2">
-                                      <Mail className="w-4 h-4 text-muted-foreground" />
-                                      <span className="text-sm text-medical-blue">{patient.email}</span>
-                                    </div>
-                                  )}
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-sm">{getLastAppointment(patient)}</span>
                                 </div>
                               </td>
                               <td className="p-4">
-                                <Badge className={cn("border", caseTypeVariant)}>
-                                  {caseTypeDisplay}
-                                </Badge>
+                                <div className="flex items-center space-x-2">
+                                  <Activity className="w-4 h-4 text-success" />
+                                  <span className="font-medium text-sm">{getTotalVisits(patient)}</span>
+                                </div>
                               </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Clock className="w-4 h-4 text-muted-foreground" />
-                                <span className="text-sm">{getLastAppointment(patient)}</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Activity className="w-4 h-4 text-success" />
-                                <span className="font-medium text-sm">{getTotalVisits(patient)}</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)}><MessageSquare className="w-4 h-4 mr-1" />Message</Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
-                                <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
-                              </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                              <td className="p-4">
+                                <div className="flex items-center space-x-2">
+                                  <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)}><MessageSquare className="w-4 h-4 mr-1" />Message</Button>
+                                  <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
+                                  <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
+                                </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
           {/* Fixed Footer */}
-          <div className="flex-shrink-0 flex items-center justify-between p-4 bg-background border-t border-border/50">
-            <div className="text-sm text-muted-foreground">
-              {filteredPatients.length > 0 ? `Showing ${indexOfFirstPatient + 1} to ${Math.min(indexOfLastPatient, filteredPatients.length)} of ${filteredPatients.length} patients` : 'No patients'}
+          <div className={cn("flex-shrink-0 bg-background border-t border-border/50",
+            isMobile ? "flex flex-col space-y-2 p-3" : "flex items-center justify-between p-4"
+          )}>
+            <div className={cn("text-muted-foreground",
+              isMobile ? "text-xs text-center" : "text-sm"
+            )}>
+              {filteredPatients.length > 0 ? 
+                `Showing ${indexOfFirstPatient + 1} to ${Math.min(indexOfLastPatient, filteredPatients.length)} of ${filteredPatients.length} patients` : 
+                'No patients'
+              }
             </div>
             {filteredPatients.length > 0 && (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium">Rows per page</p>
-                  <Select value={`${patientsPerPage}`} onValueChange={(value) => { setPatientsPerPage(Number(value)); setCurrentPage(1); }}>
-                    <SelectTrigger className="h-8 w-[70px]"><SelectValue placeholder={patientsPerPage} /></SelectTrigger>
+              <div className={cn("flex space-x-4",
+                isMobile ? "items-center justify-center" : "items-center"
+              )}>
+                <div className={cn("flex space-x-2",
+                  isMobile ? "items-center" : "items-center"
+                )}>
+                  <span className={cn("text-muted-foreground",
+                    isMobile ? "text-xs" : "text-sm"
+                  )}>Rows per page:</span>
+                  <Select value={patientsPerPage.toString()} onValueChange={(value) => setPatientsPerPage(Number(value))}>
+                    <SelectTrigger className={cn(isMobile ? "w-16 h-8 text-xs" : "w-20")}>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10">10</SelectItem>
                       <SelectItem value="20">20</SelectItem>
@@ -381,27 +512,49 @@ export default function Patients() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                  Page {currentPage} of {totalPages || 1}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>
-                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages || totalPages === 0}>Next</Button>
+                <div className={cn("flex space-x-2",
+                  isMobile ? "" : "items-center"
+                )}>
+                  <Button
+                    variant="outline"
+                    size={isMobile ? "sm" : "default"}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className={cn(isMobile ? "px-2 py-1 text-xs" : "")}
+                  >
+                    Previous
+                  </Button>
+                  <span className={cn("text-muted-foreground flex items-center",
+                    isMobile ? "text-xs px-2" : "text-sm px-4"
+                  )}>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size={isMobile ? "sm" : "default"}
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className={cn(isMobile ? "px-2 py-1 text-xs" : "")}
+                  >
+                    Next
+                  </Button>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Add Patient Modal */}
-          <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
-            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-              <LeadIntakeForm 
-                onSubmit={handleSubmitPatient}
-                onCancel={handleCancelAddPatient}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
+
+        {/* Add Patient Dialog */}
+        <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
+          <DialogContent className={cn("max-w-4xl max-h-[90vh] overflow-y-auto",
+            isMobile ? "w-[95vw] p-0" : ""
+          )}>
+            <LeadIntakeForm 
+              onSubmit={handleSubmitPatient} 
+              onCancel={handleCancelAddPatient} 
+            />
+          </DialogContent>
+        </Dialog>
       </Layout>
     </AuthGuard>
   );

@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { usePatients, Patient } from '@/hooks/usePatients';
 import { Search, Plus, RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface PatientSelectorProps {
   selectedPatient?: Patient | null;
@@ -25,6 +27,7 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const isMobile = useIsMobile();
 
   const filteredPatients = patients.filter(patient => 
     `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,21 +61,25 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
 
   return (
     <div className={className}>
-      <Label>Patient</Label>
+      <Label className={cn(isMobile ? "text-sm" : "")}>Patient</Label>
       <div className="flex gap-2">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex-1 justify-start">
+            <Button variant="outline" className={cn("flex-1 justify-start",
+              isMobile ? "text-sm h-10" : ""
+            )}>
               {selectedPatient 
                 ? `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim() || selectedPatient.email
                 : "Select Patient..."
               }
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className={cn("max-w-2xl",
+            isMobile ? "w-[95vw] max-h-[80vh]" : ""
+          )}>
             <DialogHeader>
-              <DialogTitle>Select Patient</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className={cn(isMobile ? "text-lg" : "")}>Select Patient</DialogTitle>
+              <DialogDescription className={cn(isMobile ? "text-sm" : "")}>
                 Choose an existing patient or sync with GHL to get the latest records.
               </DialogDescription>
             </DialogHeader>
@@ -80,41 +87,58 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
             <div className="space-y-4">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className={cn("absolute left-3 top-3 text-muted-foreground",
+                    isMobile ? "h-3 w-3" : "h-4 w-4"
+                  )} />
                   <Input
-                    placeholder="Search patients by name, email, or phone..."
+                    placeholder={isMobile ? "Search patients..." : "Search patients by name, email, or phone..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className={cn(isMobile ? "pl-8 text-sm h-10" : "pl-10")}
                   />
                 </div>
                 <Button
                   variant="outline"
                   onClick={handleSync}
                   disabled={syncing}
+                  size={isMobile ? "sm" : "default"}
                 >
-                  <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={cn(`${syncing ? 'animate-spin' : ''}`,
+                    isMobile ? "h-3 w-3" : "h-4 w-4"
+                  )} />
                 </Button>
               </div>
 
-              <div className="max-h-60 overflow-y-auto space-y-2">
+              <div className={cn("overflow-y-auto space-y-2",
+                isMobile ? "max-h-48" : "max-h-60"
+              )}>
                 {loading ? (
-                  <div className="text-center py-4 text-muted-foreground">Loading patients...</div>
+                  <div className={cn("text-center py-4 text-muted-foreground",
+                    isMobile ? "text-sm" : ""
+                  )}>Loading patients...</div>
                 ) : filteredPatients.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
+                  <div className={cn("text-center py-4 text-muted-foreground",
+                    isMobile ? "text-sm" : ""
+                  )}>
                     {searchTerm ? 'No patients found matching your search.' : 'No patients found.'}
                   </div>
                 ) : (
                   filteredPatients.map((patient) => (
                     <div
                       key={patient.id}
-                      className="p-3 border rounded-lg cursor-pointer hover:bg-accent"
+                      className={cn("border rounded-lg cursor-pointer hover:bg-accent",
+                        isMobile ? "p-2" : "p-3"
+                      )}
                       onClick={() => handlePatientSelect(patient)}
                     >
-                      <div className="font-medium">
+                      <div className={cn("font-medium",
+                        isMobile ? "text-sm" : ""
+                      )}>
                         {`${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Unnamed Patient'}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className={cn("text-muted-foreground",
+                        isMobile ? "text-xs" : "text-sm"
+                      )}>
                         {patient.email && <span>{patient.email}</span>}
                         {patient.email && patient.phone && <span> • </span>}
                         {patient.phone && <span>{patient.phone}</span>}
@@ -127,13 +151,17 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
               {onCreateNew && (
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className={cn("w-full",
+                    isMobile ? "text-sm h-10" : ""
+                  )}
                   onClick={() => {
                     onCreateNew();
                     setDialogOpen(false);
                   }}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className={cn("mr-2",
+                    isMobile ? "h-3 w-3" : "h-4 w-4"
+                  )} />
                   Create New Patient
                 </Button>
               )}

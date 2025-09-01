@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface LeadIntakeFormProps {
   onSubmit: (data: any) => void;
@@ -37,6 +39,7 @@ interface LeadIntakeFormData {
 }
 
 export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
+  const isMobile = useIsMobile();
   const form = useForm<LeadIntakeFormData>({
     defaultValues: {
       firstName: "",
@@ -116,14 +119,20 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Lead Intake Form</CardTitle>
+    <Card className={cn("w-full mx-auto",
+      isMobile ? "max-w-full" : "max-w-4xl"
+    )}>
+      <CardHeader className={cn(isMobile ? "p-4" : "")}>
+        <CardTitle className={cn("font-bold",
+          isMobile ? "text-lg" : "text-2xl"
+        )}>Lead Intake Form</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className={cn(isMobile ? "p-4" : "")}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={cn("gap-6",
+              isMobile ? "grid grid-cols-1 space-y-4" : "grid grid-cols-1 md:grid-cols-2"
+            )}>
               {/* First Name */}
               <FormField
                 control={form.control}
@@ -131,9 +140,13 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 rules={{ required: "First name is required" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel className={cn(isMobile ? "text-sm" : "")}>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="First Name" {...field} />
+                      <Input 
+                        placeholder="First Name" 
+                        {...field} 
+                        className={cn(isMobile ? "h-10 text-sm" : "")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,9 +160,13 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 rules={{ required: "Last name is required" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel className={cn(isMobile ? "text-sm" : "")}>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Last Name" {...field} />
+                      <Input 
+                        placeholder="Last Name" 
+                        {...field} 
+                        className={cn(isMobile ? "h-10 text-sm" : "")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -163,9 +180,14 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 rules={{ required: "Phone number is required" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel className={cn(isMobile ? "text-sm" : "")}>Phone</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="Phone" {...field} />
+                      <Input 
+                        type="tel" 
+                        placeholder="Phone" 
+                        {...field} 
+                        className={cn(isMobile ? "h-10 text-sm" : "")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -185,9 +207,14 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className={cn(isMobile ? "text-sm" : "")}>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Email" {...field} />
+                      <Input 
+                        type="email" 
+                        placeholder="Email" 
+                        {...field} 
+                        className={cn(isMobile ? "h-10 text-sm" : "")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -347,25 +374,35 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
             />
 
             {/* Medical History Section */}
-            <div className="space-y-6 border-t border-border pt-6">
-              <h3 className="text-lg font-semibold">Medical History / Historial Médico</h3>
+            <div className={cn("space-y-6 border-t border-border",
+              isMobile ? "pt-4" : "pt-6"
+            )}>
+              <h3 className={cn("font-semibold",
+                isMobile ? "text-base" : "text-lg"
+              )}>Medical History / Historial Médico</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className={cn("gap-6",
+                isMobile ? "grid grid-cols-1 space-y-4" : "grid grid-cols-1 md:grid-cols-2"
+              )}>
                 <FormField
                   control={form.control}
                   name="currentMedications"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Current Medications / Medicamentos Actuales</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="List all current medications..."
-                          className="min-h-[100px]"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                  <FormItem>
+                    <FormLabel className={cn(isMobile ? "text-sm" : "")}>
+                      Current Medications / Medicamentos Actuales
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="List all current medications..."
+                        className={cn("min-h-[100px]",
+                          isMobile ? "text-sm" : ""
+                        )}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                   )}
                 />
 
@@ -481,12 +518,26 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
             />
 
             {/* Action Buttons */}
-            <div className="flex gap-4 pt-4">
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            <div className={cn("gap-4 pt-4",
+              isMobile ? "flex flex-col space-y-2" : "flex"
+            )}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel} 
+                className={cn(isMobile ? "w-full" : "flex-1")}
+                size={isMobile ? "default" : "default"}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-                Submit Lead Intake Form
+              <Button 
+                type="submit" 
+                className={cn("bg-primary hover:bg-primary/90",
+                  isMobile ? "w-full" : "flex-1"
+                )}
+                size={isMobile ? "default" : "default"}
+              >
+                {isMobile ? "Submit" : "Submit Lead Intake Form"}
               </Button>
             </div>
           </form>
