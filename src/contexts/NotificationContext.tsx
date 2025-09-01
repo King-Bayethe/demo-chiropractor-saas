@@ -118,13 +118,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user?.id, toast]);
 
   const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>): Promise<Notification | null> => {
-    // Check if user is authenticated before creating notification
-    if (!user?.id) {
-      console.warn('Cannot create notification: User not authenticated');
-      return null;
-    }
-
     try {
+      // Get current user directly from Supabase auth session to ensure sync with auth.uid()
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser?.id) {
+        console.warn('Cannot create notification: User not authenticated or session invalid');
+        return null;
+      }
+
+      console.log('Creating notification with created_by:', currentUser.id, 'for user_id:', notification.user_id);
+
       const { data, error } = await supabase
         .from('notifications')
         .insert({
@@ -135,15 +139,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           entity_type: notification.entity_type,
           entity_id: notification.entity_id,
           priority: notification.priority,
-          created_by: user.id // Use user.id directly since we checked it exists
+          created_by: currentUser.id // Use auth session user ID to match auth.uid()
         })
         .select()
         .single();
 
       if (error) {
         console.error('Database error creating notification:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
+      
+      console.log('Notification created successfully:', data);
       return data as Notification;
     } catch (error) {
       console.error('Error creating notification:', error);
@@ -154,7 +166,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
       return null;
     }
-  }, [user?.id, toast]);
+  }, [toast]);
 
   const deleteNotification = useCallback(async (id: string) => {
     try {
