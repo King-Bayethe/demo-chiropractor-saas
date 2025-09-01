@@ -701,12 +701,12 @@ export default function Conversations() {
               {(!selectedConversation || showSidebar) && (
                 <div className="h-full flex flex-col">
                   {/* Search Bar */}
-                  <div className="p-4 border-b border-border">
+                  <div className="p-3 md:p-4 border-b border-border">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <Input 
                         placeholder="Search conversations..." 
-                        className="pl-10"
+                        className="pl-10 w-full min-w-0"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -727,40 +727,40 @@ export default function Conversations() {
                     ) : (
                       <div>
                         {filteredConversations.map((conv) => (
-                          <div 
+                           <div 
                             key={conv.id} 
                             className="p-3 border-b border-border active:bg-muted/50 transition-colors min-w-0"
                             onClick={() => handleSelectConversation(conv)}
                           >
-                            <div className="flex items-start gap-2 min-w-0">
-                              <Avatar className="h-8 w-8 flex-shrink-0">
-                                <AvatarFallback className="text-xs">{getAvatarInitials(conv)}</AvatarFallback>
+                            <div className="flex items-start gap-3 min-w-0">
+                              <Avatar className="h-10 w-10 flex-shrink-0">
+                                <AvatarFallback className="text-sm font-medium">{getAvatarInitials(conv)}</AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1 min-w-0">
-                                  <h4 className="font-medium text-sm truncate flex-1 min-w-0">{conv.customerName}</h4>
-                                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                                  <h4 className="font-semibold text-sm break-words flex-1 min-w-0 pr-2">{conv.customerName}</h4>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
                                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                                       {new Date(conv.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                     {conv.unreadCount > 0 && (
-                                      <Badge variant="destructive" className="text-xs h-4 min-w-[16px] rounded-full p-0 flex items-center justify-center">
+                                      <Badge variant="destructive" className="text-xs h-5 min-w-[20px] rounded-full px-2 flex items-center justify-center">
                                         {conv.unreadCount}
                                       </Badge>
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate mb-2">{conv.lastMessage}</p>
-                                <div className="flex items-center justify-between min-w-0">
-                                  <div className="flex items-center text-xs text-muted-foreground min-w-0">
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words overflow-wrap-anywhere">{conv.lastMessage}</p>
+                                <div className="flex items-center justify-between min-w-0 gap-2">
+                                  <div className="flex items-center text-xs text-muted-foreground min-w-0 flex-1">
                                     {conv.customerPhone && (
-                                      <span className="flex items-center gap-1 truncate min-w-0">
+                                      <span className="flex items-center gap-1 break-all min-w-0">
                                         <Phone className="h-3 w-3 flex-shrink-0" />
-                                        <span className="truncate">{conv.customerPhone}</span>
+                                        <span className="break-all">{conv.customerPhone}</span>
                                       </span>
                                     )}
                                   </div>
-                                  <Badge className={`text-xs capitalize flex-shrink-0 ml-2 ${getSourceColor(conv.source)}`}>
+                                  <Badge className={`text-xs capitalize flex-shrink-0 whitespace-nowrap ${getSourceColor(conv.source)}`}>
                                     {conv.source}
                                   </Badge>
                                 </div>
@@ -816,7 +816,7 @@ export default function Conversations() {
                                   </div>
                                 )}
                                 
-                                {message.content && <p className="break-words overflow-wrap-anywhere">{message.content}</p>}
+                                {message.content && <p className="break-words overflow-wrap-anywhere whitespace-pre-wrap">{message.content}</p>}
                                 
                                 {message.attachments && message.attachments.length > 0 && (
                                   <div className="mt-2 space-y-2 min-w-0">
