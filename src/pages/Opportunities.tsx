@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus } from 'lucide-react';
+import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus, Menu } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
 import { MedicalOpportunityColumn } from '@/components/opportunities/MedicalOpportunityColumn';
@@ -18,6 +18,8 @@ import { useOpportunities, MEDICAL_PIPELINE_STAGES, Opportunity } from '@/hooks/
 import { getCaseTypeDisplayName } from '@/utils/patientMapping';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const CASE_TYPE_FILTERS = [
   'All Cases',
@@ -37,6 +39,8 @@ export default function Opportunities() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showLeadIntakeForm, setShowLeadIntakeForm] = useState(false);
+  const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const isMobile = useIsMobile();
 
   const {
     opportunities,
@@ -245,16 +249,17 @@ export default function Opportunities() {
       <Layout>
         <div className="flex flex-col h-full bg-background">
           {/* Header */}
-          <div className="border-b bg-card/50 p-6">
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight">Medical Pipeline</h1>
-                  <p className="text-muted-foreground">Track patients through your medical pipeline</p>
+          <div className="border-b bg-card/50 p-3 md:p-6">
+            <div className="flex flex-col space-y-3 md:space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl md:text-3xl font-bold tracking-tight break-words">Medical Pipeline</h1>
+                  <p className="text-sm md:text-base text-muted-foreground">Track patients through your medical pipeline</p>
                 </div>
                 <Button 
                   onClick={() => setShowLeadIntakeForm(true)}
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-orange-500 hover:bg-orange-600 w-full md:w-auto"
+                  size={isMobile ? "sm" : "default"}
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   New Lead Intake
@@ -262,50 +267,50 @@ export default function Opportunities() {
               </div>
 
               {/* Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 md:p-4">
                     <div className="flex items-center space-x-2">
-                      <Users className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Pipeline</p>
-                        <p className="text-2xl font-bold">{metrics.total}</p>
+                      <Users className="h-4 w-4 md:h-5 md:w-5 text-blue-600 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Pipeline</p>
+                        <p className="text-lg md:text-2xl font-bold">{metrics.total}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 md:p-4">
                     <div className="flex items-center space-x-2">
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Estimated Value</p>
-                        <p className="text-2xl font-bold">{formatCurrency(metrics.totalValue)}</p>
+                      <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-600 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm font-medium text-muted-foreground">Est. Value</p>
+                        <p className="text-sm md:text-2xl font-bold break-words">{formatCurrency(metrics.totalValue)}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 md:p-4">
                     <div className="flex items-center space-x-2">
-                      <Target className="h-5 w-5 text-purple-600" />
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Converted Cases</p>
-                        <p className="text-2xl font-bold">{metrics.converted}</p>
+                      <Target className="h-4 w-4 md:h-5 md:w-5 text-purple-600 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm font-medium text-muted-foreground">Converted</p>
+                        <p className="text-lg md:text-2xl font-bold">{metrics.converted}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 md:p-4">
                     <div className="flex items-center space-x-2">
-                      <TrendingUp className="h-5 w-5 text-orange-600" />
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
-                        <p className="text-2xl font-bold">{metrics.conversionRate}%</p>
+                      <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-orange-600 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm font-medium text-muted-foreground">Conv. Rate</p>
+                        <p className="text-lg md:text-2xl font-bold">{metrics.conversionRate}%</p>
                       </div>
                     </div>
                   </CardContent>
@@ -313,7 +318,7 @@ export default function Opportunities() {
               </div>
 
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                 <div className="flex-1">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -326,7 +331,7 @@ export default function Opportunities() {
                   </div>
                 </div>
                 <Select value={selectedCaseType} onValueChange={setSelectedCaseType}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full md:w-48">
                     <SelectValue placeholder="Filter by case type" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-50">
@@ -342,7 +347,7 @@ export default function Opportunities() {
               {/* Case Type Summary */}
               {selectedCaseType !== 'All Cases' && (
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="break-words">
                     Showing {getCaseTypeDisplayName(selectedCaseType)} cases: {filteredOpportunities.length} pipeline entries
                   </Badge>
                 </div>
@@ -352,46 +357,99 @@ export default function Opportunities() {
 
           {/* Kanban Board */}
           <div className="flex-1 overflow-hidden">
-            <DndContext
-              collisionDetection={closestCorners}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="flex h-full overflow-x-auto p-6 gap-6">
-                <SortableContext 
-                  items={MEDICAL_PIPELINE_STAGES.map(stage => stage.id)} 
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {MEDICAL_PIPELINE_STAGES.map(stage => (
-                    <div key={stage.id} className="min-w-[350px] max-w-[400px] flex-shrink-0">
-                      <MedicalOpportunityColumn
-                        stage={stage}
-                        opportunities={getOpportunitiesByStage(stage.id)}
-                        onEdit={handleEditOpportunity}
-                        onDelete={handleDeleteOpportunity}
-                        onMoveToPrevious={moveOpportunityToPreviousStage}
-                        onMoveToNext={moveOpportunityToNextStage}
-                      />
+            {isMobile ? (
+              /* Mobile View - Single Column with Stage Navigation */
+              <div className="flex flex-col h-full">
+                {/* Mobile Stage Navigation */}
+                <div className="flex items-center justify-between p-3 border-b bg-muted/20">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentStageIndex(Math.max(0, currentStageIndex - 1))}
+                    disabled={currentStageIndex === 0}
+                    className="h-8"
+                  >
+                    ← Previous
+                  </Button>
+                  
+                  <div className="text-center flex-1 px-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${MEDICAL_PIPELINE_STAGES[currentStageIndex]?.color}`} />
+                      <span className="font-medium text-sm">
+                        {MEDICAL_PIPELINE_STAGES[currentStageIndex]?.title}
+                      </span>
                     </div>
-                  ))}
-                </SortableContext>
-              </div>
-              
-              <DragOverlay>
-                {activeId ? (
-                  <MedicalOpportunityCard
-                    opportunity={opportunities.find(o => o.id === activeId)!}
-                    isDragging
+                    <div className="text-xs text-muted-foreground">
+                      {currentStageIndex + 1} of {MEDICAL_PIPELINE_STAGES.length}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentStageIndex(Math.min(MEDICAL_PIPELINE_STAGES.length - 1, currentStageIndex + 1))}
+                    disabled={currentStageIndex === MEDICAL_PIPELINE_STAGES.length - 1}
+                    className="h-8"
+                  >
+                    Next →
+                  </Button>
+                </div>
+                
+                {/* Mobile Stage Content */}
+                <div className="flex-1 p-3">
+                  <MedicalOpportunityColumn
+                    stage={MEDICAL_PIPELINE_STAGES[currentStageIndex]}
+                    opportunities={getOpportunitiesByStage(MEDICAL_PIPELINE_STAGES[currentStageIndex].id)}
+                    onEdit={handleEditOpportunity}
+                    onDelete={handleDeleteOpportunity}
+                    onMoveToPrevious={moveOpportunityToPreviousStage}
+                    onMoveToNext={moveOpportunityToNextStage}
                   />
-                ) : null}
-              </DragOverlay>
-            </DndContext>
+                </div>
+              </div>
+            ) : (
+              /* Desktop View - Horizontal Kanban */
+              <DndContext
+                collisionDetection={closestCorners}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="flex h-full overflow-x-auto p-6 gap-6">
+                  <SortableContext 
+                    items={MEDICAL_PIPELINE_STAGES.map(stage => stage.id)} 
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {MEDICAL_PIPELINE_STAGES.map(stage => (
+                      <div key={stage.id} className="min-w-[350px] max-w-[400px] flex-shrink-0">
+                        <MedicalOpportunityColumn
+                          stage={stage}
+                          opportunities={getOpportunitiesByStage(stage.id)}
+                          onEdit={handleEditOpportunity}
+                          onDelete={handleDeleteOpportunity}
+                          onMoveToPrevious={moveOpportunityToPreviousStage}
+                          onMoveToNext={moveOpportunityToNextStage}
+                        />
+                      </div>
+                    ))}
+                  </SortableContext>
+                </div>
+                
+                <DragOverlay>
+                  {activeId ? (
+                    <MedicalOpportunityCard
+                      opportunity={opportunities.find(o => o.id === activeId)!}
+                      isDragging
+                    />
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+            )}
           </div>
         </div>
 
         {/* Lead Intake Form Dialog */}
         <Dialog open={showLeadIntakeForm} onOpenChange={setShowLeadIntakeForm}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className={cn("max-h-[90vh] overflow-y-auto", isMobile ? "max-w-[95vw] mx-2" : "max-w-4xl")}>
             <DialogHeader>
               <DialogTitle>New Lead Intake Form</DialogTitle>
             </DialogHeader>
@@ -404,7 +462,7 @@ export default function Opportunities() {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className={cn("max-h-[90vh] overflow-y-auto", isMobile ? "max-w-[95vw] mx-2" : "max-w-4xl")}>
             <DialogHeader>
               <DialogTitle>Edit Medical Pipeline Entry</DialogTitle>
             </DialogHeader>
