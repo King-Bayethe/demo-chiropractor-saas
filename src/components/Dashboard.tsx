@@ -55,148 +55,149 @@ const mockData = {
 
 export function Dashboard() {
   return (
-    <div className="min-h-screen bg-background p-6 space-y-6">
+    <div className="min-h-screen bg-background p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <img 
             src="/lovable-uploads/de6e5dc8-8913-4a4f-ab62-e776625182b4.png" 
             alt="Dr. Silverman Chiropractic and Rehabilitation" 
-            className="h-12 w-auto object-contain"
+            className="h-8 sm:h-12 w-auto object-contain"
           />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, Dr. Silverman's team</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Welcome back, Dr. Silverman's team</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue">
+          <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue text-xs sm:text-sm">
             Live Data
           </Badge>
-          <Button variant="outline" size="sm">
-            <FileText className="w-4 h-4 mr-2" />
-            Export Report
+          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+            <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </Button>
         </div>
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <Card className="border border-border/50 shadow-sm">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Conversion Rate</p>
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold text-success">{mockData.stats.conversionRate}%</span>
-                  <Badge variant="secondary" className="bg-success/10 text-success">
-                    <TrendingUp className="w-3 h-3 mr-1" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Conversion Rate</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                  <span className="text-lg sm:text-2xl font-bold text-success">{mockData.stats.conversionRate}%</span>
+                  <Badge variant="secondary" className="bg-success/10 text-success text-xs mt-1 sm:mt-0 w-fit">
+                    <TrendingUp className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
                     +5%
                   </Badge>
                 </div>
               </div>
-              <Target className="w-8 h-8 text-success" />
+              <Target className="w-6 h-6 sm:w-8 sm:h-8 text-success" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border border-border/50 shadow-sm">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Leads This Month</p>
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold">{mockData.stats.leadsThisMonth}</span>
-                  <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue">
-                    <TrendingUp className="w-3 h-3 mr-1" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Leads This Month</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                  <span className="text-lg sm:text-2xl font-bold">{mockData.stats.leadsThisMonth}</span>
+                  <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue text-xs mt-1 sm:mt-0 w-fit">
+                    <TrendingUp className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
                     +12%
                   </Badge>
                 </div>
               </div>
-              <Users className="w-8 h-8 text-medical-blue" />
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-medical-blue" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border border-border/50 shadow-sm">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Appointments</p>
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold">{mockData.stats.appointmentsScheduled}</span>
-                  <Badge variant="secondary" className="bg-medical-teal/10 text-medical-teal">
-                    <Calendar className="w-3 h-3 mr-1" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Appointments</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                  <span className="text-lg sm:text-2xl font-bold">{mockData.stats.appointmentsScheduled}</span>
+                  <Badge variant="secondary" className="bg-medical-teal/10 text-medical-teal text-xs mt-1 sm:mt-0 w-fit">
+                    <Calendar className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
                     Today
                   </Badge>
                 </div>
               </div>
-              <Calendar className="w-8 h-8 text-medical-teal" />
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-medical-teal" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border border-border/50 shadow-sm relative">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground">Revenue (YTD)</p>
-                  <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 mb-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Revenue (YTD)</p>
+                  <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs w-fit">
                     Coming Soon
                   </Badge>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                  <span className="text-lg sm:text-2xl font-bold text-muted-foreground">
                     ${mockData.stats.revenueCollected.toLocaleString()}*
                   </span>
-                  <Badge variant="secondary" className="bg-muted/10 text-muted-foreground">
-                    <TrendingUp className="w-3 h-3 mr-1" />
+                  <Badge variant="secondary" className="bg-muted/10 text-muted-foreground text-xs mt-1 sm:mt-0 w-fit">
+                    <TrendingUp className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
                     Sample Data
                   </Badge>
                 </div>
               </div>
-              <DollarSign className="w-8 h-8 text-muted-foreground" />
+              <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-border/50 shadow-sm">
-          <CardContent className="p-4">
+        <Card className="border border-border/50 shadow-sm col-span-2 lg:col-span-1">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active Patients</p>
-                <span className="text-2xl font-bold">{mockData.stats.activePatients}</span>
+                <p className="text-xs sm:text-sm text-muted-foreground">Active Patients</p>
+                <span className="text-lg sm:text-2xl font-bold">{mockData.stats.activePatients}</span>
               </div>
-              <Activity className="w-8 h-8 text-medical-blue" />
+              <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-medical-blue" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Pipeline and Analytics Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Sales Pipeline */}
         <Card className="border border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Sales Process Pipeline</span>
-              <Badge variant="outline">Monthly View</Badge>
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="text-base sm:text-lg">Sales Process Pipeline</span>
+              <Badge variant="outline" className="text-xs w-fit">Monthly View</Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4">
             {mockData.salesPipeline.map((stage, index) => (
               <div key={stage.stage} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{stage.stage}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                    <span className="font-medium text-xs sm:text-sm">{stage.stage}</span>
                     {stage.stage === "Billing Pending" && (
-                      <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs">
+                      <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs w-fit mt-1 sm:mt-0">
                         Coming Soon
                       </Badge>
                     )}
                   </div>
-                  <span className="text-muted-foreground">{stage.count} patients</span>
+                  <span className="text-muted-foreground text-xs sm:text-sm">{stage.count} patients</span>
                 </div>
                 <Progress 
                   value={stage.percentage} 
@@ -212,18 +213,18 @@ export function Dashboard() {
 
         {/* PIP Pipeline */}
         <Card className="border border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>PIP Case Pipeline</span>
-              <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue">PIP Focus</Badge>
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="text-base sm:text-lg">PIP Case Pipeline</span>
+              <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue text-xs w-fit">PIP Focus</Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4">
             {mockData.pipPipeline.map((stage, index) => (
               <div key={stage.stage} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{stage.stage}</span>
-                  <span className="text-muted-foreground">{stage.count} cases</span>
+                  <span className="font-medium text-xs sm:text-sm">{stage.stage}</span>
+                  <span className="text-muted-foreground text-xs sm:text-sm">{stage.count} cases</span>
                 </div>
                 <Progress 
                   value={stage.percentage} 
@@ -239,24 +240,24 @@ export function Dashboard() {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Attorney Referral Leaderboard */}
         <Card className="border border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Award className="w-5 h-5 text-medical-blue" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-medical-blue" />
               <span>Top Referring Attorneys</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 sm:space-y-3">
             {mockData.attorneys.map((attorney, index) => (
-              <div key={attorney.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">{attorney.name}</p>
+              <div key={attorney.name} className="flex items-center justify-between p-2 sm:p-3 bg-muted/30 rounded-lg">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-xs sm:text-sm truncate">{attorney.name}</p>
                   <p className="text-xs text-muted-foreground">{attorney.leads} leads this month</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-success text-sm">
+                <div className="text-right ml-2">
+                  <p className="font-semibold text-success text-xs sm:text-sm">
                     ${attorney.revenue.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">revenue</p>
@@ -268,64 +269,65 @@ export function Dashboard() {
 
         {/* Today's Appointments */}
         <Card className="border border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5 text-medical-teal" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-medical-teal" />
               <span>Today's Schedule</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 sm:space-y-3">
             {mockData.recentAppointments.map((appointment, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">{appointment.name}</p>
+              <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-muted/30 rounded-lg">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-xs sm:text-sm truncate">{appointment.name}</p>
                   <p className="text-xs text-muted-foreground">{appointment.type}</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-sm">{appointment.time}</p>
+                <div className="text-right ml-2">
+                  <p className="font-semibold text-xs sm:text-sm">{appointment.time}</p>
                   <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                    <Phone className="w-3 h-3" />
-                    <span>{appointment.phone}</span>
+                    <Phone className="w-2 h-2 sm:w-3 sm:h-3" />
+                    <span className="hidden sm:inline">{appointment.phone}</span>
+                    <span className="sm:hidden">Call</span>
                   </div>
                 </div>
               </div>
             ))}
-            <Button variant="outline" className="w-full mt-4" size="sm">
-              <Calendar className="w-4 h-4 mr-2" />
-              View Full Schedule
+            <Button variant="outline" className="w-full mt-3 sm:mt-4" size="sm">
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="text-xs sm:text-sm">View Full Schedule</span>
             </Button>
           </CardContent>
         </Card>
 
         {/* Quick Access Forms */}
         <Card className="border border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-medical-blue" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-medical-blue" />
               <span>Quick Access Forms</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 sm:space-y-3">
             <Button variant="outline" className="w-full justify-start" size="sm">
-              <Users className="w-4 h-4 mr-2" />
-              Lead Intake Form
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="text-xs sm:text-sm">Lead Intake Form</span>
             </Button>
             <Button variant="outline" className="w-full justify-start" size="sm">
-              <FileText className="w-4 h-4 mr-2" />
-              New Patient Intake
+              <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="text-xs sm:text-sm">New Patient Intake</span>
             </Button>
             <Button variant="outline" className="w-full justify-start" size="sm">
-              <Activity className="w-4 h-4 mr-2" />
-              PIP Patient Intake
+              <Activity className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="text-xs sm:text-sm">PIP Patient Intake</span>
             </Button>
             <Button variant="outline" className="w-full justify-start" size="sm">
-              <Target className="w-4 h-4 mr-2" />
-              Pain Assessment
+              <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="text-xs sm:text-sm">Pain Assessment</span>
             </Button>
             <div className="pt-2 border-t border-border/50">
               <Button variant="default" className="w-full" size="sm">
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                Forms Hub
+                <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                <span className="text-xs sm:text-sm">Forms Hub</span>
               </Button>
             </div>
           </CardContent>
