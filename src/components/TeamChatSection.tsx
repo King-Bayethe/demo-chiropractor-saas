@@ -43,16 +43,15 @@ export const TeamChatSection = () => {
       // Fetch participants with profiles for each chat
       const chatsWithData = await Promise.all(
         (chatsData || []).map(async (chat) => {
-          // Get participants with their profiles in one query
+          // Get participants with their profiles - updated for new RLS policies
           const { data: participants, error: participantsError } = await supabase
             .from('team_chat_participants')
             .select(`
               user_id,
               is_admin,
-              profiles!inner(
+              profiles(
                 first_name,
                 last_name,
-                email,
                 role
               )
             `)
@@ -72,7 +71,7 @@ export const TeamChatSection = () => {
             user_id: participant.user_id,
             first_name: participant.profiles?.first_name || '',
             last_name: participant.profiles?.last_name || '',
-            email: participant.profiles?.email || '',
+            email: '', // Removed due to RLS restrictions for non-admin users
             role: participant.profiles?.role || 'staff',
             is_admin: participant.is_admin
           }));
@@ -117,7 +116,7 @@ export const TeamChatSection = () => {
         (messagesData || []).map(async (msg) => {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('first_name, last_name, email, role')
+            .select('first_name, last_name, role')
             .eq('user_id', msg.sender_id)
             .maybeSingle();
 
@@ -133,7 +132,7 @@ export const TeamChatSection = () => {
               id: msg.sender_id,
               first_name: profile?.first_name || '',
               last_name: profile?.last_name || '',
-              email: profile?.email || '',
+              email: '', // Not available due to RLS restrictions
               role: profile?.role || 'staff'
             }
           };
@@ -206,7 +205,7 @@ export const TeamChatSection = () => {
       // Fetch sender profile
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, last_name, email, role')
+        .select('first_name, last_name, role')
         .eq('user_id', data.sender_id)
         .maybeSingle();
 
@@ -218,7 +217,7 @@ export const TeamChatSection = () => {
           id: data.sender_id,
           first_name: profile?.first_name || currentProfile?.first_name || 'You',
           last_name: profile?.last_name || currentProfile?.last_name || '',
-          email: profile?.email || currentProfile?.email || '',
+          email: currentProfile?.email || '', // Use current user's email for their own messages
           role: profile?.role || currentProfile?.role || 'staff'
         }
       };

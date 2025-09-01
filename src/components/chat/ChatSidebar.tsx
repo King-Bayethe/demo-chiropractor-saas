@@ -99,17 +99,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     
     const otherParticipant = chat.participants?.find((p: any) => p.id !== currentUserId);
     if (otherParticipant) {
-      const firstName = otherParticipant.first_name || '';
-      const lastName = otherParticipant.last_name || '';
-      const email = otherParticipant.email || '';
-      
-      // Debug logging to help identify data issues
-      console.log('Chat participant data:', {
-        firstName,
-        lastName,
-        email,
-        userId: otherParticipant.id
-      });
+      const firstName = (otherParticipant.first_name || '').trim();
+      const lastName = (otherParticipant.last_name || '').trim();
+      const email = (otherParticipant.email || '').trim();
       
       // Try to get initials from first and last name
       if (firstName && lastName) {
@@ -128,7 +120,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         return `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
       }
     }
-    return 'GM';
+    
+    // Final fallback
+    return 'UC'; // Unknown Chat
   };
 
   const getLastMessageTime = (chat: Chat): string => {
