@@ -118,6 +118,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user?.id, toast]);
 
   const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>): Promise<Notification | null> => {
+    // Check if user is authenticated before creating notification
+    if (!user?.id) {
+      console.warn('Cannot create notification: User not authenticated');
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -129,12 +135,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           entity_type: notification.entity_type,
           entity_id: notification.entity_id,
           priority: notification.priority,
-          created_by: user?.id
+          created_by: user.id // Use user.id directly since we checked it exists
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error creating notification:', error);
+        throw error;
+      }
       return data as Notification;
     } catch (error) {
       console.error('Error creating notification:', error);

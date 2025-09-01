@@ -15,6 +15,10 @@ export const useNotificationHelpers = () => {
     messagePreview: string
   ) => {
     if (recipientId === user?.id) return; // Don't notify yourself
+    if (!user?.id) {
+      console.warn('Cannot send notification: User not authenticated');
+      return;
+    }
 
     const notification = await createNotification({
       user_id: recipientId,
@@ -47,6 +51,10 @@ export const useNotificationHelpers = () => {
     messageContent: string
   ) => {
     if (recipientId === user?.id) return; // Don't notify yourself
+    if (!user?.id) {
+      console.warn('Cannot send mention notification: User not authenticated');
+      return;
+    }
 
     const notification = await createNotification({
       user_id: recipientId,
@@ -78,6 +86,10 @@ export const useNotificationHelpers = () => {
     chatId: string
   ) => {
     if (recipientId === user?.id) return; // Don't notify yourself
+    if (!user?.id) {
+      console.warn('Cannot send new chat notification: User not authenticated');
+      return;
+    }
 
     await createNotification({
       user_id: recipientId,
@@ -96,6 +108,10 @@ export const useNotificationHelpers = () => {
     chatId: string
   ) => {
     if (recipientId === user?.id) return; // Don't notify yourself
+    if (!user?.id) {
+      console.warn('Cannot send user joined notification: User not authenticated');
+      return;
+    }
 
     await createNotification({
       user_id: recipientId,
@@ -113,6 +129,11 @@ export const useNotificationHelpers = () => {
     message: string,
     priority: 'low' | 'normal' | 'high' | 'critical' = 'normal'
   ) => {
+    if (!user?.id) {
+      console.warn('Cannot send system update notification: User not authenticated');
+      return;
+    }
+
     const notification = await createNotification({
       user_id: recipientId,
       title,
@@ -141,6 +162,11 @@ export const useNotificationHelpers = () => {
     entityType?: string,
     entityId?: string
   ) => {
+    if (!user?.id) {
+      console.warn('Cannot send error notification: User not authenticated');
+      return;
+    }
+
     const notification = await createNotification({
       user_id: recipientId,
       title,
@@ -171,6 +197,11 @@ export const useNotificationHelpers = () => {
     entityType?: string,
     entityId?: string
   ) => {
+    if (!user?.id) {
+      console.warn('Cannot send success notification: User not authenticated');
+      return;
+    }
+
     const notification = await createNotification({
       user_id: recipientId,
       title,
