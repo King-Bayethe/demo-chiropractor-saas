@@ -72,12 +72,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
   if (!selectedChat) {
     return (
-      <div className="h-16 border-b flex items-center justify-between px-6 bg-card">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={onToggleSidebar} className="mr-4">
+      <div className="h-14 md:h-16 border-b flex items-center justify-between px-3 md:px-6 bg-card">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <Button variant="ghost" size="sm" onClick={onToggleSidebar} className="mr-2 md:mr-4">
             <Menu className="w-4 h-4" />
           </Button>
-          <div className="text-muted-foreground">Select a conversation</div>
+          <div className="text-muted-foreground text-sm md:text-base">Select a conversation</div>
         </div>
         {onRefresh && (
           <Button variant="ghost" size="sm" onClick={onRefresh}>
@@ -89,29 +89,29 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   }
 
   return (
-    <div className="h-16 border-b flex items-center justify-between px-6 bg-card">
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="sm" onClick={onToggleSidebar} className={sidebarCollapsed ? "mr-0" : "mr-2"}>
+    <div className="h-14 md:h-16 border-b flex items-center justify-between px-3 md:px-6 bg-card">
+      <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
+        <Button variant="ghost" size="sm" onClick={onToggleSidebar} className={sidebarCollapsed ? "mr-0" : "mr-1 md:mr-2"}>
           <Menu className="w-4 h-4" />
         </Button>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 md:space-x-3 min-w-0">
           <div className="relative">
-            <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-primary/10 text-primary font-medium">
+            <Avatar className="w-8 h-8 md:w-10 md:h-10">
+              <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs md:text-sm">
                 {getCurrentUserAvatar()}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-background" />
           </div>
 
-          <div>
-            <h2 className="font-semibold text-foreground">
+          <div className="min-w-0">
+            <h2 className="font-semibold text-foreground text-sm md:text-base truncate">
               {getCurrentUserDisplayName()}
             </h2>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 md:space-x-2">
               <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full" />
                 <span className="text-xs text-muted-foreground capitalize">
                   online
                 </span>
@@ -123,30 +123,30 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
       <div className="flex items-center space-x-1">
         {onRefresh && (
-          <Button variant="ghost" size="icon" onClick={onRefresh} title="Refresh chat">
-            <RefreshCw className="w-4 h-4" />
+          <Button variant="ghost" size="icon" onClick={onRefresh} title="Refresh chat" className="h-8 w-8 md:h-10 md:w-10">
+            <RefreshCw className="w-3 h-3 md:w-4 md:h-4" />
           </Button>
         )}
         
         {selectedChat.type === 'direct' && (
           <>
-            <Button variant="ghost" size="icon" title="Voice call">
-              <Phone className="w-4 h-4" />
+            <Button variant="ghost" size="icon" title="Voice call" className="hidden md:flex h-8 w-8 md:h-10 md:w-10">
+              <Phone className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
-            <Button variant="ghost" size="icon" title="Video call">
-              <Video className="w-4 h-4" />
+            <Button variant="ghost" size="icon" title="Video call" className="hidden md:flex h-8 w-8 md:h-10 md:w-10">
+              <Video className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </>
         )}
         
-        <Button variant="ghost" size="icon" title="Chat info">
-          <Info className="w-4 h-4" />
+        <Button variant="ghost" size="icon" title="Chat info" className="hidden md:flex h-8 w-8 md:h-10 md:w-10">
+          <Info className="w-3 h-3 md:w-4 md:h-4" />
         </Button>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10">
+              <MoreVertical className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -160,6 +160,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                   <Users className="w-4 h-4 mr-2" />
                   Manage Members
                 </DropdownMenuItem>
+              )}
+              {selectedChat.type === 'direct' && (
+                <>
+                  <DropdownMenuItem className="md:hidden">
+                    <Phone className="w-4 h-4 mr-2" />
+                    Voice Call
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="md:hidden">
+                    <Video className="w-4 h-4 mr-2" />
+                    Video Call
+                  </DropdownMenuItem>
+                </>
               )}
               {onDeleteChat && (
                 <DropdownMenuItem 

@@ -145,7 +145,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <div className="flex-1 flex flex-col bg-muted/5">
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-2 md:p-4">
         <div className="space-y-4 max-w-4xl mx-auto">
           {groupedMessages.length === 0 ? (
             <div className="text-center py-8">
@@ -157,19 +157,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               const isOwn = group.sender.id === currentUserId;
               
               return (
-                <div key={groupIndex} className={cn("flex gap-3", isOwn ? "justify-end" : "justify-start")}>
+                <div key={groupIndex} className={cn("flex gap-2 md:gap-3", isOwn ? "justify-end" : "justify-start")}>
                   {!isOwn && (
-                    <Avatar className="w-8 h-8 mt-auto">
+                    <Avatar className="w-6 h-6 md:w-8 md:h-8 mt-auto flex-shrink-0">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                         {getSenderAvatar(group.sender)}
                       </AvatarFallback>
                     </Avatar>
                   )}
                   
-                  <div className={cn("space-y-1 max-w-[70%]", isOwn ? "items-end" : "items-start")}>
+                  <div className={cn("space-y-1 max-w-[85%] md:max-w-[70%]", isOwn ? "items-end" : "items-start")}>
                     {!isOwn && (
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm font-medium text-foreground">
+                        <span className="text-xs md:text-sm font-medium text-foreground truncate">
                           {getSenderDisplayName(group.sender)}
                         </span>
                         <span className="text-xs text-muted-foreground">
@@ -183,7 +183,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                         <div
                           key={message.id}
                           className={cn(
-                            "px-4 py-2 rounded-2xl text-sm break-words",
+                            "px-3 py-2 md:px-4 rounded-2xl text-sm break-words",
                             isOwn
                               ? "bg-primary text-primary-foreground rounded-br-md"
                               : "bg-card border border-border rounded-bl-md"
@@ -202,7 +202,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                   
                   {isOwn && (
-                    <Avatar className="w-8 h-8 mt-auto">
+                    <Avatar className="w-6 h-6 md:w-8 md:h-8 mt-auto flex-shrink-0">
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
                         {getSenderAvatar(group.sender)}
                       </AvatarFallback>
@@ -229,7 +229,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="border-t border-border bg-card p-4">
+      <div className="border-t border-border bg-card p-2 md:p-4">
         <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-2">
             <div className="flex-1 relative">
@@ -238,32 +238,37 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="pr-20 py-3 rounded-full border-2 focus:border-primary/50 transition-colors"
+                className="pr-16 md:pr-20 py-2 md:py-3 rounded-full border-2 focus:border-primary/50 transition-colors text-sm"
                 maxLength={1000}
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                <QuickActionsDropdown onSendMessage={onSendMessage} />
-                <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Paperclip className="w-4 h-4" />
+              <div className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                <div className="hidden md:block">
+                  <QuickActionsDropdown onSendMessage={onSendMessage} />
+                </div>
+                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 md:h-8 md:w-8 p-0">
+                  <Paperclip className="w-3 h-3 md:w-4 md:h-4" />
                 </Button>
-                <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Smile className="w-4 h-4" />
-                </Button>
+                <div className="hidden md:block">
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Smile className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             
             <Button 
               type="submit" 
               size="icon"
-              className="rounded-full h-12 w-12"
+              className="rounded-full h-10 w-10 md:h-12 md:w-12"
               disabled={!newMessage.trim()}
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </div>
           
           <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-            <span>Press Enter to send, Shift+Enter for new line</span>
+            <span className="hidden md:block">Press Enter to send, Shift+Enter for new line</span>
+            <span className="md:hidden">Tap to send</span>
             <span>{newMessage.length}/1000</span>
           </div>
         </form>

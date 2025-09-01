@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChatSidebar } from './ChatSidebar';
 import { ChatWindow } from './ChatWindow';
 import { ChatHeader } from './ChatHeader';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface Chat {
@@ -39,34 +40,65 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
   onRefresh,
   loading
 }) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
+  const handleSelectChat = (chat: any) => {
+    onSelectChat(chat);
+    if (isMobile) {
+      setShowMobileSidebar(false);
+    }
+  };
+
+  const handleToggleSidebar = () => {
+    if (isMobile) {
+      setShowMobileSidebar(!showMobileSidebar);
+    } else {
+      setSidebarCollapsed(!sidebarCollapsed);
+    }
+  };
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] bg-background border border-border rounded-lg overflow-hidden">
+    <div className="flex h-[calc(100vh-12rem)] bg-background border border-border rounded-lg overflow-hidden relative">
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && showMobileSidebar && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setShowMobileSidebar(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div className={cn(
-        "transition-all duration-300 border-r border-border bg-card",
-        sidebarCollapsed ? "w-0" : "w-80"
+        "transition-all duration-300 border-r border-border bg-card z-50",
+        isMobile 
+          ? cn(
+              "fixed left-0 top-0 h-full w-80",
+              showMobileSidebar ? "translate-x-0" : "-translate-x-full"
+            )
+          : sidebarCollapsed ? "w-0" : "w-80"
       )}>
         <ChatSidebar
           chats={chats}
           selectedChat={selectedChat}
-          onSelectChat={onSelectChat}
+          onSelectChat={handleSelectChat}
           onCreateChat={onCreateChat}
           onDeleteChat={onDeleteChat}
           currentUserId={currentUserId}
           loading={loading}
-          collapsed={sidebarCollapsed}
+          collapsed={!isMobile && sidebarCollapsed}
+          onMobileClose={() => setShowMobileSidebar(false)}
         />
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <ChatHeader
           selectedChat={selectedChat}
           currentUserId={currentUserId}
-          onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={handleToggleSidebar}
+          sidebarCollapsed={isMobile ? !showMobileSidebar : sidebarCollapsed}
           onDeleteChat={onDeleteChat}
           onRefresh={onRefresh}
         />

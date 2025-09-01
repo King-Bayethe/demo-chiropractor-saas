@@ -35,6 +35,7 @@ interface ChatSidebarProps {
   currentUserId: string | null;
   loading: boolean;
   collapsed: boolean;
+  onMobileClose?: () => void;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -45,7 +46,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onDeleteChat,
   currentUserId,
   loading,
-  collapsed
+  collapsed,
+  onMobileClose
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -198,7 +200,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     ? "bg-primary/10 border border-primary/20"
                     : "hover:bg-muted/30"
                 )}
-                onClick={() => onSelectChat(chat)}
+                onClick={() => {
+                  onSelectChat(chat);
+                  onMobileClose?.();
+                }}
               >
                 <div className="relative">
                   <Avatar className="w-10 h-10">
