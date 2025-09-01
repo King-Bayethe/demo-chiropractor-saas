@@ -94,6 +94,16 @@ export function SmartSchedulingPanel({
     loadPatients();
   }, []);
 
+  // Auto-select patient when patientId is provided
+  useEffect(() => {
+    if (patientId && patients.length > 0) {
+      const patient = patients.find(p => p.id === patientId);
+      if (patient) {
+        setSelectedPatient(patient);
+      }
+    }
+  }, [patientId, patients]);
+
   useEffect(() => {
     if (appointmentType) {
       const type = appointmentTypes.find(t => t.value === appointmentType);
