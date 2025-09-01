@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { supabase } from "@/integrations/supabase/client";
 import { useGoHighLevel } from "@/hooks/useGoHighLevel";
 import { apiRequestManager } from "@/utils/apiRequestManager";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // --- UI Component Imports ---
 import { 
@@ -18,7 +19,9 @@ import {
   Users,
   Loader2,
   Volume2,
-  Plus
+  Plus,
+  ArrowLeft,
+  Menu
 } from "lucide-react";
 
 // --- UI Components ---
@@ -47,6 +50,7 @@ import { QuickActionsDropdown } from "@/components/conversations/QuickActionsDro
 export default function Conversations() {
   const { toast } = useToast();
   const { getMessageRecording, getMessageTranscription } = useGoHighLevel();
+  const isMobile = useIsMobile();
   
   // State management for data, loading, and errors
   const [conversations, setConversations] = useState([]);
@@ -56,6 +60,8 @@ export default function Conversations() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [recordingUrls, setRecordingUrls] = useState(new Map());
   const [transcriptions, setTranscriptions] = useState(new Map());
+  const [showSidebar, setShowSidebar] = useState(!isMobile);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Loading states for different parts of the UI
   const [conversationsLoading, setConversationsLoading] = useState(true);
@@ -581,274 +587,624 @@ export default function Conversations() {
     }
   };
 
+  // Handle mobile conversation selection
+  const handleSelectConversation = (conv) => {
+    setSelectedConversation(conv);
+    if (isMobile) {
+      setShowSidebar(false);
+    }
+  };
+
+  // Handle mobile back to conversations list
+  const handleBackToList = () => {
+    setSelectedConversation(null);
+    setShowSidebar(true);
+  };
+
+  // Filter conversations based on search term
+  const filteredConversations = conversations.filter(conv =>
+    conv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conv.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <AuthGuard>
       <Layout>
-        <style>{`
-          .card-professional { transition: all 0.2s ease-in-out; }
-          .card-professional:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-          .status-pending { background-color: #fef3c7; color: #92400e; }
-          .status-approved { background-color: #d1fae5; color: #065f46; }
-          .status-draft { background-color: #e5e7eb; color: #374151; }
-        `}</style>
-        <div className="p-6 space-y-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Patient Conversations</h1>
-              <p className="text-muted-foreground">Manage patient communications and inquiries</p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => loadConversations(true)}
-                disabled={conversationsLoading || apiRequestManager.isRequestPending('load-conversations')}
-              >
-                {conversationsLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                )}
-                Refresh
-              </Button>
-              <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filter</Button>
-              <Button><MessageSquare className="mr-2 h-4 w-4" /> New Message</Button>
-            </div>
-          </div>
-
-          <Tabs defaultValue="inbox" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="inbox">Inbox</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-              <TabsTrigger value="archive">Archive</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="inbox" className="space-y-6">
-              <div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
-                <div className="lg:col-span-1 xl:col-span-1">
-                  <Card className="card-professional h-[700px] flex flex-col">
-                    <CardHeader>
-                       <div className="flex items-center justify-between">
-                         <CardTitle>All Conversations</CardTitle>
-                         <div className="flex items-center gap-2">
-                           <CreateConversationDialog />
-                           <Badge variant="secondary">{conversations.length}</Badge>
-                         </div>
-                       </div>
-                      <div className="relative mt-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search conversations..." className="pl-10" />
+        <div className="h-full flex flex-col">
+          {/* Mobile Header */}
+          {isMobile && (
+            <div className="border-b border-border bg-background p-4">
+              <div className="flex items-center justify-between">
+                {selectedConversation && !showSidebar ? (
+                  <>
+                    <div className="flex items-center space-x-3">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={handleBackToList}
+                      >
+                        <ArrowLeft className="h-5 w-5" />
+                      </Button>
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-sm">{selectedConversation.customerName}</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedConversation.customerPhone}
+                        </p>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-0 flex-1 overflow-y-auto">
-                      {conversationsLoading ? (
-                        <div className="flex items-center justify-center p-8 h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                      ) : conversations.length === 0 ? (
-                        <div className="text-center py-8 px-4"><MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" /><p className="text-muted-foreground">No conversations found</p></div>
-                      ) : (
-                        <div className="space-y-1">
-                          {conversations.map((conv) => (
-                            <div key={conv.id} className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${selectedConversation?.id === conv.id ? 'bg-primary/10 border-l-4 border-l-primary' : ''}`} onClick={() => setSelectedConversation(conv)}>
-                              <div className="flex items-start gap-3">
-                                <Avatar><AvatarFallback>{getAvatarInitials(conv)}</AvatarFallback></Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <h4 className="font-medium truncate">{conv.customerName}</h4>
-                                    {conv.unreadCount > 0 && <Badge variant="destructive" className="text-xs h-5 w-5 rounded-full p-0 flex items-center justify-center">{conv.unreadCount}</Badge>}
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-5 w-5" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-xl font-bold">Conversations</h1>
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => loadConversations(true)}
+                        disabled={conversationsLoading}
+                      >
+                        {conversationsLoading ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <MessageSquare className="h-5 w-5" />
+                        )}
+                      </Button>
+                      <CreateConversationDialog />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Header */}
+          {!isMobile && (
+            <div className="p-4 sm:p-6 border-b border-border">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Patient Conversations</h1>
+                  <p className="text-muted-foreground">Manage patient communications and inquiries</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => loadConversations(true)}
+                    disabled={conversationsLoading}
+                  >
+                    {conversationsLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                    )}
+                    Refresh
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Filter className="mr-2 h-4 w-4" /> Filter
+                  </Button>
+                  <CreateConversationDialog />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Layout */}
+          {isMobile ? (
+            <div className="flex-1 overflow-hidden">
+              {/* Conversations List (Mobile) */}
+              {(!selectedConversation || showSidebar) && (
+                <div className="h-full flex flex-col">
+                  {/* Search Bar */}
+                  <div className="p-4 border-b border-border">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Search conversations..." 
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Conversations List */}
+                  <div className="flex-1 overflow-y-auto">
+                    {conversationsLoading ? (
+                      <div className="flex items-center justify-center p-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : filteredConversations.length === 0 ? (
+                      <div className="text-center py-8 px-4">
+                        <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">No conversations found</p>
+                      </div>
+                    ) : (
+                      <div>
+                        {filteredConversations.map((conv) => (
+                          <div 
+                            key={conv.id} 
+                            className="p-4 border-b border-border active:bg-muted/50 transition-colors"
+                            onClick={() => handleSelectConversation(conv)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Avatar className="h-12 w-12">
+                                <AvatarFallback>{getAvatarInitials(conv)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <h4 className="font-medium truncate">{conv.customerName}</h4>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(conv.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                    {conv.unreadCount > 0 && (
+                                      <Badge variant="destructive" className="text-xs h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                                        {conv.unreadCount}
+                                      </Badge>
+                                    )}
                                   </div>
-                                  <p className="text-sm text-muted-foreground truncate mt-1">{conv.lastMessage}</p>
-                                  <div className="flex items-center justify-between mt-2">
-                                    <span className="text-xs text-muted-foreground">{new Date(conv.lastMessageTime).toLocaleTimeString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</span>
-                                    <Badge className={`text-xs capitalize ${getSourceColor(conv.source)}`}>{conv.source}</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate mb-2">{conv.lastMessage}</p>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                    {conv.customerPhone && (
+                                      <span className="flex items-center gap-1">
+                                        <Phone className="h-3 w-3" />
+                                        {conv.customerPhone}
+                                      </span>
+                                    )}
                                   </div>
+                                  <Badge className={`text-xs capitalize ${getSourceColor(conv.source)}`}>
+                                    {conv.source}
+                                  </Badge>
                                 </div>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+              )}
 
-                <div className="lg:col-span-2 xl:col-span-3">
-                  <Card className="card-professional h-[700px] flex flex-col">
-                    <CardHeader className="border-b border-border">
-                      {selectedConversation ? (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar><AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback></Avatar>
-                            <div>
-                              <h3 className="font-semibold">{selectedConversation.customerName}</h3>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                {selectedConversation.customerPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{selectedConversation.customerPhone}</span>}
-                                {selectedConversation.customerEmail && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{selectedConversation.customerEmail}</span>}
+              {/* Message View (Mobile) */}
+              {selectedConversation && !showSidebar && (
+                <div className="h-full flex flex-col">
+                  {/* Messages Area */}
+                  <div className="flex-1 overflow-y-auto p-4 bg-muted/30">
+                    {messagesLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      </div>
+                    ) : messages.length === 0 ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-muted-foreground">
+                          <MessageSquare className="h-8 w-8 mx-auto mb-2" />
+                          <p>No messages yet. Start the conversation!</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {messages.map((message) => (
+                          <div key={message.id} className={`flex items-start gap-2 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                            {message.sender === 'customer' && (
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback>
+                              </Avatar>
+                            )}
+                            
+                            <div className={`space-y-2 max-w-[85%] ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
+                              <div className={`px-3 py-2 rounded-2xl text-sm ${
+                                message.sender === 'agent' 
+                                  ? 'bg-primary text-primary-foreground rounded-br-md' 
+                                  : 'bg-card border border-border text-foreground rounded-bl-md'
+                              }`}>
+                                {message.hasRecording && (
+                                  <div className="mb-2 flex items-center gap-2 text-xs opacity-75">
+                                    <Volume2 className="h-3 w-3" />
+                                    <span>
+                                      {message.messageType === 'TYPE_CALL' ? 'Call Recording' : 'Voicemail'}
+                                      {message.duration && ` (${Math.floor(message.duration / 60)}:${String(message.duration % 60).padStart(2, '0')})`}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {message.content && <p>{message.content}</p>}
+                                
+                                {message.attachments && message.attachments.length > 0 && (
+                                  <div className="mt-2 space-y-2">
+                                    {message.attachments.map((attachment, index) => (
+                                      <FileAttachment
+                                        key={`${attachment.id}-${index}`}
+                                        attachment={attachment}
+                                        size="sm"
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                                
+                                {message.hasTranscription && transcriptions.has(message.id) && (
+                                  <div className="mt-2 pt-2 border-t border-border/50">
+                                    <p className="text-xs opacity-75 mb-1">Transcription:</p>
+                                    <p className="text-sm">{transcriptions.get(message.id)}</p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {message.hasRecording && recordingUrls.has(message.id) && (
+                                <WebAudioApiPlayer 
+                                  audioUrl={recordingUrls.get(message.id)} 
+                                  fileName={`recording_${message.id}`}
+                                  className={message.sender === 'agent' ? 'self-end' : 'self-start'}
+                                />
+                              )}
+                              
+                              <div className={`text-xs text-muted-foreground ${message.sender === 'agent' ? 'text-right' : 'text-left'}`}>
+                                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {message.sender === 'agent' && message.deliveryStatus && (
+                                  <MessageStatusIndicator
+                                    status={message.deliveryStatus}
+                                    errorInfo={message.errorInfo}
+                                    onRetry={message.deliveryStatus === 'failed' ? () => handleRetryMessage(message.id) : undefined}
+                                  />
+                                )}
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <AddMessageDialog conversationId={selectedConversation.id} />
-                            <Button variant="ghost" size="sm"><MoreHorizontal className="h-4 w-4" /></Button>
+                        ))}
+                        <div ref={messagesEndRef} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message Input (Mobile) */}
+                  <form onSubmit={handleSendMessage} className="border-t border-border bg-background">
+                    {selectedFiles.length > 0 && (
+                      <div className="p-3 border-b border-border">
+                        <FileUploadButton
+                          onFilesSelected={setSelectedFiles}
+                          selectedFiles={selectedFiles}
+                          onRemoveFile={(index) => {
+                            setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          disabled={isSending}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 relative">
+                          <Input 
+                            placeholder="Type a message..." 
+                            className="pr-20 rounded-full" 
+                            value={newMessage} 
+                            onChange={(e) => setNewMessage(e.target.value)} 
+                            disabled={!selectedConversation || isSending} 
+                          />
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <QuickActionsDropdown onSendMessage={(message) => setNewMessage(message)} />
+                            <Button type="button" variant="ghost" size="sm" className="h-7 w-7 p-0">
+                              <Smile className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                           </div>
                         </div>
-                      ) : <div className="h-[57px]"></div>}
-                    </CardHeader>
-
-                    <CardContent className="flex-1 p-4 overflow-y-auto bg-muted/30">
-                      {!selectedConversation ? (
-                         <div className="flex-1 flex items-center justify-center text-muted-foreground h-full"><div className="text-center"><MessageSquare className="h-8 w-8 mx-auto mb-2" /><p>Select a conversation to view messages</p></div></div>
-                      ) : messagesLoading ? (
-                        <div className="flex items-center justify-center p-8 h-full"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-                      ) : messages.length === 0 ? (
-                        <div className="flex items-center justify-center p-8 h-full"><div className="text-center text-muted-foreground"><MessageSquare className="h-8 w-8 mx-auto mb-2" /><p>No messages yet. Be the first to reply!</p></div></div>
-                      ) : (
-                        <div className="space-y-4">
-                            {messages.map((message) => (
-                              <div key={message.id} className={`flex items-start gap-2 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
-                                 {message.sender === 'customer' && <Avatar className="h-8 w-8"><AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback></Avatar>}
-                                <div className={`space-y-2 max-w-xs lg:max-w-md ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
-                                   <div className={`px-4 py-2 rounded-2xl ${message.sender === 'agent' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border text-foreground rounded-bl-none'}`}>
-                                     {message.hasRecording && (
-                                       <div className="mb-2 flex items-center gap-2 text-xs opacity-75">
-                                         <Volume2 className="h-3 w-3" />
-                                         <span>
-                                           {message.messageType === 'TYPE_CALL' ? 'Call Recording' : 'Voicemail'}
-                                           {message.duration && ` (${Math.floor(message.duration / 60)}:${String(message.duration % 60).padStart(2, '0')})`}
-                                         </span>
-                                       </div>
-                                     )}
-                                     
-                                     {message.content && (
-                                       <p className="text-sm" style={{ opacity: message.id.startsWith('temp_') ? 0.7 : 1 }}>
-                                         {message.content}
-                                       </p>
-                                     )}
-                                     
-                                     {message.attachments && message.attachments.length > 0 && (
-                                       <div className="mt-2 space-y-2">
-                                         {message.attachments.map((attachment, index) => (
-                                           <FileAttachment
-                                             key={`${attachment.id}-${index}`}
-                                             attachment={attachment}
-                                             size="md"
-                                           />
-                                         ))}
-                                       </div>
-                                     )}
-                                     
-                                      {message.hasTranscription && transcriptions.has(message.id) && (
-                                        <div className="mt-2 pt-2 border-t border-border/50">
-                                          <div className="flex items-center justify-between mb-1">
-                                            <p className="text-xs opacity-75">Transcription:</p>
-                                            <TranscriptionDownload 
-                                              transcriptionText={transcriptions.get(message.id)}
-                                              fileName={`transcription_${message.id}`}
-                                            />
-                                          </div>
-                                          <p className="text-sm">{transcriptions.get(message.id)}</p>
-                                        </div>
-                                      )}
-                                   </div>
-                                   
-                                  {message.hasRecording && recordingUrls.has(message.id) && (
-                                   <>
-                                      <WebAudioApiPlayer 
-                                        audioUrl={(() => {
-                                          const url = recordingUrls.get(message.id);
-                                          console.log(`🎵 Passing to WebAudioApiPlayer for ${message.id}:`, typeof url, url);
-                                          return url;
-                                        })()} 
-                                        fileName={`recording_${message.id}`}
-                                        className={message.sender === 'agent' ? 'self-end' : 'self-start'}
-                                      />
-                                     <AudioDownloadButton
-                                       audioUrl={recordingUrls.get(message.id)}
-                                       fileName={`recording_${message.id}`}
-                                       variant="outline"
-                                       size="sm"
-                                       className={`mt-2 ${message.sender === 'agent' ? 'self-end' : 'self-start'}`}
-                                     />
-                                   </>
-                                    )}
-                                    
-                                 <div className={`flex items-center gap-2 text-xs mt-1 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
-                                   <span className={message.sender === 'agent' ? 'text-primary/70' : 'text-muted-foreground'}>
-                                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                   </span>
-                                   {message.sender === 'agent' && message.deliveryStatus && (
-                                     <MessageStatusIndicator
-                                       status={message.deliveryStatus}
-                                       errorInfo={message.errorInfo}
-                                       onRetry={message.deliveryStatus === 'failed' ? () => handleRetryMessage(message.id) : undefined}
-                                     />
-                                   )}
-                                 </div>
-                               </div>
-                             </div>
-                           ))}
-                          <div ref={messagesEndRef} />
-                        </div>
-                      )}
-                    </CardContent>
-
-                    <form onSubmit={handleSendMessage} className="border-t border-border bg-card">
-                      {selectedFiles.length > 0 && (
-                        <div className="p-4 border-b border-border">
-                          <FileUploadButton
-                            onFilesSelected={setSelectedFiles}
-                            selectedFiles={selectedFiles}
-                            onRemoveFile={(index) => {
-                              setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-                            }}
-                            disabled={isSending}
-                          />
-                        </div>
-                      )}
-                      
-                       <div className="p-4">
-                        <div className="flex items-center gap-2">
-                           <div className="flex-1 relative">
-                            <Input 
-                              placeholder="Type your message..." 
-                              className="pr-20" 
-                              value={newMessage} 
-                              onChange={(e) => setNewMessage(e.target.value)} 
-                              disabled={!selectedConversation || isSending} 
-                            />
-                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                              <QuickActionsDropdown onSendMessage={(message) => setNewMessage(message)} />
-                              <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Smile className="h-5 w-5 text-muted-foreground" />
-                              </Button>
+                        
+                        <FileUploadButton
+                          onFilesSelected={(files) => setSelectedFiles(prev => [...prev, ...files])}
+                          selectedFiles={[]}
+                          onRemoveFile={() => {}}
+                          disabled={!selectedConversation || isSending}
+                        />
+                        
+                        <Button 
+                          type="submit" 
+                          size="icon"
+                          className="rounded-full"
+                          disabled={!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || isSending}
+                        >
+                          {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Desktop Layout */
+            <div className="flex-1 overflow-hidden">
+              <div className="h-full flex">
+                {/* Conversations Sidebar (Desktop) */}
+                <div className="w-80 border-r border-border flex flex-col">
+                  <div className="p-4 border-b border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="font-semibold">All Conversations</h2>
+                      <Badge variant="secondary">{conversations.length}</Badge>
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Search conversations..." 
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto">
+                    {conversationsLoading ? (
+                      <div className="flex items-center justify-center p-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : filteredConversations.length === 0 ? (
+                      <div className="text-center py-8 px-4">
+                        <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">No conversations found</p>
+                      </div>
+                    ) : (
+                      <div>
+                        {filteredConversations.map((conv) => (
+                          <div 
+                            key={conv.id} 
+                            className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
+                              selectedConversation?.id === conv.id ? 'bg-primary/10 border-l-4 border-l-primary' : ''
+                            }`}
+                            onClick={() => setSelectedConversation(conv)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Avatar>
+                                <AvatarFallback>{getAvatarInitials(conv)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <h4 className="font-medium truncate">{conv.customerName}</h4>
+                                  {conv.unreadCount > 0 && (
+                                    <Badge variant="destructive" className="text-xs h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                                      {conv.unreadCount}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate mt-1">{conv.lastMessage}</p>
+                                <div className="flex items-center justify-between mt-2">
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(conv.lastMessageTime).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                                  </span>
+                                  <Badge className={`text-xs capitalize ${getSourceColor(conv.source)}`}>
+                                    {conv.source}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          
-                           <FileUploadButton
-                             onFilesSelected={(files) => setSelectedFiles(prev => [...prev, ...files])}
-                             selectedFiles={[]}
-                             onRemoveFile={() => {}}
-                             disabled={!selectedConversation || isSending}
-                           />
-                           
-                          <Button 
-                            type="submit" 
-                            disabled={!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || isSending}
-                          >
-                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Main Chat Area (Desktop) */}
+                <div className="flex-1 flex flex-col">
+                  {/* Chat Header */}
+                  <div className="border-b border-border p-4">
+                    {selectedConversation ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold">{selectedConversation.customerName}</h3>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              {selectedConversation.customerPhone && (
+                                <span className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />
+                                  {selectedConversation.customerPhone}
+                                </span>
+                              )}
+                              {selectedConversation.customerEmail && (
+                                <span className="flex items-center gap-1">
+                                  <Mail className="h-3 w-3" />
+                                  {selectedConversation.customerEmail}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <AddMessageDialog conversationId={selectedConversation.id} />
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
-                    </form>
-                  </Card>
+                    ) : (
+                      <div className="h-[57px] flex items-center">
+                        <span className="text-muted-foreground">Select a conversation to start messaging</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Messages Area */}
+                  <div className="flex-1 overflow-y-auto p-4 bg-muted/30">
+                    {!selectedConversation ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-muted-foreground">
+                          <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                          <h3 className="text-lg font-medium mb-2">Welcome to Patient Conversations</h3>
+                          <p>Select a conversation from the sidebar to start messaging with patients</p>
+                        </div>
+                      </div>
+                    ) : messagesLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      </div>
+                    ) : messages.length === 0 ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-muted-foreground">
+                          <MessageSquare className="h-8 w-8 mx-auto mb-2" />
+                          <p>No messages yet. Start the conversation!</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 max-w-4xl mx-auto">
+                        {messages.map((message) => (
+                          <div key={message.id} className={`flex items-start gap-2 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                            {message.sender === 'customer' && (
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback>
+                              </Avatar>
+                            )}
+                            
+                            <div className={`space-y-2 max-w-[70%] ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
+                              <div className={`px-4 py-2 rounded-2xl ${
+                                message.sender === 'agent' 
+                                  ? 'bg-primary text-primary-foreground rounded-br-md' 
+                                  : 'bg-card border border-border text-foreground rounded-bl-md'
+                              }`}>
+                                {message.hasRecording && (
+                                  <div className="mb-2 flex items-center gap-2 text-xs opacity-75">
+                                    <Volume2 className="h-3 w-3" />
+                                    <span>
+                                      {message.messageType === 'TYPE_CALL' ? 'Call Recording' : 'Voicemail'}
+                                      {message.duration && ` (${Math.floor(message.duration / 60)}:${String(message.duration % 60).padStart(2, '0')})`}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {message.content && <p className="text-sm">{message.content}</p>}
+                                
+                                {message.attachments && message.attachments.length > 0 && (
+                                  <div className="mt-2 space-y-2">
+                                    {message.attachments.map((attachment, index) => (
+                                      <FileAttachment
+                                        key={`${attachment.id}-${index}`}
+                                        attachment={attachment}
+                                        size="md"
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                                
+                                {message.hasTranscription && transcriptions.has(message.id) && (
+                                  <div className="mt-2 pt-2 border-t border-border/50">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <p className="text-xs opacity-75">Transcription:</p>
+                                      <TranscriptionDownload 
+                                        transcriptionText={transcriptions.get(message.id)}
+                                        fileName={`transcription_${message.id}`}
+                                      />
+                                    </div>
+                                    <p className="text-sm">{transcriptions.get(message.id)}</p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {message.hasRecording && recordingUrls.has(message.id) && (
+                                <>
+                                  <WebAudioApiPlayer 
+                                    audioUrl={recordingUrls.get(message.id)} 
+                                    fileName={`recording_${message.id}`}
+                                    className={message.sender === 'agent' ? 'self-end' : 'self-start'}
+                                  />
+                                  <AudioDownloadButton
+                                    audioUrl={recordingUrls.get(message.id)}
+                                    fileName={`recording_${message.id}`}
+                                    variant="outline"
+                                    size="sm"
+                                    className={`mt-2 ${message.sender === 'agent' ? 'self-end' : 'self-start'}`}
+                                  />
+                                </>
+                              )}
+                              
+                              <div className={`flex items-center gap-2 text-xs mt-1 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                                <span className={message.sender === 'agent' ? 'text-primary/70' : 'text-muted-foreground'}>
+                                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {message.sender === 'agent' && message.deliveryStatus && (
+                                  <MessageStatusIndicator
+                                    status={message.deliveryStatus}
+                                    errorInfo={message.errorInfo}
+                                    onRetry={message.deliveryStatus === 'failed' ? () => handleRetryMessage(message.id) : undefined}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message Input (Desktop) */}
+                  <form onSubmit={handleSendMessage} className="border-t border-border bg-background">
+                    {selectedFiles.length > 0 && (
+                      <div className="p-4 border-b border-border">
+                        <FileUploadButton
+                          onFilesSelected={setSelectedFiles}
+                          selectedFiles={selectedFiles}
+                          onRemoveFile={(index) => {
+                            setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          disabled={isSending}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 max-w-4xl mx-auto">
+                        <div className="flex-1 relative">
+                          <Input 
+                            placeholder="Type your message..." 
+                            className="pr-24 py-3 rounded-full border-2 focus:border-primary/50 transition-colors" 
+                            value={newMessage} 
+                            onChange={(e) => setNewMessage(e.target.value)} 
+                            disabled={!selectedConversation || isSending} 
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <QuickActionsDropdown onSendMessage={(message) => setNewMessage(message)} />
+                            <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Smile className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <FileUploadButton
+                          onFilesSelected={(files) => setSelectedFiles(prev => [...prev, ...files])}
+                          selectedFiles={[]}
+                          onRemoveFile={() => {}}
+                          disabled={!selectedConversation || isSending}
+                        />
+                        
+                        <Button 
+                          type="submit" 
+                          size="icon"
+                          className="rounded-full h-12 w-12"
+                          disabled={!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || isSending}
+                        >
+                          {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      
+                      <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground max-w-4xl mx-auto">
+                        <span>Press Enter to send, Shift+Enter for new line</span>
+                        <span>{newMessage.length}/1000</span>
+                      </div>
+                    </div>
+                  </form>
                 </div>
               </div>
-            </TabsContent>
-            
-             <TabsContent value="active"><div className="text-center p-8 text-muted-foreground">Active conversations would be listed here.</div></TabsContent>
-             <TabsContent value="completed"><div className="text-center p-8 text-muted-foreground">Completed conversations would be listed here.</div></TabsContent>
-             <TabsContent value="archive"><div className="text-center p-8 text-muted-foreground">Archived conversations would be listed here.</div></TabsContent>
-
-          </Tabs>
+            </div>
+          )}
         </div>
       </Layout>
     </AuthGuard>
