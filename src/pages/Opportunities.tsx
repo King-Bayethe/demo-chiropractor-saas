@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { PipelineStageNode } from "@/components/pipeline/PipelineStageNode";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
+import { MobilePipeline } from "@/components/pipeline/MobilePipeline";
 import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
 import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 
@@ -166,49 +167,55 @@ export default function Opportunities() {
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg sm:text-xl">Medical Pipeline Flow</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div style={{ 
-                width: "100%", 
-                height: isMobile ? "800px" : "600px",
-                minHeight: isMobile ? "600px" : "500px"
-              }}>
-                <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
-                  nodeTypes={nodeTypes}
-                  fitView
-                  fitViewOptions={{ 
-                    padding: isMobile ? 20 : 50,
-                    includeHiddenNodes: false
+            <CardContent className={isMobile ? "p-4" : "p-0"}>
+              {isMobile ? (
+                <MobilePipeline 
+                  opportunities={opportunities}
+                  onMoveOpportunity={(opportunityId: string, targetStageId: string) => {
+                    updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
                   }}
-                  minZoom={isMobile ? 0.3 : 0.5}
-                  maxZoom={isMobile ? 1.0 : 1.5}
-                  defaultViewport={{ 
-                    x: 0, 
-                    y: 0, 
-                    zoom: isMobile ? 0.6 : 0.8 
-                  }}
-                  proOptions={{ hideAttribution: true }}
-                  panOnScroll={!isMobile}
-                  zoomOnScroll={!isMobile}
-                  zoomOnPinch={isMobile}
-                  panOnDrag={!isMobile}
-                  selectionOnDrag={false}
-                  preventScrolling={isMobile}
-                >
-                  <Controls 
-                    position={isMobile ? "bottom-left" : "bottom-right"}
-                    showZoom={!isMobile}
-                    showFitView={true}
-                    showInteractive={false}
-                  />
-                  <Background 
-                    color="hsl(var(--muted-foreground))" 
-                    gap={isMobile ? 12 : 16}
-                    size={isMobile ? 0.5 : 1}
-                  />
-                </ReactFlow>
-              </div>
+                />
+              ) : (
+                <div style={{ 
+                  width: "100%", 
+                  height: "600px",
+                  minHeight: "500px"
+                }}>
+                  <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    nodeTypes={nodeTypes}
+                    fitView
+                    fitViewOptions={{ 
+                      padding: 50,
+                      includeHiddenNodes: false
+                    }}
+                    minZoom={0.5}
+                    maxZoom={1.5}
+                    defaultViewport={{ 
+                      x: 0, 
+                      y: 0, 
+                      zoom: 0.8 
+                    }}
+                    proOptions={{ hideAttribution: true }}
+                    panOnScroll={true}
+                    zoomOnScroll={true}
+                    selectionOnDrag={false}
+                  >
+                    <Controls 
+                      position="bottom-right"
+                      showZoom={true}
+                      showFitView={true}
+                      showInteractive={false}
+                    />
+                    <Background 
+                      color="hsl(var(--muted-foreground))" 
+                      gap={16}
+                      size={1}
+                    />
+                  </ReactFlow>
+                </div>
+              )}
             </CardContent>
           </Card>
 
