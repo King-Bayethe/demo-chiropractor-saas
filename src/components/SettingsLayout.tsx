@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 import { 
   Settings,
   User,
@@ -80,6 +80,7 @@ const settingsSections = [
 
 export const SettingsLayout = ({ children, activeSection, onSectionChange }: SettingsLayoutProps) => {
   const isMobile = useIsMobile();
+  const deviceType = useDeviceType();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentSection = settingsSections.find(section => section.id === activeSection);

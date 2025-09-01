@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { CalendarHeader } from "./CalendarHeader";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 import { cn } from "@/lib/utils";
 
 interface CalendarLayoutProps {
@@ -48,6 +48,7 @@ export function CalendarLayout({
   todaysStats
 }: CalendarLayoutProps) {
   const isMobile = useIsMobile();
+  const deviceType = useDeviceType();
   
   return (
     <div className="h-full flex bg-background">

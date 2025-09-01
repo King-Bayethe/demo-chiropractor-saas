@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus, Menu } from 'lucide-react';
+import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
 import { MedicalOpportunityColumn } from '@/components/opportunities/MedicalOpportunityColumn';
@@ -18,8 +18,9 @@ import { useOpportunities, MEDICAL_PIPELINE_STAGES, Opportunity } from '@/hooks/
 import { getCaseTypeDisplayName } from '@/utils/patientMapping';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile, useDeviceType } from '@/hooks/use-breakpoints';
 import { cn } from '@/lib/utils';
+import { ResponsiveLayout, ResponsiveGrid, ResponsiveStack } from '@/components/ui/responsive-layout';
 
 const CASE_TYPE_FILTERS = [
   'All Cases',
@@ -41,6 +42,7 @@ export default function Opportunities() {
   const [showLeadIntakeForm, setShowLeadIntakeForm] = useState(false);
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const isMobile = useIsMobile();
+  const deviceType = useDeviceType();
 
   const {
     opportunities,

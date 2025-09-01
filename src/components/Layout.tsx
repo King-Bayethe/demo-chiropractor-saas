@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CRMSidebar } from "./CRMSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { Bell, Search, User, LogOut, Settings as SettingsIcon, UserCircle, Menu } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const deviceType = useDeviceType();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

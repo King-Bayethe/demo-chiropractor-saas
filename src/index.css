@@ -235,6 +235,43 @@ html {
   overflow: hidden;
 }
 
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .overflow-wrap-anywhere {
   overflow-wrap: anywhere;
+}
+
+/* Responsive utilities */
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Better mobile spacing */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    padding: 0.75rem;
+  }
+  
+  .mobile-spacing > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
 }
