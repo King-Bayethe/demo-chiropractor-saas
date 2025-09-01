@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { 
   Stethoscope, 
   Edit, 
@@ -36,6 +38,7 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
   onEdit,
   form
 }) => {
+  const isMobile = useIsMobile();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   const hasSystemsData = patient.systems_review && 
@@ -129,19 +132,28 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Stethoscope className="h-5 w-5" />
+      <CardHeader className={cn(
+        "pb-4",
+        isMobile ? "flex-col space-y-2" : "flex flex-row items-center justify-between space-y-0"
+      )}>
+        <CardTitle className={cn(
+          "flex items-center gap-2 font-semibold",
+          isMobile ? "text-base self-start" : "text-lg"
+        )}>
+          <Stethoscope className={cn(isMobile ? "h-4 w-4" : "h-5 w-5")} />
           Systems Review
         </CardTitle>
         <Button 
           onClick={onEdit} 
           variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
+          size={isMobile ? "sm" : "sm"}
+          className={cn(
+            "flex items-center gap-2",
+            isMobile && "w-full"
+          )}
         >
           <Edit className="h-4 w-4" />
-          Edit
+          {isMobile ? "Edit Systems Review" : "Edit"}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -155,7 +167,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Heart className="h-4 w-4 text-red-500" />
                   <h4 className="font-medium text-foreground">Cardiovascular System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Chest Pain', 'Palpitations', 'Shortness of Breath', 'Swelling', 'Dizziness', 'Fainting'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`cardio-${symptom}`} />
@@ -171,7 +186,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Wind className="h-4 w-4 text-blue-500" />
                   <h4 className="font-medium text-foreground">Respiratory System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Cough', 'Wheezing', 'Shortness of Breath', 'Chest Pain', 'Sputum Production', 'Night Sweats'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`resp-${symptom}`} />
@@ -187,7 +205,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Brain className="h-4 w-4 text-purple-500" />
                   <h4 className="font-medium text-foreground">Neurological System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Headache', 'Dizziness', 'Numbness', 'Tingling', 'Weakness', 'Memory Loss', 'Seizures', 'Vision Changes'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`neuro-${symptom}`} />
@@ -203,7 +224,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Bone className="h-4 w-4 text-orange-500" />
                   <h4 className="font-medium text-foreground">Musculoskeletal System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Joint Pain', 'Muscle Pain', 'Stiffness', 'Swelling', 'Limited Range of Motion', 'Back Pain'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`musculo-${symptom}`} />
@@ -219,7 +243,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Apple className="h-4 w-4 text-green-500" />
                   <h4 className="font-medium text-foreground">Gastrointestinal System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Nausea', 'Vomiting', 'Abdominal Pain', 'Diarrhea', 'Constipation', 'Loss of Appetite'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`gi-${symptom}`} />
@@ -235,7 +262,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Zap className="h-4 w-4 text-yellow-500" />
                   <h4 className="font-medium text-foreground">Genitourinary System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Frequent Urination', 'Painful Urination', 'Blood in Urine', 'Incontinence', 'Kidney Pain'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`gu-${symptom}`} />
@@ -251,7 +281,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Eye className="h-4 w-4 text-indigo-500" />
                   <h4 className="font-medium text-foreground">ENT (Eyes, Nose, Throat)</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Vision Changes', 'Eye Pain', 'Hearing Loss', 'Ear Pain', 'Sore Throat', 'Nasal Congestion'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`ent-${symptom}`} />
@@ -267,7 +300,10 @@ export const SystemsReviewCard: React.FC<SystemsReviewCardProps> = ({
                   <Stethoscope className="h-4 w-4 text-pink-500" />
                   <h4 className="font-medium text-foreground">Endocrine System</h4>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2 md:grid-cols-3"
+                )}>
                   {['Excessive Thirst', 'Frequent Urination', 'Weight Changes', 'Fatigue', 'Heat/Cold Intolerance'].map((symptom) => (
                     <div key={symptom} className="flex items-center space-x-2">
                       <Checkbox id={`endo-${symptom}`} />

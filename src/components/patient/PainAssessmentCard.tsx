@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Slider } from '@/components/ui/slider';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { 
   Activity, 
   Edit, 
@@ -32,6 +34,7 @@ export const PainAssessmentCard: React.FC<PainAssessmentCardProps> = ({
   onEdit,
   form
 }) => {
+  const isMobile = useIsMobile();
   const hasPainData = patient.pain_location || patient.pain_severity || 
                      patient.pain_description || patient.current_symptoms ||
                      patient.pain_frequency || patient.pain_quality ||
@@ -89,19 +92,28 @@ export const PainAssessmentCard: React.FC<PainAssessmentCardProps> = ({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Activity className="h-5 w-5" />
+      <CardHeader className={cn(
+        "pb-4",
+        isMobile ? "flex-col space-y-2" : "flex flex-row items-center justify-between space-y-0"
+      )}>
+        <CardTitle className={cn(
+          "flex items-center gap-2 font-semibold",
+          isMobile ? "text-base self-start" : "text-lg"
+        )}>
+          <Activity className={cn(isMobile ? "h-4 w-4" : "h-5 w-5")} />
           Pain Assessment
         </CardTitle>
         <Button 
           onClick={onEdit} 
           variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
+          size={isMobile ? "sm" : "sm"}
+          className={cn(
+            "flex items-center gap-2",
+            isMobile && "w-full"
+          )}
         >
           <Edit className="h-4 w-4" />
-          Edit
+          {isMobile ? "Edit Pain Assessment" : "Edit"}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -178,7 +190,10 @@ export const PainAssessmentCard: React.FC<PainAssessmentCardProps> = ({
                   <h4 className="font-medium text-foreground">Pain Characteristics</h4>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={cn(
+                  "gap-4",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+                )}>
                   <FormField
                     control={form.control}
                     name="painFrequency"
@@ -327,7 +342,10 @@ export const PainAssessmentCard: React.FC<PainAssessmentCardProps> = ({
                   <Zap className="h-4 w-4 text-purple-500" />
                   Pain Characteristics
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+                )}>
                   {patient.pain_frequency && (
                     <div className="bg-purple-50 p-3 rounded-md border border-purple-200">
                       <span className="text-xs font-medium text-purple-600 flex items-center gap-1">

@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { 
   Scale, 
   Edit, 
@@ -32,6 +34,7 @@ export const LegalCard: React.FC<LegalCardProps> = ({
   onToggleSensitive,
   form
 }) => {
+  const isMobile = useIsMobile();
   const maskPhone = (phone: string) => {
     if (!phone || isSensitiveVisible) return phone;
     return '***-***-****';
@@ -43,19 +46,28 @@ export const LegalCard: React.FC<LegalCardProps> = ({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Scale className="h-5 w-5" />
+      <CardHeader className={cn(
+        "pb-4",
+        isMobile ? "flex-col space-y-2" : "flex flex-row items-center justify-between space-y-0"
+      )}>
+        <CardTitle className={cn(
+          "flex items-center gap-2 font-semibold",
+          isMobile ? "text-base self-start" : "text-lg"
+        )}>
+          <Scale className={cn(isMobile ? "h-4 w-4" : "h-5 w-5")} />
           Legal Information
         </CardTitle>
         <Button 
           onClick={onEdit} 
           variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
+          size={isMobile ? "sm" : "sm"}
+          className={cn(
+            "flex items-center gap-2",
+            isMobile && "w-full"
+          )}
         >
           <Edit className="h-4 w-4" />
-          Edit
+          {isMobile ? "Edit Legal Info" : "Edit"}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -69,7 +81,10 @@ export const LegalCard: React.FC<LegalCardProps> = ({
                 <h4 className="font-medium text-foreground">Attorney Information</h4>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={cn(
+                "gap-4",
+                isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+              )}>
                 <div>
                   <Label htmlFor="attorneyName">Attorney's Name</Label>
                   <Input 

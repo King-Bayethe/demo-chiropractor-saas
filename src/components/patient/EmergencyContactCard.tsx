@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { 
   AlertCircle, 
   Edit, 
@@ -30,6 +32,7 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
   onToggleSensitive,
   form
 }) => {
+  const isMobile = useIsMobile();
   const maskPhone = (phone: string) => {
     if (!phone || isSensitiveVisible) return phone;
     return '***-***-****';
@@ -48,19 +51,28 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
+      <CardHeader className={cn(
+        "pb-4",
+        isMobile ? "flex-col space-y-2" : "flex flex-row items-center justify-between space-y-0"
+      )}>
+        <CardTitle className={cn(
+          "flex items-center gap-2 font-semibold",
+          isMobile ? "text-base self-start" : "text-lg"
+        )}>
+          <AlertCircle className={cn(isMobile ? "h-4 w-4" : "h-5 w-5")} />
           Emergency Contact
         </CardTitle>
         <Button 
           onClick={onEdit} 
           variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
+          size={isMobile ? "sm" : "sm"}
+          className={cn(
+            "flex items-center gap-2",
+            isMobile && "w-full"
+          )}
         >
           <Edit className="h-4 w-4" />
-          Edit
+          {isMobile ? "Edit Contact" : "Edit"}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -156,8 +168,11 @@ export const EmergencyContactCard: React.FC<EmergencyContactCardProps> = ({
                   <Button 
                     onClick={onToggleSensitive}
                     variant="outline" 
-                    size="sm"
-                    className="w-full mt-4 flex items-center gap-2"
+                    size={isMobile ? "default" : "sm"}
+                    className={cn(
+                      "mt-4 flex items-center gap-2",
+                      isMobile ? "w-full py-3" : "w-full"
+                    )}
                   >
                     <Shield className="h-4 w-4" />
                     Reveal Sensitive Information

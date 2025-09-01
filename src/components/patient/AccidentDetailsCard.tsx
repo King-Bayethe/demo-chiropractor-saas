@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { 
   Car, 
   Edit, 
@@ -32,6 +34,7 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
   onEdit,
   form
 }) => {
+  const isMobile = useIsMobile();
   const hasAccidentData = patient.accident_date || patient.accident_description || 
                          patient.weather_conditions || patient.street_surface ||
                          patient.body_part_hit || patient.what_body_hit ||
@@ -46,19 +49,28 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Car className="h-5 w-5" />
+      <CardHeader className={cn(
+        "pb-4",
+        isMobile ? "flex-col space-y-2" : "flex flex-row items-center justify-between space-y-0"
+      )}>
+        <CardTitle className={cn(
+          "flex items-center gap-2 font-semibold",
+          isMobile ? "text-base self-start" : "text-lg"
+        )}>
+          <Car className={cn(isMobile ? "h-4 w-4" : "h-5 w-5")} />
           Accident Details
         </CardTitle>
         <Button 
           onClick={onEdit} 
           variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
+          size={isMobile ? "sm" : "sm"}
+          className={cn(
+            "flex items-center gap-2",
+            isMobile && "w-full"
+          )}
         >
           <Edit className="h-4 w-4" />
-          Edit
+          {isMobile ? "Edit Accident Details" : "Edit"}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -73,7 +85,10 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
                   <h4 className="font-medium text-foreground">Accident Date & Time</h4>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={cn(
+                  "gap-4",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+                )}>
                   <FormField
                     control={form.control}
                     name="accidentDate"
@@ -142,7 +157,10 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
                   <h4 className="font-medium text-foreground">Environmental Conditions</h4>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={cn(
+                  "gap-4",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+                )}>
                   <FormField
                     control={form.control}
                     name="weatherConditions"
@@ -203,7 +221,10 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
                   <h4 className="font-medium text-foreground">Impact Details</h4>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={cn(
+                  "gap-4",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+                )}>
                   <FormField
                     control={form.control}
                     name="bodyPartHit"
@@ -400,7 +421,10 @@ export const AccidentDetailsCard: React.FC<AccidentDetailsCardProps> = ({
                   <MapPin className="h-4 w-4 text-green-500" />
                   Environmental Conditions
                 </h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className={cn(
+                  "gap-3",
+                  isMobile ? "grid grid-cols-1" : "grid grid-cols-2"
+                )}>
                   {patient.weather_conditions && (
                     <div>
                       <span className="text-xs font-medium text-muted-foreground">Weather:</span>
