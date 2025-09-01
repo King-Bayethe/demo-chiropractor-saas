@@ -18,6 +18,8 @@ import { SmartTemplates } from "./SmartTemplates";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { SOAPDataConverter, WizardData as UnifiedWizardData } from "@/types/soap";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -65,6 +67,7 @@ const STEPS = [
 
 export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardProps) {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   
@@ -461,28 +464,43 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      <div className="container max-w-7xl mx-auto px-6 py-8">
+      <div className={cn("max-w-7xl mx-auto",
+        isMobile ? "px-4 py-4" : "px-6 py-8"
+      )}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className={cn("flex justify-between mb-6",
+          isMobile ? "flex-col space-y-4" : "items-center mb-8"
+        )}>
           <div className="flex items-center">
             <Button 
               variant="ghost" 
               onClick={onBack} 
-              className="mr-4 hover:bg-primary/10"
+              className={cn("hover:bg-primary/10",
+                isMobile ? "mr-2" : "mr-4"
+              )}
+              size={isMobile ? "sm" : "default"}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className={cn("mr-2", isMobile ? "w-3 h-3" : "w-4 h-4")} />
               Back
             </Button>
             <div>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
+              <div className={cn("flex space-x-2",
+                isMobile ? "flex-col space-y-1 space-x-0" : "items-center space-x-3"
+              )}>
+                {!isMobile && (
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Sparkles className="w-6 h-6 text-primary" />
+                  </div>
+                )}
                 <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  <h1 className={cn("font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent",
+                    isMobile ? "text-lg" : "text-3xl"
+                  )}>
                     SOAP Note Wizard
                   </h1>
-                  <p className="text-muted-foreground mt-1">
+                  <p className={cn("text-muted-foreground",
+                    isMobile ? "text-sm" : "mt-1"
+                  )}>
                     Patient: {wizardData.patientName}
                   </p>
                 </div>
@@ -490,23 +508,37 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Badge variant="outline" className="bg-accent/20 border-accent">
-              <Clock className="w-3 h-3 mr-1" />
+          <div className={cn("flex space-x-3",
+            isMobile ? "justify-between items-center" : "items-center space-x-4"
+          )}>
+            <Badge variant="outline" className={cn("bg-accent/20 border-accent",
+              isMobile ? "text-xs" : ""
+            )}>
+              <Clock className={cn("mr-1", isMobile ? "w-2 h-2" : "w-3 h-3")} />
               Auto-saving
             </Badge>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">Progress</div>
-              <div className="text-lg font-semibold">{calculateProgress()}%</div>
+              <div className={cn("text-muted-foreground",
+                isMobile ? "text-xs" : "text-sm"
+              )}>
+                Progress
+              </div>
+              <div className={cn("font-semibold",
+                isMobile ? "text-sm" : "text-lg"
+              )}>
+                {calculateProgress()}%
+              </div>
             </div>
           </div>
         </div>
 
         {/* Progress */}
-        <div className="mb-8">
-          <Progress value={calculateProgress()} className="h-2 mb-4" />
+        <div className={cn("mb-6", isMobile ? "" : "mb-8")}>
+          <Progress value={calculateProgress()} className={cn(isMobile ? "h-1 mb-3" : "h-2 mb-4")} />
           
-          <div className="flex justify-between">
+          <div className={cn("flex",
+            isMobile ? "grid grid-cols-5 gap-1" : "justify-between"
+          )}>
             {STEPS.map((step, index) => {
               const StepIcon = step.icon;
               const isActive = index === currentStep;
@@ -516,32 +548,40 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
                 <button
                   key={step.id}
                   onClick={() => handleStepClick(index)}
-                  className={`flex flex-col items-center space-y-2 p-3 rounded-lg transition-all ${
+                  className={cn("flex flex-col items-center space-y-1 rounded-lg transition-all",
+                    isMobile ? "p-1" : "space-y-2 p-3",
                     isActive 
                       ? 'bg-primary/10 text-primary' 
                       : isCompleted 
                         ? 'bg-green-50 text-green-600 hover:bg-green-100' 
                         : 'text-muted-foreground hover:bg-muted'
-                  }`}
+                  )}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  <div className={cn("rounded-full flex items-center justify-center",
+                    isMobile ? "w-6 h-6" : "w-10 h-10",
                     isActive 
                       ? 'bg-primary text-primary-foreground' 
                       : isCompleted 
                         ? 'bg-green-500 text-white' 
                         : 'bg-muted'
-                  }`}>
+                  )}>
                     {isCompleted ? (
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className={cn(isMobile ? "w-3 h-3" : "w-5 h-5")} />
                     ) : (
-                      <StepIcon className="w-5 h-5" />
+                      <StepIcon className={cn(isMobile ? "w-3 h-3" : "w-5 h-5")} />
                     )}
                   </div>
                   <div className="text-center">
-                    <div className="font-medium text-sm">{step.title}</div>
-                    <div className="text-xs text-muted-foreground hidden lg:block">
-                      {step.description}
+                    <div className={cn("font-medium",
+                      isMobile ? "text-xs" : "text-sm"
+                    )}>
+                      {isMobile ? step.title.split(' ')[0] : step.title}
                     </div>
+                    {!isMobile && (
+                      <div className="text-xs text-muted-foreground hidden lg:block">
+                        {step.description}
+                      </div>
+                    )}
                   </div>
                 </button>
               );
@@ -550,19 +590,27 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
         </div>
 
         {/* Content */}
-        <div className="grid lg:grid-cols-4 gap-8">
+        <div className={cn("gap-6",
+          isMobile ? "flex flex-col" : "grid lg:grid-cols-4 gap-8"
+        )}>
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className={cn(isMobile ? "" : "lg:col-span-3")}>
             <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 border-b">
-                <CardTitle className="flex items-center space-x-2">
-                  <currentStepInfo.icon className="w-5 h-5 text-primary" />
+              <CardHeader className={cn("bg-gradient-to-r from-primary/10 to-accent/10 border-b",
+                isMobile ? "p-3" : ""
+              )}>
+                <CardTitle className={cn("flex items-center space-x-2",
+                  isMobile ? "text-sm" : ""
+                )}>
+                  <currentStepInfo.icon className={cn("text-primary",
+                    isMobile ? "w-4 h-4" : "w-5 h-5"
+                  )} />
                   <span>{currentStepInfo.title}</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8">
-                <ScrollArea className="h-[600px]">
-                  <div className="pr-4">
+              <CardContent className={cn(isMobile ? "p-4" : "p-8")}>
+                <ScrollArea className={cn(isMobile ? "h-[400px]" : "h-[600px]")}>
+                  <div className={cn(isMobile ? "" : "pr-4")}>
                     {renderStepContent()}
                   </div>
                 </ScrollArea>
@@ -571,72 +619,126 @@ export function SOAPWizard({ patient, onSave, onBack, initialData }: SOAPWizardP
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            <Card className="border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+          {!isMobile && (
+            <div className="space-y-6">
+              <Card className="border-0 bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={saveNow}
+                    className="w-full justify-start"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Draft
+                  </Button>
+                  
+                  <Separator />
+                  
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium mb-2">Completion Status</div>
+                    {STEPS.map((step, index) => (
+                      <div key={step.id} className="flex items-center justify-between py-1">
+                        <span className="text-xs">{step.title}</span>
+                        {isStepComplete(index) ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className={cn("flex justify-between items-center mt-6 pt-4 border-t",
+          isMobile ? "flex-col space-y-3" : "mt-8 pt-6"
+        )}>
+          {isMobile ? (
+            <>
+              <div className="flex w-full space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handlePrevious}
+                  disabled={currentStep === 0}
+                  className="flex-1"
+                  size="sm"
+                >
+                  <ArrowLeft className="w-3 h-3 mr-2" />
+                  Previous
+                </Button>
+                
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={saveNow}
-                  className="w-full justify-start"
+                  className="px-3"
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Draft
+                  <Save className="w-3 h-3" />
                 </Button>
-                
-                <Separator />
-                
-                <div className="text-sm text-muted-foreground">
-                  <div className="font-medium mb-2">Completion Status</div>
-                  {STEPS.map((step, index) => (
-                    <div key={step.id} className="flex items-center justify-between py-1">
-                      <span className="text-xs">{step.title}</span>
-                      {isStepComplete(index) ? (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t">
-          <Button 
-            variant="outline" 
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Previous
-          </Button>
-          
-          <div className="flex space-x-2">
-            {currentStep === STEPS.length - 1 ? (
+              </div>
+              
+              <div className="w-full">
+                {currentStep === STEPS.length - 1 ? (
+                  <Button 
+                    onClick={handleSave}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+                    size="sm"
+                  >
+                    <Save className="w-3 h-3 mr-2" />
+                    Save SOAP Note
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleNext}
+                    className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg"
+                    size="sm"
+                  >
+                    Next
+                    <ArrowRight className="w-3 h-3 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
               <Button 
-                onClick={handleSave}
-                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+                variant="outline" 
+                onClick={handlePrevious}
+                disabled={currentStep === 0}
               >
-                <Save className="w-4 h-4 mr-2" />
-                Save SOAP Note
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
               </Button>
-            ) : (
-              <Button 
-                onClick={handleNext}
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg"
-              >
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            )}
-          </div>
+              
+              <div className="flex space-x-2">
+                {currentStep === STEPS.length - 1 ? (
+                  <Button 
+                    onClick={handleSave}
+                    className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save SOAP Note
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleNext}
+                    className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg"
+                  >
+                    Next
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
