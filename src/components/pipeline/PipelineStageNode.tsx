@@ -84,15 +84,19 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
                   <span className="text-white/70 bg-white/10 px-2 py-1 rounded">
                     {opportunity.case_type}
                   </span>
-                  {opportunity.priority && (
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      opportunity.priority === 'high' ? 'bg-red-500/20 text-red-200' :
-                      opportunity.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-200' :
-                      'bg-green-500/20 text-green-200'
-                    }`}>
-                      {opportunity.priority}
-                    </span>
-                  )}
+                  {(() => {
+                    const lastContactDate = opportunity.last_contact_date || opportunity.created_at;
+                    const daysSince = Math.floor((Date.now() - new Date(lastContactDate).getTime()) / (1000 * 60 * 60 * 24));
+                    const urgencyColor = daysSince > 7 ? 'bg-red-500/20 text-red-200' : 
+                                       daysSince > 3 ? 'bg-yellow-500/20 text-yellow-200' : 
+                                       'bg-green-500/20 text-green-200';
+                    
+                    return (
+                      <span className={`px-2 py-1 rounded text-xs ${urgencyColor}`}>
+                        {daysSince === 0 ? 'Today' : `${daysSince}d ago`}
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 {(opportunity.patient_phone || opportunity.source) && (
