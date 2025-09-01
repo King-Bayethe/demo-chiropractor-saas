@@ -206,6 +206,104 @@ export const TeamChatSection = () => {
     }
   }, [selectedChat?.id]);
 
+  // Real-time subscription for messages in the selected chat
+  useEffect(() => {
+    if (!selectedChat?.id || !currentUserId) return;
+
+    console.log('Setting up real-time subscription for chat:', selectedChat.id);
+
+    const channel = supabase
+      .channel(`team-messages-${selectedChat.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'team_messages',
+          filter: `chat_id=eq.${selectedChat.id}`
+        },
+        async (payload) => {
+          console.log('New message received:', payload);
+          
+          const newMessage = payload.new;
+          
+          // Don't add our own messages (they're already added locally)
+          if (newMessage.sender_id === currentUserId) {
+            return;
+          }
+
+          // Fetch sender profile for the new message
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, role')
+            .eq('user_id', newMessage.sender_id)
+            .maybeSingle();
+
+          const messageWithProfile = {
+            id: newMessage.id,
+            content: newMessage.content,
+            created_at: newMessage.created_at,
+            sender: {
+              id: newMessage.sender_id,
+              first_name: profile?.first_name || '',
+              last_name: profile?.last_name || '',
+              email: '',
+              role: profile?.role || 'staff'
+            }
+          };
+
+          // Add message to state
+          setMessages(prev => [...prev, messageWithProfile]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscription for chat:', selectedChat.id);
+      supabase.removeChannel(channel);
+    };
+  }, [selectedChat?.id, currentUserId]);
+
+  // Real-time subscription for chat list updates
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    console.log('Setting up real-time subscription for chat updates');
+
+    const chatChannel = supabase
+      .channel('team-chats-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_chats'
+        },
+        () => {
+          console.log('Chat list updated, refreshing...');
+          fetchChats();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_chat_participants'
+        },
+        () => {
+          console.log('Chat participants updated, refreshing...');
+          fetchChats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscription for chat updates');
+      supabase.removeChannel(chatChannel);
+    };
+  }, [currentUserId]);
+
   const handleSendMessage = async (message: string) => {
     if (!message.trim() || !selectedChat?.id || !currentUserId) return;
 
