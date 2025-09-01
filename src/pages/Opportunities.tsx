@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Filter, TrendingUp, DollarSign, Target, Loader2, Users, Calendar, UserPlus, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
-import { PipelineFlowHeader } from '@/components/opportunities/PipelineFlowHeader';
+import { Pipeline2DFlow } from '@/components/opportunities/Pipeline2DFlow';
 import { PipelineStageSummary } from '@/components/opportunities/PipelineStageSummary';
 import { OpportunityListView } from '@/components/opportunities/OpportunityListView';
 import { AddMedicalOpportunityForm } from '@/components/opportunities/AddMedicalOpportunityForm';
@@ -364,7 +364,14 @@ export default function Opportunities() {
 
           {/* Pipeline Flow Header */}
           <div className="px-3 md:px-6">
-            <PipelineFlowHeader stages={pipelineFlowData} />
+            <Pipeline2DFlow 
+              stages={pipelineFlowData} 
+              onStageClick={(stageId) => {
+                // Optional: Filter opportunities by stage when clicking
+                console.log('Stage clicked:', stageId);
+              }}
+              className="mb-6" 
+            />
           </div>
 
           {/* Opportunity List */}
