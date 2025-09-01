@@ -22,6 +22,7 @@ export const useUsers = () => {
 
     try {
       setLoading(true);
+      // Use restricted query for non-admin users to respect security policies
       const { data, error } = await supabase
         .from('profiles')
         .select('id, user_id, first_name, last_name, email, avatar_url')

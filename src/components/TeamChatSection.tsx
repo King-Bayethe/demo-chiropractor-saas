@@ -154,9 +154,10 @@ export const TeamChatSection = () => {
   const fetchProfiles = async () => {
     try {
       setProfilesLoading(true);
+      // Use restricted query - only get basic info for team collaboration
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('user_id, first_name, last_name, role, is_active')
         .eq('is_active', true);
       
       if (error) throw error;
