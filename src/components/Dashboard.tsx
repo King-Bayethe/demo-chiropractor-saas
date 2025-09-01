@@ -14,8 +14,11 @@ import {
   Activity,
   Target,
   ArrowUpRight,
-  Award
+  Award,
+  Bell,
+  Settings
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const mockData = {
@@ -54,6 +57,8 @@ const mockData = {
 };
 
 export function Dashboard() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
@@ -73,6 +78,16 @@ export function Dashboard() {
           <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue text-xs sm:text-sm">
             Live Data
           </Badge>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs sm:text-sm"
+            onClick={() => navigate('/settings?section=notifications')}
+          >
+            <Bell className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Test Notifications</span>
+            <span className="sm:hidden">Notify</span>
+          </Button>
           <Button variant="outline" size="sm" className="text-xs sm:text-sm">
             <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Export Report</span>
