@@ -364,7 +364,7 @@ const Documents = () => {
                         <SelectValue placeholder="Select a patient (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No patient</SelectItem>
+                        <SelectItem value="none">No patient</SelectItem>
                         {patients.map((patient) => (
                           <SelectItem key={patient.id} value={patient.id}>
                             {patient.first_name} {patient.last_name}
