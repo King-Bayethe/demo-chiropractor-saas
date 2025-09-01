@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AIProvider } from "@/contexts/AIContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { NotificationHandler } from "@/components/NotificationHandler";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Contacts from "./pages/Contacts";
@@ -49,6 +50,7 @@ const App = () => (
             <AIProvider>
               <LanguageProvider>
                 <TooltipProvider>
+                  <NotificationHandler />
                   <Toaster />
                   <Sonner />
                   <Routes>

@@ -11,6 +11,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { QuickActionsDropdown } from '@/components/conversations/QuickActionsDropdown';
+import { useNotificationHelpers } from '@/hooks/useNotificationHelpers';
 import { cn } from '@/lib/utils';
 
 interface Message {

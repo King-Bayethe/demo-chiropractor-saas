@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { PushNotificationSetup } from './PushNotificationSetup';
+import { NotificationTestPanel } from './NotificationTestPanel';
 
 export const NotificationSettings = () => {
   const {
@@ -46,6 +47,7 @@ export const NotificationSettings = () => {
 
   return (
     <div className="space-y-6">
+      <NotificationTestPanel />
       <PushNotificationSetup />
       
       <Card>

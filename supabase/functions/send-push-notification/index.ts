@@ -14,6 +14,7 @@ interface PushNotificationRequest {
   entity_id?: string;
   notification_id?: string;
   priority?: 'low' | 'normal' | 'high' | 'critical';
+  url?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +22,6 @@ const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
-
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
