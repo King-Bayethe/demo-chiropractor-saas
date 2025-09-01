@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { 
   Clock,
   User,
@@ -21,11 +22,13 @@ import {
   Zap,
   Search,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatTimeSlot } from "@/utils/timezone";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Patient {
   id: string;
@@ -48,6 +51,7 @@ export function SmartSchedulingPanel({
   isOpen,
   onClose
 }: SmartSchedulingPanelProps) {
+  const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [appointmentType, setAppointmentType] = useState<string>("");
   const [duration, setDuration] = useState<number>(30);
@@ -216,245 +220,312 @@ export function SmartSchedulingPanel({
 
   if (!isOpen) return null;
 
+  const content = (
+    <div className={cn("space-y-4", isMobile ? "p-4" : "p-6")}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Zap className={cn("text-medical-blue", isMobile ? "w-4 h-4" : "w-5 h-5")} />
+          <h2 className={cn("font-semibold", isMobile ? "text-lg" : "text-xl")}>Smart Scheduling</h2>
+        </div>
+        {!isMobile && (
+          <Button variant="ghost" onClick={onClose} size="sm">
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* Patient Selection */}
+      <Card>
+        <CardHeader className={cn(isMobile ? "pb-2" : "pb-3")}>
+          <CardTitle className={cn("flex items-center", isMobile ? "text-sm" : "text-sm")}>
+            <User className={cn("mr-2", isMobile ? "w-3 h-3" : "w-4 h-4")} />
+            Select Patient
+          </CardTitle>
+        </CardHeader>
+        <CardContent className={cn("space-y-3", isMobile ? "p-3 pt-0" : "")}>
+          <div>
+            <Label htmlFor="patient" className={cn(isMobile ? "text-sm" : "")}>Patient *</Label>
+            <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={patientSearchOpen}
+                  className={cn("w-full justify-between bg-background", 
+                    isMobile ? "h-10 text-sm" : ""
+                  )}
+                >
+                  {selectedPatient
+                    ? getPatientDisplayName(selectedPatient)
+                    : "Select patient..."}
+                  <ChevronsUpDown className={cn("ml-2 shrink-0 opacity-50", 
+                    isMobile ? "h-3 w-3" : "h-4 w-4"
+                  )} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 bg-background border border-border shadow-lg z-50">
+                <Command>
+                  <CommandInput 
+                    placeholder="Search patients..." 
+                    value={patientSearchValue}
+                    onValueChange={setPatientSearchValue}
+                  />
+                  <CommandList>
+                    <CommandEmpty>No patients found.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredPatients.slice(0, 10).map((patient) => (
+                        <CommandItem
+                          key={patient.id}
+                          value={patient.id}
+                          onSelect={() => {
+                            setSelectedPatient(patient);
+                            setPatientSearchOpen(false);
+                            setPatientSearchValue("");
+                          }}
+                          className="bg-background hover:bg-muted/50 cursor-pointer"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2",
+                              isMobile ? "h-3 w-3" : "h-4 w-4",
+                              selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span className={cn("font-medium", isMobile ? "text-sm" : "")}>
+                              {getPatientDisplayName(patient)}
+                            </span>
+                            {patient.email && (
+                              <span className={cn("text-muted-foreground", 
+                                isMobile ? "text-xs" : "text-xs"
+                              )}>
+                                {patient.email}
+                              </span>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          {selectedPatient && (
+            <div className={cn("p-3 bg-muted/30 rounded-lg border", isMobile ? "p-2" : "")}>
+              <div className={cn("space-y-1", isMobile ? "text-xs" : "text-sm")}>
+                <div><strong>Name:</strong> {getPatientDisplayName(selectedPatient)}</div>
+                {selectedPatient.email && <div><strong>Email:</strong> {selectedPatient.email}</div>}
+                {selectedPatient.phone && <div><strong>Phone:</strong> {selectedPatient.phone}</div>}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Appointment Details */}
+      <Card>
+        <CardHeader className={cn(isMobile ? "pb-2" : "pb-3")}>
+          <CardTitle className={cn("flex items-center", isMobile ? "text-sm" : "text-sm")}>
+            <CalendarIcon className={cn("mr-2", isMobile ? "w-3 h-3" : "w-4 h-4")} />
+            Appointment Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className={cn("space-y-3", isMobile ? "p-3 pt-0" : "")}>
+          <div>
+            <Label htmlFor="appointmentType" className={cn(isMobile ? "text-sm" : "")}>
+              Appointment Type *
+            </Label>
+            <Select value={appointmentType} onValueChange={setAppointmentType}>
+              <SelectTrigger className={cn(isMobile ? "h-10" : "")}>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                {appointmentTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${type.color}`} />
+                      <span className={cn(isMobile ? "text-sm" : "")}>
+                        {type.label} ({type.duration}min)
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="duration" className={cn(isMobile ? "text-sm" : "")}>
+              Duration (minutes)
+            </Label>
+            <Input
+              id="duration"
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
+              min="15"
+              max="120"
+              step="15"
+              className={cn(isMobile ? "h-10" : "")}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Date & Time Selection */}
+      <Card>
+        <CardHeader className={cn(isMobile ? "pb-2" : "pb-3")}>
+          <CardTitle className={cn("flex items-center", isMobile ? "text-sm" : "text-sm")}>
+            <CalendarIcon className={cn("mr-2", isMobile ? "w-3 h-3" : "w-4 h-4")} />
+            Select Date & Time
+          </CardTitle>
+        </CardHeader>
+        <CardContent className={cn(isMobile ? "p-3 pt-0" : "")}>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => date && setSelectedDate(date)}
+            disabled={(date) => date < new Date()}
+            className={cn("w-full pointer-events-auto", isMobile ? "text-sm" : "")}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Available Time Slots */}
+      <Card>
+        <CardHeader className={cn(isMobile ? "pb-2" : "pb-3")}>
+          <CardTitle className={cn("flex items-center justify-between", isMobile ? "text-sm" : "text-sm")}>
+            Available Time Slots
+            <Badge variant="secondary" className={cn("bg-success/10 text-success", 
+              isMobile ? "text-xs" : ""
+            )}>
+              {availableTimeSlots.length} slots
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className={cn(isMobile ? "p-3 pt-0" : "")}>
+          <div className={cn("grid gap-2", 
+            isMobile ? "grid-cols-2" : "grid-cols-3"
+          )}>
+            {availableTimeSlots.map((slot, index) => (
+              <Button
+                key={index}
+                variant={selectedTimeSlot === slot ? "default" : "outline"}
+                size={isMobile ? "sm" : "sm"}
+                onClick={() => setSelectedTimeSlot(slot)}
+                className={cn("h-9", isMobile ? "text-xs px-2" : "text-xs")}
+              >
+                {slot}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Smart Recommendations */}
+      {recommendations.length > 0 && (
+        <Card>
+          <CardHeader className={cn(isMobile ? "pb-2" : "pb-3")}>
+            <CardTitle className={cn("flex items-center", isMobile ? "text-sm" : "text-sm")}>
+              <Lightbulb className={cn("mr-2", isMobile ? "w-3 h-3" : "w-4 h-4")} />
+              Smart Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className={cn("space-y-3", isMobile ? "p-3 pt-0" : "")}>
+            {recommendations.map((rec, index) => {
+              const IconComponent = rec.icon;
+              return (
+                <div key={index} className={cn("flex items-start space-x-3 rounded-lg border border-border/50 bg-muted/20",
+                  isMobile ? "p-2" : "p-3"
+                )}>
+                  <IconComponent className={cn("mt-0.5", 
+                    isMobile ? "w-3 h-3" : "w-4 h-4",
+                    rec.type === 'optimal' ? 'text-success' : 
+                    rec.type === 'warning' ? 'text-warning' : 'text-primary'
+                  )} />
+                  <div className="flex-1 space-y-1">
+                    <h4 className={cn("font-medium", isMobile ? "text-xs" : "text-sm")}>
+                      {rec.title}
+                    </h4>
+                    <p className={cn("text-muted-foreground", 
+                      isMobile ? "text-xs" : "text-xs"
+                    )}>
+                      {rec.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Notes */}
+      <Card>
+        <CardHeader className={cn(isMobile ? "pb-2" : "pb-3")}>
+          <CardTitle className={cn(isMobile ? "text-sm" : "text-sm")}>
+            Notes (Optional)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className={cn(isMobile ? "p-3 pt-0" : "")}>
+          <Textarea
+            placeholder="Add any additional notes for this appointment..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className={cn("min-h-[80px]", isMobile ? "text-sm" : "")}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className={cn("flex gap-3 pt-4 border-t", 
+        isMobile ? "flex-col" : ""
+      )}>
+        <Button 
+          variant="outline" 
+          onClick={onClose} 
+          className={cn(isMobile ? "w-full" : "flex-1")}
+          size={isMobile ? "default" : "default"}
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleSchedule}
+          disabled={!selectedPatient || !appointmentType}
+          className={cn(isMobile ? "w-full" : "flex-1")}
+          size={isMobile ? "default" : "default"}
+        >
+          Schedule Appointment
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-medical-blue" />
+              Smart Scheduling
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            {content}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed right-0 top-0 h-full w-[500px] bg-background border-l border-border shadow-xl overflow-y-auto">
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-medical-blue" />
-              <h2 className="text-xl font-semibold">Smart Scheduling</h2>
-            </div>
-            <Button variant="ghost" onClick={onClose}>×</Button>
-          </div>
-
-          {/* Patient Selection */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center">
-                <User className="w-4 h-4 mr-2" />
-                Select Patient
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <Label htmlFor="patient">Patient *</Label>
-                <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={patientSearchOpen}
-                      className="w-full justify-between bg-background"
-                    >
-                      {selectedPatient
-                        ? getPatientDisplayName(selectedPatient)
-                        : "Select patient..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0 bg-background border border-border shadow-lg z-50">
-                    <Command>
-                      <CommandInput 
-                        placeholder="Search patients..." 
-                        value={patientSearchValue}
-                        onValueChange={setPatientSearchValue}
-                      />
-                      <CommandList>
-                        <CommandEmpty>No patients found.</CommandEmpty>
-                        <CommandGroup>
-                          {filteredPatients.slice(0, 10).map((patient) => (
-                            <CommandItem
-                              key={patient.id}
-                              value={patient.id}
-                              onSelect={() => {
-                                setSelectedPatient(patient);
-                                setPatientSearchOpen(false);
-                                setPatientSearchValue("");
-                              }}
-                              className="bg-background hover:bg-muted/50 cursor-pointer"
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              <div className="flex flex-col">
-                                <span className="font-medium">{getPatientDisplayName(patient)}</span>
-                                {patient.email && (
-                                  <span className="text-xs text-muted-foreground">{patient.email}</span>
-                                )}
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              {selectedPatient && (
-                <div className="p-3 bg-muted/30 rounded-lg border">
-                  <div className="text-sm space-y-1">
-                    <div><strong>Name:</strong> {getPatientDisplayName(selectedPatient)}</div>
-                    {selectedPatient.email && <div><strong>Email:</strong> {selectedPatient.email}</div>}
-                    {selectedPatient.phone && <div><strong>Phone:</strong> {selectedPatient.phone}</div>}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Appointment Details */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                Appointment Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <Label htmlFor="appointmentType">Appointment Type *</Label>
-                <Select value={appointmentType} onValueChange={setAppointmentType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {appointmentTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center space-x-2">
-                          <div className={`w-2 h-2 rounded-full ${type.color}`} />
-                          <span>{type.label} ({type.duration}min)</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="duration">Duration (minutes)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                  min="15"
-                  max="120"
-                  step="15"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Date & Time Selection */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                Select Date & Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                disabled={(date) => date < new Date()}
-                className="w-full pointer-events-auto"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Available Time Slots */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center justify-between">
-                Available Time Slots
-                <Badge variant="secondary" className="bg-success/10 text-success">
-                  {availableTimeSlots.length} slots
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2">
-                {availableTimeSlots.map((slot, index) => (
-                  <Button
-                    key={index}
-                    variant={selectedTimeSlot === slot ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedTimeSlot(slot)}
-                    className="text-xs"
-                  >
-                    {slot}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Smart Recommendations */}
-          {recommendations.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center">
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Smart Recommendations
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {recommendations.map((rec, index) => {
-                  const IconComponent = rec.icon;
-                  return (
-                    <div key={index} className="flex items-start space-x-3 p-3 rounded-lg border border-border/50 bg-muted/20">
-                      <IconComponent className={`w-4 h-4 mt-0.5 ${
-                        rec.type === 'optimal' ? 'text-success' : 
-                        rec.type === 'warning' ? 'text-warning' : 'text-primary'
-                      }`} />
-                      <div className="flex-1 space-y-1">
-                        <h4 className="text-sm font-medium">{rec.title}</h4>
-                        <p className="text-xs text-muted-foreground">{rec.description}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Notes */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Notes (Optional)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Add any additional notes for this appointment..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[80px]"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSchedule}
-              disabled={!selectedPatient || !appointmentType}
-              className="flex-1"
-            >
-              Schedule Appointment
-            </Button>
-          </div>
-        </div>
+        {content}
       </div>
     </div>
   );
