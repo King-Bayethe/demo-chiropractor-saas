@@ -414,24 +414,26 @@ export default function Opportunities() {
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex h-full overflow-x-auto p-6 gap-6" style={{ minWidth: `${MEDICAL_PIPELINE_STAGES.length * 320 + (MEDICAL_PIPELINE_STAGES.length - 1) * 24 + 48}px` }}>
-                  <SortableContext 
-                    items={MEDICAL_PIPELINE_STAGES.map(stage => stage.id)} 
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {MEDICAL_PIPELINE_STAGES.map(stage => (
-                      <div key={stage.id} className="w-80 flex-shrink-0">
-                        <MedicalOpportunityColumn
-                          stage={stage}
-                          opportunities={getOpportunitiesByStage(stage.id)}
-                          onEdit={handleEditOpportunity}
-                          onDelete={handleDeleteOpportunity}
-                          onMoveToPrevious={moveOpportunityToPreviousStage}
-                          onMoveToNext={moveOpportunityToNextStage}
-                        />
-                      </div>
-                    ))}
-                  </SortableContext>
+                <div className="flex h-full overflow-x-auto overflow-y-hidden pb-6">
+                  <div className="flex gap-6 px-6 pt-6" style={{ minWidth: 'max-content' }}>
+                    <SortableContext 
+                      items={MEDICAL_PIPELINE_STAGES.map(stage => stage.id)} 
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {MEDICAL_PIPELINE_STAGES.map(stage => (
+                        <div key={stage.id} className="w-80 flex-shrink-0">
+                          <MedicalOpportunityColumn
+                            stage={stage}
+                            opportunities={getOpportunitiesByStage(stage.id)}
+                            onEdit={handleEditOpportunity}
+                            onDelete={handleDeleteOpportunity}
+                            onMoveToPrevious={moveOpportunityToPreviousStage}
+                            onMoveToNext={moveOpportunityToNextStage}
+                          />
+                        </div>
+                      ))}
+                    </SortableContext>
+                  </div>
                 </div>
                 
                 <DragOverlay>
