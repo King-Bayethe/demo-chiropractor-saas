@@ -356,7 +356,7 @@ export default function Opportunities() {
           </div>
 
           {/* Kanban Board */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-x-auto overflow-y-hidden">
             {isMobile ? (
               /* Mobile View - Single Column with Stage Navigation */
               <div className="flex flex-col h-full">
