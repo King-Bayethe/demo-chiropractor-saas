@@ -414,7 +414,7 @@ export default function Opportunities() {
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex h-full overflow-x-auto p-6 gap-6 min-w-fit">
+                <div className="flex h-full overflow-x-auto p-6 gap-6" style={{ minWidth: `${MEDICAL_PIPELINE_STAGES.length * 320 + (MEDICAL_PIPELINE_STAGES.length - 1) * 24 + 48}px` }}>
                   <SortableContext 
                     items={MEDICAL_PIPELINE_STAGES.map(stage => stage.id)} 
                     strategy={horizontalListSortingStrategy}
