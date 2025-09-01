@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, Users, Trash2, Info, RefreshCw, Menu, Phone, Video } from 'lucide-react';
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Participant {
   id: string;
@@ -48,6 +49,68 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onRefresh
 }) => {
   const { profile } = useProfile();
+  const [presenceState, setPresenceState] = useState<{[key: string]: any}>({});
+  const [presenceChannel, setPresenceChannel] = useState<any>(null);
+
+  // Set up presence tracking
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const channel = supabase.channel('team-presence', {
+      config: {
+        presence: {
+          key: currentUserId,
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const newState = channel.presenceState();
+        setPresenceState(newState);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        setPresenceState(prev => ({
+          ...prev,
+          [key]: newPresences
+        }));
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        setPresenceState(prev => {
+          const newState = { ...prev };
+          delete newState[key];
+          return newState;
+        });
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: currentUserId,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    setPresenceChannel(channel);
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [currentUserId]);
+
+  const getOtherParticipantId = () => {
+    if (selectedChat?.type === 'direct') {
+      const otherParticipant = selectedChat.participants?.find(
+        (p: Participant) => p.user_id !== currentUserId
+      );
+      return otherParticipant?.user_id;
+    }
+    return null;
+  };
+
+  const isUserOnline = (userId: string) => {
+    return !!presenceState[userId];
+  };
 
   const getDisplayInfo = () => {
     // For direct messages, show the OTHER participant's info
@@ -132,7 +195,15 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 {getDisplayInfo().avatar}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-background" />
+            {(() => {
+              const otherUserId = getOtherParticipantId();
+              const isOnline = otherUserId ? isUserOnline(otherUserId) : false;
+              return (
+                <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full border-2 border-background ${
+                  isOnline ? 'bg-green-500' : 'bg-gray-400'
+                }`} />
+              );
+            })()}
           </div>
 
           <div className="min-w-0">
@@ -141,10 +212,20 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </h2>
             <div className="flex items-center space-x-1 md:space-x-2">
               <div className="flex items-center space-x-1">
-                <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full" />
-                <span className="text-xs text-muted-foreground capitalize">
-                  online
-                </span>
+                {(() => {
+                  const otherUserId = getOtherParticipantId();
+                  const isOnline = otherUserId ? isUserOnline(otherUserId) : false;
+                  return (
+                    <>
+                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${
+                        isOnline ? 'bg-green-500' : 'bg-gray-400'
+                      }`} />
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {isOnline ? 'online' : 'offline'}
+                      </span>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
