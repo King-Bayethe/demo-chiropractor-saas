@@ -13,6 +13,8 @@ interface Notification {
   entity_type?: string;
   entity_id?: string;
   created_by?: string;
+  priority?: 'low' | 'normal' | 'high' | 'critical';
+  delivery_status?: any;
   created_at: string;
   updated_at: string;
 }
@@ -23,7 +25,7 @@ interface NotificationContextType {
   loading: boolean;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  createNotification: (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>) => Promise<void>;
+  createNotification: (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>) => Promise<Notification | null>;
   deleteNotification: (id: string) => Promise<void>;
   refreshNotifications: () => Promise<void>;
 }
@@ -115,9 +117,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [user?.id, toast]);
 
-  const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>) => {
+  const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>): Promise<Notification | null> => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('notifications')
         .insert({
           user_id: notification.user_id,
@@ -126,10 +128,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           type: notification.type,
           entity_type: notification.entity_type,
           entity_id: notification.entity_id,
+          priority: notification.priority,
           created_by: user?.id
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+      return data as Notification;
     } catch (error) {
       console.error('Error creating notification:', error);
       toast({
@@ -137,6 +143,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         description: "Failed to create notification",
         variant: "destructive"
       });
+      return null;
     }
   }, [user?.id, toast]);
 

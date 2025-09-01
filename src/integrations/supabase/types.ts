@@ -645,14 +645,55 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
           created_by: string | null
+          delivery_status: Json | null
           entity_id: string | null
           entity_type: string | null
           id: string
           message: string
+          priority: string | null
           read: boolean
           title: string
           type: string
@@ -662,10 +703,12 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          delivery_status?: Json | null
           entity_id?: string | null
           entity_type?: string | null
           id?: string
           message: string
+          priority?: string | null
           read?: boolean
           title: string
           type?: string
@@ -675,10 +718,12 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          delivery_status?: Json | null
           entity_id?: string | null
           entity_type?: string | null
           id?: string
           message?: string
+          priority?: string | null
           read?: boolean
           title?: string
           type?: string
@@ -1864,6 +1909,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          notification_preferences: Json | null
           setting_key: string
           setting_value: Json
           updated_at: string
@@ -1872,6 +1918,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          notification_preferences?: Json | null
           setting_key: string
           setting_value?: Json
           updated_at?: string
@@ -1880,6 +1927,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          notification_preferences?: Json | null
           setting_key?: string
           setting_value?: Json
           updated_at?: string
