@@ -20,7 +20,6 @@ interface Participant {
   id: string;
   chat_id: string;
   user_id: string;
-  role: string;
   profiles: Profile;
 }
 
@@ -30,6 +29,7 @@ interface TeamChat {
   type: 'direct' | 'group';
   created_by: string;
   created_at: string;
+  last_message_at?: string;
   participants: Participant[];
   unread_count?: number;
 }
@@ -60,6 +60,7 @@ export const TeamChatList: React.FC<TeamChatListProps> = ({
           type,
           created_by,
           created_at,
+          last_message_at,
           participants:team_chat_participants(
             id,
             chat_id,
@@ -82,12 +83,64 @@ export const TeamChatList: React.FC<TeamChatListProps> = ({
         chat.participants?.some(p => p.profiles?.user_id === user.id)
       ) || [];
 
-      setChats(userChats as TeamChat[]);
+      // Group direct messages by participant pairs
+      const groupedChats = groupDirectMessages(userChats as TeamChat[]);
+
+      setChats(groupedChats);
     } catch (error) {
       console.error('Error fetching chats:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Group direct messages by participant pairs, keeping the most recent one
+  const groupDirectMessages = (chats: TeamChat[]): TeamChat[] => {
+    const groupChats: TeamChat[] = [];
+    const directMessageMap = new Map<string, TeamChat>();
+
+    chats.forEach(chat => {
+      if (chat.type === 'group') {
+        groupChats.push(chat);
+      } else if (chat.type === 'direct') {
+        // Create a unique key for this direct message pair
+        const otherParticipant = chat.participants?.find(
+          p => p.profiles?.user_id !== user?.id
+        );
+        
+        if (otherParticipant?.profiles?.user_id) {
+          const participantIds = [user.id, otherParticipant.profiles.user_id].sort();
+          const pairKey = participantIds.join('-');
+          
+          const existingChat = directMessageMap.get(pairKey);
+          const chatLastMessage = chat.last_message_at || chat.created_at;
+          const existingLastMessage = existingChat?.last_message_at || existingChat?.created_at;
+          
+          // Keep the chat with the most recent message
+          if (!existingChat || (chatLastMessage && (!existingLastMessage || chatLastMessage > existingLastMessage))) {
+            // If replacing an existing chat, combine unread counts
+            const combinedUnreadCount = (chat.unread_count || 0) + (existingChat?.unread_count || 0);
+            directMessageMap.set(pairKey, {
+              ...chat,
+              unread_count: combinedUnreadCount
+            });
+          } else if (existingChat && chat.unread_count) {
+            // Add unread count to existing chat
+            existingChat.unread_count = (existingChat.unread_count || 0) + chat.unread_count;
+          }
+        }
+      }
+    });
+
+    // Combine group chats and deduplicated direct messages
+    const allChats = [...groupChats, ...Array.from(directMessageMap.values())];
+    
+    // Sort by last message time
+    return allChats.sort((a, b) => {
+      const aTime = a.last_message_at || a.created_at;
+      const bTime = b.last_message_at || b.created_at;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    });
   };
 
   // Set up Supabase Realtime
