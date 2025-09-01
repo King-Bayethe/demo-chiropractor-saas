@@ -50,13 +50,24 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
       const targetTab = children[index];
       const tabLeft = targetTab.offsetLeft;
       const tabWidth = targetTab.offsetWidth;
+      const tabRight = tabLeft + tabWidth;
+      const currentScroll = scrollPosition;
       
-      // Always center the selected tab for better visibility
-      const newScrollPosition = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+      let newScrollPosition = currentScroll;
+      
+      // If tab is completely off screen to the right
+      if (tabRight > currentScroll + containerWidth) {
+        newScrollPosition = tabRight - containerWidth + 20; // 20px padding
+      }
+      // If tab is completely off screen to the left
+      else if (tabLeft < currentScroll) {
+        newScrollPosition = tabLeft - 20; // 20px padding
+      }
+      
       const maxScroll = tabsWidth - containerWidth;
-      const finalScrollPosition = Math.max(0, Math.min(newScrollPosition, maxScroll));
+      newScrollPosition = Math.max(0, Math.min(newScrollPosition, maxScroll));
       
-      setScrollPosition(finalScrollPosition);
+      setScrollPosition(newScrollPosition);
     }
   };
 
