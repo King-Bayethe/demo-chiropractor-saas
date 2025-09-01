@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DisplayAppointment {
   id: string;
@@ -111,6 +112,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onDateSelect,
   onTimeSlotClick,
 }) => {
+  const isMobile = useIsMobile();
   if (view === 'month') {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
@@ -123,8 +125,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         {/* Days of the week header */}
         <div className="grid grid-cols-7 border-b border-border">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-3 text-center font-medium text-muted-foreground">
-              {day}
+            <div key={day} className={cn("text-center font-medium text-muted-foreground", 
+              isMobile ? "p-2 text-xs" : "p-3 text-sm"
+            )}>
+              {isMobile ? day.slice(0, 1) : day}
             </div>
           ))}
         </div>
@@ -140,16 +144,17 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "bg-background p-2 min-h-[120px] overflow-y-auto",
+                  "bg-background overflow-y-auto",
+                  isMobile ? "p-1 min-h-[80px]" : "p-2 min-h-[120px]",
                   !isSameMonth(day, currentDate) && "text-muted-foreground bg-muted/30",
                   isToday(day) && "bg-primary/5 border-2 border-primary/20"
                 )}
-              >
+                >
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size={isMobile ? "sm" : "sm"}
                   className={cn(
-                    "h-8 w-8 p-0 font-normal mb-1",
+                    isMobile ? "h-6 w-6 p-0 text-xs font-normal mb-1" : "h-8 w-8 p-0 font-normal mb-1",
                     isToday(day) && "bg-primary text-primary-foreground hover:bg-primary/90"
                   )}
                   onClick={() => onDateSelect(day)}

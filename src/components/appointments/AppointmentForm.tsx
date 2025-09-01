@@ -15,6 +15,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { Appointment, CreateAppointmentData } from '@/hooks/useAppointments';
 import { Calendar } from '@/components/ui/calendar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const appointmentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -47,6 +48,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onCancel,
   loading = false,
  }) => {
+  const isMobile = useIsMobile();
   const [contactOpen, setContactOpen] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -447,11 +449,22 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             )}
           />
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onCancel} className="px-6">
+          <div className={cn("flex gap-3 pt-4 border-t", 
+            isMobile ? "flex-col" : "justify-end"
+          )}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              className={cn("px-6", isMobile ? "w-full" : "")}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="px-6">
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className={cn("px-6", isMobile ? "w-full" : "")}
+            >
               {loading ? 'Saving...' : appointment ? 'Update Appointment' : 'Create Appointment'}
             </Button>
           </div>

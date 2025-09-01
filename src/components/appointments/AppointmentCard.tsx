@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Calendar, MapPin, User, Clock } from 'lucide-react';
 import { Appointment } from '@/hooks/useAppointments';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -54,31 +56,36 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
 }) => {
   const startTime = parseISO(appointment.start_time);
   const endTime = parseISO(appointment.end_time);
+  const isMobile = useIsMobile();
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
+      <CardHeader className={cn("pb-2", isMobile ? "p-3" : "p-4")}>
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h3 className="font-semibold text-lg">{appointment.title}</h3>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="space-y-1 flex-1 min-w-0">
+            <h3 className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>
+              {appointment.title}
+            </h3>
+            <div className={cn("flex gap-2 text-muted-foreground", 
+              isMobile ? "flex-col text-xs space-y-1" : "items-center gap-4 text-sm"
+            )}>
               <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+                <Calendar className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
                 {format(startTime, 'MMM d, yyyy')}
               </div>
               <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
+                <Clock className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
                 {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
               </div>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size={isMobile ? "sm" : "sm"} className={cn(isMobile ? "h-8 w-8 p-0" : "")}>
+                <MoreHorizontal className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
               <DropdownMenuItem onClick={() => onEdit(appointment)}>
                 Edit Appointment
               </DropdownMenuItem>
@@ -110,32 +117,32 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className={cn("space-y-3", isMobile ? "p-3 pt-0" : "")}>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className={getStatusColor(appointment.status)}>
+          <Badge variant="outline" className={cn(getStatusColor(appointment.status), isMobile ? "text-xs" : "")}>
             {appointment.status.replace('_', ' ').toUpperCase()}
           </Badge>
-          <Badge variant="outline" className={getTypeColor(appointment.type)}>
+          <Badge variant="outline" className={cn(getTypeColor(appointment.type), isMobile ? "text-xs" : "")}>
             {appointment.type.replace('_', ' ').toUpperCase()}
           </Badge>
         </div>
         
         {appointment.contact_name && (
-          <div className="flex items-center gap-2 text-sm">
-            <User className="h-4 w-4 text-muted-foreground" />
+          <div className={cn("flex items-center gap-2", isMobile ? "text-xs" : "text-sm")}>
+            <User className={cn(isMobile ? "h-3 w-3" : "h-4 w-4", "text-muted-foreground")} />
             <span>{appointment.contact_name}</span>
           </div>
         )}
         
         {appointment.location && (
-          <div className="flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
+          <div className={cn("flex items-center gap-2", isMobile ? "text-xs" : "text-sm")}>
+            <MapPin className={cn(isMobile ? "h-3 w-3" : "h-4 w-4", "text-muted-foreground")} />
             <span>{appointment.location}</span>
           </div>
         )}
         
         {appointment.notes && (
-          <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
+          <div className={cn("text-muted-foreground bg-muted p-2 rounded", isMobile ? "text-xs" : "text-sm")}>
             {appointment.notes}
           </div>
         )}
