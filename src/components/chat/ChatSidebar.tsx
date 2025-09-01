@@ -93,36 +93,51 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   const getChatAvatar = (chat: Chat): string => {
+    console.log('=== AVATAR DEBUG ===');
+    console.log('Chat type:', chat.type);
+    console.log('Chat name:', chat.name);
+    console.log('All participants:', chat.participants);
+    console.log('Current user ID:', currentUserId);
+    
     if (chat.type === 'group') {
       return 'GT';
     }
     
     const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
-    console.log('Chat participants:', chat.participants, 'Other participant:', otherParticipant, 'Current user:', currentUserId);
+    console.log('Other participant found:', otherParticipant);
+    
     if (otherParticipant) {
       const firstName = (otherParticipant.first_name || '').trim();
       const lastName = (otherParticipant.last_name || '').trim();
       const email = (otherParticipant.email || '').trim();
       
+      console.log('Participant name data:', { firstName, lastName, email });
+      
       // Try to get initials from first and last name
       if (firstName && lastName) {
-        return `${firstName[0]}${lastName[0]}`.toUpperCase();
+        const initials = `${firstName[0]}${lastName[0]}`.toUpperCase();
+        console.log('Generated initials from name:', initials);
+        return initials;
       }
       
       // Try single name
       if (firstName || lastName) {
         const name = firstName || lastName;
-        return `${name[0]}${name[1] || ''}`.toUpperCase();
+        const initials = `${name[0]}${name[1] || ''}`.toUpperCase();
+        console.log('Generated initials from single name:', initials);
+        return initials;
       }
       
       // Fallback to email initials
       if (email) {
         const emailParts = email.split('@')[0];
-        return `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
+        const initials = `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
+        console.log('Generated initials from email:', initials);
+        return initials;
       }
     }
     
-    // Final fallback
+    console.log('No other participant found, falling back to UC');
     return 'UC'; // Unknown Chat
   };
 
