@@ -16,7 +16,9 @@ export const createPatientFromCashForm = async () => {
   }
 };
 
-// Auto-execute when this file is imported
-createPatientFromCashForm().then(result => {
-  console.log('Final result:', result);
+// Import and run the comprehensive mock PIP form test
+import('./mockPIPFormSubmission').then(module => {
+  console.log('Mock PIP form submission module loaded and executed');
+}).catch(error => {
+  console.error('Error loading mock PIP form submission:', error);
 });
