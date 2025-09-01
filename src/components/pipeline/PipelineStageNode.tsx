@@ -69,17 +69,55 @@ export function PipelineStageNode({ data }: PipelineStageNodeProps) {
             {stageOpportunities.slice(0, 3).map((opportunity) => (
               <div 
                 key={opportunity.id}
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-white"
+                className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-white space-y-2"
               >
-                <div className="font-medium text-sm truncate">
-                  {opportunity.patient_name || opportunity.contact_name || 'Unknown Contact'}
+                <div className="flex items-start justify-between">
+                  <div className="font-medium text-sm truncate flex-1">
+                    {opportunity.patient_name || 'Unknown Contact'}
+                  </div>
+                  <div className="text-xs text-white/80 ml-2">
+                    ${opportunity.estimated_value?.toLocaleString() || '0'}
+                  </div>
                 </div>
-                <div className="text-xs text-white/80">
-                  ${opportunity.estimated_value?.toLocaleString() || '0'}
+                
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/70 bg-white/10 px-2 py-1 rounded">
+                    {opportunity.case_type}
+                  </span>
+                  {opportunity.priority && (
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      opportunity.priority === 'high' ? 'bg-red-500/20 text-red-200' :
+                      opportunity.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-200' :
+                      'bg-green-500/20 text-green-200'
+                    }`}>
+                      {opportunity.priority}
+                    </span>
+                  )}
                 </div>
-                <div className="text-xs text-white/70">
-                  {opportunity.case_type}
-                </div>
+
+                {(opportunity.patient_phone || opportunity.source) && (
+                  <div className="flex items-center justify-between text-xs text-white/70">
+                    {opportunity.patient_phone && (
+                      <span className="truncate">{opportunity.patient_phone}</span>
+                    )}
+                    {opportunity.source && (
+                      <span className="capitalize">{opportunity.source}</span>
+                    )}
+                  </div>
+                )}
+
+                {(opportunity.assigned_provider_name || opportunity.last_contact_date) && (
+                  <div className="flex items-center justify-between text-xs text-white/60">
+                    {opportunity.assigned_provider_name && (
+                      <span className="truncate">Dr. {opportunity.assigned_provider_name}</span>
+                    )}
+                    {opportunity.last_contact_date && (
+                      <span>
+                        Last: {new Date(opportunity.last_contact_date).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             
