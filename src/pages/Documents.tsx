@@ -1,377 +1,606 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Upload,
-  Search,
-  FileText,
-  Download,
-  Eye,
-  Trash2,
-  Filter,
-  FolderOpen,
-} from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Upload, Download, Eye, Trash2, FileText, Search, Plus, Loader2, FolderOpen } from 'lucide-react';
 
+// Define the document interface
 interface Document {
   id: string;
   name: string;
   type: string;
-  patient: string;
-  referralSource: string;
-  uploadDate: string;
-  addedBy: string;
+  patient_id?: string;
+  patient_name?: string;
+  category: string;
+  file_path: string;
+  file_size?: number;
+  file_type: string;
+  description?: string;
+  referral_source?: string;
+  status: string;
+  uploaded_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
-const mockDocuments: Document[] = [
-  {
-    id: "1",
-    name: "MRI_Results_Johnson.pdf",
-    type: "MRI/Imaging Files",
-    patient: "Maria Johnson",
-    referralSource: "Rodriguez & Associates",
-    uploadDate: "2024-01-15",
-    addedBy: "Front Desk",
-  },
-  {
-    id: "2",
-    name: "Treatment_Report_Smith.pdf",
-    type: "Treatment Report",
-    patient: "John Smith",
-    referralSource: "Legal Partners LLC",
-    uploadDate: "2024-01-14",
-    addedBy: "Dr. Silverman",
-  },
-  {
-    id: "3",
-    name: "PIP_Billing_Garcia.pdf",
-    type: "PIP Billing Form",
-    patient: "Ana Garcia",
-    referralSource: "Johnson Law Firm",
-    uploadDate: "2024-01-13",
-    addedBy: "Billing Dept",
-  },
-];
+// Patient interface for select options
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
 
-const documentTypes = [
-  "Treatment Report",
-  "PIP Billing Form",
-  "MRI/Imaging Files",
-  "Attorney Correspondence",
-  "Consent Form",
-  "General File",
-];
-
-const mockPatients = [
-  "Maria Johnson",
-  "John Smith",
-  "Ana Garcia",
-  "Carlos Rodriguez",
-  "Lisa Williams",
-];
-
-export default function Documents() {
-  const [documents] = useState<Document[]>(mockDocuments);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDocumentType, setSelectedDocumentType] = useState("");
-  const [selectedPatient, setSelectedPatient] = useState("");
+const Documents = () => {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDocumentType, setSelectedDocumentType] = useState('All');
+  const [selectedPatient, setSelectedPatient] = useState('All');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [uploadNotes, setUploadNotes] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadForm, setUploadForm] = useState({
+    name: '',
+    type: 'General',
+    category: 'General',
+    description: '',
+    referral_source: '',
+    patient_id: ''
+  });
+  const { toast } = useToast();
 
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = 
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.id.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch documents and patients on component mount
+  useEffect(() => {
+    fetchDocuments();
+    fetchPatients();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDocuments(data || []);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load documents",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, email')
+        .eq('is_active', true)
+        .order('first_name');
+
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  };
+
+  // Filter documents based on search term and document type
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (doc.patient_name && doc.patient_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType = selectedDocumentType === 'All' || doc.type === selectedDocumentType;
+    const matchesPatient = selectedPatient === 'All' || doc.patient_name === selectedPatient;
     
-    const matchesType = selectedDocumentType === "all" || !selectedDocumentType || doc.type === selectedDocumentType;
-    
-    return matchesSearch && matchesType;
+    return matchesSearch && matchesType && matchesPatient;
   });
 
-  const handleUploadDocument = () => {
-    // Here you would integrate with GoHighLevel API
-    toast({
-      title: "Document Uploaded",
-      description: "Document has been successfully uploaded and linked to patient.",
-    });
-    setUploadModalOpen(false);
-    setSelectedPatient("");
-    setSelectedDocumentType("");
-    setUploadNotes("");
+  // Format file size
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes) return 'Unknown';
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const handleDownload = (docName: string) => {
-    toast({
-      title: "Downloading",
-      description: `Downloading ${docName}...`,
-    });
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      if (!uploadForm.name) {
+        setUploadForm(prev => ({ ...prev, name: file.name }));
+      }
+    }
   };
 
-  const handleView = (docName: string) => {
-    toast({
-      title: "Opening Document",
-      description: `Opening ${docName} for preview...`,
-    });
+  // Handle document upload
+  const handleUploadDocument = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "Error",
+        description: "Please select a file to upload",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Upload file to Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `documents/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      // Save document metadata to database
+      const { error: dbError } = await supabase
+        .from('documents')
+        .insert({
+          name: uploadForm.name,
+          type: uploadForm.type,
+          patient_id: uploadForm.patient_id || null,
+          patient_name: uploadForm.patient_id ? 
+            patients.find(p => p.id === uploadForm.patient_id)?.first_name + ' ' + 
+            patients.find(p => p.id === uploadForm.patient_id)?.last_name : null,
+          category: uploadForm.category,
+          file_path: filePath,
+          file_size: selectedFile.size,
+          file_type: selectedFile.type,
+          description: uploadForm.description,
+          referral_source: uploadForm.referral_source,
+          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          status: 'active'
+        });
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Success",
+        description: "Document uploaded successfully",
+      });
+
+      // Reset form and refresh documents
+      setUploadModalOpen(false);
+      setSelectedFile(null);
+      setUploadForm({
+        name: '',
+        type: 'General',
+        category: 'General',
+        description: '',
+        referral_source: '',
+        patient_id: ''
+      });
+      await fetchDocuments();
+
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload document",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleDelete = (docName: string) => {
-    toast({
-      title: "Document Deleted",
-      description: `${docName} has been removed from the system.`,
-      variant: "destructive",
-    });
+  // Handle actions
+  const handleDownload = async (doc: Document) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(doc.file_path);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download Started",
+        description: `Downloading ${doc.name}`,
+      });
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download document",
+        variant: "destructive"
+      });
+    }
   };
+
+  const handleView = async (doc: Document) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(doc.file_path, 60);
+
+      if (error) throw error;
+
+      window.open(data.signedUrl, '_blank');
+      toast({
+        title: "Opening Document",
+        description: `Opening ${doc.name} for viewing`,
+      });
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open document",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDelete = async (doc: Document) => {
+    if (!confirm(`Are you sure you want to delete ${doc.name}?`)) return;
+
+    try {
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .remove([doc.file_path]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', doc.id);
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Document Deleted",
+        description: `${doc.name} has been deleted`,
+      });
+
+      await fetchDocuments();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete document",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
 
   return (
     <AuthGuard>
       <Layout>
         <div className="p-6 space-y-6">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <FolderOpen className="h-8 w-8 text-[#007BFF]" />
-            <h1 className="text-3xl font-bold text-foreground">Documents</h1>
-          </div>
-          
-          <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-[#4DA8FF] hover:bg-[#007BFF] text-white">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Document
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Upload Document</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="patient-select">Patient</Label>
-                  <Select value={selectedPatient} onValueChange={setSelectedPatient}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select patient..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockPatients.map((patient) => (
-                        <SelectItem key={patient} value={patient}>
-                          {patient}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="document-type">Document Type</Label>
-                  <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select document type..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {documentTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="file-upload">Upload File</Label>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-[#4DA8FF] transition-colors">
-                    <Upload className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-                    <p className="text-sm text-muted-foreground">
-                      Drag and drop your file here, or click to browse
-                    </p>
-                    <input type="file" className="hidden" id="file-upload" />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">Notes (Optional)</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Add any additional notes about this document..."
-                    value={uploadNotes}
-                    onChange={(e) => setUploadNotes(e.target.value)}
-                    className="resize-none"
-                    rows={3}
-                  />
-                </div>
-
-                <Button 
-                  onClick={handleUploadDocument}
-                  className="w-full bg-[#4DA8FF] hover:bg-[#007BFF] text-white"
-                  disabled={!selectedPatient || !selectedDocumentType}
-                >
-                  Upload Document
-                </Button>
+          {/* Header Section */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <FolderOpen className="h-8 w-8 text-primary" />
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Documents</h1>
+                <p className="text-muted-foreground">
+                  Manage and organize all your documents ({documents.length} total)
+                </p>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Search and Filter Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Search & Filter</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search by patient name, file name, or case ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="md:w-64">
-                <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
-                  <SelectTrigger>
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Filter by type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    {documentTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Documents Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              Documents ({filteredDocuments.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Referral Source</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Added By</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.map((doc) => (
-                    <TableRow key={doc.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-[#007BFF]" />
-                          <span className="text-[#007BFF] hover:underline cursor-pointer">
-                            {doc.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="text-xs">
-                          {doc.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-[#007BFF] hover:underline cursor-pointer">
-                          {doc.patient}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {doc.referralSource}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {doc.uploadDate}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {doc.addedBy}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleView(doc.name)}
-                            className="h-8 w-8 text-muted-foreground hover:text-[#007BFF]"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDownload(doc.name)}
-                            className="h-8 w-8 text-muted-foreground hover:text-[#007BFF]"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(doc.name)}
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
             </div>
             
-            {filteredDocuments.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <FolderOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                <p>No documents found matching your search criteria.</p>
+            <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Upload Document
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Upload New Document</DialogTitle>
+                  <DialogDescription>
+                    Upload a new document to the system. Fill in the details below.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Document Name</Label>
+                    <Input 
+                      id="name"
+                      value={uploadForm.name}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter document name"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="patient">Patient (Optional)</Label>
+                    <Select value={uploadForm.patient_id} onValueChange={(value) => setUploadForm(prev => ({ ...prev, patient_id: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a patient (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No patient</SelectItem>
+                        {patients.map((patient) => (
+                          <SelectItem key={patient.id} value={patient.id}>
+                            {patient.first_name} {patient.last_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="document-type">Document Type</Label>
+                    <Select value={uploadForm.type} onValueChange={(value) => setUploadForm(prev => ({ ...prev, type: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select document type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="General">General</SelectItem>
+                        <SelectItem value="Insurance">Insurance</SelectItem>
+                        <SelectItem value="Medical">Medical</SelectItem>
+                        <SelectItem value="Legal">Legal</SelectItem>
+                        <SelectItem value="Treatment">Treatment</SelectItem>
+                        <SelectItem value="Referral">Referral</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={uploadForm.category} onValueChange={(value) => setUploadForm(prev => ({ ...prev, category: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="General">General</SelectItem>
+                        <SelectItem value="Claims">Claims</SelectItem>
+                        <SelectItem value="Records">Records</SelectItem>
+                        <SelectItem value="Correspondence">Correspondence</SelectItem>
+                        <SelectItem value="Plans">Plans</SelectItem>
+                        <SelectItem value="Referrals">Referrals</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="referral-source">Referral Source (Optional)</Label>
+                    <Input 
+                      id="referral-source"
+                      value={uploadForm.referral_source}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, referral_source: e.target.value }))}
+                      placeholder="Enter referral source"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="file">File Upload</Label>
+                    <Input 
+                      id="file" 
+                      type="file" 
+                      className="cursor-pointer" 
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                    />
+                    {selectedFile && (
+                      <p className="text-sm text-muted-foreground">
+                        Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Textarea 
+                      id="description"
+                      placeholder="Add any additional notes about this document..."
+                      value={uploadForm.description}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setUploadModalOpen(false)} disabled={uploading}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUploadDocument} disabled={uploading || !selectedFile}>
+                    {uploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    {uploading ? 'Uploading...' : 'Upload Document'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Search and Filter Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Search & Filter</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search by document name or patient..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="md:w-64">
+                  <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by patient..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Patients</SelectItem>
+                      {patients.map((patient) => (
+                        <SelectItem key={patient.id} value={`${patient.first_name} ${patient.last_name}`}>
+                          {patient.first_name} {patient.last_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:w-64">
+                  <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Types</SelectItem>
+                      <SelectItem value="General">General</SelectItem>
+                      <SelectItem value="Insurance">Insurance</SelectItem>
+                      <SelectItem value="Medical">Medical</SelectItem>
+                      <SelectItem value="Legal">Legal</SelectItem>
+                      <SelectItem value="Treatment">Treatment</SelectItem>
+                      <SelectItem value="Referral">Referral</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+
+          {/* Documents Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Documents ({filteredDocuments.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Date Added</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDocuments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          <div className="flex flex-col items-center space-y-2">
+                            <FileText className="h-8 w-8 text-gray-400" />
+                            <p className="text-gray-500">No documents found</p>
+                            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredDocuments.map((doc) => (
+                        <TableRow key={doc.id}>
+                          <TableCell className="font-medium">
+                            <div>
+                              <p>{doc.name}</p>
+                              {doc.description && (
+                                <p className="text-sm text-muted-foreground">{doc.description}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{doc.type}</Badge>
+                          </TableCell>
+                          <TableCell>{doc.patient_name || '-'}</TableCell>
+                          <TableCell>{doc.category}</TableCell>
+                          <TableCell>{new Date(doc.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>{formatFileSize(doc.file_size)}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleView(doc)}
+                                title="View document"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDownload(doc)}
+                                title="Download document"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(doc)}
+                                title="Delete document"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {filteredDocuments.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FolderOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No documents found matching your search criteria.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </Layout>
     </AuthGuard>
   );
-}
+};
+
+export default Documents;
