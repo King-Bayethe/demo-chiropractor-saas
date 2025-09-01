@@ -33,48 +33,62 @@ export const TabNavigationArrows: React.FC<TabNavigationArrowsProps> = ({
   }, [currentTab, tabs]);
 
   const scrollToTab = (index: number) => {
-    if (!containerRef.current || !tabsRef.current) return;
-    
-    const container = containerRef.current;
-    const tabsContainer = tabsRef.current;
-    const containerWidth = container.offsetWidth;
-    const tabsWidth = tabsContainer.scrollWidth;
-    
-    if (tabsWidth <= containerWidth) {
-      setScrollPosition(0);
-      return;
-    }
-    
-    const children = Array.from(tabsContainer.children) as HTMLElement[];
-    if (children[index]) {
-      const targetTab = children[index];
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      if (!containerRef.current || !tabsRef.current) return;
+      
+      const container = containerRef.current;
+      const tabsContainer = tabsRef.current;
+      const containerWidth = container.offsetWidth;
+      const tabsWidth = tabsContainer.scrollWidth;
+      
+      // No need to scroll if everything fits
+      if (tabsWidth <= containerWidth) {
+        setScrollPosition(0);
+        return;
+      }
+      
+      // Find the actual tab element - could be direct child or nested
+      const children = Array.from(tabsContainer.children) as HTMLElement[];
+      let targetTab: HTMLElement | null = null;
+      
+      // First try direct children
+      if (children[index]) {
+        targetTab = children[index];
+      } else {
+        // If not found, look for tab triggers within children
+        for (const child of children) {
+          const triggers = child.querySelectorAll('[role="tab"], [data-state]');
+          if (triggers[index]) {
+            targetTab = triggers[index] as HTMLElement;
+            break;
+          }
+        }
+      }
+      
+      if (!targetTab) return;
+      
       const tabLeft = targetTab.offsetLeft;
       const tabWidth = targetTab.offsetWidth;
-      
-      // Calculate optimal scroll position to keep tab visible
-      const currentScroll = scrollPosition;
       const tabRight = tabLeft + tabWidth;
+      const padding = 20; // Consistent padding
       
-      let newScrollPosition = currentScroll;
+      let newScrollPosition = scrollPosition;
       
-      // If tab is completely off screen to the right
-      if (tabRight > currentScroll + containerWidth) {
-        newScrollPosition = tabRight - containerWidth + 20; // 20px padding
+      // Simple logic: ensure the tab is visible with padding
+      if (tabLeft < scrollPosition + padding) {
+        // Tab is cut off on the left
+        newScrollPosition = Math.max(0, tabLeft - padding);
+      } else if (tabRight > scrollPosition + containerWidth - padding) {
+        // Tab is cut off on the right
+        newScrollPosition = Math.min(
+          tabsWidth - containerWidth,
+          tabRight - containerWidth + padding
+        );
       }
-      // If tab is completely off screen to the left
-      else if (tabLeft < currentScroll) {
-        newScrollPosition = tabLeft - 20; // 20px padding
-      }
-      // If tab is partially visible, center it for better UX
-      else if (tabLeft < currentScroll + 40 || tabRight > currentScroll + containerWidth - 40) {
-        newScrollPosition = tabLeft - (containerWidth / 2) + (tabWidth / 2);
-      }
-      
-      const maxScroll = tabsWidth - containerWidth;
-      newScrollPosition = Math.max(0, Math.min(newScrollPosition, maxScroll));
       
       setScrollPosition(newScrollPosition);
-    }
+    });
   };
 
   const handlePrevious = () => {
