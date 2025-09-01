@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -10,8 +11,11 @@ import {
   MoreHorizontal,
   Calendar as CalendarIcon,
   Bell,
-  Settings
+  Settings,
+  Menu
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 
 interface CalendarHeaderProps {
@@ -24,6 +28,7 @@ interface CalendarHeaderProps {
   onSearchChange?: (term: string) => void;
   onRemindersClick?: () => void;
   onSettingsClick?: () => void;
+  isMobile?: boolean;
 }
 
 export function CalendarHeader({
@@ -35,7 +40,8 @@ export function CalendarHeader({
   searchTerm = '',
   onSearchChange,
   onRemindersClick,
-  onSettingsClick
+  onSettingsClick,
+  isMobile = false
 }: CalendarHeaderProps) {
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
@@ -65,127 +71,269 @@ export function CalendarHeader({
 
   return (
     <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="px-6 py-4">
-        {/* Top Row */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <CalendarIcon className="w-6 h-6 text-medical-blue" />
-              <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
+      <div className={cn("px-3 md:px-6 py-3 md:py-4")}>
+        {isMobile ? (
+          // Mobile Layout
+          <>
+            {/* Top Row - Title and Menu */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <CalendarIcon className="w-5 h-5 text-medical-blue" />
+                <h1 className="text-lg font-bold text-foreground">Calendar</h1>
+              </div>
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Menu className="w-4 h-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Calendar Options</SheetTitle>
+                  </SheetHeader>
+                  <div className="space-y-4 mt-6">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={onRemindersClick}
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Reminders
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={onSettingsClick}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
-            <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue">
-              Healthcare Scheduling
-            </Badge>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onRemindersClick}
-            >
-              <Bell className="w-4 h-4 mr-2" />
-              Reminders
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onSettingsClick}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-            <Button 
-              onClick={onCreateAppointment}
-              className="bg-medical-blue hover:bg-medical-blue-dark text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Appointment
-            </Button>
-          </div>
-        </div>
 
-        {/* Bottom Row */}
-        <div className="flex items-center justify-between">
-          {/* Navigation and Date */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+            {/* Navigation and Date */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigateDate('prev')}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigateDate('next')}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+              
               <Button 
                 variant="outline" 
-                size="icon"
-                onClick={() => navigateDate('prev')}
-                className="h-9 w-9"
+                size="sm"
+                onClick={() => onDateChange(new Date())}
+                className="text-medical-blue border-medical-blue/30 hover:bg-medical-blue/5"
               >
-                <ChevronLeft className="w-4 h-4" />
+                Today
               </Button>
+            </div>
+
+            {/* Date Display */}
+            <div className="mb-3">
+              <h2 className="text-base font-semibold text-foreground text-center">
+                {getDateRangeText()}
+              </h2>
+            </div>
+
+            {/* View Controls */}
+            <div className="flex justify-center mb-3">
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <Button
+                  variant={view === 'month' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onViewChange('month')}
+                  className={cn("rounded-none border-0 text-xs px-3", 
+                    view === 'month' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'
+                  )}
+                >
+                  Month
+                </Button>
+                <Button
+                  variant={view === 'week' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onViewChange('week')}
+                  className={cn("rounded-none border-0 border-l border-border text-xs px-3",
+                    view === 'week' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'
+                  )}
+                >
+                  Week
+                </Button>
+                <Button
+                  variant={view === 'day' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onViewChange('day')}
+                  className={cn("rounded-none border-0 border-l border-border text-xs px-3",
+                    view === 'day' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'
+                  )}
+                >
+                  Day
+                </Button>
+              </div>
+            </div>
+
+            {/* Search and New Appointment */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search appointments..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                />
+              </div>
               <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => navigateDate('next')}
-                className="h-9 w-9"
+                onClick={onCreateAppointment}
+                className="w-full bg-medical-blue hover:bg-medical-blue-dark text-white"
+                size="sm"
               >
-                <ChevronRight className="w-4 h-4" />
+                <Plus className="w-4 h-4 mr-2" />
+                New Appointment
               </Button>
             </div>
-            
-            <h2 className="text-xl font-semibold text-foreground min-w-[200px]">
-              {getDateRangeText()}
-            </h2>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onDateChange(new Date())}
-              className="text-medical-blue border-medical-blue/30 hover:bg-medical-blue/5"
-            >
-              Today
-            </Button>
-          </div>
-
-          {/* Search and View Controls */}
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search appointments..."
-                className="pl-10 w-64"
-                value={searchTerm}
-                onChange={(e) => onSearchChange?.(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              <Button
-                variant={view === 'month' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onViewChange('month')}
-                className={`rounded-none border-0 ${view === 'month' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
-              >
-                Month
-              </Button>
-              <Button
-                variant={view === 'week' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onViewChange('week')}
-                className={`rounded-none border-0 border-l border-border ${view === 'week' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
-              >
-                Week
-              </Button>
-              <Button
-                variant={view === 'day' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onViewChange('day')}
-                className={`rounded-none border-0 border-l border-border ${view === 'day' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
-              >
-                Day
-              </Button>
+          </>
+        ) : (
+          // Desktop Layout
+          <>
+            {/* Top Row */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <CalendarIcon className="w-6 h-6 text-medical-blue" />
+                  <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
+                </div>
+                <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue">
+                  Healthcare Scheduling
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onRemindersClick}
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Reminders
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onSettingsClick}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+                <Button 
+                  onClick={onCreateAppointment}
+                  className="bg-medical-blue hover:bg-medical-blue-dark text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Appointment
+                </Button>
+              </div>
             </div>
 
-            <Button variant="outline" size="sm">
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+            {/* Bottom Row */}
+            <div className="flex items-center justify-between">
+              {/* Navigation and Date */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => navigateDate('prev')}
+                    className="h-9 w-9"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => navigateDate('next')}
+                    className="h-9 w-9"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <h2 className="text-xl font-semibold text-foreground min-w-[200px]">
+                  {getDateRangeText()}
+                </h2>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onDateChange(new Date())}
+                  className="text-medical-blue border-medical-blue/30 hover:bg-medical-blue/5"
+                >
+                  Today
+                </Button>
+              </div>
+
+              {/* Search and View Controls */}
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search appointments..."
+                    className="pl-10 w-64"
+                    value={searchTerm}
+                    onChange={(e) => onSearchChange?.(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  <Button
+                    variant={view === 'month' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onViewChange('month')}
+                    className={`rounded-none border-0 ${view === 'month' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
+                  >
+                    Month
+                  </Button>
+                  <Button
+                    variant={view === 'week' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onViewChange('week')}
+                    className={`rounded-none border-0 border-l border-border ${view === 'week' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
+                  >
+                    Week
+                  </Button>
+                  <Button
+                    variant={view === 'day' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onViewChange('day')}
+                    className={`rounded-none border-0 border-l border-border ${view === 'day' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
+                  >
+                    Day
+                  </Button>
+                </div>
+
+                <Button variant="outline" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { CalendarHeader } from "./CalendarHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface CalendarLayoutProps {
   children: ReactNode;
@@ -45,18 +47,22 @@ export function CalendarLayout({
   onSettingsClick,
   todaysStats
 }: CalendarLayoutProps) {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="h-full flex bg-background">
-      {/* Sidebar */}
-      <CalendarSidebar
-        isCollapsed={isSidebarCollapsed}
-        currentDate={currentDate}
-        onDateChange={onDateChange}
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        onToggle={onSidebarToggle}
-        todaysStats={todaysStats}
-      />
+      {/* Sidebar - Hidden on mobile */}
+      {!isMobile && (
+        <CalendarSidebar
+          isCollapsed={isSidebarCollapsed}
+          currentDate={currentDate}
+          onDateChange={onDateChange}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onToggle={onSidebarToggle}
+          todaysStats={todaysStats}
+        />
+      )}
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -70,6 +76,7 @@ export function CalendarLayout({
           onSearchChange={onSearchChange}
           onRemindersClick={onRemindersClick}
           onSettingsClick={onSettingsClick}
+          isMobile={isMobile}
         />
         
         {/* Calendar Content */}
