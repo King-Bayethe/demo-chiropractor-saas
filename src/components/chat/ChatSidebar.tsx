@@ -93,51 +93,36 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   const getChatAvatar = (chat: Chat): string => {
-    console.log('=== AVATAR DEBUG ===');
-    console.log('Chat type:', chat.type);
-    console.log('Chat name:', chat.name);
-    console.log('All participants:', chat.participants);
-    console.log('Current user ID:', currentUserId);
-    
     if (chat.type === 'group') {
       return 'GT';
     }
     
+    // Find the other participant (not the current user)
     const otherParticipant = chat.participants?.find((p: any) => p.user_id !== currentUserId);
-    console.log('Other participant found:', otherParticipant);
     
     if (otherParticipant) {
       const firstName = (otherParticipant.first_name || '').trim();
       const lastName = (otherParticipant.last_name || '').trim();
-      const email = (otherParticipant.email || '').trim();
-      
-      console.log('Participant name data:', { firstName, lastName, email });
       
       // Try to get initials from first and last name
       if (firstName && lastName) {
-        const initials = `${firstName[0]}${lastName[0]}`.toUpperCase();
-        console.log('Generated initials from name:', initials);
-        return initials;
+        return `${firstName[0]}${lastName[0]}`.toUpperCase();
       }
       
       // Try single name
       if (firstName || lastName) {
         const name = firstName || lastName;
-        const initials = `${name[0]}${name[1] || ''}`.toUpperCase();
-        console.log('Generated initials from single name:', initials);
-        return initials;
+        return `${name[0]}${name[1] || ''}`.toUpperCase();
       }
       
-      // Fallback to email initials
-      if (email) {
-        const emailParts = email.split('@')[0];
-        const initials = `${emailParts[0]}${emailParts[1] || ''}`.toUpperCase();
-        console.log('Generated initials from email:', initials);
-        return initials;
-      }
+      // If no name data, use role-based fallback
+      const role = otherParticipant.role || 'staff';
+      if (role === 'doctor') return 'DR';
+      if (role === 'admin' || role === 'overlord') return 'AD';
+      if (role === 'nurse') return 'RN';
+      return 'ST'; // Staff
     }
     
-    console.log('No other participant found, falling back to UC');
     return 'UC'; // Unknown Chat
   };
 

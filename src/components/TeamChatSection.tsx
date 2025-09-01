@@ -101,7 +101,12 @@ export const TeamChatSection = () => {
 
   // Fetch messages for selected chat
   const fetchMessages = async (chatId: string) => {
+    if (!chatId) return;
+    
     try {
+      // Clear existing messages immediately to prevent stale data
+      setMessages([]);
+      
       const { data: messagesData, error: messagesError } = await supabase
         .from('team_messages')
         .select('id, content, created_at, sender_id')
@@ -111,37 +116,52 @@ export const TeamChatSection = () => {
 
       if (messagesError) throw messagesError;
 
-      // Fetch sender profiles for each message
-      const messagesWithProfiles = await Promise.all(
-        (messagesData || []).map(async (msg) => {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, role')
-            .eq('user_id', msg.sender_id)
-            .maybeSingle();
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        return;
+      }
 
-          if (profileError) {
-            console.warn('Profile not found for sender:', msg.sender_id);
+      // Get unique sender IDs to batch profile fetching
+      const uniqueSenderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+      
+      // Batch fetch all profiles at once
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, role')
+        .in('user_id', uniqueSenderIds);
+
+      if (profilesError) {
+        console.warn('Error fetching sender profiles:', profilesError);
+      }
+
+      // Create profile lookup map
+      const profileMap = new Map();
+      (profiles || []).forEach(profile => {
+        profileMap.set(profile.user_id, profile);
+      });
+
+      // Transform messages with profile data
+      const messagesWithProfiles = messagesData.map(msg => {
+        const profile = profileMap.get(msg.sender_id);
+        
+        return {
+          id: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          sender: {
+            id: msg.sender_id,
+            first_name: profile?.first_name || '',
+            last_name: profile?.last_name || '',
+            email: '', // Not available due to RLS restrictions
+            role: profile?.role || 'staff'
           }
-
-          return {
-            id: msg.id,
-            content: msg.content,
-            created_at: msg.created_at,
-            sender: {
-              id: msg.sender_id,
-              first_name: profile?.first_name || '',
-              last_name: profile?.last_name || '',
-              email: '', // Not available due to RLS restrictions
-              role: profile?.role || 'staff'
-            }
-          };
-        })
-      );
+        };
+      });
 
       setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setMessages([]); // Clear messages on error
       toast({
         title: "Error", 
         description: "Failed to load messages",
@@ -263,16 +283,44 @@ export const TeamChatSection = () => {
     try {
       const isGroupChat = memberIds.length > 1;
       
+      // Check for existing direct chat to prevent duplicates
+      if (!isGroupChat && memberIds.length === 1) {
+        const participantIds = [currentUserId, memberIds[0]].sort();
+        
+        // Find existing direct chat between these two users
+        const existingChat = chats.find(chat => {
+          if (chat.type !== 'direct') return false;
+          
+          const chatParticipantIds = chat.participants
+            ?.map(p => p.user_id)
+            .filter(id => id)
+            .sort();
+          
+          return chatParticipantIds?.length === 2 && 
+                 chatParticipantIds[0] === participantIds[0] && 
+                 chatParticipantIds[1] === participantIds[1];
+        });
+        
+        if (existingChat) {
+          setSelectedChat(existingChat);
+          toast({
+            title: "Chat already exists",
+            description: "Selected existing conversation",
+          });
+          return;
+        }
+      }
+      
       // For direct chats, get the recipient's name
       let chatName = null;
-      if (!isGroupChat && memberIds.length === 1) {
+      if (!isGroupChat) {
         const recipientProfile = profiles.find(p => p.user_id === memberIds[0]);
         if (recipientProfile) {
           const firstName = recipientProfile.first_name || '';
           const lastName = recipientProfile.last_name || '';
-          chatName = `${firstName} ${lastName}`.trim() || recipientProfile.email;
+          chatName = `${firstName} ${lastName}`.trim();
         }
-      } else if (isGroupChat) {
+      } else {
         chatName = groupName || 'New Medical Team Group';
       }
       
