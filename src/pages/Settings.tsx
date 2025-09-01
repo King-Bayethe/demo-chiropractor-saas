@@ -14,10 +14,13 @@ import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckSquare, FileText, CreditCard, ArrowUpDown, Image, Mail } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState("profile");
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -57,54 +60,54 @@ export default function Settings() {
                 <p className="text-muted-foreground mb-6">
                   The following features are currently in development and will be available soon:
                 </p>
-                <div className="grid gap-4">
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <CheckSquare className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                <div className="grid gap-3 md:gap-4">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <CheckSquare className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Task Management</h4>
-                      <p className="text-sm text-muted-foreground">Assignable tasks with due dates and statuses</p>
+                      <p className="text-sm text-muted-foreground break-words">Assignable tasks with due dates and statuses</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Invoices</h4>
-                      <p className="text-sm text-muted-foreground">Patient billing and invoice management</p>
+                      <p className="text-sm text-muted-foreground break-words">Patient billing and invoice management</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Treatment Estimates</h4>
-                      <p className="text-sm text-muted-foreground">Estimate creation and pricing for patient cases</p>
+                      <p className="text-sm text-muted-foreground break-words">Estimate creation and pricing for patient cases</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <CreditCard className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <CreditCard className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Payment Orders</h4>
-                      <p className="text-sm text-muted-foreground">Scheduled and recurring payment management</p>
+                      <p className="text-sm text-muted-foreground break-words">Scheduled and recurring payment management</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <ArrowUpDown className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <ArrowUpDown className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Transaction History</h4>
-                      <p className="text-sm text-muted-foreground">Comprehensive financial reporting and ledger view</p>
+                      <p className="text-sm text-muted-foreground break-words">Comprehensive financial reporting and ledger view</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <Mail className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Email Management</h4>
-                      <p className="text-sm text-muted-foreground">Patient communications and email campaigns</p>
+                      <p className="text-sm text-muted-foreground break-words">Patient communications and email campaigns</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <Image className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
+                    <Image className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0">
                       <h4 className="font-medium">Media Library</h4>
-                      <p className="text-sm text-muted-foreground">Centralized file and media asset management</p>
+                      <p className="text-sm text-muted-foreground break-words">Centralized file and media asset management</p>
                     </div>
                   </div>
                 </div>
@@ -121,7 +124,7 @@ export default function Settings() {
     <AuthGuard>
       <Layout>
         <div className="h-full overflow-hidden">
-          <div className="h-full p-6">
+          <div className={cn("h-full", isMobile ? "p-0" : "p-6")}>
             <SettingsLayout 
               activeSection={activeSection} 
               onSectionChange={setActiveSection}
