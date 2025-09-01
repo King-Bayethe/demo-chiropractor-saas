@@ -729,38 +729,38 @@ export default function Conversations() {
                         {filteredConversations.map((conv) => (
                           <div 
                             key={conv.id} 
-                            className="p-4 border-b border-border active:bg-muted/50 transition-colors"
+                            className="p-3 border-b border-border active:bg-muted/50 transition-colors min-w-0"
                             onClick={() => handleSelectConversation(conv)}
                           >
-                            <div className="flex items-start gap-3">
-                              <Avatar className="h-10 w-10 flex-shrink-0">
+                            <div className="flex items-start gap-2 min-w-0">
+                              <Avatar className="h-8 w-8 flex-shrink-0">
                                 <AvatarFallback className="text-xs">{getAvatarInitials(conv)}</AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <h4 className="font-medium text-sm truncate pr-2">{conv.customerName}</h4>
-                                  <div className="flex items-center space-x-1 flex-shrink-0">
-                                    <span className="text-xs text-muted-foreground">
+                                <div className="flex items-center justify-between mb-1 min-w-0">
+                                  <h4 className="font-medium text-sm truncate flex-1 min-w-0">{conv.customerName}</h4>
+                                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                                       {new Date(conv.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                     {conv.unreadCount > 0 && (
-                                      <Badge variant="destructive" className="text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
+                                      <Badge variant="destructive" className="text-xs h-4 min-w-[16px] rounded-full p-0 flex items-center justify-center">
                                         {conv.unreadCount}
                                       </Badge>
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate mb-2 pr-2">{conv.lastMessage}</p>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center text-xs text-muted-foreground min-w-0 pr-2">
+                                <p className="text-xs text-muted-foreground truncate mb-2">{conv.lastMessage}</p>
+                                <div className="flex items-center justify-between min-w-0">
+                                  <div className="flex items-center text-xs text-muted-foreground min-w-0">
                                     {conv.customerPhone && (
-                                      <span className="flex items-center gap-1 truncate">
+                                      <span className="flex items-center gap-1 truncate min-w-0">
                                         <Phone className="h-3 w-3 flex-shrink-0" />
                                         <span className="truncate">{conv.customerPhone}</span>
                                       </span>
                                     )}
                                   </div>
-                                  <Badge className={`text-xs capitalize flex-shrink-0 ${getSourceColor(conv.source)}`}>
+                                  <Badge className={`text-xs capitalize flex-shrink-0 ml-2 ${getSourceColor(conv.source)}`}>
                                     {conv.source}
                                   </Badge>
                                 </div>
@@ -791,23 +791,23 @@ export default function Conversations() {
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-4 min-w-0">
                         {messages.map((message) => (
-                          <div key={message.id} className={`flex items-start gap-2 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                          <div key={message.id} className={`flex items-start gap-2 min-w-0 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
                             {message.sender === 'customer' && (
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback>{getAvatarInitials(selectedConversation)}</AvatarFallback>
+                              <Avatar className="h-6 w-6 flex-shrink-0">
+                                <AvatarFallback className="text-xs">{getAvatarInitials(selectedConversation)}</AvatarFallback>
                               </Avatar>
                             )}
                             
-                            <div className={`space-y-2 max-w-[80%] ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
-                              <div className={`px-3 py-2 rounded-2xl text-sm ${
+                            <div className={`space-y-2 max-w-[85%] min-w-0 ${message.sender === 'agent' ? 'items-end' : 'items-start'} flex flex-col`}>
+                              <div className={`px-3 py-2 rounded-2xl text-sm min-w-0 ${
                                 message.sender === 'agent' 
                                   ? 'bg-primary text-primary-foreground rounded-br-md' 
                                   : 'bg-card border border-border text-foreground rounded-bl-md'
                               }`}>
                                 {message.hasRecording && (
-                                  <div className="mb-2 flex items-center gap-2 text-xs opacity-75">
+                                  <div className="mb-2 flex items-center gap-2 text-xs opacity-75 min-w-0">
                                     <Volume2 className="h-3 w-3 flex-shrink-0" />
                                     <span className="truncate">
                                       {message.messageType === 'TYPE_CALL' ? 'Call Recording' : 'Voicemail'}
@@ -816,10 +816,10 @@ export default function Conversations() {
                                   </div>
                                 )}
                                 
-                                {message.content && <p className="break-words">{message.content}</p>}
+                                {message.content && <p className="break-words overflow-wrap-anywhere">{message.content}</p>}
                                 
                                 {message.attachments && message.attachments.length > 0 && (
-                                  <div className="mt-2 space-y-2">
+                                  <div className="mt-2 space-y-2 min-w-0">
                                     {message.attachments.map((attachment, index) => (
                                       <FileAttachment
                                         key={`${attachment.id}-${index}`}
@@ -831,9 +831,9 @@ export default function Conversations() {
                                 )}
                                 
                                 {message.hasTranscription && transcriptions.has(message.id) && (
-                                  <div className="mt-2 pt-2 border-t border-border/50">
+                                  <div className="mt-2 pt-2 border-t border-border/50 min-w-0">
                                     <p className="text-xs opacity-75 mb-1">Transcription:</p>
-                                    <p className="text-sm break-words">{transcriptions.get(message.id)}</p>
+                                    <p className="text-sm break-words overflow-wrap-anywhere">{transcriptions.get(message.id)}</p>
                                   </div>
                                 )}
                               </div>
@@ -879,12 +879,12 @@ export default function Conversations() {
                       </div>
                     )}
                     
-                    <div className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 relative min-w-0">
+                    <div className="p-3 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex-1 min-w-0 relative">
                           <Input 
                             placeholder="Type a message..." 
-                            className="pr-16 rounded-full text-sm" 
+                            className="pr-12 rounded-full text-sm min-w-0" 
                             value={newMessage} 
                             onChange={(e) => setNewMessage(e.target.value)} 
                             disabled={!selectedConversation || isSending} 
@@ -893,13 +893,13 @@ export default function Conversations() {
                             <div className="hidden sm:block">
                               <QuickActionsDropdown onSendMessage={(message) => setNewMessage(message)} />
                             </div>
-                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0">
                               <Smile className="h-3 w-3 text-muted-foreground" />
                             </Button>
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <FileUploadButton
                             onFilesSelected={(files) => setSelectedFiles(prev => [...prev, ...files])}
                             selectedFiles={[]}
@@ -910,7 +910,7 @@ export default function Conversations() {
                           <Button 
                             type="submit" 
                             size="icon"
-                            className="rounded-full h-9 w-9"
+                            className="rounded-full h-9 w-9 flex-shrink-0"
                             disabled={!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || isSending}
                           >
                             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

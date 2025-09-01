@@ -60,7 +60,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
   };
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] bg-background border border-border rounded-lg overflow-hidden relative">
+    <div className="flex h-[calc(100vh-12rem)] bg-background border border-border rounded-lg overflow-hidden relative max-w-full">
       {/* Mobile Sidebar Overlay */}
       {isMobile && showMobileSidebar && (
         <div 
@@ -74,7 +74,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
         "transition-all duration-300 border-r border-border bg-card z-50",
         isMobile 
           ? cn(
-              "fixed left-0 top-0 h-full w-80",
+              "fixed left-0 top-0 h-full w-80 max-w-[85vw]",
               showMobileSidebar ? "translate-x-0" : "-translate-x-full"
             )
           : sidebarCollapsed ? "w-0" : "w-80"
@@ -93,7 +93,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <ChatHeader
           selectedChat={selectedChat}
           currentUserId={currentUserId}
