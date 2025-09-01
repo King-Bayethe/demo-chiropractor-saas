@@ -223,40 +223,49 @@ export const TeamChatSection = () => {
           filter: `chat_id=eq.${selectedChat.id}`
         },
         async (payload) => {
-          console.log('New message received:', payload);
-          
-          const newMessage = payload.new;
-          
-          // Don't add our own messages (they're already added locally)
-          if (newMessage.sender_id === currentUserId) {
-            return;
-          }
-
-          // Fetch sender profile for the new message
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, role')
-            .eq('user_id', newMessage.sender_id)
-            .maybeSingle();
-
-          const messageWithProfile = {
-            id: newMessage.id,
-            content: newMessage.content,
-            created_at: newMessage.created_at,
-            sender: {
-              id: newMessage.sender_id,
-              first_name: profile?.first_name || '',
-              last_name: profile?.last_name || '',
-              email: '',
-              role: profile?.role || 'staff'
+          try {
+            console.log('New message received:', payload);
+            
+            const newMessage = payload.new;
+            
+            // Don't add our own messages (they're already added locally)
+            if (newMessage.sender_id === currentUserId) {
+              return;
             }
-          };
 
-          // Add message to state
-          setMessages(prev => [...prev, messageWithProfile]);
+            // Fetch sender profile for the new message
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, role')
+              .eq('user_id', newMessage.sender_id)
+              .maybeSingle();
+
+            const messageWithProfile = {
+              id: newMessage.id,
+              content: newMessage.content,
+              created_at: newMessage.created_at,
+              sender: {
+                id: newMessage.sender_id,
+                first_name: profile?.first_name || '',
+                last_name: profile?.last_name || '',
+                email: '',
+                role: profile?.role || 'staff'
+              }
+            };
+
+            // Add message to state
+            setMessages(prev => [...prev, messageWithProfile]);
+          } catch (error) {
+            console.error('Error processing real-time message:', error);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Real-time subscription error for chat:', selectedChat.id);
+        }
+      });
 
     return () => {
       console.log('Cleaning up real-time subscription for chat:', selectedChat.id);
@@ -296,7 +305,12 @@ export const TeamChatSection = () => {
           fetchChats();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Chat updates subscription status:', status);
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Real-time subscription error for chat updates');
+        }
+      });
 
     return () => {
       console.log('Cleaning up real-time subscription for chat updates');
@@ -348,21 +362,35 @@ export const TeamChatSection = () => {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', selectedChat.id);
 
-      // Notify other participants about the new message
-      const participants = selectedChat.participants || [];
-      const senderName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.email || 'Someone';
-      const messagePreview = message.trim().length > 50 ? `${message.trim().substring(0, 50)}...` : message.trim();
-      
-      for (const participant of participants) {
-        if (participant.user_id !== currentUserId) {
-          await notifyNewMessage(
-            participant.user_id,
-            senderName,
-            selectedChat.name || 'Chat',
-            selectedChat.id,
-            messagePreview
-          );
-        }
+      // Notify other participants about the new message with error handling
+      try {
+        const participants = selectedChat.participants || [];
+        const senderName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.email || 'Someone';
+        const messagePreview = message.trim().length > 50 ? `${message.trim().substring(0, 50)}...` : message.trim();
+        
+        // Send notifications without awaiting to prevent blocking the UI
+        const notificationPromises = participants.map(participant => {
+          if (participant.user_id !== currentUserId) {
+            return notifyNewMessage(
+              participant.user_id,
+              senderName,
+              selectedChat.name || 'Chat',
+              selectedChat.id,
+              messagePreview
+            ).catch(error => {
+              console.warn('Failed to send notification to participant:', participant.user_id, error);
+            });
+          }
+          return Promise.resolve();
+        });
+
+        // Fire notifications in background without blocking
+        Promise.all(notificationPromises).catch(error => {
+          console.warn('Some notifications failed to send:', error);
+        });
+      } catch (notificationError) {
+        console.warn('Error setting up notifications:', notificationError);
+        // Don't fail the message sending if notifications fail
       }
 
     } catch (error) {
@@ -454,16 +482,27 @@ export const TeamChatSection = () => {
       // Refresh chats
       await fetchChats();
 
-      // Notify participants about the new chat
-      const creatorName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.email || 'Someone';
-      
-      for (const memberId of memberIds) {
-        await notifyNewChat(
-          memberId,
-          creatorName,
-          chatName || 'New Chat',
-          chatData.id
+      // Notify participants about the new chat with error handling
+      try {
+        const creatorName = `${currentProfile?.first_name || ''} ${currentProfile?.last_name || ''}`.trim() || currentProfile?.email || 'Someone';
+        
+        // Send notifications without blocking
+        const notificationPromises = memberIds.map(memberId => 
+          notifyNewChat(
+            memberId,
+            creatorName,
+            chatName || 'New Chat',
+            chatData.id
+          ).catch(error => {
+            console.warn('Failed to send new chat notification to:', memberId, error);
+          })
         );
+
+        Promise.all(notificationPromises).catch(error => {
+          console.warn('Some new chat notifications failed:', error);
+        });
+      } catch (notificationError) {
+        console.warn('Error setting up new chat notifications:', notificationError);
       }
 
       toast({
