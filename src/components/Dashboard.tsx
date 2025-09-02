@@ -60,7 +60,7 @@ export function Dashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="h-full bg-background p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center space-x-3 sm:space-x-4">
@@ -97,9 +97,9 @@ export function Dashboard() {
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
         <Card className="border border-border/50 shadow-sm">
-          <CardContent className="p-3 sm:p-4">
+          <CardContent className="p-2 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm text-muted-foreground">Conversion Rate</p>
@@ -191,7 +191,7 @@ export function Dashboard() {
       </div>
 
       {/* Pipeline and Analytics Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         {/* Sales Pipeline */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-3 sm:pb-6">
@@ -255,7 +255,7 @@ export function Dashboard() {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Attorney Referral Leaderboard */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-3 sm:pb-6">
