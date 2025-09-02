@@ -1961,6 +1961,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      find_duplicate_opportunities: {
+        Args: { check_email?: string; check_name: string; check_phone?: string }
+        Returns: {
+          created_at: string
+          id: string
+          patient_email: string
+          patient_name: string
+          patient_phone: string
+          pipeline_stage: string
+        }[]
+      }
       get_colleague_basic_info: {
         Args: Record<PropertyKey, never>
         Returns: {

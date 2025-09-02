@@ -29,24 +29,29 @@ export function AddOpportunityModal({ open, onOpenChange }: AddOpportunityModalP
     e.preventDefault();
     
     try {
-      await createOpportunity({
+      const result = await createOpportunity({
         ...formData,
+        patient_email: formData.contact_email,
+        patient_phone: formData.contact_phone,
         estimated_value: parseFloat(formData.estimated_value) || 0,
         pipeline_stage: 'lead', // Start in lead stage
         source: 'manual',
         created_at: new Date().toISOString(),
       });
       
-      toast.success('Opportunity created successfully');
-      onOpenChange(false);
-      setFormData({
-        patient_name: '',
-        contact_phone: '',
-        contact_email: '',
-        case_type: '',
-        estimated_value: '',
-        notes: '',
-      });
+      // Only proceed if opportunity was actually created (not cancelled due to duplicates)
+      if (result) {
+        toast.success('Opportunity created successfully');
+        onOpenChange(false);
+        setFormData({
+          patient_name: '',
+          contact_phone: '',
+          contact_email: '',
+          case_type: '',
+          estimated_value: '',
+          notes: '',
+        });
+      }
     } catch (error) {
       toast.error('Failed to create opportunity');
       console.error('Error creating opportunity:', error);

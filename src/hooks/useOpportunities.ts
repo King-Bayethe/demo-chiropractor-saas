@@ -85,10 +85,55 @@ export const useOpportunities = () => {
     }
   };
 
-  const createOpportunity = async (opportunityData: Partial<Opportunity>) => {
+  // Helper function to check for duplicate opportunities
+  const checkForDuplicates = async (patientName: string, patientEmail?: string, patientPhone?: string) => {
+    try {
+      const { data, error } = await supabase.rpc('find_duplicate_opportunities', {
+        check_name: patientName,
+        check_email: patientEmail || null,
+        check_phone: patientPhone || null
+      });
+
+      if (error) {
+        console.error('Error checking for duplicates:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error checking for duplicates:', error);
+      return [];
+    }
+  };
+
+  const createOpportunity = async (opportunityData: Partial<Opportunity>, skipDuplicateCheck: boolean = false) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+
+      // Check for duplicates unless explicitly skipped
+      if (!skipDuplicateCheck && opportunityData.patient_name) {
+        const duplicates = await checkForDuplicates(
+          opportunityData.patient_name,
+          opportunityData.patient_email,
+          opportunityData.patient_phone
+        );
+
+        if (duplicates.length > 0) {
+          const duplicateNames = duplicates.map(d => `${d.patient_name} (${d.pipeline_stage})`).join(', ');
+          const confirmCreate = window.confirm(
+            `Found ${duplicates.length} existing opportunity(ies) for similar patient(s): ${duplicateNames}\n\nDo you still want to create a new opportunity?`
+          );
+          
+          if (!confirmCreate) {
+            toast({
+              title: "Opportunity creation cancelled",
+              description: "Operation cancelled to avoid duplicate.",
+            });
+            return null;
+          }
+        }
+      }
 
       // Helper function to process date fields
       const processDateField = (dateValue: any): string | null => {
@@ -241,5 +286,6 @@ export const useOpportunities = () => {
     moveOpportunityToPreviousStage,
     moveOpportunityToNextStage,
     deleteOpportunity,
+    checkForDuplicates,
   };
 };
