@@ -122,43 +122,30 @@ export function CarouselPipelineBoard({
     >
       <div className={cn("space-y-2", layout.shouldReduceSpacing ? "space-y-2" : "space-y-4")}>
         {/* Stage Navigation Header */}
-        <div className={cn(
-          "flex items-center justify-between",
-          layout.shouldUseCompactLayout ? "flex-col gap-2" : "flex-row"
-        )}>
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
-              className={cn(
-                "rounded-full flex-shrink-0",
-                layout.shouldUseCompactLayout ? "w-2.5 h-2.5" : "w-3 h-3"
-              )}
+              className="rounded-full flex-shrink-0 w-4 h-4"
               style={{ backgroundColor: currentStage.color }}
             />
             <div className="min-w-0 flex-1">
-              <h3 className={cn(
-                "font-semibold truncate",
-                layout.shouldUseCompactLayout ? "text-sm" : "text-lg"
-              )}>
+              <h3 className="font-semibold text-xl truncate">
                 {currentStage.title}
               </h3>
-              <p className={cn(
-                "text-muted-foreground",
-                layout.shouldUseCompactLayout ? "text-xs" : "text-sm"
-              )}>
-                Stage {current + 1} of {stages.length} • {stageOpportunities.length} opps • ${totalValue.toLocaleString()}
+              <p className="text-muted-foreground text-base">
+                Stage {current + 1} of {stages.length} • {stageOpportunities.length} opportunities • ${totalValue.toLocaleString()}
               </p>
             </div>
           </div>
           
           {/* Stage Indicators */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {stages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => api?.scrollTo(index)}
                 className={cn(
-                  "rounded-full transition-colors",
-                  layout.shouldUseCompactLayout ? "w-1.5 h-1.5" : "w-2 h-2",
+                  "rounded-full transition-colors w-3 h-3",
                   index === current ? "bg-primary" : "bg-muted"
                 )}
               />
@@ -176,97 +163,66 @@ export function CarouselPipelineBoard({
               return (
                 <CarouselItem key={stage.id}>
                   <Card 
-                    className={cn("overflow-hidden")}
-                    style={{ 
-                      height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
-                    }}
+                    className="overflow-hidden h-[500px]"
                   >
-                    <CardHeader className={cn(
-                      layout.shouldUseCompactLayout ? "pb-2 px-3 py-2" : "pb-3"
-                    )}>
+                    <CardHeader className="pb-4">
                       <div className="flex items-center justify-between">
-                        <CardTitle className={cn(
-                          "flex items-center gap-2",
-                          layout.shouldUseCompactLayout ? "text-sm" : "text-base"
-                        )}>
+                        <CardTitle className="flex items-center gap-3 text-lg">
                           <div
-                            className={cn(
-                              "rounded-full",
-                              layout.shouldUseCompactLayout ? "w-2.5 h-2.5" : "w-3 h-3"
-                            )}
+                            className="rounded-full w-4 h-4"
                             style={{ backgroundColor: stage.color }}
                           />
                           <span className="truncate">{stage.title}</span>
                         </CardTitle>
-                        <Badge variant="secondary" className={cn(
-                          layout.shouldUseCompactLayout ? "text-xs px-1.5 py-0.5" : ""
-                        )}>
+                        <Badge variant="secondary" className="text-sm px-3 py-1">
                           {stageOpps.length}
                         </Badge>
                       </div>
-                      {!layout.shouldUseCompactLayout && (
-                        <p className="text-sm text-muted-foreground">
-                          Total: ${stageValue.toLocaleString()}
-                        </p>
-                      )}
+                      <p className="text-base text-muted-foreground">
+                        Total: ${stageValue.toLocaleString()}
+                      </p>
                     </CardHeader>
                     <CardContent 
-                      className={cn(
-                        "overflow-y-auto",
-                        layout.shouldUseCompactLayout ? "px-3 pb-2" : ""
-                      )}
-                      style={{ 
-                        height: `calc(100% - ${layout.shouldUseCompactLayout ? '60px' : '80px'})`
-                      }}
+                      className="overflow-y-auto h-[400px]"
                     >
-                      <div className={cn(
-                        layout.shouldUseCompactLayout ? "space-y-2" : "space-y-3"
-                      )}>
+                      <div className="space-y-4">
                         {stageOpps.length === 0 ? (
-                          <div className={cn(
-                            "flex items-center justify-center text-muted-foreground",
-                            layout.shouldUseCompactLayout ? "h-24 text-xs" : "h-32"
-                          )}>
+                          <div className="flex items-center justify-center text-muted-foreground h-40 text-base">
                             No opportunities in this stage
                           </div>
                         ) : (
                           stageOpps.map((opportunity) => (
-                            <div key={opportunity.id} className={cn(
-                              layout.shouldUseCompactLayout ? "space-y-1" : "space-y-2"
-                            )}>
+                            <div key={opportunity.id} className="space-y-3">
                               <MedicalOpportunityCard
                                 opportunity={opportunity}
                                 onMoveToPrevious={current > 0 ? handleMoveToPrevious : undefined}
                                 onMoveToNext={current < stages.length - 1 ? handleMoveToNext : undefined}
-                                compact={layout.shouldUseCompactLayout}
+                                compact={false}
                               />
-                              {/* Quick Stage Actions - Hidden on very small screens */}
-                              {!layout.shouldUseCompactLayout && (
-                                <div className="flex gap-2 px-2">
-                                  {current > 0 && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleMoveToPrevious(opportunity.id)}
-                                      className="flex-1 text-xs"
-                                    >
-                                      <ChevronLeft className="w-3 h-3 mr-1" />
-                                      Move Back
-                                    </Button>
-                                  )}
-                                  {current < stages.length - 1 && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleMoveToNext(opportunity.id)}
-                                      className="flex-1 text-xs"
-                                    >
-                                      Move Forward
-                                      <ChevronRight className="w-3 h-3 ml-1" />
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
+                              <div className="flex gap-3 px-3">
+                                {current > 0 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleMoveToPrevious(opportunity.id)}
+                                    className="flex-1"
+                                  >
+                                    <ChevronLeft className="w-4 h-4 mr-2" />
+                                    Move Back
+                                  </Button>
+                                )}
+                                {current < stages.length - 1 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleMoveToNext(opportunity.id)}
+                                    className="flex-1"
+                                  >
+                                    Move Forward
+                                    <ChevronRight className="w-4 h-4 ml-2" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           ))
                         )}
@@ -277,22 +233,14 @@ export function CarouselPipelineBoard({
               );
             })}
           </CarouselContent>
-          <CarouselPrevious className={cn(
-            "left-1",
-            layout.shouldUseCompactLayout ? "h-7 w-7" : "left-2"
-          )} />
-          <CarouselNext className={cn(
-            "right-1", 
-            layout.shouldUseCompactLayout ? "h-7 w-7" : "right-2"
-          )} />
+          <CarouselPrevious className="left-4 h-10 w-10" />
+          <CarouselNext className="right-4 h-10 w-10" />
         </Carousel>
 
         {/* Navigation Info */}
-        {!layout.shouldUseCompactLayout && (
-          <div className="text-center text-sm text-muted-foreground">
-            Use arrows or swipe to navigate between stages
-          </div>
-        )}
+        <div className="text-center text-base text-muted-foreground">
+          Use arrows or swipe to navigate between stages
+        </div>
       </div>
     </PipelineDragProvider>
   );
