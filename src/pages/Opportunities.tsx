@@ -137,11 +137,11 @@ export default function Opportunities() {
           </div>
 
           {/* Pipeline Board */}
-          <Card className="p-0 overflow-hidden">
+          <Card className="p-0">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg sm:text-xl">Medical Pipeline Board</CardTitle>
             </CardHeader>
-            <CardContent className={isMobile ? "p-4" : "p-6"}>
+            <CardContent className={`${isMobile ? "p-4" : "p-6"} h-[700px] overflow-hidden`}>
               {isMobile ? (
                 <MobilePipeline 
                   opportunities={opportunities}

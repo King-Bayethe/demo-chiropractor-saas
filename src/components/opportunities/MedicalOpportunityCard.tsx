@@ -82,9 +82,10 @@ export function MedicalOpportunityCard({
     <Card
       ref={setNodeRef}
       style={style}
-      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-        isDragging ? 'opacity-50 rotate-2' : ''
-      }`}
+      className={cn(
+        "cursor-pointer transition-all duration-200 hover:shadow-md flex-shrink-0",
+        isDragging && "opacity-50 rotate-2"
+      )}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">

@@ -77,9 +77,9 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
 
       {/* Scrollable Content */}
       <div className="flex-1 min-h-0 px-2 pb-2">
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-full w-full">
           <SortableContext items={opportunities.map(o => o.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2 pr-2">
+            <div className="space-y-2 pr-3 pb-2">
               {opportunities.map(opportunity => (
                 <MedicalOpportunityCard
                   key={opportunity.id}
@@ -126,15 +126,17 @@ export function KanbanPipelineBoard({
         stages={stages}
         onMoveOpportunity={onMoveOpportunity}
       >
-        <div className="flex gap-4 h-full min-h-[600px] overflow-x-auto pb-4">
-          {stages.map(stage => (
-            <StageColumn
-              key={stage.id}
-              stage={stage}
-              opportunities={opportunitiesByStage[stage.id] || []}
-              onMoveOpportunity={onMoveOpportunity}
-            />
-          ))}
+        <div className="flex gap-4 h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
+          <div className="flex gap-4 h-full min-h-[600px]">
+            {stages.map(stage => (
+              <StageColumn
+                key={stage.id}
+                stage={stage}
+                opportunities={opportunitiesByStage[stage.id] || []}
+                onMoveOpportunity={onMoveOpportunity}
+              />
+            ))}
+          </div>
         </div>
       </PipelineDragProvider>
     </div>
