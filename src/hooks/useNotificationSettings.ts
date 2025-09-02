@@ -92,6 +92,8 @@ export const useNotificationSettings = () => {
           user_id: user.id,
           setting_key: 'notification_preferences',
           notification_preferences: newPreferences as any
+        }, {
+          onConflict: 'user_id,setting_key'
         });
 
       if (error) {
