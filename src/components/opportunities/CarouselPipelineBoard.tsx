@@ -2,15 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MedicalOpportunityCard } from "./MedicalOpportunityCard";
 import { PipelineDragProvider } from "../pipeline/PipelineDragProvider";
 import { useAdaptiveLayout } from "@/hooks/useViewportResize";
@@ -68,19 +60,7 @@ export function CarouselPipelineBoard({
   stages,
   onMoveOpportunity,
 }: CarouselPipelineBoardProps) {
-  const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
   const layout = useAdaptiveLayout();
-
-  React.useEffect(() => {
-    if (!api) return;
-
-    setCurrent(api.selectedScrollSnap());
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-  }, [api]);
 
   const groupedOpportunities = React.useMemo(() => {
     return stages.reduce((acc, stage) => {
@@ -91,28 +71,21 @@ export function CarouselPipelineBoard({
     }, {} as Record<string, Opportunity[]>);
   }, [opportunities, stages]);
 
-  const currentStage = stages[current];
-  const stageOpportunities = groupedOpportunities[currentStage?.id] || [];
-  const totalValue = stageOpportunities.reduce(
-    (sum, opp) => sum + (opp.estimated_value || 0),
-    0
-  );
-
-  const handleMoveToNext = (opportunityId: string) => {
-    const nextStageIndex = current + 1;
+  const handleMoveToNext = (opportunityId: string, currentStageId: string) => {
+    const currentStageIndex = stages.findIndex(stage => stage.id === currentStageId);
+    const nextStageIndex = currentStageIndex + 1;
     if (nextStageIndex < stages.length) {
       onMoveOpportunity(opportunityId, stages[nextStageIndex].id);
     }
   };
 
-  const handleMoveToPrevious = (opportunityId: string) => {
-    const prevStageIndex = current - 1;
+  const handleMoveToPrevious = (opportunityId: string, currentStageId: string) => {
+    const currentStageIndex = stages.findIndex(stage => stage.id === currentStageId);
+    const prevStageIndex = currentStageIndex - 1;
     if (prevStageIndex >= 0) {
       onMoveOpportunity(opportunityId, stages[prevStageIndex].id);
     }
   };
-
-  if (!currentStage) return null;
 
   return (
     <PipelineDragProvider
@@ -120,128 +93,99 @@ export function CarouselPipelineBoard({
       stages={stages}
       onMoveOpportunity={onMoveOpportunity}
     >
-      <div className={cn("px-16 space-y-2", layout.shouldReduceSpacing ? "space-y-2" : "space-y-4")}>
-        {/* Stage Navigation Header */}
+      <div className={cn("space-y-2", layout.shouldReduceSpacing ? "space-y-2" : "space-y-4")}>
+        {/* Pipeline Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div
-              className="rounded-full flex-shrink-0 w-4 h-4"
-              style={{ backgroundColor: currentStage.color }}
-            />
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-xl truncate">
-                {currentStage.title}
-              </h3>
-              <p className="text-muted-foreground text-base">
-                Stage {current + 1} of {stages.length} • {stageOpportunities.length} opportunities • ${totalValue.toLocaleString()}
-              </p>
-            </div>
-          </div>
-          
-          {/* Stage Indicators */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {stages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => api?.scrollTo(index)}
-                className={cn(
-                  "rounded-full transition-colors w-3 h-3",
-                  index === current ? "bg-primary" : "bg-muted"
-                )}
-              />
-            ))}
+          <div>
+            <h3 className="font-semibold text-xl">Medical Pipeline</h3>
+            <p className="text-muted-foreground text-base">
+              {stages.length} stages • {opportunities.length} total opportunities
+            </p>
           </div>
         </div>
 
-        {/* Carousel */}
-        <div className="relative">
-          <Carousel setApi={setApi} className="w-full">
-            <CarouselContent className="mx-12">
-              {stages.map((stage) => {
-                const stageOpps = groupedOpportunities[stage.id] || [];
-                const stageValue = stageOpps.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
-                
-                return (
-                  <CarouselItem key={stage.id}>
-                    <Card 
-                      className="overflow-hidden h-[500px]"
-                    >
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-3 text-lg">
-                            <div
-                              className="rounded-full w-4 h-4"
-                              style={{ backgroundColor: stage.color }}
-                            />
-                            <span className="truncate">{stage.title}</span>
-                          </CardTitle>
-                          <Badge variant="secondary" className="text-sm px-3 py-1">
-                            {stageOpps.length}
-                          </Badge>
-                        </div>
-                        <p className="text-base text-muted-foreground">
-                          Total: ${stageValue.toLocaleString()}
-                        </p>
-                      </CardHeader>
-                      <CardContent 
-                        className="overflow-y-auto h-[400px]"
-                      >
-                        <div className="space-y-4">
-                          {stageOpps.length === 0 ? (
-                            <div className="flex items-center justify-center text-muted-foreground h-40 text-base">
-                              No opportunities in this stage
-                            </div>
-                          ) : (
-                            stageOpps.map((opportunity) => (
-                              <div key={opportunity.id} className="space-y-3">
-                                <MedicalOpportunityCard
-                                  opportunity={opportunity}
-                                  onMoveToPrevious={current > 0 ? handleMoveToPrevious : undefined}
-                                  onMoveToNext={current < stages.length - 1 ? handleMoveToNext : undefined}
-                                  compact={false}
-                                />
-                                <div className="flex gap-3 px-3">
-                                  {current > 0 && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleMoveToPrevious(opportunity.id)}
-                                      className="flex-1"
-                                    >
-                                      <ChevronLeft className="w-4 h-4 mr-2" />
-                                      Move Back
-                                    </Button>
-                                  )}
-                                  {current < stages.length - 1 && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleMoveToNext(opportunity.id)}
-                                      className="flex-1"
-                                    >
-                                      Move Forward
-                                      <ChevronRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                  )}
-                                </div>
+        {/* Horizontal Scrollable Pipeline */}
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-4 pb-4 min-w-max">
+            {stages.map((stage) => {
+              const stageOpps = groupedOpportunities[stage.id] || [];
+              const stageValue = stageOpps.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
+              const currentStageIndex = stages.findIndex(s => s.id === stage.id);
+              
+              return (
+                <div key={stage.id} className="flex-shrink-0 w-80">
+                  <Card className="overflow-hidden h-[500px]">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-3 text-lg">
+                          <div
+                            className="rounded-full w-4 h-4"
+                            style={{ backgroundColor: stage.color }}
+                          />
+                          <span className="truncate">{stage.title}</span>
+                        </CardTitle>
+                        <Badge variant="secondary" className="text-sm px-3 py-1">
+                          {stageOpps.length}
+                        </Badge>
+                      </div>
+                      <p className="text-base text-muted-foreground">
+                        Total: ${stageValue.toLocaleString()}
+                      </p>
+                    </CardHeader>
+                    <CardContent className="overflow-y-auto h-[400px]">
+                      <div className="space-y-4">
+                        {stageOpps.length === 0 ? (
+                          <div className="flex items-center justify-center text-muted-foreground h-40 text-base">
+                            No opportunities in this stage
+                          </div>
+                        ) : (
+                          stageOpps.map((opportunity) => (
+                            <div key={opportunity.id} className="space-y-3">
+                              <MedicalOpportunityCard
+                                opportunity={opportunity}
+                                onMoveToPrevious={currentStageIndex > 0 ? (id) => handleMoveToPrevious(id, stage.id) : undefined}
+                                onMoveToNext={currentStageIndex < stages.length - 1 ? (id) => handleMoveToNext(id, stage.id) : undefined}
+                                compact={false}
+                              />
+                              <div className="flex gap-3 px-3">
+                                {currentStageIndex > 0 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleMoveToPrevious(opportunity.id, stage.id)}
+                                    className="flex-1"
+                                  >
+                                    <ChevronLeft className="w-4 h-4 mr-2" />
+                                    Move Back
+                                  </Button>
+                                )}
+                                {currentStageIndex < stages.length - 1 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleMoveToNext(opportunity.id, stage.id)}
+                                    className="flex-1"
+                                  >
+                                    Move Forward
+                                    <ChevronRight className="w-4 h-4 ml-2" />
+                                  </Button>
+                                )}
                               </div>
-                            ))
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-            <CarouselPrevious className="left-2 h-10 w-10" />
-            <CarouselNext className="right-2 h-10 w-10" />
-          </Carousel>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Navigation Info */}
+        {/* Scroll Info */}
         <div className="text-center text-base text-muted-foreground">
-          Use arrows or swipe to navigate between stages
+          Scroll horizontally to view all pipeline stages
         </div>
       </div>
     </PipelineDragProvider>
