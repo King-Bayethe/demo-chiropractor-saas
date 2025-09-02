@@ -7,22 +7,47 @@ import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { MobilePipeline } from "@/components/pipeline/MobilePipeline";
 import { KanbanPipelineBoard } from "@/components/opportunities/KanbanPipelineBoard";
-import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
+import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
 import { useIsMobile } from "@/hooks/use-breakpoints";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const { data: stages = [], isLoading: stagesLoading } = usePipelineStages();
-  const { data: opportunities = [], isLoading: opportunitiesLoading } = usePipelineOpportunities();
-  const { stats, stageStats } = usePipelineStats();
-  const { updateOpportunityStage } = usePipelineMutations();
+  const { opportunities, loading, updateOpportunityStage } = useOpportunities();
   const isMobile = useIsMobile();
 
-  const handleMoveOpportunity = (opportunityId: string, targetStageId: string) => {
-    updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
+  // Process stages
+  const stages = MEDICAL_PIPELINE_STAGES.map(stage => ({
+    ...stage,
+    position: MEDICAL_PIPELINE_STAGES.findIndex(s => s.id === stage.id) + 1,
+  }));
+
+  // Calculate stats
+  const stats = {
+    totalOpportunities: opportunities.length,
+    totalValue: opportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0),
+    averageDealSize: opportunities.length > 0 ? opportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0) / opportunities.length : 0,
+    activeContacts: new Set(opportunities.map(opp => opp.patient_name || 'Unknown')).size,
   };
 
-  if (stagesLoading || opportunitiesLoading) {
+  const stageStats = MEDICAL_PIPELINE_STAGES.map((stage, index) => {
+    const stageOpportunities = opportunities.filter(opp => opp.pipeline_stage === stage.id);
+    const stageValue = stageOpportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
+    
+    return {
+      id: stage.id,
+      name: stage.title,
+      color: stage.color.replace('bg-', '').replace('-500', ''),
+      count: stageOpportunities.length,
+      value: stageValue,
+      position: index + 1,
+    };
+  });
+
+  const handleMoveOpportunity = (opportunityId: string, targetStageId: string) => {
+    updateOpportunityStage(opportunityId, targetStageId);
+  };
+
+  if (loading) {
     return (
       <AuthGuard>
         <Layout>
