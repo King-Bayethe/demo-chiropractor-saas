@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react"
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { useProfile } from "@/hooks/useProfile"
 
 type Theme = "dark" | "light" | "system"
