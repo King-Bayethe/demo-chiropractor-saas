@@ -25,7 +25,38 @@ serve(async (req) => {
       );
     }
 
-    console.log('Providing VAPID public key');
+    // Validate VAPID key format
+    if (typeof vapidPublicKey !== 'string' || vapidPublicKey.trim() === '') {
+      console.error('VAPID_PUBLIC_KEY is not a valid string');
+      return new Response(
+        JSON.stringify({ error: 'VAPID key format invalid' }), 
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Log key length and first few characters for debugging (safe)
+    console.log(`VAPID key length: ${vapidPublicKey.length}, starts with: ${vapidPublicKey.substring(0, 10)}...`);
+    
+    // Validate base64 format
+    try {
+      // Test if it's valid base64 by trying to decode it
+      const testDecode = atob(vapidPublicKey.replace(/-/g, '+').replace(/_/g, '/'));
+      console.log(`VAPID key decoded successfully, decoded length: ${testDecode.length}`);
+    } catch (decodeError) {
+      console.error('VAPID key is not valid base64:', decodeError);
+      return new Response(
+        JSON.stringify({ error: 'VAPID key is not valid base64' }), 
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('Providing validated VAPID public key');
     
     return new Response(
       JSON.stringify({ 
