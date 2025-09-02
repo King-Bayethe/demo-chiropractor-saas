@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
-import { MobilePipeline } from "@/components/pipeline/MobilePipeline";
-import { KanbanPipelineBoard } from "@/components/opportunities/KanbanPipelineBoard";
+import { CarouselPipelineBoard } from "@/components/opportunities/CarouselPipelineBoard";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
 import { useIsMobile } from "@/hooks/use-breakpoints";
 
@@ -142,18 +141,11 @@ export default function Opportunities() {
               <CardTitle className="text-sm sm:text-base">Medical Pipeline Board</CardTitle>
             </CardHeader>
             <CardContent className={`${isMobile ? "p-2" : "p-3"} h-[450px]`}>
-              {isMobile ? (
-                <MobilePipeline 
-                  opportunities={opportunities}
-                  onMoveOpportunity={handleMoveOpportunity}
-                />
-              ) : (
-                <KanbanPipelineBoard
-                  opportunities={opportunities}
-                  stages={stages}
-                  onMoveOpportunity={handleMoveOpportunity}
-                />
-              )}
+              <CarouselPipelineBoard
+                opportunities={opportunities}
+                stages={stages}
+                onMoveOpportunity={handleMoveOpportunity}
+              />
             </CardContent>
           </Card>
 
