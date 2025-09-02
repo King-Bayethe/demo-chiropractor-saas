@@ -32,13 +32,96 @@ export const usePushNotifications = () => {
     if (!isSupported || !user) return;
 
     try {
+      console.log('🔍 Checking subscription status for user:', user.id);
+      
+      // Check browser subscription
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
+      const browserSubscription = await registration.pushManager.getSubscription();
+      
+      // Check database subscription
+      const { data: dbSubscriptions, error } = await supabase
+        .from('notification_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error checking database subscription:', error);
+        setIsSubscribed(!!browserSubscription);
+        return;
+      }
+
+      const hasDbSubscription = dbSubscriptions && dbSubscriptions.length > 0;
+      console.log('📱 Browser subscription exists:', !!browserSubscription);
+      console.log('💾 Database subscription exists:', hasDbSubscription);
+
+      // Cross-reference browser and database states
+      if (browserSubscription && hasDbSubscription) {
+        // Check if endpoints match
+        const dbSub = dbSubscriptions[0];
+        const endpointsMatch = dbSub.endpoint === browserSubscription.endpoint;
+        
+        console.log('🔗 Endpoints match:', endpointsMatch);
+        
+        if (endpointsMatch) {
+          // Perfect sync - both browser and database agree
+          setIsSubscribed(true);
+        } else {
+          // Endpoints don't match - update database with current browser subscription
+          console.log('🔄 Syncing mismatched endpoints...');
+          await syncSubscription(browserSubscription);
+          setIsSubscribed(true);
+        }
+      } else if (browserSubscription && !hasDbSubscription) {
+        // Browser has subscription but database doesn't - save to database
+        console.log('💾 Saving browser subscription to database...');
+        await syncSubscription(browserSubscription);
+        setIsSubscribed(true);
+      } else if (!browserSubscription && hasDbSubscription) {
+        // Database has subscription but browser doesn't - mark as inactive
+        console.log('🗑️ Marking orphaned database subscription as inactive...');
+        await supabase
+          .from('notification_subscriptions')
+          .update({ is_active: false })
+          .eq('user_id', user.id);
+        setIsSubscribed(false);
+      } else {
+        // Neither browser nor database has subscription
+        console.log('❌ No subscriptions found');
+        setIsSubscribed(false);
+      }
     } catch (error) {
       console.error('Error checking subscription status:', error);
     }
   }, [isSupported, user]);
+
+  const syncSubscription = useCallback(async (subscription: any) => {
+    if (!user) return;
+
+    try {
+      const subscriptionData = JSON.parse(JSON.stringify(subscription));
+      
+      const { error } = await supabase
+        .from('notification_subscriptions')
+        .upsert({
+          user_id: user.id,
+          endpoint: subscriptionData.endpoint,
+          p256dh: subscriptionData.keys.p256dh,
+          auth: subscriptionData.keys.auth,
+          user_agent: navigator.userAgent,
+          is_active: true
+        });
+
+      if (error) {
+        console.error('Error syncing subscription:', error);
+        throw error;
+      }
+      
+      console.log('✅ Subscription synced successfully');
+    } catch (error) {
+      console.error('Error syncing subscription:', error);
+    }
+  }, [user]);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!isSupported) {
