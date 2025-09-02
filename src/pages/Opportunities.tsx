@@ -202,33 +202,6 @@ export default function Opportunities() {
             )}
           </div>
 
-          {/* Pipeline Board */}
-          <Card className="p-0">
-            <CardHeader className={cn(
-              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
-            )}>
-              <CardTitle className={cn(
-                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
-              )}>
-                Medical Pipeline Board
-              </CardTitle>
-            </CardHeader>
-            <CardContent 
-              className={cn(
-                layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
-              )}
-              style={{ 
-                height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
-              }}
-            >
-              <CarouselPipelineBoard
-                opportunities={opportunities}
-                stages={stages}
-                onMoveOpportunity={handleMoveOpportunity}
-              />
-            </CardContent>
-          </Card>
-
           {/* Stage Summary */}
           <Card>
             <CardHeader className={cn(
@@ -300,6 +273,34 @@ export default function Opportunities() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Pipeline Board */}
+          <Card className="p-0">
+            <CardHeader className={cn(
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+            )}>
+              <CardTitle className={cn(
+                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
+              )}>
+                Medical Pipeline Board
+              </CardTitle>
+            </CardHeader>
+            <CardContent 
+              className={cn(
+                layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
+              )}
+              style={{ 
+                height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
+              }}
+            >
+              <CarouselPipelineBoard
+                opportunities={opportunities}
+                stages={stages}
+                onMoveOpportunity={handleMoveOpportunity}
+              />
+            </CardContent>
+          </Card>
+
         </div>
 
         <AddOpportunityModal 
