@@ -120,7 +120,7 @@ export function CarouselPipelineBoard({
       stages={stages}
       onMoveOpportunity={onMoveOpportunity}
     >
-      <div className={cn("space-y-2", layout.shouldReduceSpacing ? "space-y-2" : "space-y-4")}>
+      <div className={cn("px-16 space-y-2", layout.shouldReduceSpacing ? "space-y-2" : "space-y-4")}>
         {/* Stage Navigation Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -154,88 +154,90 @@ export function CarouselPipelineBoard({
         </div>
 
         {/* Carousel */}
-        <Carousel setApi={setApi} className="w-full">
-          <CarouselContent>
-            {stages.map((stage) => {
-              const stageOpps = groupedOpportunities[stage.id] || [];
-              const stageValue = stageOpps.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
-              
-              return (
-                <CarouselItem key={stage.id}>
-                  <Card 
-                    className="overflow-hidden h-[500px]"
-                  >
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-3 text-lg">
-                          <div
-                            className="rounded-full w-4 h-4"
-                            style={{ backgroundColor: stage.color }}
-                          />
-                          <span className="truncate">{stage.title}</span>
-                        </CardTitle>
-                        <Badge variant="secondary" className="text-sm px-3 py-1">
-                          {stageOpps.length}
-                        </Badge>
-                      </div>
-                      <p className="text-base text-muted-foreground">
-                        Total: ${stageValue.toLocaleString()}
-                      </p>
-                    </CardHeader>
-                    <CardContent 
-                      className="overflow-y-auto h-[400px]"
+        <div className="relative">
+          <Carousel setApi={setApi} className="w-full">
+            <CarouselContent className="mx-12">
+              {stages.map((stage) => {
+                const stageOpps = groupedOpportunities[stage.id] || [];
+                const stageValue = stageOpps.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
+                
+                return (
+                  <CarouselItem key={stage.id}>
+                    <Card 
+                      className="overflow-hidden h-[500px]"
                     >
-                      <div className="space-y-4">
-                        {stageOpps.length === 0 ? (
-                          <div className="flex items-center justify-center text-muted-foreground h-40 text-base">
-                            No opportunities in this stage
-                          </div>
-                        ) : (
-                          stageOpps.map((opportunity) => (
-                            <div key={opportunity.id} className="space-y-3">
-                              <MedicalOpportunityCard
-                                opportunity={opportunity}
-                                onMoveToPrevious={current > 0 ? handleMoveToPrevious : undefined}
-                                onMoveToNext={current < stages.length - 1 ? handleMoveToNext : undefined}
-                                compact={false}
-                              />
-                              <div className="flex gap-3 px-3">
-                                {current > 0 && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleMoveToPrevious(opportunity.id)}
-                                    className="flex-1"
-                                  >
-                                    <ChevronLeft className="w-4 h-4 mr-2" />
-                                    Move Back
-                                  </Button>
-                                )}
-                                {current < stages.length - 1 && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleMoveToNext(opportunity.id)}
-                                    className="flex-1"
-                                  >
-                                    Move Forward
-                                    <ChevronRight className="w-4 h-4 ml-2" />
-                                  </Button>
-                                )}
-                              </div>
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="flex items-center gap-3 text-lg">
+                            <div
+                              className="rounded-full w-4 h-4"
+                              style={{ backgroundColor: stage.color }}
+                            />
+                            <span className="truncate">{stage.title}</span>
+                          </CardTitle>
+                          <Badge variant="secondary" className="text-sm px-3 py-1">
+                            {stageOpps.length}
+                          </Badge>
+                        </div>
+                        <p className="text-base text-muted-foreground">
+                          Total: ${stageValue.toLocaleString()}
+                        </p>
+                      </CardHeader>
+                      <CardContent 
+                        className="overflow-y-auto h-[400px]"
+                      >
+                        <div className="space-y-4">
+                          {stageOpps.length === 0 ? (
+                            <div className="flex items-center justify-center text-muted-foreground h-40 text-base">
+                              No opportunities in this stage
                             </div>
-                          ))
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              );
-            })}
-          </CarouselContent>
-          <CarouselPrevious className="left-4 h-10 w-10" />
-          <CarouselNext className="right-4 h-10 w-10" />
-        </Carousel>
+                          ) : (
+                            stageOpps.map((opportunity) => (
+                              <div key={opportunity.id} className="space-y-3">
+                                <MedicalOpportunityCard
+                                  opportunity={opportunity}
+                                  onMoveToPrevious={current > 0 ? handleMoveToPrevious : undefined}
+                                  onMoveToNext={current < stages.length - 1 ? handleMoveToNext : undefined}
+                                  compact={false}
+                                />
+                                <div className="flex gap-3 px-3">
+                                  {current > 0 && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleMoveToPrevious(opportunity.id)}
+                                      className="flex-1"
+                                    >
+                                      <ChevronLeft className="w-4 h-4 mr-2" />
+                                      Move Back
+                                    </Button>
+                                  )}
+                                  {current < stages.length - 1 && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleMoveToNext(opportunity.id)}
+                                      className="flex-1"
+                                    >
+                                      Move Forward
+                                      <ChevronRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+            <CarouselPrevious className="left-2 h-10 w-10" />
+            <CarouselNext className="right-2 h-10 w-10" />
+          </Carousel>
+        </div>
 
         {/* Navigation Info */}
         <div className="text-center text-base text-muted-foreground">
