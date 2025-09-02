@@ -30,6 +30,7 @@ interface MedicalOpportunityCardProps {
   onDelete?: (id: string) => void;
   onMoveToPrevious?: (id: string, currentStage: string) => void;
   onMoveToNext?: (id: string, currentStage: string) => void;
+  compact?: boolean;
 }
 
 export function MedicalOpportunityCard({ 
@@ -38,7 +39,8 @@ export function MedicalOpportunityCard({
   onEdit, 
   onDelete, 
   onMoveToPrevious, 
-  onMoveToNext 
+  onMoveToNext,
+  compact = false
 }: MedicalOpportunityCardProps) {
   const isMobile = useIsMobile();
   const {
@@ -84,22 +86,34 @@ export function MedicalOpportunityCard({
       style={style}
       className={cn(
         "cursor-pointer transition-all duration-200 hover:shadow-md flex-shrink-0",
-        isDragging && "opacity-50 rotate-2"
+        isDragging && "opacity-50 rotate-2",
+        compact && "text-xs"
       )}
     >
-      <CardHeader className="pb-2">
+      <CardHeader className={cn(compact ? "pb-1 px-2 py-1.5" : "pb-2")}>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Avatar className={cn("flex-shrink-0", isMobile ? "h-6 w-6" : "h-8 w-8")}>
-              <AvatarFallback className={cn(isMobile ? "text-xs" : "text-xs")}>
+            <Avatar className={cn(
+              "flex-shrink-0", 
+              compact ? "h-5 w-5" : isMobile ? "h-6 w-6" : "h-8 w-8"
+            )}>
+              <AvatarFallback className={cn(
+                compact ? "text-xs" : isMobile ? "text-xs" : "text-xs"
+              )}>
                 {getInitials(opportunity.patient_name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h4 className={cn("font-semibold truncate", isMobile ? "text-xs" : "text-sm")}>
+              <h4 className={cn(
+                "font-semibold truncate", 
+                compact ? "text-xs" : isMobile ? "text-xs" : "text-sm"
+              )}>
                 {opportunity.name?.replace(/^Appointment\s*-\s*/, '') || opportunity.name}
               </h4>
-              <p className={cn("text-muted-foreground truncate", isMobile ? "text-xs" : "text-xs")}>
+              <p className={cn(
+                "text-muted-foreground truncate", 
+                compact ? "text-xs" : isMobile ? "text-xs" : "text-xs"
+              )}>
                 {opportunity.patient_name}
               </p>
             </div>
@@ -195,24 +209,33 @@ export function MedicalOpportunityCard({
         </div>
       </CardHeader>
       
-      <CardContent className={cn("pt-0 space-y-2", isMobile ? "space-y-1" : "space-y-2")}>
+      <CardContent className={cn(
+        "pt-0", 
+        compact ? "px-2 pb-1.5 space-y-1" : "space-y-2",
+        isMobile && !compact ? "space-y-1" : ""
+      )}>
         {/* Case Type & Attorney Status */}
         <div className="flex gap-1 flex-wrap">
           {opportunity.case_type && (
-            <Badge variant="outline" className={cn("text-xs", getCaseTypeVariant(opportunity.case_type))}>
+            <Badge variant="outline" className={cn(
+              compact ? "text-xs px-1 py-0" : "text-xs", 
+              getCaseTypeVariant(opportunity.case_type)
+            )}>
               {getCaseTypeDisplayName(opportunity.case_type)}
             </Badge>
           )}
           {opportunity.attorney_referred && (
-            <Badge variant="outline" className="text-xs">
-              <Scale className="h-3 w-3 mr-1" />
+            <Badge variant="outline" className={cn(
+              compact ? "text-xs px-1 py-0" : "text-xs"
+            )}>
+              <Scale className={cn(compact ? "h-2.5 w-2.5 mr-0.5" : "h-3 w-3 mr-1")} />
               Attorney
             </Badge>
           )}
         </div>
 
-        {/* Contact Information */}
-        {(opportunity.patient_email || opportunity.patient_phone) && (
+        {/* Contact Information - Hide in compact mode if no space */}
+        {(opportunity.patient_email || opportunity.patient_phone) && !compact && (
           <div className={cn(isMobile ? "space-y-0.5" : "space-y-1")}>
             {opportunity.patient_email && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -231,17 +254,20 @@ export function MedicalOpportunityCard({
 
         {/* Value Information */}
         {(opportunity.estimated_value || opportunity.insurance_coverage_amount) && (
-          <div className="space-y-1">
+          <div className={cn(compact ? "space-y-0.5" : "space-y-1")}>
             {opportunity.estimated_value && (
               <div className="flex items-center gap-1 text-xs">
-                <DollarSign className="h-3 w-3 text-green-600" />
+                <DollarSign className={cn(
+                  compact ? "h-2.5 w-2.5" : "h-3 w-3",
+                  "text-green-600"
+                )} />
                 <span className="font-medium">
                   {formatCurrency(opportunity.estimated_value)}
                 </span>
-                <span className="text-muted-foreground">Est. Value</span>
+                {!compact && <span className="text-muted-foreground">Est. Value</span>}
               </div>
             )}
-            {opportunity.insurance_coverage_amount && (
+            {opportunity.insurance_coverage_amount && !compact && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <span>Insurance: {formatCurrency(opportunity.insurance_coverage_amount)}</span>
               </div>
@@ -249,15 +275,15 @@ export function MedicalOpportunityCard({
           </div>
         )}
 
-        {/* Dates */}
-        <div className="space-y-1">
+        {/* Dates - Show most important only in compact mode */}
+        <div className={cn(compact ? "space-y-0.5" : "space-y-1")}>
           {opportunity.expected_close_date && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
+              <Calendar className={cn(compact ? "h-2.5 w-2.5" : "h-3 w-3")} />
               <span>Close: {formatDate(opportunity.expected_close_date)}</span>
             </div>
           )}
-          {opportunity.consultation_scheduled_at && (
+          {opportunity.consultation_scheduled_at && !compact && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               <span>Consult: {formatDate(opportunity.consultation_scheduled_at)}</span>
@@ -265,26 +291,26 @@ export function MedicalOpportunityCard({
           )}
         </div>
 
-        {/* Assigned Provider */}
-        {opportunity.assigned_provider_name && (
+        {/* Assigned Provider - Hide in compact mode */}
+        {opportunity.assigned_provider_name && !compact && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <User className="h-3 w-3" />
             <span>Assigned: {opportunity.assigned_provider_name}</span>
           </div>
         )}
 
-        {/* Source */}
-        {opportunity.source && (
+        {/* Source - Hide in compact mode */}
+        {opportunity.source && !compact && (
           <div className="text-xs text-muted-foreground">
             Source: {opportunity.source}
           </div>
         )}
 
-        {/* Notes Preview */}
-        {opportunity.notes && (
+        {/* Notes Preview - Shorter in compact mode */}
+        {opportunity.notes && !compact && (
           <div className={cn("text-xs text-muted-foreground bg-muted/50 p-2 rounded break-words", isMobile ? "text-xs" : "text-xs")}>
-            {opportunity.notes.length > (isMobile ? 40 : 60)
-              ? `${opportunity.notes.slice(0, isMobile ? 40 : 60)}...` 
+            {opportunity.notes.length > (compact ? 20 : isMobile ? 40 : 60)
+              ? `${opportunity.notes.slice(0, compact ? 20 : isMobile ? 40 : 60)}...` 
               : opportunity.notes
             }
           </div>

@@ -8,11 +8,14 @@ import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { CarouselPipelineBoard } from "@/components/opportunities/CarouselPipelineBoard";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
 import { useIsMobile } from "@/hooks/use-breakpoints";
+import { useAdaptiveLayout } from "@/hooks/useViewportResize";
+import { cn } from "@/lib/utils";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
   const { opportunities, loading, updateOpportunityStage } = useOpportunities();
   const isMobile = useIsMobile();
+  const layout = useAdaptiveLayout();
 
   // Process stages
   const stages = MEDICAL_PIPELINE_STAGES.map(stage => ({
@@ -61,86 +64,163 @@ export default function Opportunities() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="h-full space-y-3 p-3 sm:p-4 overflow-auto">
+        <div className={cn(
+          "h-full overflow-auto",
+          layout.shouldReduceSpacing ? "space-y-2 p-2" : "space-y-3 p-3 sm:p-4"
+        )}>
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className={cn(
+            "flex justify-between gap-2",
+            layout.shouldUseCompactLayout ? "flex-col" : "flex-col sm:flex-row sm:items-center"
+          )}>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Medical Pipeline</h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
+              <h1 className={cn(
+                "font-bold tracking-tight",
+                layout.shouldUseCompactLayout ? "text-lg" : "text-xl sm:text-2xl"
+              )}>
+                Medical Pipeline
+              </h1>
+              <p className={cn(
+                "text-muted-foreground",
+                layout.shouldUseCompactLayout ? "text-xs" : "text-sm sm:text-base"
+              )}>
                 Track patients through your medical pipeline
               </p>
             </div>
-            <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 w-full sm:w-auto">
-              <Plus className="h-4 w-4" />
+            <Button 
+              onClick={() => setShowAddModal(true)} 
+              className={cn(
+                "flex items-center gap-2",
+                layout.shouldUseCompactLayout ? "h-8 text-xs" : "w-full sm:w-auto"
+              )}
+              size={layout.shouldUseCompactLayout ? "sm" : "default"}
+            >
+              <Plus className={cn(layout.shouldUseCompactLayout ? "h-3 w-3" : "h-4 w-4")} />
               Add Opportunity
             </Button>
           </div>
 
           {/* Pipeline Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            <Card className="p-3">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-xs font-medium">Total Pipeline</CardTitle>
-                <DollarSign className="h-3 w-3 text-muted-foreground" />
+          <div className={cn(
+            "grid gap-2",
+            layout.shouldUseCompactLayout ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-4",
+            layout.shouldReduceSpacing ? "gap-1.5" : "gap-2 sm:gap-3"
+          )}>
+            <Card className={cn(layout.shouldUseCompactLayout ? "p-2" : "p-3")}>
+              <CardHeader className={cn(
+                "flex flex-row items-center justify-between space-y-0",
+                layout.shouldUseCompactLayout ? "pb-0.5" : "pb-1"
+              )}>
+                <CardTitle className={cn(
+                  "font-medium",
+                  layout.shouldUseCompactLayout ? "text-xs" : "text-xs"
+                )}>
+                  Total Pipeline
+                </CardTitle>
+                <DollarSign className={cn(
+                  "text-muted-foreground",
+                  layout.shouldUseCompactLayout ? "h-2.5 w-2.5" : "h-3 w-3"
+                )} />
               </CardHeader>
               <CardContent className="p-0">
-                <div className="text-lg font-bold">${stats.totalValue.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className={cn(
+                  "font-bold",
+                  layout.shouldUseCompactLayout ? "text-sm" : "text-lg"
+                )}>
+                  ${stats.totalValue.toLocaleString()}
+                </div>
+                <p className={cn(
+                  "text-muted-foreground",
+                  layout.shouldUseCompactLayout ? "text-xs" : "text-xs"
+                )}>
                   {stats.totalOpportunities} opportunities
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="p-3">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-xs font-medium">Avg Deal Size</CardTitle>
-                <Target className="h-3 w-3 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="text-lg font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
-                  Per opportunity
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="p-3">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-xs font-medium">Active Contacts</CardTitle>
-                <Users className="h-3 w-3 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="text-lg font-bold">{stats.activeContacts}</div>
-                <p className="text-xs text-muted-foreground">
-                  Unique prospects
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="p-3">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-xs font-medium">Conversion Rate</CardTitle>
-                <TrendingUp className="h-3 w-3 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="text-lg font-bold">
-                  {stats.totalOpportunities > 0 
-                    ? Math.round((stageStats.find(s => s.position === 6)?.count || 0) / stats.totalOpportunities * 100)
-                    : 0}%
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  To completion
-                </p>
-              </CardContent>
-            </Card>
+            {/* Show only most important stats in compact mode */}
+            {layout.shouldUseCompactLayout ? (
+              <Card className="p-2">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0.5">
+                  <CardTitle className="text-xs font-medium">Conversion</CardTitle>
+                  <TrendingUp className="h-2.5 w-2.5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="text-sm font-bold">
+                    {stats.totalOpportunities > 0 
+                      ? Math.round((stageStats.find(s => s.position === 6)?.count || 0) / stats.totalOpportunities * 100)
+                      : 0}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">Rate</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <Card className="p-3">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-xs font-medium">Avg Deal Size</CardTitle>
+                    <Target className="h-3 w-3 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Per opportunity
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="p-3">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-xs font-medium">Active Contacts</CardTitle>
+                    <Users className="h-3 w-3 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg font-bold">{stats.activeContacts}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Unique prospects
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="p-3">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-xs font-medium">Conversion Rate</CardTitle>
+                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg font-bold">
+                      {stats.totalOpportunities > 0 
+                        ? Math.round((stageStats.find(s => s.position === 6)?.count || 0) / stats.totalOpportunities * 100)
+                        : 0}%
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      To completion
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
 
           {/* Pipeline Board */}
           <Card className="p-0">
-            <CardHeader className="p-3 sm:p-4">
-              <CardTitle className="text-sm sm:text-base">Medical Pipeline Board</CardTitle>
+            <CardHeader className={cn(
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+            )}>
+              <CardTitle className={cn(
+                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
+              )}>
+                Medical Pipeline Board
+              </CardTitle>
             </CardHeader>
-            <CardContent className={`${isMobile ? "p-2" : "p-3"} h-[450px]`}>
+            <CardContent 
+              className={cn(
+                layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
+              )}
+              style={{ 
+                height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
+              }}
+            >
               <CarouselPipelineBoard
                 opportunities={opportunities}
                 stages={stages}
@@ -151,11 +231,25 @@ export default function Opportunities() {
 
           {/* Stage Summary */}
           <Card>
-            <CardHeader className="p-3 sm:p-4">
-              <CardTitle className="text-sm sm:text-base">Stage Summary</CardTitle>
+            <CardHeader className={cn(
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+            )}>
+              <CardTitle className={cn(
+                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
+              )}>
+                Stage Summary
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-3 sm:p-4 pt-0">
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
+            <CardContent className={cn(
+              "pt-0",
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+            )}>
+              <div className={cn(
+                "grid gap-2",
+                layout.shouldUseCompactLayout 
+                  ? "grid-cols-3 gap-1.5" 
+                  : "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3"
+              )}>
                 {stageStats.map((stage) => {
                   const getStageColorClass = (color: string) => {
                     const colorMap: Record<string, string> = {
@@ -171,15 +265,34 @@ export default function Opportunities() {
                   };
 
                   return (
-                    <div key={stage.id} className="text-center space-y-1">
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${getStageColorClass(stage.color)} mx-auto flex items-center justify-center text-white font-bold text-xs sm:text-sm`}>
+                    <div key={stage.id} className={cn(
+                      "text-center",
+                      layout.shouldUseCompactLayout ? "space-y-0.5" : "space-y-1"
+                    )}>
+                      <div className={cn(
+                        "rounded-full mx-auto flex items-center justify-center text-white font-bold",
+                        layout.shouldUseCompactLayout 
+                          ? "w-6 h-6 text-xs" 
+                          : "w-8 h-8 sm:w-10 sm:h-10 text-xs sm:text-sm",
+                        getStageColorClass(stage.color)
+                      )}>
                         {stage.count}
                       </div>
                       <div>
-                        <p className="text-xs font-medium leading-tight">{stage.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          ${stage.value.toLocaleString()}
+                        <p className={cn(
+                          "font-medium leading-tight",
+                          layout.shouldUseCompactLayout ? "text-xs" : "text-xs"
+                        )}>
+                          {layout.shouldUseCompactLayout 
+                            ? stage.name.split(' ')[0] // Show only first word in compact mode
+                            : stage.name
+                          }
                         </p>
+                        {!layout.shouldUseCompactLayout && (
+                          <p className="text-xs text-muted-foreground">
+                            ${stage.value.toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                   );
