@@ -91,7 +91,7 @@ export function Layout({ children }: LayoutProps) {
 
   // Responsive layout with mobile support
   return (
-    <div className="h-screen flex w-full bg-background">
+    <div className="h-screen flex w-full bg-background overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && mobileMenuOpen && (
         <div 
@@ -189,7 +189,7 @@ export function Layout({ children }: LayoutProps) {
         <ImpersonationBanner />
         
         {/* Main Content */}
-        <main className="flex-1 min-h-0">
+        <main className="flex-1 min-h-0 overflow-auto">
           {children}
         </main>
       </div>

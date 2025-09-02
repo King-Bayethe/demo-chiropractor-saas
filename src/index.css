@@ -175,14 +175,19 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
-    overflow-x: hidden;
-  }
-  
-  html {
-    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
     max-width: 100vw;
+  }
+
+  #root {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
   }
 }
 

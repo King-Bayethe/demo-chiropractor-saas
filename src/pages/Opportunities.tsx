@@ -62,7 +62,7 @@ export default function Opportunities() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="space-y-4 p-4 sm:p-6">
+        <div className="h-full space-y-4 p-4 sm:p-6 overflow-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
