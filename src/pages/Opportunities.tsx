@@ -1,27 +1,14 @@
-import { useCallback, useMemo, useState } from "react";
-import { 
-  ReactFlow, 
-  Background, 
-  Controls, 
-  Node, 
-  Edge,
-  MarkerType,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import { useState } from "react";
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
-import { PipelineStageNode } from "@/components/pipeline/PipelineStageNode";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { MobilePipeline } from "@/components/pipeline/MobilePipeline";
+import { KanbanPipelineBoard } from "@/components/opportunities/KanbanPipelineBoard";
 import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
-import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
-
-const nodeTypes = {
-  stageNode: PipelineStageNode,
-};
+import { useIsMobile } from "@/hooks/use-breakpoints";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -30,48 +17,10 @@ export default function Opportunities() {
   const { stats, stageStats } = usePipelineStats();
   const { updateOpportunityStage } = usePipelineMutations();
   const isMobile = useIsMobile();
-  const deviceType = useDeviceType();
 
-  const { nodes, edges } = useMemo(() => {
-    if (!stages.length) return { nodes: [], edges: [] };
-
-    const stageNodes: Node[] = stages.map((stage, index) => ({
-      id: `stage-${stage.id}`,
-      type: "stageNode",
-      position: isMobile 
-        ? { x: 50, y: index * 300 } // Vertical layout for mobile
-        : { x: index * 350, y: 100 }, // Horizontal layout for desktop
-      data: {
-        stage,
-        opportunities,
-        allStages: stages,
-        onMoveOpportunity: (opportunityId: string, targetStageId: string) => {
-          updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
-        },
-        isMobile,
-      },
-    }));
-
-    const stageEdges: Edge[] = stages.slice(0, -1).map((stage, index) => ({
-      id: `edge-${stage.id}-${stages[index + 1].id}`,
-      source: `stage-${stage.id}`,
-      target: `stage-${stages[index + 1].id}`,
-      type: "smoothstep",
-      animated: true,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: "hsl(var(--border))",
-      },
-      style: { 
-        stroke: "hsl(var(--border))",
-        strokeWidth: isMobile ? 3 : 2, // Thicker lines for mobile
-      },
-    }));
-
-    return { nodes: stageNodes, edges: stageEdges };
-  }, [stages, opportunities, updateOpportunityStage, isMobile]);
+  const handleMoveOpportunity = (opportunityId: string, targetStageId: string) => {
+    updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
+  };
 
   if (stagesLoading || opportunitiesLoading) {
     return (
@@ -162,59 +111,23 @@ export default function Opportunities() {
             </Card>
           </div>
 
-          {/* Pipeline Flow */}
+          {/* Pipeline Board */}
           <Card className="p-0 overflow-hidden">
             <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl">Medical Pipeline Flow</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Medical Pipeline Board</CardTitle>
             </CardHeader>
-            <CardContent className={isMobile ? "p-4" : "p-0"}>
+            <CardContent className={isMobile ? "p-4" : "p-6"}>
               {isMobile ? (
                 <MobilePipeline 
                   opportunities={opportunities}
-                  onMoveOpportunity={(opportunityId: string, targetStageId: string) => {
-                    updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStageId });
-                  }}
+                  onMoveOpportunity={handleMoveOpportunity}
                 />
               ) : (
-                <div style={{ 
-                  width: "100%", 
-                  height: "600px",
-                  minHeight: "500px"
-                }}>
-                  <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    nodeTypes={nodeTypes}
-                    fitView
-                    fitViewOptions={{ 
-                      padding: 50,
-                      includeHiddenNodes: false
-                    }}
-                    minZoom={0.5}
-                    maxZoom={1.5}
-                    defaultViewport={{ 
-                      x: 0, 
-                      y: 0, 
-                      zoom: 0.8 
-                    }}
-                    proOptions={{ hideAttribution: true }}
-                    panOnScroll={true}
-                    zoomOnScroll={true}
-                    selectionOnDrag={false}
-                  >
-                    <Controls 
-                      position="bottom-right"
-                      showZoom={true}
-                      showFitView={true}
-                      showInteractive={false}
-                    />
-                    <Background 
-                      color="hsl(var(--muted-foreground))" 
-                      gap={16}
-                      size={1}
-                    />
-                  </ReactFlow>
-                </div>
+                <KanbanPipelineBoard
+                  opportunities={opportunities}
+                  stages={stages}
+                  onMoveOpportunity={handleMoveOpportunity}
+                />
               )}
             </CardContent>
           </Card>
