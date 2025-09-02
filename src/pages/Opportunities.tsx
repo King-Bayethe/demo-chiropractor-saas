@@ -141,7 +141,7 @@ export default function Opportunities() {
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg sm:text-xl">Medical Pipeline Board</CardTitle>
             </CardHeader>
-            <CardContent className={`${isMobile ? "p-4" : "p-6"} h-[700px]`}>
+            <CardContent className={`${isMobile ? "p-4" : "p-6"} h-[calc(100vh-400px)] min-h-[600px] max-h-[800px]`}>
               {isMobile ? (
                 <MobilePipeline 
                   opportunities={opportunities}

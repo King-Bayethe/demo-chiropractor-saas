@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,58 @@ import { MedicalOpportunityCard } from './MedicalOpportunityCard';
 import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+
+// Custom hook for responsive column sizing
+const useResponsiveColumns = () => {
+  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
+  
+  useEffect(() => {
+    const updateSize = () => {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+  
+  // Determine column configuration based on screen width
+  const getColumnConfig = () => {
+    const { width } = screenSize;
+    
+    if (width < 768) {
+      // Mobile: Very compact columns
+      return {
+        width: 'w-60 min-w-60 max-w-60',
+        gap: 'gap-2',
+        containerPadding: 'px-2'
+      };
+    } else if (width < 1024) {
+      // Tablet: Compact columns
+      return {
+        width: 'w-64 min-w-64 max-w-64',
+        gap: 'gap-3',
+        containerPadding: 'px-3'
+      };
+    } else if (width < 1440) {
+      // Small desktop: Medium columns to fit 3-4 columns
+      return {
+        width: 'w-72 min-w-72 max-w-72',
+        gap: 'gap-3',
+        containerPadding: 'px-4'
+      };
+    } else {
+      // Large desktop: Full size columns
+      return {
+        width: 'w-80 min-w-80 max-w-80',
+        gap: 'gap-4',
+        containerPadding: 'px-4'
+      };
+    }
+  };
+  
+  return getColumnConfig();
+};
 
 interface KanbanPipelineBoardProps {
   opportunities: Opportunity[];
@@ -28,6 +80,7 @@ interface StageColumnProps {
 
 function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnProps) {
   const totalValue = opportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
+  const columnConfig = useResponsiveColumns();
   
   const getStageColorClass = (color: string) => {
     const colorMap: Record<string, string> = {
@@ -59,7 +112,7 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
   };
 
   return (
-    <div className="flex flex-col w-72 min-w-72 max-w-72 lg:w-80 lg:min-w-80 lg:max-w-80 h-full bg-muted/20 rounded-lg border-2 border-dashed border-border/50">
+    <div className={cn("flex flex-col h-full bg-muted/20 rounded-lg border-2 border-dashed border-border/50", columnConfig.width)}>
       {/* Column Header */}
       <Card className="flex-shrink-0 m-2 border-l-4" style={{ borderLeftColor: stage.color }}>
         <CardHeader className="pb-3">
@@ -110,6 +163,7 @@ export function KanbanPipelineBoard({
   className
 }: KanbanPipelineBoardProps) {
   const isMobile = useIsMobile();
+  const columnConfig = useResponsiveColumns();
   
   // Group opportunities by stage
   const opportunitiesByStage = React.useMemo(() => {
@@ -133,9 +187,9 @@ export function KanbanPipelineBoard({
           {/* Horizontal scroll container with custom scrollbar */}
           <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
             <div className={cn(
-              "flex gap-3 lg:gap-4 h-full min-h-[600px] px-1",
-              // Responsive gap sizing
-              isMobile ? "gap-2" : "gap-3 lg:gap-4"
+              "flex h-full min-h-[600px]",
+              columnConfig.gap,
+              columnConfig.containerPadding
             )}>
               {stages.map(stage => (
                 <StageColumn
