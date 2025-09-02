@@ -62,11 +62,11 @@ export default function Opportunities() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="h-full space-y-4 p-4 sm:p-6 overflow-auto">
+        <div className="h-full space-y-3 p-3 sm:p-4 overflow-auto">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Medical Pipeline</h1>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Medical Pipeline</h1>
               <p className="text-muted-foreground text-sm sm:text-base">
                 Track patients through your medical pipeline
               </p>
@@ -78,59 +78,59 @@ export default function Opportunities() {
           </div>
 
           {/* Pipeline Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Pipeline</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+            <Card className="p-3">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Total Pipeline</CardTitle>
+                <DollarSign className="h-3 w-3 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats.totalValue.toLocaleString()}</div>
+              <CardContent className="p-0">
+                <div className="text-lg font-bold">${stats.totalValue.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   {stats.totalOpportunities} opportunities
                 </p>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Deal Size</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
+            <Card className="p-3">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Avg Deal Size</CardTitle>
+                <Target className="h-3 w-3 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
+              <CardContent className="p-0">
+                <div className="text-lg font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   Per opportunity
                 </p>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Contacts</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+            <Card className="p-3">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Active Contacts</CardTitle>
+                <Users className="h-3 w-3 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activeContacts}</div>
+              <CardContent className="p-0">
+                <div className="text-lg font-bold">{stats.activeContacts}</div>
                 <p className="text-xs text-muted-foreground">
                   Unique prospects
                 </p>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <Card className="p-3">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Conversion Rate</CardTitle>
+                <TrendingUp className="h-3 w-3 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
+              <CardContent className="p-0">
+                <div className="text-lg font-bold">
                   {stats.totalOpportunities > 0 
-                    ? Math.round((stageStats.find(s => s.position === 7)?.count || 0) / stats.totalOpportunities * 100)
+                    ? Math.round((stageStats.find(s => s.position === 6)?.count || 0) / stats.totalOpportunities * 100)
                     : 0}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  To payment complete
+                  To completion
                 </p>
               </CardContent>
             </Card>
@@ -138,10 +138,10 @@ export default function Opportunities() {
 
           {/* Pipeline Board */}
           <Card className="p-0">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl">Medical Pipeline Board</CardTitle>
+            <CardHeader className="p-3 sm:p-4">
+              <CardTitle className="text-sm sm:text-base">Medical Pipeline Board</CardTitle>
             </CardHeader>
-            <CardContent className={`${isMobile ? "p-4" : "p-6"} h-[calc(100vh-400px)] min-h-[600px] max-h-[800px]`}>
+            <CardContent className={`${isMobile ? "p-2" : "p-3"} h-[450px]`}>
               {isMobile ? (
                 <MobilePipeline 
                   opportunities={opportunities}
@@ -159,11 +159,11 @@ export default function Opportunities() {
 
           {/* Stage Summary */}
           <Card>
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl">Stage Summary</CardTitle>
+            <CardHeader className="p-3 sm:p-4">
+              <CardTitle className="text-sm sm:text-base">Stage Summary</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
                 {stageStats.map((stage) => {
                   const getStageColorClass = (color: string) => {
                     const colorMap: Record<string, string> = {
@@ -179,12 +179,12 @@ export default function Opportunities() {
                   };
 
                   return (
-                    <div key={stage.id} className="text-center space-y-2">
-                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${getStageColorClass(stage.color)} mx-auto flex items-center justify-center text-white font-bold text-sm sm:text-lg`}>
+                    <div key={stage.id} className="text-center space-y-1">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${getStageColorClass(stage.color)} mx-auto flex items-center justify-center text-white font-bold text-xs sm:text-sm`}>
                         {stage.count}
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm font-medium leading-tight">{stage.name}</p>
+                        <p className="text-xs font-medium leading-tight">{stage.name}</p>
                         <p className="text-xs text-muted-foreground">
                           ${stage.value.toLocaleString()}
                         </p>

@@ -185,9 +185,9 @@ export function KanbanPipelineBoard({
       >
         <div className="relative h-full">
           {/* Horizontal scroll container with custom scrollbar */}
-          <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
+          <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-2 scroll-smooth">
             <div className={cn(
-              "flex h-full min-h-[600px]",
+              "flex h-full min-h-[400px]",
               columnConfig.gap,
               columnConfig.containerPadding
             )}>
