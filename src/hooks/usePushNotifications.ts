@@ -162,45 +162,59 @@ export const usePushNotifications = () => {
     }
   }, [isSupported]);
 
-  const generateVAPIDKeys = useCallback(() => {
-    // Generate VAPID keys - in production these should be stored securely
-    // For demo purposes, we'll use a static key
-    const publicKey = 'BPKy1HQy8W_3ZNZk4M4WOGhOjlGHEwCYm0F9wJ8YKQ4nGnYI7e3J8rCXuC9vB8zHrF2mWn4kL7oP6q1R9s0T2uV';
-    return publicKey;
+  const getVAPIDKey = useCallback(async (): Promise<string | null> => {
+    try {
+      console.log('🔑 Fetching VAPID key from server...');
+      const { data, error } = await supabase.functions.invoke('get-vapid-key');
+      
+      if (error) {
+        console.error('Error fetching VAPID key:', error);
+        return null;
+      }
+      
+      if (!data?.vapidPublicKey) {
+        console.error('No VAPID key returned from server');
+        return null;
+      }
+      
+      console.log('✅ VAPID key fetched successfully');
+      return data.vapidPublicKey;
+    } catch (error) {
+      console.error('Error getting VAPID key:', error);
+      return null;
+    }
   }, []);
 
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!isSupported || !user || permission !== 'granted') {
+      console.log('❌ Cannot subscribe:', { isSupported, hasUser: !!user, permission });
       return false;
     }
 
     try {
+      console.log('🚀 Starting subscription process...');
+      
+      // Wait for service worker to be ready
       const registration = await navigator.serviceWorker.ready;
-      const publicKey = generateVAPIDKeys();
+      console.log('✅ Service worker ready');
+      
+      // Get VAPID key from server
+      const publicKey = await getVAPIDKey();
+      if (!publicKey) {
+        throw new Error('Failed to get VAPID key from server');
+      }
+      
+      console.log('🔑 VAPID key obtained, creating subscription...');
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
+      
+      console.log('📱 Browser subscription created');
 
       // Save subscription to database
-      const subscriptionData = JSON.parse(JSON.stringify(subscription));
-      
-      const { error } = await supabase
-        .from('notification_subscriptions')
-        .upsert({
-          user_id: user.id,
-          endpoint: subscriptionData.endpoint,
-          p256dh: subscriptionData.keys.p256dh,
-          auth: subscriptionData.keys.auth,
-          user_agent: navigator.userAgent,
-          is_active: true
-        });
-
-      if (error) {
-        console.error('Error saving subscription:', error);
-        throw error;
-      }
+      await syncSubscription(subscription);
 
       setIsSubscribed(true);
       toast({
@@ -209,15 +223,15 @@ export const usePushNotifications = () => {
       });
       return true;
     } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
+      console.error('💥 Error subscribing to push notifications:', error);
       toast({
         title: "Subscription Failed",
-        description: "Failed to subscribe to push notifications.",
+        description: `Failed to subscribe: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
       return false;
     }
-  }, [isSupported, user, permission, generateVAPIDKeys]);
+  }, [isSupported, user, permission, getVAPIDKey, syncSubscription]);
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     if (!isSupported || !user) return false;
