@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { PipelineDragProvider } from '@/components/pipeline/PipelineDragProvider';
 import { MedicalOpportunityCard } from './MedicalOpportunityCard';
 import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface KanbanPipelineBoardProps {
@@ -58,7 +59,7 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
   };
 
   return (
-    <div className="flex flex-col w-80 min-w-80 max-w-80 h-full bg-muted/20 rounded-lg border-2 border-dashed border-border/50">
+    <div className="flex flex-col w-72 min-w-72 max-w-72 lg:w-80 lg:min-w-80 lg:max-w-80 h-full bg-muted/20 rounded-lg border-2 border-dashed border-border/50">
       {/* Column Header */}
       <Card className="flex-shrink-0 m-2 border-l-4" style={{ borderLeftColor: stage.color }}>
         <CardHeader className="pb-3">
@@ -108,6 +109,8 @@ export function KanbanPipelineBoard({
   onMoveOpportunity,
   className
 }: KanbanPipelineBoardProps) {
+  const isMobile = useIsMobile();
+  
   // Group opportunities by stage
   const opportunitiesByStage = React.useMemo(() => {
     const grouped: Record<string, Opportunity[]> = {};
@@ -126,17 +129,28 @@ export function KanbanPipelineBoard({
         stages={stages}
         onMoveOpportunity={onMoveOpportunity}
       >
-        <div className="flex gap-4 h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
-          <div className="flex gap-4 h-full min-h-[600px]">
-            {stages.map(stage => (
-              <StageColumn
-                key={stage.id}
-                stage={stage}
-                opportunities={opportunitiesByStage[stage.id] || []}
-                onMoveOpportunity={onMoveOpportunity}
-              />
-            ))}
+        <div className="relative h-full">
+          {/* Horizontal scroll container with custom scrollbar */}
+          <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
+            <div className={cn(
+              "flex gap-3 lg:gap-4 h-full min-h-[600px] px-1",
+              // Responsive gap sizing
+              isMobile ? "gap-2" : "gap-3 lg:gap-4"
+            )}>
+              {stages.map(stage => (
+                <StageColumn
+                  key={stage.id}
+                  stage={stage}
+                  opportunities={opportunitiesByStage[stage.id] || []}
+                  onMoveOpportunity={onMoveOpportunity}
+                />
+              ))}
+            </div>
           </div>
+          
+          {/* Scroll indicators */}
+          <div className="pointer-events-none absolute top-0 left-0 w-8 h-full bg-gradient-to-r from-background to-transparent opacity-50 z-10" />
+          <div className="pointer-events-none absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background to-transparent opacity-50 z-10" />
         </div>
       </PipelineDragProvider>
     </div>
