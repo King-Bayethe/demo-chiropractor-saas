@@ -139,8 +139,8 @@ const PublicLOPForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800 p-4 sm:p-6 md:p-8">
-      <div className="max-w-5xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-2xl">
+    <div className="min-h-screen bg-gray-100 text-gray-800 p-4 sm:p-6 md:p-8 overflow-y-auto">
+      <div className="max-w-5xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-2xl mb-8">
         {/* Header */}
         <header className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">LOP Intake Form</h1>

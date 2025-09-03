@@ -274,8 +274,8 @@ const PublicPIPForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20 p-4 sm:p-6 lg:p-8">
-      <div className="container mx-auto max-w-5xl">
+    <div className="min-h-screen bg-muted/20 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <div className="container mx-auto max-w-5xl pb-8">
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">Silverman Chiropractic & Rehabilitation Center</h1>
           <p className="text-md text-muted-foreground mt-2">
