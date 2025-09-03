@@ -281,20 +281,29 @@ html {
   }
 }
 
-/* Custom scrollbar styles for horizontal scrolling */
+/* Custom scrollbar styles for horizontal scrolling - Force visible */
 .kanban-scroll-container {
   scrollbar-width: auto;
   scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  /* Force scrollbar to always show */
+  overflow-x: scroll !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 .kanban-scroll-container::-webkit-scrollbar {
   height: 16px;
+  /* Force scrollbar to be visible */
+  -webkit-appearance: none;
+  display: block !important;
 }
 
 .kanban-scroll-container::-webkit-scrollbar-track {
   background: hsl(var(--muted));
   border-radius: 8px;
   margin: 8px;
+  /* Ensure track is always visible */
+  display: block !important;
 }
 
 .kanban-scroll-container::-webkit-scrollbar-thumb {
@@ -302,6 +311,8 @@ html {
   border-radius: 8px;
   border: 3px solid hsl(var(--muted));
   min-width: 40px;
+  /* Ensure thumb is always visible */
+  display: block !important;
 }
 
 .kanban-scroll-container::-webkit-scrollbar-thumb:hover {
@@ -310,12 +321,6 @@ html {
 
 .kanban-scroll-container::-webkit-scrollbar-thumb:active {
   background: hsl(var(--primary) / 0.6);
-}
-
-/* Touch scrolling improvements */
-.kanban-scroll-container {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 
 /* Responsive column widths for better viewport utilization */

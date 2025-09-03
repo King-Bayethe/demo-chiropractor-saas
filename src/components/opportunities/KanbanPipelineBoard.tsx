@@ -32,6 +32,7 @@ const useResponsiveColumns = () => {
       // Mobile: Very compact columns
       return {
         width: 'w-60 min-w-60 max-w-60',
+        widthPx: 240,
         gap: 'gap-2',
         containerPadding: 'px-2'
       };
@@ -39,6 +40,7 @@ const useResponsiveColumns = () => {
       // Tablet: Compact columns
       return {
         width: 'w-64 min-w-64 max-w-64',
+        widthPx: 256,
         gap: 'gap-3',
         containerPadding: 'px-3'
       };
@@ -46,6 +48,7 @@ const useResponsiveColumns = () => {
       // Small desktop: Medium columns to fit 3-4 columns
       return {
         width: 'w-72 min-w-72 max-w-72',
+        widthPx: 288,
         gap: 'gap-3',
         containerPadding: 'px-4'
       };
@@ -53,6 +56,7 @@ const useResponsiveColumns = () => {
       // Large desktop: Full size columns
       return {
         width: 'w-80 min-w-80 max-w-80',
+        widthPx: 320,
         gap: 'gap-4',
         containerPadding: 'px-4'
       };
@@ -187,13 +191,19 @@ export function KanbanPipelineBoard({
         onMoveOpportunity={onMoveOpportunity}
       >
         <div className="relative h-full">
-          {/* Horizontal scroll container with visible scrollbar */}
-          <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
-            <div className={cn(
-              "flex h-full min-h-[400px]",
-              columnConfig.gap,
-              columnConfig.containerPadding
-            )}>
+          {/* Horizontal scroll container with forced visible scrollbar */}
+          <div className="kanban-scroll-container h-full pb-4">
+            <div 
+              className={cn(
+                "flex h-full min-h-[400px]",
+                columnConfig.gap,
+                columnConfig.containerPadding
+              )}
+              style={{
+                width: `${stages.length * columnConfig.widthPx + 200}px`, // Force overflow with extra width
+                minWidth: 'max-content'
+              }}
+            >
               {stages.map(stage => (
                 <StageColumn
                   key={stage.id}
