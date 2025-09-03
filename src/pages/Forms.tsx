@@ -24,8 +24,6 @@ import {
   Clock,
   Download,
   Filter,
-  Plus,
-  Stethoscope,
   FileDown,
   Package
 } from "lucide-react";
@@ -118,8 +116,6 @@ export default function Forms() {
         return { name: 'LOP Form', icon: FileText, color: 'bg-green-500/10 text-green-700' };
       case 'cash':
         return { name: 'Cash Patient Form', icon: Users, color: 'bg-purple-500/10 text-purple-700' };
-      case 'soap_questionnaire':
-        return { name: 'Chiropractic SOAP Questionnaire', icon: Stethoscope, color: 'bg-medical-teal/10 text-medical-teal' };
       case 'lead_intake':
         return { name: 'Lead Intake Form', icon: User, color: 'bg-orange-500/10 text-orange-700' };
       default:
@@ -163,7 +159,7 @@ export default function Forms() {
     pip: submissions.filter(s => s.form_type === 'pip').length,
     lop: submissions.filter(s => s.form_type === 'lop').length,
     cash: submissions.filter(s => s.form_type === 'cash').length,
-    soap: submissions.filter(s => s.form_type === 'soap_questionnaire').length,
+    
     lead: submissions.filter(s => s.form_type === 'lead_intake').length,
   };
 
@@ -259,7 +255,7 @@ export default function Forms() {
           </Card>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-3 md:p-4 text-center">
                 <div className="text-lg md:text-2xl font-bold text-primary">{stats.total}</div>
@@ -284,19 +280,13 @@ export default function Forms() {
                 <div className="text-xs md:text-sm text-muted-foreground">LOP</div>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-md transition-shadow md:col-span-2 lg:col-span-1">
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-3 md:p-4 text-center">
                 <div className="text-lg md:text-2xl font-bold text-accent">{stats.cash}</div>
                 <div className="text-xs md:text-sm text-muted-foreground">Cash</div>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="text-lg md:text-2xl font-bold text-accent">{stats.soap}</div>
-                <div className="text-xs md:text-sm text-muted-foreground">SOAP</div>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="hover:shadow-md transition-shadow md:col-span-2 lg:col-span-1">
               <CardContent className="p-3 md:p-4 text-center">
                 <div className="text-lg md:text-2xl font-bold text-warning">{stats.lead}</div>
                 <div className="text-xs md:text-sm text-muted-foreground">Leads</div>
@@ -325,7 +315,7 @@ export default function Forms() {
                       <SelectItem value="pip">PIP Forms</SelectItem>
                       <SelectItem value="lop">LOP Forms</SelectItem>
                       <SelectItem value="cash">Cash Forms</SelectItem>
-                      <SelectItem value="soap_questionnaire">SOAP Questionnaires</SelectItem>
+                      
                       <SelectItem value="lead_intake">Lead Intake Forms</SelectItem>
                     </SelectContent>
                   </Select>
