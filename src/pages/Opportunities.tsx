@@ -83,7 +83,7 @@ export default function Opportunities() {
       <Layout>
         <div className={cn(
           "h-full overflow-auto",
-          layout.shouldReduceSpacing ? "space-y-2 p-2" : "space-y-3 p-3 sm:p-4"
+          layout.shouldReduceSpacing ? "space-y-1.5 p-1.5" : "space-y-2 p-2 sm:p-3"
         )}>
           {/* Header */}
           <div className={cn(
@@ -93,13 +93,13 @@ export default function Opportunities() {
             <div>
               <h1 className={cn(
                 "font-bold tracking-tight",
-                layout.shouldUseCompactLayout ? "text-lg" : "text-xl sm:text-2xl"
+                layout.shouldUseCompactLayout ? "text-base" : "text-lg sm:text-xl"
               )}>
                 Medical Pipeline
               </h1>
               <p className={cn(
                 "text-muted-foreground",
-                layout.shouldUseCompactLayout ? "text-xs" : "text-sm sm:text-base"
+                layout.shouldUseCompactLayout ? "text-xs" : "text-xs sm:text-sm"
               )}>
                 Track patients through your medical pipeline
               </p>
@@ -112,12 +112,12 @@ export default function Opportunities() {
               <Button 
                 onClick={() => setShowAddModal(true)} 
                 className={cn(
-                  "flex items-center gap-2",
-                  layout.shouldUseCompactLayout ? "h-8 text-xs" : "w-full sm:w-auto"
+                  "flex items-center gap-1.5",
+                  layout.shouldUseCompactLayout ? "h-7 text-xs px-2" : "w-full sm:w-auto"
                 )}
-                size={layout.shouldUseCompactLayout ? "sm" : "default"}
+                size={layout.shouldUseCompactLayout ? "sm" : "sm"}
               >
-                <Plus className={cn(layout.shouldUseCompactLayout ? "h-3 w-3" : "h-4 w-4")} />
+                <Plus className={cn(layout.shouldUseCompactLayout ? "h-3 w-3" : "h-3.5 w-3.5")} />
                 Add Opportunity
               </Button>
             </div>
@@ -129,7 +129,7 @@ export default function Opportunities() {
             layout.shouldUseCompactLayout ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-4",
             layout.shouldReduceSpacing ? "gap-1.5" : "gap-2 sm:gap-3"
           )}>
-            <Card className={cn(layout.shouldUseCompactLayout ? "p-2" : "p-3")}>
+            <Card className={cn(layout.shouldUseCompactLayout ? "p-1.5" : "p-2")}>
               <CardHeader className={cn(
                 "flex flex-row items-center justify-between space-y-0",
                 layout.shouldUseCompactLayout ? "pb-0.5" : "pb-1"
@@ -142,13 +142,13 @@ export default function Opportunities() {
                 </CardTitle>
                 <DollarSign className={cn(
                   "text-muted-foreground",
-                  layout.shouldUseCompactLayout ? "h-2.5 w-2.5" : "h-3 w-3"
+                  layout.shouldUseCompactLayout ? "h-2 w-2" : "h-2.5 w-2.5"
                 )} />
               </CardHeader>
               <CardContent className="p-0">
                 <div className={cn(
                   "font-bold",
-                  layout.shouldUseCompactLayout ? "text-sm" : "text-lg"
+                  layout.shouldUseCompactLayout ? "text-xs" : "text-sm"
                 )}>
                   ${stats.totalValue.toLocaleString()}
                 </div>
@@ -163,13 +163,13 @@ export default function Opportunities() {
             
             {/* Show only most important stats in compact mode */}
             {layout.shouldUseCompactLayout ? (
-              <Card className="p-2">
+              <Card className="p-1.5">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0.5">
                   <CardTitle className="text-xs font-medium">Conversion</CardTitle>
-                  <TrendingUp className="h-2.5 w-2.5 text-muted-foreground" />
+                  <TrendingUp className="h-2 w-2 text-muted-foreground" />
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="text-sm font-bold">
+                  <div className="text-xs font-bold">
                     {stats.totalOpportunities > 0 
                       ? Math.round((stageStats.find(s => s.position === 6)?.count || 0) / stats.totalOpportunities * 100)
                       : 0}%
@@ -179,39 +179,39 @@ export default function Opportunities() {
               </Card>
             ) : (
               <>
-                <Card className="p-3">
+                <Card className="p-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                     <CardTitle className="text-xs font-medium">Avg Deal Size</CardTitle>
-                    <Target className="h-3 w-3 text-muted-foreground" />
+                    <Target className="h-2.5 w-2.5 text-muted-foreground" />
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="text-lg font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
+                    <div className="text-base font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">
                       Per opportunity
                     </p>
                   </CardContent>
                 </Card>
                 
-                <Card className="p-3">
+                <Card className="p-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                     <CardTitle className="text-xs font-medium">Active Contacts</CardTitle>
-                    <Users className="h-3 w-3 text-muted-foreground" />
+                    <Users className="h-2.5 w-2.5 text-muted-foreground" />
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="text-lg font-bold">{stats.activeContacts}</div>
+                    <div className="text-base font-bold">{stats.activeContacts}</div>
                     <p className="text-xs text-muted-foreground">
                       Unique prospects
                     </p>
                   </CardContent>
                 </Card>
                 
-                <Card className="p-3">
+                <Card className="p-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                     <CardTitle className="text-xs font-medium">Conversion Rate</CardTitle>
-                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                    <TrendingUp className="h-2.5 w-2.5 text-muted-foreground" />
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="text-lg font-bold">
+                    <div className="text-base font-bold">
                       {stats.totalOpportunities > 0 
                         ? Math.round((stageStats.find(s => s.position === 6)?.count || 0) / stats.totalOpportunities * 100)
                         : 0}%
@@ -228,17 +228,17 @@ export default function Opportunities() {
           {/* Stage Summary */}
           <Card>
             <CardHeader className={cn(
-              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+              layout.shouldUseCompactLayout ? "p-1.5" : "p-2 sm:p-3"
             )}>
               <CardTitle className={cn(
-                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
+                layout.shouldUseCompactLayout ? "text-xs" : "text-xs sm:text-sm"
               )}>
                 Stage Summary
               </CardTitle>
             </CardHeader>
             <CardContent className={cn(
               "pt-0",
-              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+              layout.shouldUseCompactLayout ? "p-1.5" : "p-2 sm:p-3"
             )}>
               <div className={cn(
                 "grid gap-2",
@@ -268,8 +268,8 @@ export default function Opportunities() {
                       <div className={cn(
                         "rounded-full mx-auto flex items-center justify-center text-white font-bold",
                         layout.shouldUseCompactLayout 
-                          ? "w-6 h-6 text-xs" 
-                          : "w-8 h-8 sm:w-10 sm:h-10 text-xs sm:text-sm",
+                          ? "w-5 h-5 text-xs" 
+                          : "w-6 h-6 sm:w-8 sm:h-8 text-xs sm:text-sm",
                         getStageColorClass(stage.color)
                       )}>
                         {stage.count}
@@ -301,10 +301,10 @@ export default function Opportunities() {
           <Card className="p-0 min-h-0 flex flex-col">
             <CardHeader className={cn(
               "flex-shrink-0",
-              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+              layout.shouldUseCompactLayout ? "p-1.5" : "p-2 sm:p-3"
             )}>
               <CardTitle className={cn(
-                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
+                layout.shouldUseCompactLayout ? "text-xs" : "text-xs sm:text-sm"
               )}>
                 Medical Pipeline Board
               </CardTitle>
@@ -312,7 +312,7 @@ export default function Opportunities() {
             <CardContent 
               className={cn(
                 "flex-1 min-h-0 relative",
-                layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
+                layout.shouldUseCompactLayout ? "p-0.5" : isMobile ? "p-1" : "p-2"
               )}
             >
               <div 

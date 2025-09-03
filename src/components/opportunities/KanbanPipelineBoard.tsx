@@ -31,50 +31,50 @@ const useResponsiveColumns = () => {
     if (width < 640) {
       // Small mobile: Extra compact
       return {
-        width: 'w-56 min-w-56 max-w-56',
-        widthPx: 224,
-        gap: 'gap-2',
-        containerPadding: 'px-2'
+        width: 'w-42 min-w-42 max-w-42',
+        widthPx: 168,
+        gap: 'gap-1.5',
+        containerPadding: 'px-1.5'
       };
     } else if (width < 768) {
       // Mobile: Compact columns
       return {
-        width: 'w-60 min-w-60 max-w-60',
-        widthPx: 240,
-        gap: 'gap-2',
-        containerPadding: 'px-2'
+        width: 'w-45 min-w-45 max-w-45',
+        widthPx: 180,
+        gap: 'gap-1.5',
+        containerPadding: 'px-1.5'
       };
     } else if (width < 1024) {
       // Tablet: Medium columns
       return {
-        width: 'w-64 min-w-64 max-w-64',
-        widthPx: 256,
-        gap: 'gap-3',
-        containerPadding: 'px-3'
+        width: 'w-48 min-w-48 max-w-48',
+        widthPx: 192,
+        gap: 'gap-2',
+        containerPadding: 'px-2'
       };
     } else if (width < 1280) {
       // Small desktop: Balanced columns
+      return {
+        width: 'w-54 min-w-54 max-w-54',
+        widthPx: 216,
+        gap: 'gap-2',
+        containerPadding: 'px-3'
+      };
+    } else if (width < 1920) {
+      // Large desktop: Comfortable columns
+      return {
+        width: 'w-60 min-w-60 max-w-60',
+        widthPx: 240,
+        gap: 'gap-3',
+        containerPadding: 'px-3'
+      };
+    } else {
+      // Ultra-wide: Maximum columns
       return {
         width: 'w-72 min-w-72 max-w-72',
         widthPx: 288,
         gap: 'gap-3',
         containerPadding: 'px-4'
-      };
-    } else if (width < 1920) {
-      // Large desktop: Comfortable columns
-      return {
-        width: 'w-80 min-w-80 max-w-80',
-        widthPx: 320,
-        gap: 'gap-4',
-        containerPadding: 'px-4'
-      };
-    } else {
-      // Ultra-wide: Maximum columns
-      return {
-        width: 'w-96 min-w-96 max-w-96',
-        widthPx: 384,
-        gap: 'gap-4',
-        containerPadding: 'px-6'
       };
     }
   };
@@ -136,10 +136,10 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
   return (
     <div className={cn("flex flex-col h-full bg-muted/20 rounded-lg border-2 border-dashed border-border/50", columnConfig.width)}>
       {/* Column Header */}
-      <Card className="flex-shrink-0 m-2 border-l-4" style={{ borderLeftColor: stage.color }}>
-        <CardHeader className="pb-3">
+      <Card className="flex-shrink-0 m-1.5 border-l-4" style={{ borderLeftColor: stage.color }}>
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium">{stage.title}</CardTitle>
+            <CardTitle className="text-xs font-medium">{stage.title}</CardTitle>
             <Badge variant="secondary" className={cn("text-xs", getStageColorClass(stage.color))}>
               {opportunities.length}
             </Badge>
@@ -152,10 +152,10 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
       </Card>
 
       {/* Scrollable Content */}
-      <div className="flex-1 min-h-0 px-2 pb-2">
+      <div className="flex-1 min-h-0 px-1.5 pb-1.5">
         <ScrollArea className="h-full w-full">
           <SortableContext items={opportunities.map(o => o.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2 pr-3 pb-2">
+            <div className="space-y-1.5 pr-2 pb-1.5">
               {opportunities.map(opportunity => (
                 <CompactOpportunityCard
                   key={opportunity.id}
@@ -168,7 +168,7 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
           </SortableContext>
           
           {opportunities.length === 0 && (
-            <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
+            <div className="flex items-center justify-center h-24 text-muted-foreground text-xs">
               Drop opportunities here
             </div>
           )}
