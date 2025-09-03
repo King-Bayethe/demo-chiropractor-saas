@@ -71,6 +71,25 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
     },
   });
 
+  // Reset form when appointment changes (for editing)
+  React.useEffect(() => {
+    if (appointment) {
+      form.reset({
+        title: appointment.title || '',
+        contact_id: appointment.contact_id || '',
+        start_date: appointment.start_time ? new Date(appointment.start_time) : new Date(),
+        start_time: appointment.start_time ? format(parseISO(appointment.start_time), 'HH:mm') : '09:00',
+        end_date: appointment.end_time ? new Date(appointment.end_time) : new Date(),
+        end_time: appointment.end_time ? format(parseISO(appointment.end_time), 'HH:mm') : '10:00',
+        status: appointment.status || 'scheduled',
+        type: appointment.type || 'consultation',
+        notes: appointment.notes || '',
+        location: appointment.location || '',
+        provider_id: '',
+      });
+    }
+  }, [appointment, form]);
+
   const handleSubmit = async (data: AppointmentFormData) => {
     try {
       // Validate required fields
