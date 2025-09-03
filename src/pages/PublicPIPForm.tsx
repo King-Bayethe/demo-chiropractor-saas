@@ -11,12 +11,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { PublicFormLayout } from "@/components/ui/public-form-layout";
-import { TabFormSection, TabContentSection } from "@/components/ui/tab-form-section";
+import { FormSection } from "@/components/ui/form-section";
 import { FormFieldGrid, FormField, DocumentUploadSection } from "@/components/ui/form-field-grid";
 
 const PublicPIPForm = () => {
   const navigate = useNavigate();
-  const [currentTab, setCurrentTab] = useState("general");
   
   const [formData, setFormData] = useState({
     // General Information
@@ -203,19 +202,6 @@ const PublicPIPForm = () => {
     }
   };
 
-  const tabs = [
-    // First row
-    { id: "general", label: "General", subtitle: "(General)", row: 1, isCompleted: isSectionCompleted("general") },
-    { id: "accident", label: "Accident", subtitle: "(Accidente)", row: 1, isCompleted: isSectionCompleted("accident") },
-    { id: "insurance", label: "Insurance", subtitle: "(Seguro)", row: 1, isCompleted: isSectionCompleted("insurance") },
-    { id: "medical", label: "Medical History", subtitle: "(Historial)", row: 1, isCompleted: isSectionCompleted("medical") },
-    { id: "symptoms", label: "Symptoms", subtitle: "(Síntomas)", row: 1, isCompleted: isSectionCompleted("symptoms") },
-    // Second row
-    { id: "review", label: "System Review", subtitle: "(Revisión)", row: 2, isCompleted: isSectionCompleted("review") },
-    { id: "communications", label: "Communications", subtitle: "(Comunicaciones)", row: 2, isCompleted: isSectionCompleted("communications") },
-    { id: "release", label: "Release of Info", subtitle: "(Liberación Info)", row: 2, isCompleted: isSectionCompleted("release") },
-    { id: "auth", label: "Authorizations", subtitle: "(Autorizaciones)", row: 2, isCompleted: isSectionCompleted("auth") }
-  ];
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -274,18 +260,15 @@ const PublicPIPForm = () => {
       title="Silverman Chiropractic & Rehabilitation Center"
       subtitle="PIP Intake Form / Formulario de Admisión PIP"
     >
-      <form onSubmit={handleSubmit}>
-        <TabFormSection
-          currentTab={currentTab}
-          onTabChange={setCurrentTab}
-          tabs={tabs}
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* General Information */}
+        <FormSection
+          title="General Information"
+          subtitle="Información General"
+          number={1}
+          isCompleted={isSectionCompleted("general")}
+          defaultOpen={true}
         >
-          {/* General Information Tab */}
-          <TabContentSection
-            value="general"
-            title="General Information"
-            subtitle="Información General"
-          >
             <FormFieldGrid>
               <FormField>
                 <Label htmlFor="last-name">Last Name <span className="text-muted-foreground">(Apellido)</span></Label>
@@ -477,14 +460,15 @@ const PublicPIPForm = () => {
                 />
               </FormField>
             </DocumentUploadSection>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Accident Information Tab */}
-          <TabContentSection
-            value="accident"
-            title="Accident Information"
-            subtitle="Información del Accidente"
-          >
+        {/* Accident Information */}
+        <FormSection
+          title="Accident Information"
+          subtitle="Información del Accidente"
+          number={2}
+          isCompleted={isSectionCompleted("accident")}
+        >
             <FormFieldGrid>
               <FormField>
                 <Label htmlFor="accident-date">Date of Accident <span className="text-muted-foreground">(Fecha del Accidente)</span></Label>
@@ -589,14 +573,15 @@ const PublicPIPForm = () => {
                 </Select>
               </FormField>
             </FormFieldGrid>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Insurance Tab */}
-          <TabContentSection
-            value="insurance"
-            title="Insurance Information"
-            subtitle="Información del Seguro"
-          >
+        {/* Insurance Information */}
+        <FormSection
+          title="Insurance Information"
+          subtitle="Información del Seguro"
+          number={3}
+          isCompleted={isSectionCompleted("insurance")}
+        >
             <FormFieldGrid>
               <FormField>
                 <Label htmlFor="vehicle-owner">Who owns the vehicle? <span className="text-muted-foreground">(¿Quién es dueño del vehículo?)</span></Label>
@@ -648,14 +633,15 @@ const PublicPIPForm = () => {
                 />
               </FormField>
             </FormFieldGrid>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Medical History Tab */}
-          <TabContentSection
-            value="medical"
-            title="Medical History"
-            subtitle="Historial Médico"
-          >
+        {/* Medical History */}
+        <FormSection
+          title="Medical History"
+          subtitle="Historial Médico"
+          number={4}
+          isCompleted={isSectionCompleted("medical")}
+        >
             <FormFieldGrid>
               <FormField fullWidth>
                 <Label htmlFor="previous-accidents">Previous accidents or injuries <span className="text-muted-foreground">(Accidentes o lesiones previas)</span></Label>
@@ -778,14 +764,15 @@ const PublicPIPForm = () => {
                 </div>
               </div>
             </div>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Current Symptoms Tab */}
-          <TabContentSection
-            value="symptoms"
-            title="Current Symptoms"
-            subtitle="Síntomas Actuales"
-          >
+        {/* Current Symptoms */}
+        <FormSection
+          title="Current Symptoms"
+          subtitle="Síntomas Actuales"
+          number={5}
+          isCompleted={isSectionCompleted("symptoms")}
+        >
             <FormFieldGrid>
               <FormField fullWidth>
                 <Label htmlFor="pain-location">Where is your pain located? <span className="text-muted-foreground">(¿Dónde está ubicado su dolor?)</span></Label>
@@ -887,14 +874,15 @@ const PublicPIPForm = () => {
                 </div>
               </div>
             </div>
-          </TabContentSection>
+        </FormSection>
 
-          {/* System Review Tab */}
-          <TabContentSection
-            value="review"
-            title="Review of Systems"
-            subtitle="Revisión de Sistemas"
-          >
+        {/* System Review */}
+        <FormSection
+          title="Review of Systems"
+          subtitle="Revisión de Sistemas"
+          number={6}
+          isCompleted={isSectionCompleted("review")}
+        >
             <p className="text-sm text-muted-foreground mb-6">
               Please indicate if you have experienced any of the following symptoms:
               <br />
@@ -1015,14 +1003,15 @@ const PublicPIPForm = () => {
                 </div>
               </div>
             </div>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Communications Tab */}
-          <TabContentSection
-            value="communications"
-            title="Communications"
-            subtitle="Comunicaciones"
-          >
+        {/* Communications */}
+        <FormSection
+          title="Communications"
+          subtitle="Comunicaciones"
+          number={7}
+          isCompleted={isSectionCompleted("communications")}
+        >
             <FormFieldGrid>
               <FormField fullWidth>
                 <Label htmlFor="alternative-communication">Alternative Communication Method <span className="text-muted-foreground">(Método de Comunicación Alternativo)</span></Label>
@@ -1045,14 +1034,15 @@ const PublicPIPForm = () => {
                 </Select>
               </FormField>
             </FormFieldGrid>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Release Information Tab */}
-          <TabContentSection
-            value="release"
-            title="Release of Information"
-            subtitle="Liberación de Información"
-          >
+        {/* Release Information */}
+        <FormSection
+          title="Release of Information"
+          subtitle="Liberación de Información"
+          number={8}
+          isCompleted={isSectionCompleted("release")}
+        >
             <FormFieldGrid>
               <FormField>
                 <Label htmlFor="release-person">Person/Organization <span className="text-muted-foreground">(Persona/Organización)</span></Label>
@@ -1104,14 +1094,15 @@ const PublicPIPForm = () => {
                 />
               </FormField>
             </FormFieldGrid>
-          </TabContentSection>
+        </FormSection>
 
-          {/* Authorizations Tab */}
-          <TabContentSection
-            value="auth"
-            title="Authorizations"
-            subtitle="Autorizaciones"
-          >
+        {/* Authorizations */}
+        <FormSection
+          title="Authorizations"
+          subtitle="Autorizaciones"
+          number={9}
+          isCompleted={isSectionCompleted("auth")}
+        >
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-lg mb-2">Patient Authorization <span className="font-medium">(Autorización del Paciente)</span></h3>
@@ -1146,8 +1137,7 @@ const PublicPIPForm = () => {
                 />
               </FormField>
             </FormFieldGrid>
-          </TabContentSection>
-        </TabFormSection>
+        </FormSection>
 
         {/* Submit Button */}
         <div className="mt-8 text-center">
