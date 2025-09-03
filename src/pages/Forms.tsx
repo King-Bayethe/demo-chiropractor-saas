@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ChiropracticSOAPQuestionnaire } from "@/components/ChiropracticSOAPQuestionnaire";
+
 
 import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
 import { exportFormToCSV, exportFormToPDF, exportMultipleFormsToCSV } from "@/utils/formExport";
@@ -51,7 +51,7 @@ export default function Forms() {
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [showSOAPQuestionnaire, setShowSOAPQuestionnaire] = useState(false);
+  
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -155,29 +155,6 @@ export default function Forms() {
     }
   };
 
-  const handleSOAPQuestionnaireSubmit = async (data: any) => {
-    try {
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert({
-          form_type: 'soap_questionnaire',
-          form_data: data,
-          patient_name: data.patientName,
-          patient_email: data.patientEmail || null,
-          patient_phone: data.patientPhone || null,
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast.success("SOAP Questionnaire submitted successfully");
-      setShowSOAPQuestionnaire(false);
-      fetchSubmissions(); // Refresh the list
-    } catch (error) {
-      console.error('Error submitting SOAP questionnaire:', error);
-      toast.error("Failed to submit SOAP questionnaire");
-    }
-  };
 
 
   const stats = {
@@ -224,14 +201,6 @@ export default function Forms() {
               >
                 <Package className="w-4 h-4 mr-2" />
                 Export All CSV
-              </Button>
-              <Button 
-                onClick={() => setShowSOAPQuestionnaire(true)}
-                className="bg-accent hover:bg-accent/80 w-full md:w-auto"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New SOAP Questionnaire
               </Button>
             </div>
           </div>
@@ -511,12 +480,6 @@ export default function Forms() {
             </CardContent>
           </Card>
 
-          {/* SOAP Questionnaire Modal */}
-          <ChiropracticSOAPQuestionnaire
-            isOpen={showSOAPQuestionnaire}
-            onClose={() => setShowSOAPQuestionnaire(false)}
-            onSave={handleSOAPQuestionnaireSubmit}
-          />
 
         </div>
       </Layout>
