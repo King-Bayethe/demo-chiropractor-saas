@@ -37,6 +37,7 @@ import EditSOAPNote from "./pages/EditSOAPNote";
 import PublicPIPForm from "./pages/PublicPIPForm";
 import PublicLOPForm from "./pages/PublicLOPForm";
 import PublicCashForm from "./pages/PublicCashForm";
+import PublicNewForm from "./pages/PublicNewForm";
 import NotFound from "./pages/NotFound";
 
 
@@ -82,6 +83,7 @@ const App = () => (
                     <Route path="/public/pip-form" element={<PublicPIPForm />} />
                     <Route path="/public/lop-form" element={<PublicLOPForm />} />
                     <Route path="/public/cash-form" element={<PublicCashForm />} />
+                    <Route path="/public/new-form" element={<PublicNewForm />} />
                     
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
