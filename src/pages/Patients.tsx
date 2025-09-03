@@ -226,24 +226,9 @@ export default function Patients() {
                   isMobile ? "text-sm" : ""
                 )}>Manage patient records and treatment history</p>
               </div>
-              <div className={cn("flex space-x-2",
-                isMobile ? "flex-col space-y-2 space-x-0" : "items-center"
+              <div className={cn("flex justify-end",
+                isMobile ? "w-full" : ""
               )}>
-                {!isMobile && (
-                  <Button variant="outline" size="sm">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Export Records
-                  </Button>
-                )}
-                <Button 
-                  variant="secondary" 
-                  size={isMobile ? "default" : "sm"}
-                  onClick={handleCreateCashPatient}
-                  disabled={isSubmitting}
-                  className={cn(isMobile ? "w-full" : "")}
-                >
-                  {isSubmitting ? "Creating..." : isMobile ? "Cash Patient" : "Create Cash Patient"}
-                </Button>
                 <Button 
                   size={isMobile ? "default" : "sm"} 
                   onClick={handleAddPatient}
