@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react';
 import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 import { getCaseTypeVariant, getCaseTypeDisplayName } from '@/utils/patientMapping';
@@ -83,6 +84,60 @@ export function MedicalOpportunityCard({
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Calculate lead age and get color-coded styling
+  const getLeadAge = () => {
+    if (!opportunity.created_at) return { days: 0, color: '', urgencyLevel: 'new' };
+    
+    const createdDate = new Date(opportunity.created_at);
+    const currentDate = new Date();
+    const diffTime = currentDate.getTime() - createdDate.getTime();
+    const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    let color = '';
+    let urgencyLevel = '';
+    
+    if (days <= 2) {
+      color = 'border-l-green-500';
+      urgencyLevel = 'new';
+    } else if (days <= 4) {
+      color = 'border-l-yellow-500';
+      urgencyLevel = 'moderate';
+    } else if (days <= 7) {
+      color = 'border-l-red-500';
+      urgencyLevel = 'urgent';
+    } else {
+      color = 'border-l-red-700';
+      urgencyLevel = 'overdue';
+    }
+    
+    return { days, color, urgencyLevel };
+  };
+
+  const leadAge = getLeadAge();
+
+  // Get form type display information
+  const getFormTypeInfo = () => {
+    if (!opportunity.form_submission_id) return null;
+    
+    let formType = 'Unknown Form';
+    let icon = FileText;
+    
+    // Determine form type based on source or other indicators
+    if (opportunity.source?.toLowerCase().includes('pip')) {
+      formType = 'PIP Form';
+    } else if (opportunity.source?.toLowerCase().includes('cash')) {
+      formType = 'Cash Form';
+    } else if (opportunity.source?.toLowerCase().includes('lop')) {
+      formType = 'LOP Form';
+    } else {
+      formType = 'Form Submission';
+    }
+    
+    return { formType, icon };
+  };
+
+  const formInfo = getFormTypeInfo();
+
   const currentStageIndex = MEDICAL_PIPELINE_STAGES.findIndex(stage => stage.id === opportunity.pipeline_stage);
   const canMovePrevious = currentStageIndex > 0;
   const canMoveNext = currentStageIndex < MEDICAL_PIPELINE_STAGES.length - 1;
@@ -93,7 +148,8 @@ export function MedicalOpportunityCard({
         ref={setNodeRef}
         style={style}
         className={cn(
-          "cursor-pointer transition-all duration-200 hover:shadow-md flex-shrink-0",
+          "cursor-pointer transition-all duration-200 hover:shadow-md flex-shrink-0 border-l-4",
+          leadAge.color,
           isDragging && "opacity-50 rotate-2",
           compact && "text-xs"
         )}
@@ -300,6 +356,26 @@ export function MedicalOpportunityCard({
                     <span>{opportunity.form_submission_id ? `Form: ${opportunity.source} (#${opportunity.form_submission_id})` : opportunity.source}</span>
                   </div>
                 )}
+                
+                {/* Form Submission Button */}
+                {formInfo && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Navigate to forms page or open modal - implement based on your routing
+                        console.log('View form submission:', opportunity.form_submission_id);
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      View {formInfo.formType}
+                    </Button>
+                  </div>
+                )}
+                
                 {opportunity.attorney_referred && (
                   <div className="flex items-center gap-2 text-xs">
                     <Scale className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
@@ -341,10 +417,31 @@ export function MedicalOpportunityCard({
               </div>
             )}
 
-            {/* Timeline & Scheduling */}
+            {/* Lead Age & Status */}
             <div className="border-b border-border/50 pb-2 mb-2">
-              <h5 className="text-xs font-medium text-foreground mb-1.5">Timeline</h5>
+              <h5 className="text-xs font-medium text-foreground mb-1.5">Lead Age & Status</h5>
               <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs">
+                  <Clock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                  <span className="text-muted-foreground">Age:</span>
+                  <span className="font-medium">{leadAge.days} day{leadAge.days !== 1 ? 's' : ''} old</span>
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-xs ml-1",
+                      leadAge.urgencyLevel === 'new' && "border-green-200 text-green-700 bg-green-50",
+                      leadAge.urgencyLevel === 'moderate' && "border-yellow-200 text-yellow-700 bg-yellow-50", 
+                      leadAge.urgencyLevel === 'urgent' && "border-red-200 text-red-700 bg-red-50",
+                      leadAge.urgencyLevel === 'overdue' && "border-red-300 text-red-800 bg-red-100"
+                    )}
+                  >
+                    {leadAge.urgencyLevel === 'new' && 'New'}
+                    {leadAge.urgencyLevel === 'moderate' && 'Follow Up'}
+                    {leadAge.urgencyLevel === 'urgent' && 'Urgent'}
+                    {leadAge.urgencyLevel === 'overdue' && 'Overdue'}
+                  </Badge>
+                </div>
+                
                 {opportunity.consultation_scheduled_at && (
                   <div className="flex items-center gap-2 text-xs">
                     <Clock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
