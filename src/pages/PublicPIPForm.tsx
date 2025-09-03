@@ -5,18 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Circle } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
+import { PublicFormLayout } from "@/components/ui/public-form-layout";
+import { TabFormSection, TabContentSection } from "@/components/ui/tab-form-section";
+import { FormFieldGrid, FormField, DocumentUploadSection } from "@/components/ui/form-field-grid";
 
 const PublicPIPForm = () => {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState("general");
-  const [completedSections, setCompletedSections] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     // General Information
@@ -178,26 +178,26 @@ const PublicPIPForm = () => {
   });
 
   // Check if a section is completed based on required fields
-  const isSectionCompleted = (section: string) => {
+  const isSectionCompleted = (section: string): boolean => {
     switch (section) {
       case "general":
-        return formData.lastName && formData.firstName && formData.email && formData.dob;
+        return !!(formData.lastName && formData.firstName && formData.email && formData.dob);
       case "accident":
-        return formData.accidentDate && formData.accidentDescription;
+        return !!(formData.accidentDate && formData.accidentDescription);
       case "insurance":
-        return formData.vehicleOwner && formData.vehicleDriver;
+        return !!(formData.vehicleOwner && formData.vehicleDriver);
       case "medical":
-        return formData.allergies !== "" || formData.previousAccidents;
+        return !!(formData.allergies !== "" || formData.previousAccidents);
       case "symptoms":
-        return formData.painLocation;
+        return !!formData.painLocation;
       case "review":
         return Object.values(formData.systemReview).some(value => value !== "");
       case "communications":
-        return formData.emailConsent;
+        return !!formData.emailConsent;
       case "release":
-        return formData.releasePersonOrganization || formData.healthcareFacility;
+        return !!(formData.releasePersonOrganization || formData.healthcareFacility);
       case "auth":
-        return formData.patientSignature;
+        return !!formData.patientSignature;
       default:
         return false;
     }
@@ -205,20 +205,17 @@ const PublicPIPForm = () => {
 
   const tabs = [
     // First row
-    { id: "general", label: "General", spanish: "", row: 1 },
-    { id: "accident", label: "Accident", spanish: "(Accidente)", row: 1 },
-    { id: "insurance", label: "Insurance", spanish: "(Seguro)", row: 1 },
-    { id: "medical", label: "Medical History", spanish: "(Historial)", row: 1 },
-    { id: "symptoms", label: "Symptoms", spanish: "(Síntomas)", row: 1 },
+    { id: "general", label: "General", subtitle: "(General)", row: 1, isCompleted: isSectionCompleted("general") },
+    { id: "accident", label: "Accident", subtitle: "(Accidente)", row: 1, isCompleted: isSectionCompleted("accident") },
+    { id: "insurance", label: "Insurance", subtitle: "(Seguro)", row: 1, isCompleted: isSectionCompleted("insurance") },
+    { id: "medical", label: "Medical History", subtitle: "(Historial)", row: 1, isCompleted: isSectionCompleted("medical") },
+    { id: "symptoms", label: "Symptoms", subtitle: "(Síntomas)", row: 1, isCompleted: isSectionCompleted("symptoms") },
     // Second row
-    { id: "review", label: "System Review", spanish: "(Revisión)", row: 2 },
-    { id: "communications", label: "Communications", spanish: "(Comunicaciones)", row: 2 },
-    { id: "release", label: "Release of Info", spanish: "", row: 2 },
-    { id: "auth", label: "Authorizations", spanish: "(Autorizaciones)", row: 2 }
+    { id: "review", label: "System Review", subtitle: "(Revisión)", row: 2, isCompleted: isSectionCompleted("review") },
+    { id: "communications", label: "Communications", subtitle: "(Comunicaciones)", row: 2, isCompleted: isSectionCompleted("communications") },
+    { id: "release", label: "Release of Info", subtitle: "(Liberación Info)", row: 2, isCompleted: isSectionCompleted("release") },
+    { id: "auth", label: "Authorizations", subtitle: "(Autorizaciones)", row: 2, isCompleted: isSectionCompleted("auth") }
   ];
-
-  const firstRowTabs = tabs.filter(tab => tab.row === 1);
-  const secondRowTabs = tabs.filter(tab => tab.row === 2);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -260,7 +257,6 @@ const PublicPIPForm = () => {
       // Show success message instead of redirecting
       toast.success("Your PIP form has been submitted successfully! We will contact you soon.");
       
-      // Reset form would go here if needed
     } catch (error: any) {
       console.error('Error submitting form:', error);
       
@@ -274,973 +270,897 @@ const PublicPIPForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-      <div className="container mx-auto max-w-5xl pb-8">
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Silverman Chiropractic & Rehabilitation Center</h1>
-          <p className="text-md text-muted-foreground mt-2">
-            PIP Intake Form / <span className="text-muted-foreground/70">Formulario de Admisión PIP</span>
-          </p>
-        </header>
+    <PublicFormLayout
+      title="Silverman Chiropractic & Rehabilitation Center"
+      subtitle="PIP Intake Form / Formulario de Admisión PIP"
+    >
+      <form onSubmit={handleSubmit}>
+        <TabFormSection
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          tabs={tabs}
+        >
+          {/* General Information Tab */}
+          <TabContentSection
+            value="general"
+            title="General Information"
+            subtitle="Información General"
+          >
+            <FormFieldGrid>
+              <FormField>
+                <Label htmlFor="last-name">Last Name <span className="text-muted-foreground">(Apellido)</span></Label>
+                <Input 
+                  id="last-name" 
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange("lastName", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="first-name">First Name <span className="text-muted-foreground">(Nombre)</span></Label>
+                <Input 
+                  id="first-name" 
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange("firstName", e.target.value)}
+                />
+              </FormField>
+              <FormField fullWidth>
+                <Label htmlFor="address">Address <span className="text-muted-foreground">(Dirección)</span></Label>
+                <Input 
+                  id="address" 
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="city">City <span className="text-muted-foreground">(Ciudad)</span></Label>
+                <Input 
+                  id="city" 
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="state">State <span className="text-muted-foreground">(Estado)</span></Label>
+                <Input 
+                  id="state" 
+                  value={formData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="zip">Zip Code <span className="text-muted-foreground">(Código Postal)</span></Label>
+                <Input 
+                  id="zip" 
+                  value={formData.zip}
+                  onChange={(e) => handleInputChange("zip", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="home-phone">Home Phone <span className="text-muted-foreground">(Teléfono Casa)</span></Label>
+                <Input 
+                  id="home-phone" 
+                  type="tel"
+                  value={formData.homePhone}
+                  onChange={(e) => handleInputChange("homePhone", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="work-phone">Work Phone <span className="text-muted-foreground">(Teléfono Trabajo)</span></Label>
+                <Input 
+                  id="work-phone" 
+                  type="tel"
+                  value={formData.workPhone}
+                  onChange={(e) => handleInputChange("workPhone", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="cell-phone">Cell Phone <span className="text-muted-foreground">(Teléfono Celular)</span></Label>
+                <Input 
+                  id="cell-phone" 
+                  type="tel"
+                  value={formData.cellPhone}
+                  onChange={(e) => handleInputChange("cellPhone", e.target.value)}
+                />
+              </FormField>
+              <FormField fullWidth>
+                <Label htmlFor="email">Email <span className="text-muted-foreground">(Correo Electrónico)</span></Label>
+                <Input 
+                  id="email" 
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="license-number">License # <span className="text-muted-foreground">(Número de Lic #)</span></Label>
+                <Input 
+                  id="license-number" 
+                  value={formData.licenseNumber}
+                  onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="license-state">State <span className="text-muted-foreground">(Estado)</span></Label>
+                <Input 
+                  id="license-state" 
+                  value={formData.licenseState}
+                  onChange={(e) => handleInputChange("licenseState", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="dob">Date of Birth <span className="text-muted-foreground">(Fecha de Nacimiento)</span></Label>
+                <Input 
+                  id="dob" 
+                  type="date"
+                  value={formData.dob}
+                  onChange={(e) => handleInputChange("dob", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="ssn">Social Security # <span className="text-muted-foreground">(Num. Seguro Social)</span></Label>
+                <Input 
+                  id="ssn" 
+                  value={formData.ssn}
+                  onChange={(e) => handleInputChange("ssn", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label>Sex <span className="text-muted-foreground">(Sexo)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("sex", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male (Masculino)</SelectItem>
+                    <SelectItem value="female">Female (Femenino)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField>
+                <Label>Marital Status <span className="text-muted-foreground">(Estado Civil)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("maritalStatus", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Single (Soltero/a)</SelectItem>
+                    <SelectItem value="married">Married (Casado/a)</SelectItem>
+                    <SelectItem value="divorced">Divorced (Divorciado/a)</SelectItem>
+                    <SelectItem value="widowed">Widowed (Viudo/a)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField>
+                <Label>Preferred Language <span className="text-muted-foreground">(Idioma Preferido)</span></Label>
+                <Select 
+                  value={formData.language} 
+                  onValueChange={(value) => handleInputChange("language", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">🇺🇸 English</SelectItem>
+                    <SelectItem value="es">🇪🇸 Español</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </FormFieldGrid>
+            
+            <DocumentUploadSection>
+              <FormField>
+                <DocumentUpload
+                  documentType="drivers-license-front"
+                  label="Driver's License Front"
+                  spanishLabel="Frente de Licencia"
+                />
+              </FormField>
+              <FormField>
+                <DocumentUpload
+                  documentType="drivers-license-back"
+                  label="Driver's License Back"
+                  spanishLabel="Reverso de Licencia"
+                />
+              </FormField>
+              <FormField>
+                <DocumentUpload
+                  documentType="insurance-card-front"
+                  label="Insurance Card Front"
+                  spanishLabel="Frente de Tarjeta de Seguro"
+                />
+              </FormField>
+              <FormField>
+                <DocumentUpload
+                  documentType="insurance-card-back"
+                  label="Insurance Card Back"
+                  spanishLabel="Reverso de Tarjeta de Seguro"
+                />
+              </FormField>
+            </DocumentUploadSection>
+          </TabContentSection>
 
-        <form onSubmit={handleSubmit}>
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <div className="space-y-4 mb-8">
-              {/* First Row of Tabs */}
-              <div className="flex flex-wrap justify-center gap-4 border-b border-border pb-2">
-                {firstRowTabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setCurrentTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                      currentTab === tab.id
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                    }`}
-                  >
-                    {isSectionCompleted(tab.id) && (
-                      <Check className="w-4 h-4 text-green-600" />
-                    )}
-                    <span>
-                      {tab.label} {tab.spanish && <span className="text-muted-foreground">{tab.spanish}</span>}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              
-              {/* Second Row of Tabs */}
-              <div className="flex flex-wrap justify-center gap-4 border-b border-border pb-2">
-                {secondRowTabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setCurrentTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                      currentTab === tab.id
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                    }`}
-                  >
-                    {isSectionCompleted(tab.id) && (
-                      <Check className="w-4 h-4 text-green-600" />
-                    )}
-                    <span>
-                      {tab.label} {tab.spanish && <span className="text-muted-foreground">{tab.spanish}</span>}
-                    </span>
-                  </button>
-                ))}
+          {/* Accident Information Tab */}
+          <TabContentSection
+            value="accident"
+            title="Accident Information"
+            subtitle="Información del Accidente"
+          >
+            <FormFieldGrid>
+              <FormField>
+                <Label htmlFor="accident-date">Date of Accident <span className="text-muted-foreground">(Fecha del Accidente)</span></Label>
+                <Input 
+                  id="accident-date" 
+                  type="date"
+                  value={formData.accidentDate}
+                  onChange={(e) => handleInputChange("accidentDate", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="accident-time">Time of Accident <span className="text-muted-foreground">(Hora del Accidente)</span></Label>
+                <Input 
+                  id="accident-time" 
+                  type="time"
+                  value={formData.accidentTime}
+                  onChange={(e) => handleInputChange("accidentTime", e.target.value)}
+                />
+              </FormField>
+              <FormField fullWidth>
+                <Label htmlFor="accident-description">Describe the accident <span className="text-muted-foreground">(Describe el accidente)</span></Label>
+                <Textarea 
+                  id="accident-description" 
+                  rows={4}
+                  value={formData.accidentDescription}
+                  onChange={(e) => handleInputChange("accidentDescription", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="accident-location">Location of accident <span className="text-muted-foreground">(Ubicación del accidente)</span></Label>
+                <Input 
+                  id="accident-location" 
+                  value={formData.accidentLocation}
+                  onChange={(e) => handleInputChange("accidentLocation", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="accident-city">City <span className="text-muted-foreground">(Ciudad)</span></Label>
+                <Input 
+                  id="accident-city" 
+                  value={formData.accidentCity}
+                  onChange={(e) => handleInputChange("accidentCity", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label>Were you the driver or passenger? <span className="text-muted-foreground">(¿Era conductor o pasajero?)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("personRole", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="driver">Driver (Conductor)</SelectItem>
+                    <SelectItem value="passenger">Passenger (Pasajero)</SelectItem>
+                    <SelectItem value="pedestrian">Pedestrian (Peatón)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField>
+                <Label>Was your vehicle moving? <span className="text-muted-foreground">(¿Su vehículo se movía?)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("vehicleMotion", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes (Sí)</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField>
+                <Label>Did you go to the hospital? <span className="text-muted-foreground">(¿Fue al hospital?)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("wentToHospital", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes (Sí)</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              {formData.wentToHospital === "yes" && (
+                <FormField>
+                  <Label htmlFor="hospital-name">Hospital Name <span className="text-muted-foreground">(Nombre del Hospital)</span></Label>
+                  <Input 
+                    id="hospital-name" 
+                    value={formData.hospitalName}
+                    onChange={(e) => handleInputChange("hospitalName", e.target.value)}
+                  />
+                </FormField>
+              )}
+              <FormField>
+                <Label>Loss of consciousness? <span className="text-muted-foreground">(¿Pérdida de conciencia?)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("lossOfConsciousness", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes (Sí)</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </FormFieldGrid>
+          </TabContentSection>
+
+          {/* Insurance Tab */}
+          <TabContentSection
+            value="insurance"
+            title="Insurance Information"
+            subtitle="Información del Seguro"
+          >
+            <FormFieldGrid>
+              <FormField>
+                <Label htmlFor="vehicle-owner">Who owns the vehicle? <span className="text-muted-foreground">(¿Quién es dueño del vehículo?)</span></Label>
+                <Input 
+                  id="vehicle-owner" 
+                  value={formData.vehicleOwner}
+                  onChange={(e) => handleInputChange("vehicleOwner", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="relationship-owner">Relationship to owner <span className="text-muted-foreground">(Relación con el dueño)</span></Label>
+                <Input 
+                  id="relationship-owner" 
+                  value={formData.relationshipToOwner}
+                  onChange={(e) => handleInputChange("relationshipToOwner", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="vehicle-driver">Who was driving? <span className="text-muted-foreground">(¿Quién manejaba?)</span></Label>
+                <Input 
+                  id="vehicle-driver" 
+                  value={formData.vehicleDriver}
+                  onChange={(e) => handleInputChange("vehicleDriver", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="relationship-driver">Relationship to driver <span className="text-muted-foreground">(Relación con el conductor)</span></Label>
+                <Input 
+                  id="relationship-driver" 
+                  value={formData.relationshipToDriver}
+                  onChange={(e) => handleInputChange("relationshipToDriver", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="household-members">Household members <span className="text-muted-foreground">(Miembros del hogar)</span></Label>
+                <Input 
+                  id="household-members" 
+                  value={formData.householdMembers}
+                  onChange={(e) => handleInputChange("householdMembers", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="owned-vehicles">Number of vehicles owned <span className="text-muted-foreground">(Número de vehículos propios)</span></Label>
+                <Input 
+                  id="owned-vehicles" 
+                  type="number"
+                  value={formData.ownedVehicles}
+                  onChange={(e) => handleInputChange("ownedVehicles", e.target.value)}
+                />
+              </FormField>
+            </FormFieldGrid>
+          </TabContentSection>
+
+          {/* Medical History Tab */}
+          <TabContentSection
+            value="medical"
+            title="Medical History"
+            subtitle="Historial Médico"
+          >
+            <FormFieldGrid>
+              <FormField fullWidth>
+                <Label htmlFor="previous-accidents">Previous accidents or injuries <span className="text-muted-foreground">(Accidentes o lesiones previas)</span></Label>
+                <Textarea 
+                  id="previous-accidents" 
+                  rows={3}
+                  value={formData.previousAccidents}
+                  onChange={(e) => handleInputChange("previousAccidents", e.target.value)}
+                />
+              </FormField>
+              <FormField fullWidth>
+                <Label htmlFor="allergies">Allergies <span className="text-muted-foreground">(Alergias)</span></Label>
+                <Textarea 
+                  id="allergies" 
+                  rows={3}
+                  value={formData.allergies}
+                  onChange={(e) => handleInputChange("allergies", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label>Do you drink alcohol? <span className="text-muted-foreground">(¿Toma alcohol?)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("drinksAlcohol", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="never">Never (Nunca)</SelectItem>
+                    <SelectItem value="occasionally">Occasionally (Ocasionalmente)</SelectItem>
+                    <SelectItem value="regularly">Regularly (Regularmente)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField>
+                <Label>Do you smoke? <span className="text-muted-foreground">(¿Fuma?)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("smokes", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="never">Never (Nunca)</SelectItem>
+                    <SelectItem value="current">Current (Actualmente)</SelectItem>
+                    <SelectItem value="former">Former (Antes)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </FormFieldGrid>
+
+            <div className="mt-6">
+              <h4 className="font-semibold mb-4">Family History <span className="text-muted-foreground">(Historial Familiar)</span></h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="heart-trouble"
+                      checked={formData.familyHistory.heartTrouble}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "heartTrouble", checked)}
+                    />
+                    <Label htmlFor="heart-trouble" className="text-sm">Heart trouble</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="stroke"
+                      checked={formData.familyHistory.stroke}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "stroke", checked)}
+                    />
+                    <Label htmlFor="stroke" className="text-sm">Stroke</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="diabetes"
+                      checked={formData.familyHistory.diabetes}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "diabetes", checked)}
+                    />
+                    <Label htmlFor="diabetes" className="text-sm">Diabetes</Label>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="cancer"
+                      checked={formData.familyHistory.cancer}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "cancer", checked)}
+                    />
+                    <Label htmlFor="cancer" className="text-sm">Cancer</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="arthritis"
+                      checked={formData.familyHistory.arthritis}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "arthritis", checked)}
+                    />
+                    <Label htmlFor="arthritis" className="text-sm">Arthritis</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="high-blood-pressure"
+                      checked={formData.familyHistory.highBloodPressure}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "highBloodPressure", checked)}
+                    />
+                    <Label htmlFor="high-blood-pressure" className="text-sm">High blood pressure</Label>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="migraines"
+                      checked={formData.familyHistory.migraines}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "migraines", checked)}
+                    />
+                    <Label htmlFor="migraines" className="text-sm">Migraines</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="spine-problems"
+                      checked={formData.familyHistory.spineProblems}
+                      onCheckedChange={(checked) => handleNestedChange("familyHistory", "spineProblems", checked)}
+                    />
+                    <Label htmlFor="spine-problems" className="text-sm">Spine problems</Label>
+                  </div>
+                </div>
               </div>
             </div>
+          </TabContentSection>
 
-            {/* General Information Tab */}
-            <TabsContent value="general">
-              <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">
-                  General Information <span className="text-muted-foreground">(Información General)</span>
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="last-name">Last Name <span className="text-muted-foreground">(Apellido)</span></Label>
-                    <Input 
-                      id="last-name" 
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange("lastName", e.target.value)}
+          {/* Current Symptoms Tab */}
+          <TabContentSection
+            value="symptoms"
+            title="Current Symptoms"
+            subtitle="Síntomas Actuales"
+          >
+            <FormFieldGrid>
+              <FormField fullWidth>
+                <Label htmlFor="pain-location">Where is your pain located? <span className="text-muted-foreground">(¿Dónde está ubicado su dolor?)</span></Label>
+                <Textarea 
+                  id="pain-location" 
+                  rows={3}
+                  value={formData.painLocation}
+                  onChange={(e) => handleInputChange("painLocation", e.target.value)}
+                />
+              </FormField>
+            </FormFieldGrid>
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h4 className="font-semibold mb-3">Head/Neck <span className="text-muted-foreground">(Cabeza/Cuello)</span></h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="headache-symptom"
+                      checked={formData.currentSymptoms.headache}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "headache", checked)}
                     />
+                    <Label htmlFor="headache-symptom" className="text-sm">Headache</Label>
                   </div>
-                  <div>
-                    <Label htmlFor="first-name">First Name <span className="text-muted-foreground">(Nombre)</span></Label>
-                    <Input 
-                      id="first-name" 
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange("firstName", e.target.value)}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="neck-pain-symptom"
+                      checked={formData.currentSymptoms.neckPain}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "neckPain", checked)}
                     />
+                    <Label htmlFor="neck-pain-symptom" className="text-sm">Neck pain</Label>
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="address">Address <span className="text-muted-foreground">(Dirección)</span></Label>
-                  <Input 
-                    id="address" 
-                    value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <Label htmlFor="city">City <span className="text-muted-foreground">(Ciudad)</span></Label>
-                    <Input 
-                      id="city" 
-                      value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="neck-stiff"
+                      checked={formData.currentSymptoms.neckStiff}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "neckStiff", checked)}
                     />
-                  </div>
-                  <div>
-                    <Label htmlFor="state">State <span className="text-muted-foreground">(Estado)</span></Label>
-                    <Input 
-                      id="state" 
-                      value={formData.state}
-                      onChange={(e) => handleInputChange("state", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="zip">Zip Code <span className="text-muted-foreground">(Código Postal)</span></Label>
-                    <Input 
-                      id="zip" 
-                      value={formData.zip}
-                      onChange={(e) => handleInputChange("zip", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <Label htmlFor="home-phone">Home Phone <span className="text-muted-foreground">(Teléfono Casa)</span></Label>
-                    <Input 
-                      id="home-phone" 
-                      type="tel"
-                      value={formData.homePhone}
-                      onChange={(e) => handleInputChange("homePhone", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="work-phone">Work Phone <span className="text-muted-foreground">(Teléfono Trabajo)</span></Label>
-                    <Input 
-                      id="work-phone" 
-                      type="tel"
-                      value={formData.workPhone}
-                      onChange={(e) => handleInputChange("workPhone", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cell-phone">Cell Phone <span className="text-muted-foreground">(Teléfono Celular)</span></Label>
-                    <Input 
-                      id="cell-phone" 
-                      type="tel"
-                      value={formData.cellPhone}
-                      onChange={(e) => handleInputChange("cellPhone", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="email">Email <span className="text-muted-foreground">(Correo Electrónico)</span></Label>
-                  <Input 
-                    id="email" 
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="license-number">License # <span className="text-muted-foreground">(Número de Lic #)</span></Label>
-                    <Input 
-                      id="license-number" 
-                      value={formData.licenseNumber}
-                      onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="license-state">State <span className="text-muted-foreground">(Estado)</span></Label>
-                    <Input 
-                      id="license-state" 
-                      value={formData.licenseState}
-                      onChange={(e) => handleInputChange("licenseState", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <Label htmlFor="dob">Date of Birth <span className="text-muted-foreground">(Fecha de Nacimiento)</span></Label>
-                    <Input 
-                      id="dob" 
-                      type="date"
-                      value={formData.dob}
-                      onChange={(e) => handleInputChange("dob", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ssn">Social Security # <span className="text-muted-foreground">(Num. Seguro Social)</span></Label>
-                    <Input 
-                      id="ssn" 
-                      value={formData.ssn}
-                      onChange={(e) => handleInputChange("ssn", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Sex <span className="text-muted-foreground">(Sexo)</span></Label>
-                    <Select onValueChange={(value) => handleInputChange("sex", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border z-50">
-                        <SelectItem value="male">Male (Masculino)</SelectItem>
-                        <SelectItem value="female">Female (Femenino)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Preferred Language <span className="text-muted-foreground">(Idioma Preferido)</span></Label>
-                  <Select 
-                    value={formData.language} 
-                    onValueChange={(value) => handleInputChange("language", value)}
-                  >
-                    <SelectTrigger className="bg-background border-border/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border z-50">
-                      <SelectItem value="en">🇺🇸 English</SelectItem>
-                      <SelectItem value="es">🇪🇸 Español</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Document Upload Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-4 bg-muted/30 rounded-lg">
-                  <h3 className="md:col-span-2 text-lg font-semibold text-foreground border-b pb-2">
-                    Document Uploads <span className="text-muted-foreground">(Subida de Documentos)</span>
-                  </h3>
-                  
-                  <DocumentUpload
-                    documentType="drivers-license-front"
-                    label="Driver's License Front"
-                    spanishLabel="Frente de Licencia"
-                  />
-                  
-                  <DocumentUpload
-                    documentType="drivers-license-back"
-                    label="Driver's License Back"
-                    spanishLabel="Reverso de Licencia"
-                  />
-                  
-                  <DocumentUpload
-                    documentType="insurance-card-front"
-                    label="Insurance Card Front"
-                    spanishLabel="Frente de Tarjeta de Seguro"
-                  />
-                  
-                  <DocumentUpload
-                    documentType="insurance-card-back"
-                    label="Insurance Card Back"
-                    spanishLabel="Reverso de Tarjeta de Seguro"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="marital-status">Marital Status</Label>
-                  <Select onValueChange={(value) => handleInputChange("maritalStatus", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="single">Single (Soltero/a)</SelectItem>
-                      <SelectItem value="married">Married (Casado/a)</SelectItem>
-                      <SelectItem value="divorced">Divorced (Divorciado/a)</SelectItem>
-                      <SelectItem value="widowed">Widowed (Viudo/a)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="emergency-contact">Emergency Contact <span className="text-muted-foreground">(Contacto en Caso de Emergencia)</span></Label>
-                    <Input 
-                      id="emergency-contact" 
-                      value={formData.emergencyContact}
-                      onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="emergency-phone">Emergency Phone <span className="text-muted-foreground">(Teléfono)</span></Label>
-                    <Input 
-                      id="emergency-phone" 
-                      type="tel"
-                      value={formData.emergencyPhone}
-                      onChange={(e) => handleInputChange("emergencyPhone", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold pt-4 border-t">Employment & Student Status <span className="text-muted-foreground">(Trabajo y Tipo de Estudiante)</span></h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label>Employment <span className="text-muted-foreground">(Trabajo)</span></Label>
-                    <Select onValueChange={(value) => handleInputChange("employment", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fulltime">Full-Time (Tiempo Completo)</SelectItem>
-                        <SelectItem value="parttime">Part-Time (Medio Tiempo)</SelectItem>
-                        <SelectItem value="retired">Retired (Retirado)</SelectItem>
-                        <SelectItem value="unemployed">Unemployed (Desempleado)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Student <span className="text-muted-foreground">(Estudiante)</span></Label>
-                    <Select onValueChange={(value) => handleInputChange("student", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fulltime">Full-Time (Tiempo Completo)</SelectItem>
-                        <SelectItem value="parttime">Part-Time (Medio Tiempo)</SelectItem>
-                        <SelectItem value="not-student">Not a Student (No Estudio)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="neck-stiff" className="text-sm">Neck stiffness</Label>
                   </div>
                 </div>
               </div>
-            </TabsContent>
-
-            {/* Accident Details Tab */}
-            <TabsContent value="accident">
-              <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">
-                  Accident Information <span className="text-muted-foreground">(Informacion sobre el Accidente)</span>
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="accident-date">Date of Accident <span className="text-muted-foreground">(Fecha del Accidente)</span></Label>
-                    <Input 
-                      id="accident-date" 
-                      type="date"
-                      value={formData.accidentDate}
-                      onChange={(e) => handleInputChange("accidentDate", e.target.value)}
+              <div>
+                <h4 className="font-semibold mb-3">Back <span className="text-muted-foreground">(Espalda)</span></h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="upper-back-pain"
+                      checked={formData.currentSymptoms.upperBackPain}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "upperBackPain", checked)}
                     />
+                    <Label htmlFor="upper-back-pain" className="text-sm">Upper back pain</Label>
                   </div>
-                  <div>
-                    <Label htmlFor="accident-time">Time of Accident <span className="text-muted-foreground">(Hora que occurio)</span></Label>
-                    <Input 
-                      id="accident-time" 
-                      type="time"
-                      value={formData.accidentTime}
-                      onChange={(e) => handleInputChange("accidentTime", e.target.value)}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="mid-back-pain"
+                      checked={formData.currentSymptoms.midBackPain}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "midBackPain", checked)}
                     />
+                    <Label htmlFor="mid-back-pain" className="text-sm">Mid back pain</Label>
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="accident-description">Describe how the Accident took place: <span className="text-muted-foreground">(Describe como el Accidente se llevo a cabo)</span></Label>
-                  <Textarea 
-                    id="accident-description" 
-                    rows={3}
-                    value={formData.accidentDescription}
-                    onChange={(e) => handleInputChange("accidentDescription", e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="accident-location">Accident Location <span className="text-muted-foreground">(Donde fue el Accidente)</span></Label>
-                    <Input 
-                      id="accident-location" 
-                      placeholder="Street/Address (Calle o direccion)"
-                      value={formData.accidentLocation}
-                      onChange={(e) => handleInputChange("accidentLocation", e.target.value)}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="lower-back-pain-symptom"
+                      checked={formData.currentSymptoms.lowerBackPain}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "lowerBackPain", checked)}
                     />
-                  </div>
-                  <div>
-                    <Label htmlFor="accident-city">City/State <span className="text-muted-foreground">(Ciudad/Estado)</span></Label>
-                    <Input 
-                      id="accident-city" 
-                      value={formData.accidentCity}
-                      onChange={(e) => handleInputChange("accidentCity", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Were you the:</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("personRole", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="driver" id="driver" />
-                        <Label htmlFor="driver">Driver</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="passenger" id="passenger" />
-                        <Label htmlFor="passenger">Passenger</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="rear-passenger" id="rear-passenger" />
-                        <Label htmlFor="rear-passenger">Rear Passenger</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="pedestrian" id="pedestrian" />
-                        <Label htmlFor="pedestrian">Pedestrian</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">Were you:</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("vehicleMotion", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="slowly-moving" id="slowly-moving" />
-                        <Label htmlFor="slowly-moving">Slowly Moving</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="moving" id="moving" />
-                        <Label htmlFor="moving">Moving</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="stopped" id="stopped" />
-                        <Label htmlFor="stopped">Stopped</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold pt-4 border-t">Impact Details <span className="text-muted-foreground">(Detalles del Impacto)</span></h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium mb-2">On impact, your head was looking:</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("headPosition", value)}>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="ahead" id="ahead" />
-                          <Label htmlFor="ahead">Ahead</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="behind" id="behind" />
-                          <Label htmlFor="behind">Behind</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="up" id="up" />
-                          <Label htmlFor="up">Up</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="down" id="down" />
-                          <Label htmlFor="down">Down</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="right" id="right" />
-                          <Label htmlFor="right">Right</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="left" id="left" />
-                          <Label htmlFor="left">Left</Label>
-                        </div>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">On impact, you were thrown:</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("thrownDirection", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="forward" id="forward" />
-                        <Label htmlFor="forward">Forward</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="backward" id="backward" />
-                        <Label htmlFor="backward">Backward</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sideways" id="sideways" />
-                        <Label htmlFor="sideways">Sideways</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other">Other</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Did you see the impact coming?</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("sawImpact", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="saw-yes" />
-                        <Label htmlFor="saw-yes">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="saw-no" />
-                        <Label htmlFor="saw-no">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">Did you brace for impact?</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("braceForImpact", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="brace-yes" />
-                        <Label htmlFor="brace-yes">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="brace-no" />
-                        <Label htmlFor="brace-no">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium mb-2">Did your body hit anything inside the car? <span className="text-muted-foreground">(¿Se golpeo con alguna parte del-carro?)</span></p>
-                  <div className="flex gap-4 items-center">
-                    <RadioGroup onValueChange={(value) => handleInputChange("hitCar", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="hit-yes" />
-                        <Label htmlFor="hit-yes">Yes <span className="text-muted-foreground">(Si)</span></Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="hit-no" />
-                        <Label htmlFor="hit-no">No</Label>
-                      </div>
-                    </RadioGroup>
-                    <Input 
-                      className="flex-grow" 
-                      placeholder="Body Part (Parte del Cuerpo) / Part of Car (Parte del Carro)"
-                      value={formData.hitCarDetails}
-                      onChange={(e) => handleInputChange("hitCarDetails", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold pt-4 border-t">Medical Attention <span className="text-muted-foreground">(Atencion Medica)</span></h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Did you go to the hospital? <span className="text-muted-foreground">(¿Fue al Hospital?)</span></p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("wentToHospital", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="hospital-yes" />
-                        <Label htmlFor="hospital-yes">Yes <span className="text-muted-foreground">(Si)</span></Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="hospital-no" />
-                        <Label htmlFor="hospital-no">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <Label htmlFor="hospital-name">Name of Hospital <span className="text-muted-foreground">(Nombre del hospital)</span></Label>
-                    <Input 
-                      id="hospital-name" 
-                      value={formData.hospitalName}
-                      onChange={(e) => handleInputChange("hospitalName", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Loss of Consciousness?</p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("lossOfConsciousness", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="loc-yes" />
-                        <Label htmlFor="loc-yes">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="loc-no" />
-                        <Label htmlFor="loc-no">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <Label>For how long?</Label>
-                    <Input 
-                      value={formData.consciousnessLength}
-                      onChange={(e) => handleInputChange("consciousnessLength", e.target.value)}
-                    />
+                    <Label htmlFor="lower-back-pain-symptom" className="text-sm">Lower back pain</Label>
                   </div>
                 </div>
               </div>
-            </TabsContent>
-
-            {/* Insurance Verification Tab */}
-            <TabsContent value="insurance">
-              <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">
-                  Insurance & Legal Information <span className="text-muted-foreground">(Informacion del Seguro)</span>
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label>The OWNER of the vehicle is:</Label>
-                    <Input 
-                      value={formData.vehicleOwner}
-                      onChange={(e) => handleInputChange("vehicleOwner", e.target.value)}
+              <div>
+                <h4 className="font-semibold mb-3">Extremities <span className="text-muted-foreground">(Extremidades)</span></h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="pain-arms-hands"
+                      checked={formData.currentSymptoms.painArmsHands}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "painArmsHands", checked)}
                     />
+                    <Label htmlFor="pain-arms-hands" className="text-sm">Pain in arms/hands</Label>
                   </div>
-                  <div>
-                    <Label>My relationship to the OWNER:</Label>
-                    <Input 
-                      value={formData.relationshipToOwner}
-                      onChange={(e) => handleInputChange("relationshipToOwner", e.target.value)}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="pain-legs-feet"
+                      checked={formData.currentSymptoms.painLegsFeet}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "painLegsFeet", checked)}
                     />
+                    <Label htmlFor="pain-legs-feet" className="text-sm">Pain in legs/feet</Label>
                   </div>
-                  <div>
-                    <Label>The DRIVER of the vehicle is:</Label>
-                    <Input 
-                      value={formData.vehicleDriver}
-                      onChange={(e) => handleInputChange("vehicleDriver", e.target.value)}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="numbness-arms-hands-symptom"
+                      checked={formData.currentSymptoms.numbnessArmsHands}
+                      onCheckedChange={(checked) => handleNestedChange("currentSymptoms", "numbnessArmsHands", checked)}
                     />
+                    <Label htmlFor="numbness-arms-hands-symptom" className="text-sm">Numbness in arms/hands</Label>
                   </div>
-                  <div>
-                    <Label>My relationship to the DRIVER:</Label>
-                    <Input 
-                      value={formData.relationshipToDriver}
-                      onChange={(e) => handleInputChange("relationshipToDriver", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="pt-4 border-t">
-                  <Label>List all people you lived with on the date of the accident:</Label>
-                  <Textarea 
-                    rows={3} 
-                    placeholder="Name, Driver's License (Y/N), Relationship to you"
-                    value={formData.householdMembers}
-                    onChange={(e) => handleInputChange("householdMembers", e.target.value)}
-                  />
-                </div>
-                <div className="pt-4 border-t">
-                  <Label>List all vehicles owned/leased by you or anyone you lived with:</Label>
-                  <Textarea 
-                    rows={3} 
-                    placeholder="Year, Make/Model, Owner Name, Insurance Company, Policy #"
-                    value={formData.ownedVehicles}
-                    onChange={(e) => handleInputChange("ownedVehicles", e.target.value)}
-                  />
                 </div>
               </div>
-            </TabsContent>
+            </div>
+          </TabContentSection>
 
-            {/* Medical History Tab */}
-            <TabsContent value="medical">
-              <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">
-                  Medical History <span className="text-muted-foreground">(Historial Medico)</span>
-                </h2>
-                <div>
-                  <Label>List any previous accidents (auto, work, falls, etc.) and date:</Label>
-                  <Textarea 
-                    rows={3}
-                    value={formData.previousAccidents}
-                    onChange={(e) => handleInputChange("previousAccidents", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="allergies">Do you have any allergies?</Label>
-                  <Input 
-                    id="allergies" 
-                    value={formData.allergies}
-                    onChange={(e) => handleInputChange("allergies", e.target.value)}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* System Review Tab */}
+          <TabContentSection
+            value="review"
+            title="Review of Systems"
+            subtitle="Revisión de Sistemas"
+          >
+            <p className="text-sm text-muted-foreground mb-6">
+              Please indicate if you have experienced any of the following symptoms:
+              <br />
+              <span className="italic">Por favor indique si ha experimentado alguno de los siguientes síntomas:</span>
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold mb-3">General</h4>
+                <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium mb-2">Do you drink alcohol? <span className="text-muted-foreground">(¿Bebe alcohol?)</span></p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("drinksAlcohol", value)}>
+                    <Label className="text-sm">Fever <span className="text-muted-foreground">(Fiebre)</span></Label>
+                    <RadioGroup 
+                      value={formData.systemReview.fever} 
+                      onValueChange={(value) => handleNestedChange("systemReview", "fever", value)}
+                      className="flex gap-6 mt-1"
+                    >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="alcohol-yes" />
-                        <Label htmlFor="alcohol-yes">Yes <span className="text-muted-foreground">(Si)</span></Label>
+                        <RadioGroupItem value="yes" id="fever-yes" />
+                        <Label htmlFor="fever-yes" className="text-sm">Yes</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="alcohol-no" />
-                        <Label htmlFor="alcohol-no">No</Label>
+                        <RadioGroupItem value="no" id="fever-no" />
+                        <Label htmlFor="fever-no" className="text-sm">No</Label>
                       </div>
                     </RadioGroup>
                   </div>
                   <div>
-                    <p className="text-sm font-medium mb-2">Do you smoke? <span className="text-muted-foreground">(¿Fumas?)</span></p>
-                    <RadioGroup onValueChange={(value) => handleInputChange("smokes", value)}>
+                    <Label className="text-sm">Chills <span className="text-muted-foreground">(Escalofríos)</span></Label>
+                    <RadioGroup 
+                      value={formData.systemReview.chills} 
+                      onValueChange={(value) => handleNestedChange("systemReview", "chills", value)}
+                      className="flex gap-6 mt-1"
+                    >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="smoke-yes" />
-                        <Label htmlFor="smoke-yes">Yes <span className="text-muted-foreground">(Si)</span></Label>
+                        <RadioGroupItem value="yes" id="chills-yes" />
+                        <Label htmlFor="chills-yes" className="text-sm">Yes</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="smoke-no" />
-                        <Label htmlFor="smoke-no">No</Label>
+                        <RadioGroupItem value="no" id="chills-no" />
+                        <Label htmlFor="chills-no" className="text-sm">No</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  <div>
+                    <Label className="text-sm">Fatigue <span className="text-muted-foreground">(Fatiga)</span></Label>
+                    <RadioGroup 
+                      value={formData.systemReview.fatigue} 
+                      onValueChange={(value) => handleNestedChange("systemReview", "fatigue", value)}
+                      className="flex gap-6 mt-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="fatigue-yes" />
+                        <Label htmlFor="fatigue-yes" className="text-sm">Yes</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="fatigue-no" />
+                        <Label htmlFor="fatigue-no" className="text-sm">No</Label>
                       </div>
                     </RadioGroup>
                   </div>
                 </div>
-                <div className="pt-4 border-t">
-                  <p className="text-sm font-medium mb-2">Members of my family suffer with the following:</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {Object.entries(formData.familyHistory).map(([key, value]) => (
-                      <div key={key} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={key}
-                          checked={value}
-                          onCheckedChange={(checked) => handleNestedChange("familyHistory", key, checked)}
-                        />
-                        <Label htmlFor={key} className="text-sm">
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </Label>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-3">Neurological <span className="text-muted-foreground">(Neurológico)</span></h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm">Memory loss <span className="text-muted-foreground">(Pérdida de memoria)</span></Label>
+                    <RadioGroup 
+                      value={formData.systemReview.memoryLoss} 
+                      onValueChange={(value) => handleNestedChange("systemReview", "memoryLoss", value)}
+                      className="flex gap-6 mt-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="memory-yes" />
+                        <Label htmlFor="memory-yes" className="text-sm">Yes</Label>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Symptoms Tab */}
-            <TabsContent value="symptoms">
-              <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">
-                  Pain & Symptoms <span className="text-muted-foreground">(Dolor y Síntomas)</span>
-                </h2>
-                <div>
-                  <Label htmlFor="pain-location">Where do you feel the pain? Please be specific. <span className="text-muted-foreground">(¿Dónde siente el dolor?)</span></Label>
-                  <Textarea 
-                    id="pain-location" 
-                    rows={3}
-                    value={formData.painLocation}
-                    onChange={(e) => handleInputChange("painLocation", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Describe your pain:</Label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mt-2">
-                    {Object.entries(formData.painDescription).map(([key, value]) => (
-                      <div key={key} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={key}
-                          checked={value}
-                          onCheckedChange={(checked) => handleNestedChange("painDescription", key, checked)}
-                        />
-                        <Label htmlFor={key} className="text-sm">
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                        </Label>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="memory-no" />
+                        <Label htmlFor="memory-no" className="text-sm">No</Label>
                       </div>
-                    ))}
+                    </RadioGroup>
                   </div>
-                </div>
-                <div className="pt-4 border-t">
-                  <p className="text-sm font-medium mb-2">Please check any symptoms you are now experiencing:</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {Object.entries(formData.currentSymptoms).map(([key, value]) => (
-                      <div key={key} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={key}
-                          checked={value}
-                          onCheckedChange={(checked) => handleNestedChange("currentSymptoms", key, checked)}
-                        />
-                        <Label htmlFor={key} className="text-sm">
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </Label>
+                  <div>
+                    <Label className="text-sm">Dizziness <span className="text-muted-foreground">(Mareo)</span></Label>
+                    <RadioGroup 
+                      value={formData.systemReview.dizziness} 
+                      onValueChange={(value) => handleNestedChange("systemReview", "dizziness", value)}
+                      className="flex gap-6 mt-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="dizziness-yes" />
+                        <Label htmlFor="dizziness-yes" className="text-sm">Yes</Label>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* System Review Tab */}
-            <TabsContent value="review">
-              <div className="space-y-6 bg-background p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold border-b pb-3">Review of Systems <span className="text-muted-foreground">(Revisión de Sistemas)</span></h2>
-                <p className="text-sm text-muted-foreground">Do you currently have or have had any of the following problems? Please check Yes or No for every item. <span className="text-muted-foreground/70">(¿Tiene o ha tenido alguno de los siguientes problemas? Por favor marque Sí o No para cada elemento.)</span></p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold mb-2 border-b">General</h3>
-                    {['fever', 'chills', 'fatigue'].map((item) => (
-                      <div key={item} className="flex justify-between items-center">
-                        <span className="capitalize">{item}</span>
-                        <RadioGroup 
-                          value={formData.systemReview[item]} 
-                          onValueChange={(value) => handleNestedChange("systemReview", item, value)}
-                          className="flex gap-2"
-                        >
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem value="yes" id={`${item}-y`} />
-                            <Label htmlFor={`${item}-y`}>Y</Label>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem value="no" id={`${item}-n`} />
-                            <Label htmlFor={`${item}-n`}>N</Label>
-                          </div>
-                        </RadioGroup>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="dizziness-no" />
+                        <Label htmlFor="dizziness-no" className="text-sm">No</Label>
                       </div>
-                    ))}
+                    </RadioGroup>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold mb-2 border-b">Eyes</h3>
-                    {['blurredVision', 'doubleVision', 'eyePain'].map((item) => (
-                      <div key={item} className="flex justify-between items-center">
-                        <span>{item.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
-                        <RadioGroup 
-                          value={formData.systemReview[item]} 
-                          onValueChange={(value) => handleNestedChange("systemReview", item, value)}
-                          className="flex gap-2"
-                        >
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem value="yes" id={`${item}-y`} />
-                            <Label htmlFor={`${item}-y`}>Y</Label>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <RadioGroupItem value="no" id={`${item}-n`} />
-                            <Label htmlFor={`${item}-n`}>N</Label>
-                          </div>
-                        </RadioGroup>
+                  <div>
+                    <Label className="text-sm">Weakness <span className="text-muted-foreground">(Debilidad)</span></Label>
+                    <RadioGroup 
+                      value={formData.systemReview.weakness} 
+                      onValueChange={(value) => handleNestedChange("systemReview", "weakness", value)}
+                      className="flex gap-6 mt-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="weakness-yes" />
+                        <Label htmlFor="weakness-yes" className="text-sm">Yes</Label>
                       </div>
-                    ))}
-                  </div>
-                  {/* ... rest of system review sections ... */}
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Communications Tab */}
-            <TabsContent value="communications">
-              <div className="space-y-8 bg-background p-6 rounded-lg shadow-sm">
-                <div>
-                  <h2 className="text-xl font-semibold border-b pb-3">Confidential Communications <span className="text-muted-foreground">(Comunicaciones Confidenciales)</span></h2>
-                  <p className="text-sm text-muted-foreground mt-4">I am requesting that SCRC communicate with me by an alternative means or at an alternative address or phone number that is more confidential for me. I understand that the Medical Center will not accommodate unreasonable requests. <span className="text-muted-foreground/70">(Solicito que SCRC se comunique conmigo por medios alternativos o en una dirección o número de teléfono alternativo que sea más confidencial para mí. Entiendo que el Centro Médico no acomodará solicitudes irrazonables.)</span></p>
-                  <div className="mt-4">
-                    <Label htmlFor="comm-alt">Describe the alternative means of communication you are requesting: <span className="text-muted-foreground">(Describa los medios alternativos de comunicación que solicita:)</span></Label>
-                    <Textarea 
-                      id="comm-alt" 
-                      rows={3}
-                      value={formData.alternativeCommunication}
-                      onChange={(e) => handleInputChange("alternativeCommunication", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">E-Mail Consent Form <span className="text-muted-foreground">(Formulario de Consentimiento de Correo Electrónico)</span></h3>
-                  <p className="text-sm text-muted-foreground mt-2">I understand the risks associated with communication of e-mail between SCRC and me and consent to the conditions outlined. I agree and consent that SCRC may communicate with me regarding my protected health information by e-mail. <span className="text-muted-foreground/70">(Entiendo los riesgos asociados con la comunicación por correo electrónico entre SCRC y yo, y consiento las condiciones descritas. Acepto y consiento que SCRC pueda comunicarse conmigo sobre mi información de salud protegida por correo electrónico.)</span></p>
-                  <div className="mt-4">
-                    <Label htmlFor="email-consent">My Consented E-Mail Address is: <span className="text-muted-foreground">(Mi Dirección de Correo Electrónico Consentida es:)</span></Label>
-                    <Input 
-                      id="email-consent" 
-                      type="email"
-                      value={formData.emailConsent}
-                      onChange={(e) => handleInputChange("emailConsent", e.target.value)}
-                    />
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="weakness-no" />
+                        <Label htmlFor="weakness-no" className="text-sm">No</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </div>
               </div>
-            </TabsContent>
+            </div>
+          </TabContentSection>
 
-            {/* Release of Info Tab */}
-            <TabsContent value="release">
-              <div className="space-y-8 bg-background p-6 rounded-lg shadow-sm">
-                <div>
-                  <h2 className="text-xl font-semibold border-b pb-3">Authorization for Release of Health Information <span className="text-muted-foreground">(Autorización para Divulgar Información de Salud)</span></h2>
-                  <p className="text-sm text-muted-foreground mt-4">I authorize SILVERMAN CHIROPRACTIC & REHABILITATION CENTER, INC., to release my health information to the person/organization listed below. <span className="text-muted-foreground/70">(Autorizo a SILVERMAN CHIROPRACTIC & REHABILITATION CENTER, INC., a divulgar mi información de salud a la persona/organización listada abajo.)</span></p>
-                  <div className="mt-4 space-y-4">
-                    <div>
-                      <Label>Person/Organization <span className="text-muted-foreground">(Persona/Organización)</span></Label>
-                      <Input 
-                        value={formData.releasePersonOrganization}
-                        onChange={(e) => handleInputChange("releasePersonOrganization", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Address <span className="text-muted-foreground">(Dirección)</span></Label>
-                      <Input 
-                        value={formData.releaseAddress}
-                        onChange={(e) => handleInputChange("releaseAddress", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Phone <span className="text-muted-foreground">(Teléfono)</span></Label>
-                      <Input 
-                        type="tel"
-                        value={formData.releasePhone}
-                        onChange={(e) => handleInputChange("releasePhone", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Reason for Disclosure</Label>
-                      <Input 
-                        value={formData.releaseReason}
-                        onChange={(e) => handleInputChange("releaseReason", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">Authorization for Release of Health Information from other Healthcare Facilities</h3>
-                  <p className="text-sm text-muted-foreground mt-4">I authorize SILVERMAN CHIROPRACTIC & REHABILITATION CENTER, INC., to obtain my health information from the facility listed below.</p>
-                  <div className="mt-4 space-y-4">
-                    <div>
-                      <Label>Name of Healthcare Facility</Label>
-                      <Input 
-                        value={formData.healthcareFacility}
-                        onChange={(e) => handleInputChange("healthcareFacility", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Address</Label>
-                      <Input 
-                        value={formData.healthcareFacilityAddress}
-                        onChange={(e) => handleInputChange("healthcareFacilityAddress", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Phone</Label>
-                      <Input 
-                        type="tel"
-                        value={formData.healthcareFacilityPhone}
-                        onChange={(e) => handleInputChange("healthcareFacilityPhone", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Dates of Treatment Requested</Label>
-                      <Input 
-                        value={formData.treatmentDates}
-                        onChange={(e) => handleInputChange("treatmentDates", e.target.value)}
-                      />
-                    </div>
-                  </div>
+          {/* Communications Tab */}
+          <TabContentSection
+            value="communications"
+            title="Communications"
+            subtitle="Comunicaciones"
+          >
+            <FormFieldGrid>
+              <FormField fullWidth>
+                <Label htmlFor="alternative-communication">Alternative Communication Method <span className="text-muted-foreground">(Método de Comunicación Alternativo)</span></Label>
+                <Input 
+                  id="alternative-communication" 
+                  value={formData.alternativeCommunication}
+                  onChange={(e) => handleInputChange("alternativeCommunication", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label>Email Consent <span className="text-muted-foreground">(Consentimiento de Email)</span></Label>
+                <Select onValueChange={(value) => handleInputChange("emailConsent", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes (Sí)</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </FormFieldGrid>
+          </TabContentSection>
+
+          {/* Release Information Tab */}
+          <TabContentSection
+            value="release"
+            title="Release of Information"
+            subtitle="Liberación de Información"
+          >
+            <FormFieldGrid>
+              <FormField>
+                <Label htmlFor="release-person">Person/Organization <span className="text-muted-foreground">(Persona/Organización)</span></Label>
+                <Input 
+                  id="release-person" 
+                  value={formData.releasePersonOrganization}
+                  onChange={(e) => handleInputChange("releasePersonOrganization", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="release-address">Address <span className="text-muted-foreground">(Dirección)</span></Label>
+                <Input 
+                  id="release-address" 
+                  value={formData.releaseAddress}
+                  onChange={(e) => handleInputChange("releaseAddress", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="release-phone">Phone <span className="text-muted-foreground">(Teléfono)</span></Label>
+                <Input 
+                  id="release-phone" 
+                  type="tel"
+                  value={formData.releasePhone}
+                  onChange={(e) => handleInputChange("releasePhone", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="release-reason">Reason for Release <span className="text-muted-foreground">(Razón para la Liberación)</span></Label>
+                <Input 
+                  id="release-reason" 
+                  value={formData.releaseReason}
+                  onChange={(e) => handleInputChange("releaseReason", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="healthcare-facility">Healthcare Facility <span className="text-muted-foreground">(Instalación de Salud)</span></Label>
+                <Input 
+                  id="healthcare-facility" 
+                  value={formData.healthcareFacility}
+                  onChange={(e) => handleInputChange("healthcareFacility", e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="treatment-dates">Treatment Dates <span className="text-muted-foreground">(Fechas de Tratamiento)</span></Label>
+                <Input 
+                  id="treatment-dates" 
+                  value={formData.treatmentDates}
+                  onChange={(e) => handleInputChange("treatmentDates", e.target.value)}
+                />
+              </FormField>
+            </FormFieldGrid>
+          </TabContentSection>
+
+          {/* Authorizations Tab */}
+          <TabContentSection
+            value="auth"
+            title="Authorizations"
+            subtitle="Autorizaciones"
+          >
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Patient Authorization <span className="font-medium">(Autorización del Paciente)</span></h3>
+                <div className="bg-muted/30 border-l-4 border-primary p-4 text-xs max-h-36 overflow-y-auto rounded-r-lg">
+                  <p>
+                    I authorize Silverman Chiropractic & Rehabilitation Center to provide treatment as deemed necessary... I understand that I am financially responsible for all charges...
+                  </p>
+                  <p className="mt-2 italic">
+                    Autorizo al Silverman Chiropractic & Rehabilitation Center a proporcionar el tratamiento que considere necesario... Entiendo que soy financieramente responsable de todos los cargos...
+                  </p>
                 </div>
               </div>
-            </TabsContent>
+            </div>
+            
+            <FormFieldGrid className="mt-6">
+              <FormField>
+                <Label htmlFor="patient-signature">Patient Signature <span className="text-muted-foreground">(Firma del Paciente)</span></Label>
+                <Input 
+                  id="patient-signature" 
+                  value={formData.patientSignature}
+                  onChange={(e) => handleInputChange("patientSignature", e.target.value)}
+                  placeholder="Type your full name to sign"
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="final-date">Date <span className="text-muted-foreground">(Fecha)</span></Label>
+                <Input 
+                  id="final-date" 
+                  type="date"
+                  value={formData.finalDate}
+                  onChange={(e) => handleInputChange("finalDate", e.target.value)}
+                />
+              </FormField>
+            </FormFieldGrid>
+          </TabContentSection>
+        </TabFormSection>
 
-            {/* Authorizations Tab */}
-            <TabsContent value="auth">
-              <div className="space-y-8 bg-background p-6 rounded-lg shadow-sm">
-                <div>
-                  <h3 className="text-lg font-semibold">Radiology Warning Statement</h3>
-                  <p className="text-sm text-muted-foreground mt-2">I authorize the performance of diagnostic x-ray examinations of myself, which the doctor(s) may consider necessary. For female patients: I certify to the best of my knowledge that I AM NOT PREGNANT and give permission to perform diagnostic x-ray examination.</p>
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="Signature (Type Full Name)"
-                      value={formData.radiologySignature}
-                      onChange={(e) => handleInputChange("radiologySignature", e.target.value)}
-                    />
-                    <Input 
-                      type="date"
-                      value={formData.radiologyDate}
-                      onChange={(e) => handleInputChange("radiologyDate", e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">Assignment of Benefits</h3>
-                  <p className="text-sm text-muted-foreground mt-2">I assign the rights and benefits of my insurance to the Provider for services rendered. This includes all rights to collect benefits directly from the insurance company and to take legal action if they fail to make payment. I authorize the Provider to endorse any check made payable to myself and Provider.</p>
-                </div>
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">IME & EUO Notice and Financial Responsibility</h3>
-                  <p className="text-sm text-muted-foreground mt-2">I understand my insurance company may schedule an Independent Medical Examination (IME) or Examination Under Oath (EUO), and it is my responsibility to attend. Failure to do so may make me responsible for unpaid medical bills. I agree to be financially responsible for all charges, including deductibles, co-payments, and any services rejected by my insurance.</p>
-                </div>
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">Disclosure and Acknowledgement</h3>
-                  <p className="text-sm text-muted-foreground mt-2">I affirm that the services were actually rendered, I was not solicited, the services were explained to me, and I have the right to confirm the services. I understand I may be entitled to a portion of any reduction in amounts paid by my insurer if I notify them of a billing error.</p>
-                </div>
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold">Consent to Medical Care & Final Signature</h3>
-                  <p className="text-sm text-muted-foreground mt-2">I authorize Silverman Chiropractic and Rehabilitation Center to perform necessary tests and treatment. I acknowledge the risks and that the following forms have been explained to me: 1. Assignment of Benefits, 2. IME & EUO Notice, 3. Radiology Warning Statement, 4. Doctor's Lien, 5. Disclosure and Acknowledgement Form, 6. Consent to Medical Care.</p>
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="Patient Signature (Type Full Name)"
-                      value={formData.patientSignature}
-                      onChange={(e) => handleInputChange("patientSignature", e.target.value)}
-                    />
-                    <Input 
-                      type="date"
-                      value={formData.finalDate}
-                      onChange={(e) => handleInputChange("finalDate", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Form Submission */}
-          <div className="mt-8 flex justify-end">
-            <Button type="submit" className="px-6 py-3">
-              Submit Form <span className="text-muted-foreground">(Enviar)</span>
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Submit Button */}
+        <div className="mt-8 text-center">
+          <Button
+            type="submit"
+            size="lg"
+            className="px-8"
+          >
+            Submit Form / Enviar Formulario
+          </Button>
+        </div>
+      </form>
+    </PublicFormLayout>
   );
 };
 
