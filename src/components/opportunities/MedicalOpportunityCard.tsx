@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -51,6 +52,7 @@ export function MedicalOpportunityCard({
 }: MedicalOpportunityCardProps) {
   const [isOpen, setIsOpen] = useState(!compact);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const {
     attributes,
     listeners,
@@ -365,8 +367,7 @@ export function MedicalOpportunityCard({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Navigate to forms page or open modal - implement based on your routing
-                        console.log('View form submission:', opportunity.form_submission_id);
+                        navigate(`/forms?submission=${opportunity.form_submission_id}`);
                       }}
                     >
                       <Eye className="h-4 w-4 mr-2" />
