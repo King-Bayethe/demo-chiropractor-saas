@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LeadIntakeForm } from "@/components/LeadIntakeForm";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +28,8 @@ import {
   User,
   Clock,
   Activity,
-  MoreVertical
+  MoreVertical,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,9 +43,11 @@ export default function Patients() {
   const [patientsPerPage, setPatientsPerPage] = useState(20);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { toast } = useToast();
-  const { patients, loading, error, fetchPatients, syncWithGHL, createPatient, updatePatient } = usePatients();
+  const { patients, loading, error, fetchPatients, syncWithGHL, createPatient, updatePatient, deletePatient } = usePatients();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -173,6 +177,29 @@ export default function Patients() {
 
   const handleCancelAddPatient = () => {
     setIsAddPatientOpen(false);
+  };
+
+  const handleDeletePatient = async () => {
+    if (!deletePatientId) return;
+    
+    setIsDeleting(true);
+    try {
+      await deletePatient(deletePatientId);
+      toast({
+        title: "Success",
+        description: "Patient deleted successfully!",
+      });
+      setDeletePatientId(null);
+    } catch (error) {
+      console.error('Failed to delete patient:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete patient. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const indexOfLastPatient = currentPage * patientsPerPage;
@@ -367,17 +394,25 @@ export default function Patients() {
                                 </div>
                               </div>
                               
-                              <div className="flex space-x-1 mt-3 pt-3 border-t">
-                                <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)} className="flex-1 text-xs px-2 py-1">
-                                  <MessageSquare className="w-3 h-3 mr-1" />Message
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)} className="flex-1 text-xs px-2 py-1">
-                                  <Calendar className="w-3 h-3 mr-1" />Book
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)} className="flex-1 text-xs px-2 py-1">
-                                  <User className="w-3 h-3 mr-1" />View
-                                </Button>
-                              </div>
+                               <div className="flex space-x-1 mt-3 pt-3 border-t">
+                                 <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)} className="flex-1 text-xs px-2 py-1">
+                                   <MessageSquare className="w-3 h-3 mr-1" />Message
+                                 </Button>
+                                 <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)} className="flex-1 text-xs px-2 py-1">
+                                   <Calendar className="w-3 h-3 mr-1" />Book
+                                 </Button>
+                                 <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)} className="flex-1 text-xs px-2 py-1">
+                                   <User className="w-3 h-3 mr-1" />View
+                                 </Button>
+                                 <Button 
+                                   variant="ghost" 
+                                   size="sm" 
+                                   onClick={() => setDeletePatientId(patient.id)} 
+                                   className="text-xs px-2 py-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                 >
+                                   <Trash2 className="w-3 h-3" />
+                                 </Button>
+                               </div>
                             </CardContent>
                           </Card>
                         );
@@ -459,13 +494,21 @@ export default function Patients() {
                                   <span className="font-medium text-sm">{getTotalVisits(patient)}</span>
                                 </div>
                               </td>
-                              <td className="p-4">
-                                <div className="flex items-center space-x-2">
-                                  <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)}><MessageSquare className="w-4 h-4 mr-1" />Message</Button>
-                                  <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
-                                  <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
-                                </div>
-                                </td>
+                               <td className="p-4">
+                                 <div className="flex items-center space-x-1">
+                                   <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)}><MessageSquare className="w-4 h-4 mr-1" />Message</Button>
+                                   <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
+                                   <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
+                                   <Button 
+                                     variant="ghost" 
+                                     size="sm" 
+                                     onClick={() => setDeletePatientId(patient.id)}
+                                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                   >
+                                     <Trash2 className="w-4 h-4" />
+                                   </Button>
+                                 </div>
+                                 </td>
                               </tr>
                             );
                           })
@@ -555,6 +598,28 @@ export default function Patients() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deletePatientId} onOpenChange={() => setDeletePatientId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the patient record and all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeletePatient}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </Layout>
     </AuthGuard>
   );

@@ -166,6 +166,23 @@ export const usePatients = () => {
     }
   };
 
+  const deletePatient = async (id: string) => {
+    try {
+      const { error: deleteError } = await supabase
+        .from('patients')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) throw deleteError;
+      
+      await fetchPatients(); // Refresh the list
+      return true;
+    } catch (err) {
+      console.error('Error deleting patient:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchPatients();
   }, []);
@@ -178,5 +195,6 @@ export const usePatients = () => {
     syncWithGHL,
     createPatient,
     updatePatient,
+    deletePatient,
   };
 };
