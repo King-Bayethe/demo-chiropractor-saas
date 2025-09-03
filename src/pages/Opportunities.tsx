@@ -310,6 +310,7 @@ export default function Opportunities() {
             </CardHeader>
             <CardContent 
               className={cn(
+                "overflow-x-auto overflow-y-hidden",
                 layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
               )}
               style={{ 

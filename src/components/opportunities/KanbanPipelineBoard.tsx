@@ -191,28 +191,26 @@ export function KanbanPipelineBoard({
         onMoveOpportunity={onMoveOpportunity}
       >
         <div className="relative h-full">
-          {/* Horizontal scroll container with forced visible scrollbar */}
-          <div className="kanban-scroll-container h-full pb-4">
-            <div 
-              className={cn(
-                "flex h-full min-h-[400px]",
-                columnConfig.gap,
-                columnConfig.containerPadding
-              )}
-              style={{
-                width: `${stages.length * columnConfig.widthPx + 200}px`, // Force overflow with extra width
-                minWidth: 'max-content'
-              }}
-            >
-              {stages.map(stage => (
-                <StageColumn
-                  key={stage.id}
-                  stage={stage}
-                  opportunities={opportunitiesByStage[stage.id] || []}
-                  onMoveOpportunity={onMoveOpportunity}
-                />
-              ))}
-            </div>
+          {/* Simplified scroll container */}
+          <div 
+            className={cn(
+              "flex h-full min-h-[400px] kanban-scroll-container",
+              columnConfig.gap,
+              columnConfig.containerPadding
+            )}
+            style={{
+              width: `${stages.length * (columnConfig.widthPx + 16) + 100}px`, // Guaranteed overflow
+              minWidth: '100%'
+            }}
+          >
+            {stages.map(stage => (
+              <StageColumn
+                key={stage.id}
+                stage={stage}
+                opportunities={opportunitiesByStage[stage.id] || []}
+                onMoveOpportunity={onMoveOpportunity}
+              />
+            ))}
           </div>
           
           {/* Scroll indicators for visual feedback */}
