@@ -5,18 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
-import { TabsPipelineBoard } from "@/components/opportunities/TabsPipelineBoard";
-import { OptimizedKanbanBoard } from "@/components/opportunities/OptimizedKanbanBoard";
+import { EnhancedPipelineBoard } from "@/components/ui/enhanced-pipeline-board";
 import { PipelineViewToggle, PipelineViewType } from "@/components/opportunities/PipelineViewToggle";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
-import { useUnifiedResponsive } from "@/hooks/useUnifiedResponsive";
+import { useAdvancedResponsive } from "@/hooks/useAdvancedResponsive";
 import { cn } from "@/lib/utils";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [pipelineView, setPipelineView] = useState<PipelineViewType>('tabs');
-  const { opportunities, loading, updateOpportunityStage } = useOpportunities();
-  const responsive = useUnifiedResponsive();
+  const { opportunities, loading, updateOpportunityStage, fetchOpportunities } = useOpportunities();
+  const responsive = useAdvancedResponsive();
 
   // Process stages
   const stages = MEDICAL_PIPELINE_STAGES.map(stage => ({
@@ -283,45 +282,14 @@ export default function Opportunities() {
             </CardContent>
           </Card>
 
-          {/* Pipeline Board */}
-          <Card className="p-0">
-            <CardHeader className={responsive.config.spacing.cardPadding}>
-              <CardTitle className={cn(
-                responsive.config.typography.textSize,
-                "font-semibold"
-              )}>
-                Medical Pipeline Board
-              </CardTitle>
-            </CardHeader>
-            <CardContent 
-              className={cn(
-                "pipeline-scroll-container pipeline-touch-optimized overflow-x-auto",
-                responsive.utils.getClasses({
-                  mobile: "p-1 pipeline-mobile",
-                  tablet: "p-2 pipeline-tablet", 
-                  desktop: "p-3 pipeline-desktop"
-                })
-              )}
-              style={{ 
-                height: `clamp(300px, ${responsive.utils.sizing.pipelineHeight}px, 80vh)`,
-                minWidth: 'max-content'
-              }}
-            >
-              {(responsive.config.behavior.useTabsView || pipelineView === 'tabs') ? (
-                <TabsPipelineBoard
-                  opportunities={opportunities}
-                  stages={stages}
-                  onMoveOpportunity={handleMoveOpportunity}
-                />
-              ) : (
-                <OptimizedKanbanBoard
-                  opportunities={opportunities}
-                  stages={stages}
-                  onMoveOpportunity={handleMoveOpportunity}
-                />
-              )}
-            </CardContent>
-          </Card>
+          {/* Enhanced Pipeline Board */}
+          <EnhancedPipelineBoard
+            opportunities={opportunities}
+            stages={stages}
+            onMoveOpportunity={handleMoveOpportunity}
+            onRefresh={fetchOpportunities}
+            onAddOpportunity={() => setShowAddModal(true)}
+          />
 
         </div>
 

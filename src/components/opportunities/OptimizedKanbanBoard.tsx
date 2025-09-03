@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PipelineDragProvider } from '@/components/pipeline/PipelineDragProvider';
-import { CompactOpportunityCard } from './CompactOpportunityCard';
+import { EnhancedCompactOpportunityCard } from './EnhancedCompactOpportunityCard';
 import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 import { usePipelineResponsive } from '@/hooks/useUnifiedResponsive';
 import { cn } from '@/lib/utils';
@@ -105,7 +105,7 @@ function StageColumn({ stage, opportunities, onMoveOpportunity, responsive }: St
             })}>
               {opportunities.slice(0, responsive.pipeline.performance.maxVisibleCards).map(opportunity => (
                 <div key={opportunity.id} className={responsive.pipeline.performance.useVirtualization ? "pipeline-lazy" : ""}>
-                  <CompactOpportunityCard
+                  <EnhancedCompactOpportunityCard
                     opportunity={opportunity}
                     onMoveToPrevious={handleMoveToPrevious}
                     onMoveToNext={handleMoveToNext}
