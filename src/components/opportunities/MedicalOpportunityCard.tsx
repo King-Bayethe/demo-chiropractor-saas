@@ -363,15 +363,14 @@ export function MedicalOpportunityCard({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 px-2 text-xs"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Navigate to forms page or open modal - implement based on your routing
                         console.log('View form submission:', opportunity.form_submission_id);
                       }}
                     >
-                      <Eye className="h-3 w-3 mr-1" />
-                      View {formInfo.formType}
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Form Submission
                     </Button>
                   </div>
                 )}
