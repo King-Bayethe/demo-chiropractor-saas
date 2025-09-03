@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
-import { CarouselPipelineBoard } from "@/components/opportunities/CarouselPipelineBoard";
+import { TabsPipelineBoard } from "@/components/opportunities/TabsPipelineBoard";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
 import { useIsMobile } from "@/hooks/use-breakpoints";
 import { useAdaptiveLayout } from "@/hooks/useViewportResize";
@@ -293,7 +293,7 @@ export default function Opportunities() {
                 height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
               }}
             >
-              <CarouselPipelineBoard
+              <TabsPipelineBoard
                 opportunities={opportunities}
                 stages={stages}
                 onMoveOpportunity={handleMoveOpportunity}
