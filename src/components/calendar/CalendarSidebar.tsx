@@ -35,6 +35,7 @@ interface CalendarSidebarProps {
     pending: number;
     cancelled: number;
   };
+  deviceType?: 'mobile' | 'tablet' | 'desktop';
 }
 
 export function CalendarSidebar({
@@ -44,7 +45,8 @@ export function CalendarSidebar({
   filters,
   onFiltersChange,
   onToggle,
-  todaysStats
+  todaysStats,
+  deviceType = 'desktop'
 }: CalendarSidebarProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(currentDate);
   const [isFiltersOpen, setIsFiltersOpen] = useState(true);
@@ -72,25 +74,32 @@ export function CalendarSidebar({
   ];
 
   if (isCollapsed) {
+    const width = deviceType === 'tablet' ? 'w-14' : 'w-16';
+    const buttonSize = deviceType === 'tablet' ? 'w-9 h-9' : 'w-10 h-10';
+    const iconSize = deviceType === 'tablet' ? 'w-4 h-4' : 'w-5 h-5';
+    const spacing = deviceType === 'tablet' ? 'space-y-3' : 'space-y-4';
+    
     return (
-      <div className="w-16 border-r border-border bg-card flex flex-col items-center py-4 space-y-4">
+      <div className={`${width} border-r border-border bg-card flex flex-col items-center py-4 ${spacing}`}>
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="w-10 h-10"
+          className={buttonSize}
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
         <div className="w-8 h-px bg-border"></div>
-        <CalendarIcon className="w-5 h-5 text-muted-foreground" />
-        <Filter className="w-5 h-5 text-muted-foreground" />
+        <CalendarIcon className={`${iconSize} text-muted-foreground`} />
+        <Filter className={`${iconSize} text-muted-foreground`} />
       </div>
     );
   }
 
+  const sidebarWidth = deviceType === 'tablet' ? 'w-72' : 'w-80';
+  
   return (
-    <div className="w-80 border-r border-border bg-card flex flex-col">
+    <div className={`${sidebarWidth} border-r border-border bg-card flex flex-col`}>
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">

@@ -14,7 +14,7 @@ import {
   Settings,
   Menu
 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-breakpoints";
 import { cn } from "@/lib/utils";
 
 
@@ -29,6 +29,8 @@ interface CalendarHeaderProps {
   onRemindersClick?: () => void;
   onSettingsClick?: () => void;
   isMobile?: boolean;
+  isTablet?: boolean;
+  deviceType?: 'mobile' | 'tablet' | 'desktop';
 }
 
 export function CalendarHeader({
@@ -41,7 +43,9 @@ export function CalendarHeader({
   onSearchChange,
   onRemindersClick,
   onSettingsClick,
-  isMobile = false
+  isMobile = false,
+  isTablet = false,
+  deviceType = 'desktop'
 }: CalendarHeaderProps) {
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
@@ -207,6 +211,129 @@ export function CalendarHeader({
                 <Plus className="w-4 h-4 mr-2" />
                 New Appointment
               </Button>
+            </div>
+          </>
+        ) : isTablet ? (
+          // Tablet Layout - Optimized for touch
+          <>
+            {/* Top Row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <CalendarIcon className="w-5 h-5 text-medical-blue" />
+                  <h1 className="text-xl font-bold text-foreground">Calendar</h1>
+                </div>
+                <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue text-xs">
+                  Healthcare
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onRemindersClick}
+                  className="h-9 px-3"
+                >
+                  <Bell className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Reminders</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onSettingsClick}
+                  className="h-9 px-3"
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Button>
+                <Button 
+                  onClick={onCreateAppointment}
+                  className="bg-medical-blue hover:bg-medical-blue-dark text-white h-9 px-4"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  New
+                </Button>
+              </div>
+            </div>
+
+            {/* Bottom Row */}
+            <div className="flex items-center justify-between">
+              {/* Navigation and Date */}
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-1">
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => navigateDate('prev')}
+                    className="h-9 w-9 touch-manipulation"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => navigateDate('next')}
+                    className="h-9 w-9 touch-manipulation"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <h2 className="text-lg font-semibold text-foreground">
+                  {getDateRangeText()}
+                </h2>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onDateChange(new Date())}
+                  className="text-medical-blue border-medical-blue/30 hover:bg-medical-blue/5 h-9 px-3"
+                >
+                  Today
+                </Button>
+              </div>
+
+              {/* Search and View Controls */}
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search..."
+                    className="pl-10 w-48 h-9"
+                    value={searchTerm}
+                    onChange={(e) => onSearchChange?.(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  <Button
+                    variant={view === 'month' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onViewChange('month')}
+                    className={`rounded-none border-0 h-9 px-3 touch-manipulation ${view === 'month' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
+                  >
+                    Month
+                  </Button>
+                  <Button
+                    variant={view === 'week' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onViewChange('week')}
+                    className={`rounded-none border-0 border-l border-border h-9 px-3 touch-manipulation ${view === 'week' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
+                  >
+                    Week
+                  </Button>
+                  <Button
+                    variant={view === 'day' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => onViewChange('day')}
+                    className={`rounded-none border-0 border-l border-border h-9 px-3 touch-manipulation ${view === 'day' ? 'bg-medical-blue text-white hover:bg-medical-blue-dark' : 'hover:bg-accent'}`}
+                  >
+                    Day
+                  </Button>
+                </div>
+              </div>
             </div>
           </>
         ) : (

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile, useIsTablet, useDeviceType } from '@/hooks/use-breakpoints';
 
 interface DisplayAppointment {
   id: string;
@@ -103,16 +103,10 @@ const AppointmentCard: React.FC<{
   );
 };
 
-export const CalendarGrid: React.FC<CalendarGridProps> = ({
-  view,
-  currentDate,
-  appointments,
-  onAppointmentClick,
-  onAppointmentEdit,
-  onDateSelect,
-  onTimeSlotClick,
-}) => {
+export function CalendarGrid({ view, currentDate, appointments, onAppointmentClick, onAppointmentEdit, onDateSelect, onTimeSlotClick }: CalendarGridProps) {
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const deviceType = useDeviceType();
   if (view === 'month') {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
@@ -126,9 +120,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         <div className="grid grid-cols-7 border-b border-border">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
             <div key={day} className={cn("text-center font-medium text-muted-foreground", 
-              isMobile ? "p-2 text-xs" : "p-3 text-sm"
+              deviceType === 'mobile' ? "p-2 text-xs" : 
+              deviceType === 'tablet' ? "p-2.5 text-sm" : 
+              "p-3 text-sm"
             )}>
-              {isMobile ? day.slice(0, 1) : day}
+              {deviceType === 'mobile' ? day.slice(0, 1) : day}
             </div>
           ))}
         </div>
@@ -144,17 +140,21 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "bg-background overflow-y-auto",
-                  isMobile ? "p-1 min-h-[80px]" : "p-2 min-h-[120px]",
+                  "bg-background overflow-y-auto touch-manipulation",
+                  deviceType === 'mobile' ? "p-1 min-h-[80px]" : 
+                  deviceType === 'tablet' ? "p-1.5 min-h-[100px]" : 
+                  "p-2 min-h-[120px]",
                   !isSameMonth(day, currentDate) && "text-muted-foreground bg-muted/30",
                   isToday(day) && "bg-primary/5 border-2 border-primary/20"
                 )}
                 >
                 <Button
                   variant="ghost"
-                  size={isMobile ? "sm" : "sm"}
+                  size="sm"
                   className={cn(
-                    isMobile ? "h-6 w-6 p-0 text-xs font-normal mb-1" : "h-8 w-8 p-0 font-normal mb-1",
+                    deviceType === 'mobile' ? "h-6 w-6 p-0 text-xs font-normal mb-1" : 
+                    deviceType === 'tablet' ? "h-7 w-7 p-0 text-sm font-normal mb-1 touch-manipulation" : 
+                    "h-8 w-8 p-0 font-normal mb-1",
                     isToday(day) && "bg-primary text-primary-foreground hover:bg-primary/90"
                   )}
                   onClick={() => onDateSelect(day)}
@@ -198,15 +198,28 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       <div className="h-full flex flex-col bg-background">
         {/* Header with days */}
         <div className="grid grid-cols-8 border-b border-border bg-background sticky top-0 z-20">
-          <div className="p-3 border-r border-border text-center text-sm font-medium text-muted-foreground">
+          <div className={cn(
+            "border-r border-border text-center font-medium text-muted-foreground",
+            deviceType === 'tablet' ? "p-2 text-xs" : "p-3 text-sm"
+          )}>
             Time
           </div>
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className="p-3 text-center border-r border-border last:border-r-0">
-              <div className="font-medium text-sm">{format(day, 'EEE')}</div>
+            <div key={day.toISOString()} className={cn(
+              "text-center border-r border-border last:border-r-0",
+              deviceType === 'tablet' ? "p-2" : "p-3"
+            )}>
               <div className={cn(
-                "text-lg font-semibold mt-1",
-                isToday(day) && "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto"
+                "font-medium",
+                deviceType === 'tablet' ? "text-xs" : "text-sm"
+              )}>{format(day, 'EEE')}</div>
+              <div className={cn(
+                "font-semibold mt-1",
+                deviceType === 'tablet' ? "text-base" : "text-lg",
+                isToday(day) && cn(
+                  "bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto",
+                  deviceType === 'tablet' ? "w-7 h-7" : "w-8 h-8"
+                )
               )}>
                 {format(day, 'd')}
               </div>
@@ -220,8 +233,14 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             {/* Time labels column */}
             <div className="bg-background border-r border-border sticky left-0 z-10">
               {hours.map((hour) => (
-                <div key={hour} className="h-20 border-b border-border flex items-start justify-end pr-3 pt-1">
-                  <span className="text-xs text-muted-foreground font-medium">
+                <div key={hour} className={cn(
+                  "border-b border-border flex items-start justify-end pt-1",
+                  deviceType === 'tablet' ? "h-16 pr-2" : "h-20 pr-3"
+                )}>
+                  <span className={cn(
+                    "text-muted-foreground font-medium",
+                    deviceType === 'tablet' ? "text-xs" : "text-xs"
+                  )}>
                     {hour === 0 ? '12 AM' : 
                      hour === 12 ? '12 PM' :
                      hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
@@ -245,7 +264,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     return (
                       <div 
                         key={hour} 
-                        className="h-20 border-b border-border relative cursor-pointer hover:bg-muted/30 transition-colors"
+                        className={cn(
+                          "border-b border-border relative cursor-pointer hover:bg-muted/30 transition-colors touch-manipulation",
+                          deviceType === 'tablet' ? "h-16" : "h-20"
+                        )}
                         onClick={() => onTimeSlotClick?.(day, `${hour.toString().padStart(2, '0')}:00`)}
                       >
                         {/* 30-minute divider */}
@@ -277,9 +299,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     const durationMs = appointment.endTime.getTime() - appointment.startTime.getTime();
                     const durationHours = durationMs / (1000 * 60 * 60);
                     
-                    // Calculate position and height
-                    const topPosition = (startHour * 80) + (startMinutes / 60 * 80); // 80px per hour (h-20)
-                    const height = Math.max(durationHours * 80, 20); // Minimum 20px height
+                    // Calculate position and height (tablet: 64px per hour, desktop: 80px per hour)
+                    const hourHeight = deviceType === 'tablet' ? 64 : 80;
+                    const topPosition = (startHour * hourHeight) + (startMinutes / 60 * hourHeight);
+                    const height = Math.max(durationHours * hourHeight, 20); // Minimum 20px height
                     
                     return (
                       <div

@@ -10,7 +10,7 @@ import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDe
 import { CalendarLayout } from "@/components/calendar/CalendarLayout";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
 import { SmartSchedulingPanel } from "@/components/calendar/SmartSchedulingPanel";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTablet, useDeviceType } from "@/hooks/use-breakpoints";
 import { cn } from "@/lib/utils";
 
 // Calendar view types
@@ -50,6 +50,8 @@ export default function Calendar() {
   const { toast } = useToast();
   const { appointments, loading, createAppointment, updateAppointment, fetchAppointments } = useAppointments();
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const deviceType = useDeviceType();
 
   useEffect(() => {
     loadData();
@@ -246,7 +248,7 @@ export default function Calendar() {
               </div>
             </div>
           ) : (
-            <div className={cn("h-full", isMobile ? "p-3" : "p-6")}>
+            <div className={cn("h-full", deviceType === 'mobile' ? "p-3" : deviceType === 'tablet' ? "p-4" : "p-6")}>
               <CalendarGrid
                 view={view}
                 currentDate={currentDate}
