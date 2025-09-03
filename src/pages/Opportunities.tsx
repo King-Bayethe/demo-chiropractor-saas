@@ -79,10 +79,7 @@ export default function Opportunities() {
   return (
     <AuthGuard>
       <Layout>
-        <div className={cn(
-          "h-full overflow-auto space-y-3",
-          responsive.config.spacing.container
-        )}>
+        <div className="h-full overflow-y-auto overflow-x-visible space-y-3 px-4 py-3">
           {/* Header */}
           <div className={cn(
             "flex justify-between gap-2",
@@ -298,7 +295,7 @@ export default function Opportunities() {
             </CardHeader>
             <CardContent 
               className={cn(
-                "pipeline-scroll-container pipeline-touch-optimized",
+                "pipeline-scroll-container pipeline-touch-optimized overflow-x-auto",
                 responsive.utils.getClasses({
                   mobile: "p-1 pipeline-mobile",
                   tablet: "p-2 pipeline-tablet", 
@@ -306,7 +303,8 @@ export default function Opportunities() {
                 })
               )}
               style={{ 
-                height: `clamp(300px, ${responsive.utils.sizing.pipelineHeight}px, 80vh)`
+                height: `clamp(300px, ${responsive.utils.sizing.pipelineHeight}px, 80vh)`,
+                minWidth: 'max-content'
               }}
             >
               {(responsive.config.behavior.useTabsView || pipelineView === 'tabs') ? (

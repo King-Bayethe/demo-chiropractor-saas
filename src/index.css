@@ -337,10 +337,14 @@ html {
 /* Enhanced pipeline scroll container with responsive behavior */
 .pipeline-scroll-container {
   position: relative;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  
+  /* Force width to be wider than viewport */
+  min-width: max-content;
   
   /* Responsive scrollbar behavior */
   scrollbar-width: auto;
@@ -374,10 +378,13 @@ html {
 @media (min-width: 640px) {
   .pipeline-scroll-container {
     overflow-x: auto;
-    overflow-y: auto;
+    overflow-y: hidden;
     
     /* Show enhanced scrollbars */
     scrollbar-width: auto;
+    
+    /* Force wider content */
+    min-width: calc(100vw + 400px);
   }
 }
 

@@ -154,7 +154,10 @@ export function OptimizedKanbanBoard({
   const scrollContainerWidth = useMemo(() => {
     const columnWidth = responsive.pipeline.kanban.columnWidth || 320;
     const gap = responsive.device.isMobile ? 8 : 16;
-    return stages.length * (columnWidth + gap) + 100;
+    const calculatedWidth = stages.length * (columnWidth + gap) + 100;
+    // Force minimum width to exceed viewport to enable horizontal scrolling
+    const viewportWidth = window.innerWidth;
+    return Math.max(calculatedWidth, viewportWidth + 400);
   }, [stages.length, responsive]);
 
   return (
@@ -177,7 +180,7 @@ export function OptimizedKanbanBoard({
             )}
             style={{
               width: `${scrollContainerWidth}px`,
-              minWidth: '100%'
+              minWidth: `${scrollContainerWidth}px`
             }}
           >
             {stages.map(stage => (
