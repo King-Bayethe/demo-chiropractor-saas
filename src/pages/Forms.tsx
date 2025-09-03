@@ -7,8 +7,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { LeadIntakeForm } from "@/components/LeadIntakeForm";
-
-
 import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
 import { exportFormToCSV, exportFormToPDF, exportMultipleFormsToCSV } from "@/utils/formExport";
 import { toast } from "sonner";
@@ -111,7 +109,30 @@ export default function Forms() {
   const handleSubmitLead = async (formData: any) => {
     setIsSubmitting(true);
     try {
-      toast.success("Lead added successfully!");
+      // Create opportunity for the new lead
+      const leadName = `${formData.firstName} ${formData.lastName}`.trim();
+      const { error: opportunityError } = await supabase
+        .from('opportunities')
+        .insert({
+          name: `New Lead: ${leadName}`,
+          description: 'Opportunity created from lead intake form',
+          patient_name: leadName,
+          patient_email: formData.email,
+          patient_phone: formData.phone,
+          case_type: formData.caseType || 'Cash Plan',
+          source: 'Lead Intake Form',
+          pipeline_stage: 'new lead',
+          status: 'pending',
+          created_by: (await supabase.auth.getUser()).data.user?.id,
+          notes: `Auto-created from lead intake form on ${new Date().toLocaleDateString()}`
+        });
+
+      if (opportunityError) {
+        console.error('Failed to create opportunity for new lead:', opportunityError);
+        throw opportunityError;
+      }
+
+      toast.success("Lead added successfully to pipeline!");
       setIsAddLeadOpen(false);
     } catch (error) {
       console.error('Failed to add lead:', error);

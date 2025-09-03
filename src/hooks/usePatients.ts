@@ -151,7 +151,7 @@ export const usePatients = () => {
           patient_phone: patientData.phone,
           case_type: patientData.case_type || 'Cash Plan',
           source: 'Patient Registration',
-          pipeline_stage: 'lead',
+          pipeline_stage: 'new lead',
           status: 'pending',
           patient_id: newPatient.id,
           created_by: (await supabase.auth.getUser()).data.user?.id,
