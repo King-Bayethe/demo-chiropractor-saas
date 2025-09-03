@@ -111,12 +111,21 @@ export function MedicalOpportunityCard({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h4 className={cn(
-                    "font-semibold truncate", 
-                    compact ? "text-xs" : isMobile ? "text-xs" : "text-sm"
-                  )}>
-                    {opportunity.name?.replace(/^Appointment\s*-\s*/, '') || opportunity.name}
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className={cn(
+                      "font-semibold truncate", 
+                      compact ? "text-xs" : isMobile ? "text-xs" : "text-sm"
+                    )}>
+                      {opportunity.name?.replace(/^Appointment\s*-\s*/, '') || opportunity.name}
+                    </h4>
+                    {/* Contact info next to name */}
+                    {opportunity.patient_phone && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Phone className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{opportunity.patient_phone}</span>
+                      </div>
+                    )}
+                  </div>
                   <p className={cn(
                     "text-muted-foreground truncate", 
                     compact ? "text-xs" : isMobile ? "text-xs" : "text-xs"
@@ -260,21 +269,13 @@ export function MedicalOpportunityCard({
               )}
             </div>
 
-            {/* Contact Information - Hide in compact mode if no space */}
-            {(opportunity.patient_email || opportunity.patient_phone) && !compact && (
+            {/* Contact Information - Hide phone since it's now in header */}
+            {opportunity.patient_email && !compact && (
               <div className={cn(isMobile ? "space-y-0.5" : "space-y-1")}>
-                {opportunity.patient_email && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Mail className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate break-all">{opportunity.patient_email}</span>
-                  </div>
-                )}
-                {opportunity.patient_phone && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3 flex-shrink-0" />
-                    <span className="break-all">{opportunity.patient_phone}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Mail className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate break-all">{opportunity.patient_email}</span>
+                </div>
               </div>
             )}
 
