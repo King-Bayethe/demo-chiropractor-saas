@@ -117,12 +117,21 @@ export function MedicalOpportunityCard({
                   )}>
                     {opportunity.name?.replace(/^Appointment\s*-\s*/, '') || opportunity.name}
                   </h4>
-                  <p className={cn(
-                    "text-muted-foreground truncate", 
-                    compact ? "text-xs" : isMobile ? "text-xs" : "text-xs"
-                  )}>
-                    {opportunity.patient_name}
-                  </p>
+                  {opportunity.case_type ? (
+                    <Badge variant="outline" className={cn(
+                      "text-xs w-fit", 
+                      getCaseTypeVariant(opportunity.case_type)
+                    )}>
+                      {getCaseTypeDisplayName(opportunity.case_type)}
+                    </Badge>
+                  ) : (
+                    <p className={cn(
+                      "text-muted-foreground truncate", 
+                      compact ? "text-xs" : isMobile ? "text-xs" : "text-xs"
+                    )}>
+                      {opportunity.patient_name}
+                    </p>
+                  )}
                 </div>
               </div>
               
@@ -240,25 +249,17 @@ export function MedicalOpportunityCard({
             compact ? "px-2 pb-1.5 space-y-1" : "space-y-2",
             isMobile && !compact ? "space-y-1" : ""
           )}>
-            {/* Case Type & Attorney Status */}
-            <div className="flex gap-1 flex-wrap">
-              {opportunity.case_type && (
-                <Badge variant="outline" className={cn(
-                  compact ? "text-xs px-1 py-0" : "text-xs", 
-                  getCaseTypeVariant(opportunity.case_type)
-                )}>
-                  {getCaseTypeDisplayName(opportunity.case_type)}
-                </Badge>
-              )}
-              {opportunity.attorney_referred && (
+            {/* Attorney Status */}
+            {opportunity.attorney_referred && (
+              <div className="flex gap-1 flex-wrap">
                 <Badge variant="outline" className={cn(
                   compact ? "text-xs px-1 py-0" : "text-xs"
                 )}>
                   <Scale className={cn(compact ? "h-2.5 w-2.5 mr-0.5" : "h-3 w-3 mr-1")} />
                   Attorney
                 </Badge>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Contact Information - Hide in compact mode if no space */}
             {(opportunity.patient_email || opportunity.patient_phone) && !compact && (
