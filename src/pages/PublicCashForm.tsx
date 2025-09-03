@@ -38,6 +38,7 @@ const PublicCashForm = () => {
     employerName: "",
     employerAddress: "",
     studentStatus: "",
+    language: "en", // Default to English
     autoInsurance: "",
     policyNumber: "",
     claimNumber: "",
@@ -372,11 +373,23 @@ const PublicCashForm = () => {
                   <SelectTrigger className="w-full rounded-md border-gray-300">
                     <SelectValue placeholder="Marital Status / Estado Civil" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border z-50">
                     <SelectItem value="single">Single / Soltero(a)</SelectItem>
                     <SelectItem value="married">Married / Casado(a)</SelectItem>
                     <SelectItem value="divorced">Divorced / Divorciado(a)</SelectItem>
                     <SelectItem value="widowed">Widowed / Viudo(a)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select 
+                  value={formData.language} 
+                  onValueChange={(value) => handleInputChange("language", value)}
+                >
+                  <SelectTrigger className="w-full rounded-md border-gray-300">
+                    <SelectValue placeholder="Preferred Language / Idioma Preferido" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-50">
+                    <SelectItem value="en">🇺🇸 English</SelectItem>
+                    <SelectItem value="es">🇪🇸 Español</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="md:col-span-2">

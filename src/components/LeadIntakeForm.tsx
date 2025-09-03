@@ -227,10 +227,18 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 name="language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Language" {...field} />
-                    </FormControl>
+                    <FormLabel>Language / Idioma</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-background border-border/50">
+                          <SelectValue placeholder="Select language / Seleccionar idioma" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-background border z-50">
+                        <SelectItem value="en">🇺🇸 English</SelectItem>
+                        <SelectItem value="es">🇪🇸 Español</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

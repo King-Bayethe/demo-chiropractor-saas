@@ -40,6 +40,7 @@ const PublicPIPForm = () => {
     emergencyPhone: "",
     employment: "",
     student: "",
+    language: "en", // Default to English
     
     // Accident Information
     accidentDate: "",
@@ -470,12 +471,28 @@ const PublicPIPForm = () => {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border z-50">
                         <SelectItem value="male">Male (Masculino)</SelectItem>
                         <SelectItem value="female">Female (Femenino)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                
+                <div>
+                  <Label>Preferred Language <span className="text-muted-foreground">(Idioma Preferido)</span></Label>
+                  <Select 
+                    value={formData.language} 
+                    onValueChange={(value) => handleInputChange("language", value)}
+                  >
+                    <SelectTrigger className="bg-background border-border/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border z-50">
+                      <SelectItem value="en">🇺🇸 English</SelectItem>
+                      <SelectItem value="es">🇪🇸 Español</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {/* Document Upload Section */}
