@@ -285,21 +285,31 @@ html {
 .kanban-scroll-container {
   scrollbar-width: auto;
   scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
-  /* Force horizontal scrollbar to always show */
+  /* Force both horizontal and vertical scrollbars to show when needed */
   overflow-x: scroll !important;
-  overflow-y: hidden !important;
+  overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   /* Ensure scrollbar appears even with minimal overflow */
   min-width: calc(100% + 1px);
+  min-height: calc(100% + 1px);
 }
 
 .kanban-scroll-container::-webkit-scrollbar {
   height: 18px;
+  width: 18px;
   /* Force scrollbar to be visible */
   -webkit-appearance: none;
   display: block !important;
   background: hsl(var(--muted));
+}
+
+.kanban-scroll-container::-webkit-scrollbar:horizontal {
+  height: 18px;
+}
+
+.kanban-scroll-container::-webkit-scrollbar:vertical {
+  width: 18px;
 }
 
 .kanban-scroll-container::-webkit-scrollbar-track {
