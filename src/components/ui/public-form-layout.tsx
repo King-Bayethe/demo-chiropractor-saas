@@ -16,8 +16,8 @@ export const PublicFormLayout: React.FC<PublicFormLayoutProps> = ({
   className
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/20 overflow-y-auto">
-      <ResponsiveLayout size="xl" padding="lg" className={cn("py-8", className)}>
+    <div className="h-screen bg-gradient-to-br from-muted/30 via-background to-muted/20 overflow-y-auto">
+      <ResponsiveLayout size="xl" padding="lg" className={cn("py-8 min-h-full", className)}>
         <div className="bg-card/95 backdrop-blur-sm rounded-xl shadow-lg border border-border/50 mb-8">
           {/* Header */}
           <header className="text-center py-8 px-6 border-b border-border/50">
