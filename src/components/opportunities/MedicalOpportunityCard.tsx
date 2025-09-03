@@ -19,7 +19,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 import { getCaseTypeVariant, getCaseTypeDisplayName } from '@/utils/patientMapping';
