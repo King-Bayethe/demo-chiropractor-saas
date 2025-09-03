@@ -8,14 +8,14 @@ import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { EnhancedPipelineBoard } from "@/components/ui/enhanced-pipeline-board";
 import { PipelineViewToggle, PipelineViewType } from "@/components/opportunities/PipelineViewToggle";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
-import { useAdvancedResponsive } from "@/hooks/useAdvancedResponsive";
+import { useUnifiedResponsive } from "@/hooks/useUnifiedResponsive";
 import { cn } from "@/lib/utils";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [pipelineView, setPipelineView] = useState<PipelineViewType>('tabs');
   const { opportunities, loading, updateOpportunityStage, fetchOpportunities } = useOpportunities();
-  const responsive = useAdvancedResponsive();
+  const responsive = useUnifiedResponsive();
 
   // Process stages
   const stages = MEDICAL_PIPELINE_STAGES.map(stage => ({

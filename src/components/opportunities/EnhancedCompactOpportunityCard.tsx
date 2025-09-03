@@ -19,7 +19,7 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Opportunity } from '@/hooks/useOpportunities';
-import { useAdvancedResponsive } from '@/hooks/useAdvancedResponsive';
+import { useUnifiedResponsive } from '@/hooks/useUnifiedResponsive';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -47,7 +47,7 @@ export function EnhancedCompactOpportunityCard({
   isDragging = false,
 }: EnhancedCompactOpportunityCardProps) {
   const navigate = useNavigate();
-  const responsive = useAdvancedResponsive();
+  const responsive = useUnifiedResponsive();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -62,7 +62,7 @@ export function EnhancedCompactOpportunityCard({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: responsive.a11y.shouldReduceMotion() ? undefined : transition,
+    transition: transition,
   };
 
   const formatCurrency = (amount: number) => {
@@ -150,18 +150,12 @@ export function EnhancedCompactOpportunityCard({
         "relative group border transition-all duration-200",
         isDragging && "rotate-2 shadow-lg opacity-50 scale-105 z-50",
         isSelected && "ring-2 ring-primary ring-offset-2",
-        responsive.a11y.getHighContrastClasses(),
-        responsive.a11y.getTouchTargetClasses(),
-        responsive.a11y.getFocusClasses(),
         "hover:shadow-md hover:border-border cursor-pointer",
         "touch-target select-none"
       )}
       tabIndex={0}
       role="button"
-      aria-label={responsive.a11y.getAriaLabel(
-        `Opportunity for ${opportunity.patient_name || opportunity.name}`,
-        `Value: ${formatCurrency(opportunity.estimated_value || 0)}, Priority: ${opportunity.priority || 'Medium'}`
-      )}
+      aria-label={`Opportunity for ${opportunity.patient_name || opportunity.name} - Value: ${formatCurrency(opportunity.estimated_value || 0)}, Priority: ${opportunity.priority || 'Medium'}`}
       data-opportunity-card
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
