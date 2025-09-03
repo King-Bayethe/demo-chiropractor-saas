@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { CalendarFilters } from "./CalendarFilters";
+import { TodaysOverview } from "./TodaysOverview";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -28,6 +30,17 @@ interface CalendarHeaderProps {
   onSearchChange?: (term: string) => void;
   onRemindersClick?: () => void;
   onSettingsClick?: () => void;
+  filters: {
+    status: string[];
+    types: string[];
+  };
+  onFiltersChange: (filters: any) => void;
+  todaysStats?: {
+    total: number;
+    completed: number;
+    pending: number;
+    cancelled: number;
+  };
   isMobile?: boolean;
   isTablet?: boolean;
   deviceType?: 'mobile' | 'tablet' | 'desktop';
@@ -43,6 +56,9 @@ export function CalendarHeader({
   onSearchChange,
   onRemindersClick,
   onSettingsClick,
+  filters,
+  onFiltersChange,
+  todaysStats,
   isMobile = false,
   isTablet = false,
   deviceType = 'desktop'
@@ -212,6 +228,12 @@ export function CalendarHeader({
                 New Appointment
               </Button>
             </div>
+
+            {/* Filters and Today's Overview */}
+            <div className="grid grid-cols-1 gap-4 mt-4">
+              <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
+              <TodaysOverview todaysStats={todaysStats} />
+            </div>
           </>
         ) : isTablet ? (
           // Tablet Layout - Optimized for touch
@@ -334,6 +356,12 @@ export function CalendarHeader({
                   </Button>
                 </div>
               </div>
+            </div>
+
+            {/* Filters and Today's Overview for Tablet */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
+              <TodaysOverview todaysStats={todaysStats} />
             </div>
           </>
         ) : (
@@ -458,6 +486,12 @@ export function CalendarHeader({
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
+            </div>
+
+            {/* Filters and Today's Overview for Desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
+              <TodaysOverview todaysStats={todaysStats} />
             </div>
           </>
         )}

@@ -42,7 +42,6 @@ export default function Calendar() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<DisplayAppointment | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     status: [] as string[],
@@ -236,8 +235,6 @@ export default function Calendar() {
           onCreateAppointment={() => setIsSmartSchedulingOpen(true)}
           filters={filters}
           onFiltersChange={setFilters}
-          isSidebarCollapsed={isSidebarCollapsed}
-          onSidebarToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onRemindersClick={handleRemindersClick}

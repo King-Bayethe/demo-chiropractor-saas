@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { CalendarSidebar } from "./CalendarSidebar";
 import { CalendarHeader } from "./CalendarHeader";
 import { useIsMobile, useIsTablet, useDeviceType } from "@/hooks/use-breakpoints";
 import { cn } from "@/lib/utils";
@@ -16,8 +15,6 @@ interface CalendarLayoutProps {
     types: string[];
   };
   onFiltersChange: (filters: any) => void;
-  isSidebarCollapsed: boolean;
-  onSidebarToggle: () => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   onRemindersClick?: () => void;
@@ -40,8 +37,6 @@ export function CalendarLayout({
   onCreateAppointment,
   filters,
   onFiltersChange,
-  isSidebarCollapsed,
-  onSidebarToggle,
   searchTerm,
   onSearchChange,
   onRemindersClick,
@@ -53,21 +48,7 @@ export function CalendarLayout({
   const deviceType = useDeviceType();
   
   return (
-    <div className="h-full flex bg-background">
-      {/* Sidebar - Hidden on mobile, collapsed by default on tablet */}
-      {!isMobile && (
-        <CalendarSidebar
-          isCollapsed={isTablet ? true : isSidebarCollapsed}
-          currentDate={currentDate}
-          onDateChange={onDateChange}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          onToggle={onSidebarToggle}
-          todaysStats={todaysStats}
-          deviceType={deviceType}
-        />
-      )}
-      
+    <div className="h-full flex flex-col bg-background">
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <CalendarHeader
@@ -80,6 +61,9 @@ export function CalendarLayout({
           onSearchChange={onSearchChange}
           onRemindersClick={onRemindersClick}
           onSettingsClick={onSettingsClick}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          todaysStats={todaysStats}
           isMobile={isMobile}
           isTablet={isTablet}
           deviceType={deviceType}
