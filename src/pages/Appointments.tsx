@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { AuthGuard } from '@/components/AuthGuard';
 import { Layout } from '@/components/Layout';
@@ -30,6 +31,10 @@ export default function Appointments() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [contacts, setContacts] = useState<Array<{ id: string; name: string }>>([]);
+  const [searchParams] = useSearchParams();
+  
+  // Get preselected patient from URL params
+  const preselectedPatientId = searchParams.get('patientId');
   
   
 
@@ -268,6 +273,7 @@ export default function Appointments() {
                   onSubmit={handleCreateAppointment}
                   onCancel={() => setIsCreateDialogOpen(false)}
                   loading={loading}
+                  preselectedPatientId={preselectedPatientId || undefined}
                 />
               </Dialog>
             </div>

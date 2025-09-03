@@ -105,10 +105,10 @@ export default function Patients() {
     title: "Message Feature", 
     description: `Opening conversation with ${patient.first_name || 'Unknown Patient'}` 
   });
-  const handleBookAppointment = (patient: Patient) => toast({ 
-    title: "Appointment Booking", 
-    description: `Opening appointment booking for ${patient.first_name || 'Unknown Patient'}` 
-  });
+  const handleBookAppointment = (patient: Patient) => {
+    // Navigate to calendar with patient pre-selected
+    navigate(`/calendar?patientId=${patient.id}`);
+  };
 
   const getLastAppointment = (patient: Patient) => {
     if (patient.updated_at) {

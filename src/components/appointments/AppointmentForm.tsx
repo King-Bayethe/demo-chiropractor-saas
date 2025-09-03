@@ -39,6 +39,7 @@ interface AppointmentFormProps {
   onSubmit: (data: CreateAppointmentData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
+  preselectedPatientId?: string; // New prop for auto-filling patient
 }
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
@@ -47,6 +48,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
   onCancel,
   loading = false,
+  preselectedPatientId,
  }) => {
   const isMobile = useIsMobile();
   const [contactOpen, setContactOpen] = useState(false);
@@ -56,7 +58,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       title: appointment?.title || '',
-      contact_id: appointment?.contact_id || '',
+      contact_id: appointment?.contact_id || preselectedPatientId || '',
       start_date: appointment?.start_time ? new Date(appointment.start_time) : new Date(),
       start_time: appointment?.start_time ? format(parseISO(appointment.start_time), 'HH:mm') : '09:00',
       end_date: appointment?.end_time ? new Date(appointment.end_time) : new Date(),

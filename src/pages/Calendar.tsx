@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Dialog } from "@/components/ui/dialog";
@@ -49,9 +50,12 @@ export default function Calendar() {
   });
   const { toast } = useToast();
   const { appointments, loading, createAppointment, updateAppointment, fetchAppointments } = useAppointments();
+  const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
   const deviceType = useDeviceType();
+
+  // Get preselected patient from URL params
+  const preselectedPatientId = searchParams.get('patientId');
 
   useEffect(() => {
     loadData();
@@ -287,6 +291,7 @@ export default function Calendar() {
             onSubmit={handleCreateAppointment}
             onCancel={() => setIsCreateAppointmentOpen(false)}
             loading={loading}
+            preselectedPatientId={preselectedPatientId || undefined}
           />
         </Dialog>
 

@@ -139,6 +139,30 @@ export const usePatients = () => {
 
       if (createError) throw createError;
       
+      // Create an opportunity for the new patient
+      const patientName = `${patientData.first_name} ${patientData.last_name}`.trim();
+      const { error: opportunityError } = await supabase
+        .from('opportunities')
+        .insert({
+          name: `New Patient: ${patientName}`,
+          description: 'Opportunity created from new patient registration',
+          patient_name: patientName,
+          patient_email: patientData.email,
+          patient_phone: patientData.phone,
+          case_type: patientData.case_type || 'Cash Plan',
+          source: 'Patient Registration',
+          pipeline_stage: 'lead',
+          status: 'pending',
+          patient_id: newPatient.id,
+          created_by: (await supabase.auth.getUser()).data.user?.id,
+          notes: `Auto-created from patient registration on ${new Date().toLocaleDateString()}`
+        });
+
+      if (opportunityError) {
+        console.warn('Failed to create opportunity for new patient:', opportunityError);
+        // Don't throw here - patient creation should still succeed even if opportunity creation fails
+      }
+      
       await fetchPatients(); // Refresh the list
       return newPatient;
     } catch (err) {
