@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
-import { EnhancedPipelineBoard } from "@/components/ui/enhanced-pipeline-board";
+import { TabsPipelineBoard } from "@/components/opportunities/TabsPipelineBoard";
+import { OptimizedKanbanBoard } from "@/components/opportunities/OptimizedKanbanBoard";
 import { PipelineViewToggle, PipelineViewType } from "@/components/opportunities/PipelineViewToggle";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
 import { useUnifiedResponsive } from "@/hooks/useUnifiedResponsive";
@@ -14,7 +15,7 @@ import { cn } from "@/lib/utils";
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [pipelineView, setPipelineView] = useState<PipelineViewType>('tabs');
-  const { opportunities, loading, updateOpportunityStage, fetchOpportunities } = useOpportunities();
+  const { opportunities, loading, updateOpportunityStage } = useOpportunities();
   const responsive = useUnifiedResponsive();
 
   // Process stages
@@ -282,14 +283,45 @@ export default function Opportunities() {
             </CardContent>
           </Card>
 
-          {/* Enhanced Pipeline Board */}
-          <EnhancedPipelineBoard
-            opportunities={opportunities}
-            stages={stages}
-            onMoveOpportunity={handleMoveOpportunity}
-            onRefresh={fetchOpportunities}
-            onAddOpportunity={() => setShowAddModal(true)}
-          />
+          {/* Pipeline Board */}
+          <Card className="p-0">
+            <CardHeader className={responsive.config.spacing.cardPadding}>
+              <CardTitle className={cn(
+                responsive.config.typography.textSize,
+                "font-semibold"
+              )}>
+                Medical Pipeline Board
+              </CardTitle>
+            </CardHeader>
+            <CardContent 
+              className={cn(
+                "pipeline-scroll-container pipeline-touch-optimized overflow-x-auto",
+                responsive.utils.getClasses({
+                  mobile: "p-1 pipeline-mobile",
+                  tablet: "p-2 pipeline-tablet", 
+                  desktop: "p-3 pipeline-desktop"
+                })
+              )}
+              style={{ 
+                height: `clamp(300px, ${responsive.utils.sizing.pipelineHeight}px, 80vh)`,
+                minWidth: 'max-content'
+              }}
+            >
+              {(responsive.config.behavior.useTabsView || pipelineView === 'tabs') ? (
+                <TabsPipelineBoard
+                  opportunities={opportunities}
+                  stages={stages}
+                  onMoveOpportunity={handleMoveOpportunity}
+                />
+              ) : (
+                <OptimizedKanbanBoard
+                  opportunities={opportunities}
+                  stages={stages}
+                  onMoveOpportunity={handleMoveOpportunity}
+                />
+              )}
+            </CardContent>
+          </Card>
 
         </div>
 
