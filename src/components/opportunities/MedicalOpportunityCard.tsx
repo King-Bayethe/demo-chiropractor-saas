@@ -249,97 +249,171 @@ export function MedicalOpportunityCard({
             compact ? "px-2 pb-1.5 space-y-1" : "space-y-2",
             isMobile && !compact ? "space-y-1" : ""
           )}>
-            {/* Attorney Status */}
-            {opportunity.attorney_referred && (
-              <div className="flex gap-1 flex-wrap">
-                <Badge variant="outline" className={cn(
-                  compact ? "text-xs px-1 py-0" : "text-xs"
-                )}>
-                  <Scale className={cn(compact ? "h-2.5 w-2.5 mr-0.5" : "h-3 w-3 mr-1")} />
-                  Attorney
-                </Badge>
-              </div>
-            )}
-
-            {/* Contact Information - Hide in compact mode if no space */}
-            {(opportunity.patient_email || opportunity.patient_phone) && !compact && (
-              <div className={cn(isMobile ? "space-y-0.5" : "space-y-1")}>
-                {opportunity.patient_email && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Mail className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate break-all">{opportunity.patient_email}</span>
-                  </div>
-                )}
-                {opportunity.patient_phone && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3 flex-shrink-0" />
-                    <span className="break-all">{opportunity.patient_phone}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Value Information */}
-            {(opportunity.estimated_value || opportunity.insurance_coverage_amount) && (
-              <div className={cn(compact ? "space-y-0.5" : "space-y-1")}>
-                {opportunity.estimated_value && (
-                  <div className="flex items-center gap-1 text-xs">
-                    <DollarSign className={cn(
-                      compact ? "h-2.5 w-2.5" : "h-3 w-3",
-                      "text-green-600"
-                    )} />
-                    <span className="font-medium">
-                      {formatCurrency(opportunity.estimated_value)}
-                    </span>
-                    {!compact && <span className="text-muted-foreground">Est. Value</span>}
-                  </div>
-                )}
-                {opportunity.insurance_coverage_amount && !compact && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span>Insurance: {formatCurrency(opportunity.insurance_coverage_amount)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Dates - Show most important only in compact mode */}
-            <div className={cn(compact ? "space-y-0.5" : "space-y-1")}>
-              {opportunity.expected_close_date && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className={cn(compact ? "h-2.5 w-2.5" : "h-3 w-3")} />
-                  <span>Close: {formatDate(opportunity.expected_close_date)}</span>
+            {/* Contact Information - Always visible when expanded */}
+            {(opportunity.patient_email || opportunity.patient_phone || opportunity.patient_name) && (
+              <div className="border-b border-border/50 pb-2 mb-2">
+                <h5 className="text-xs font-medium text-foreground mb-1.5">Contact Information</h5>
+                <div className={cn(isMobile ? "space-y-1" : "space-y-1.5")}>
+                  {opportunity.patient_name && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <User className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                      <span className="font-medium">{opportunity.patient_name}</span>
+                    </div>
+                  )}
+                  {opportunity.patient_phone && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <Phone className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                      <a 
+                        href={`tel:${opportunity.patient_phone}`}
+                        className="text-primary hover:underline break-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {opportunity.patient_phone}
+                      </a>
+                    </div>
+                  )}
+                  {opportunity.patient_email && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <Mail className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                      <a 
+                        href={`mailto:${opportunity.patient_email}`}
+                        className="text-primary hover:underline truncate break-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {opportunity.patient_email}
+                      </a>
+                    </div>
+                  )}
                 </div>
-              )}
-              {opportunity.consultation_scheduled_at && !compact && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>Consult: {formatDate(opportunity.consultation_scheduled_at)}</span>
-                </div>
-              )}
+              </div>
+            )}
+
+            {/* Source & Case Details */}
+            <div className="border-b border-border/50 pb-2 mb-2">
+              <h5 className="text-xs font-medium text-foreground mb-1.5">Case Details</h5>
+              <div className="space-y-1.5">
+                {opportunity.source && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Source:</span>
+                    <span>{opportunity.form_submission_id ? `Form: ${opportunity.source} (#${opportunity.form_submission_id})` : opportunity.source}</span>
+                  </div>
+                )}
+                {opportunity.attorney_referred && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Scale className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                    <Badge variant="outline" className="text-xs">
+                      Attorney Referred
+                    </Badge>
+                  </div>
+                )}
+                {opportunity.referral_source && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Referral:</span>
+                    <span>{opportunity.referral_source}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Assigned Provider - Hide in compact mode */}
-            {opportunity.assigned_provider_name && !compact && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <User className="h-3 w-3" />
-                <span>Assigned: {opportunity.assigned_provider_name}</span>
+            {/* Financial Information */}
+            {(opportunity.estimated_value || opportunity.insurance_coverage_amount) && (
+              <div className="border-b border-border/50 pb-2 mb-2">
+                <h5 className="text-xs font-medium text-foreground mb-1.5">Financial Overview</h5>
+                <div className="space-y-1.5">
+                  {opportunity.estimated_value && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <DollarSign className="h-3 w-3 flex-shrink-0 text-green-600" />
+                      <span className="font-medium text-green-600">
+                        {formatCurrency(opportunity.estimated_value)}
+                      </span>
+                      <span className="text-muted-foreground">Est. Value</span>
+                    </div>
+                  )}
+                  {opportunity.insurance_coverage_amount && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">Insurance:</span>
+                      <span className="font-medium">{formatCurrency(opportunity.insurance_coverage_amount)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Source - Hide in compact mode */}
-            {opportunity.source && !compact && (
-              <div className="text-xs text-muted-foreground">
-                Source: {opportunity.source}
+            {/* Timeline & Scheduling */}
+            <div className="border-b border-border/50 pb-2 mb-2">
+              <h5 className="text-xs font-medium text-foreground mb-1.5">Timeline</h5>
+              <div className="space-y-1.5">
+                {opportunity.consultation_scheduled_at && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Clock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                    <span className="text-muted-foreground">Consultation:</span>
+                    <span>{formatDate(opportunity.consultation_scheduled_at)}</span>
+                  </div>
+                )}
+                {opportunity.treatment_start_date && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                    <span className="text-muted-foreground">Treatment Start:</span>
+                    <span>{formatDate(opportunity.treatment_start_date)}</span>
+                  </div>
+                )}
+                {opportunity.expected_close_date && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                    <span className="text-muted-foreground">Expected Close:</span>
+                    <span>{formatDate(opportunity.expected_close_date)}</span>
+                  </div>
+                )}
+                {opportunity.last_contact_date && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Last Contact:</span>
+                    <span>{formatDate(opportunity.last_contact_date)}</span>
+                  </div>
+                )}
+                {opportunity.next_follow_up_date && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Next Follow-up:</span>
+                    <span>{formatDate(opportunity.next_follow_up_date)}</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
-            {/* Notes Preview - Shorter in compact mode */}
-            {opportunity.notes && !compact && (
-              <div className={cn("text-xs text-muted-foreground bg-muted/50 p-2 rounded break-words", isMobile ? "text-xs" : "text-xs")}>
-                {opportunity.notes.length > (compact ? 20 : isMobile ? 40 : 60)
-                  ? `${opportunity.notes.slice(0, compact ? 20 : isMobile ? 40 : 60)}...` 
-                  : opportunity.notes
-                }
+            {/* Assignment & Management */}
+            {(opportunity.assigned_provider_name || opportunity.priority || opportunity.notes) && (
+              <div>
+                <h5 className="text-xs font-medium text-foreground mb-1.5">Assignment & Notes</h5>
+                <div className="space-y-1.5">
+                  {opportunity.assigned_provider_name && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <User className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                      <span className="text-muted-foreground">Assigned:</span>
+                      <span>{opportunity.assigned_provider_name}</span>
+                    </div>
+                  )}
+                  {opportunity.priority && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">Priority:</span>
+                      <Badge variant="outline" className={cn(
+                        "text-xs",
+                        opportunity.priority === 'high' && "border-red-200 text-red-700",
+                        opportunity.priority === 'medium' && "border-yellow-200 text-yellow-700",
+                        opportunity.priority === 'low' && "border-green-200 text-green-700"
+                      )}>
+                        {opportunity.priority}
+                      </Badge>
+                    </div>
+                  )}
+                  {opportunity.notes && (
+                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded break-words">
+                      <span className="font-medium">Notes: </span>
+                      {opportunity.notes.length > (isMobile ? 60 : 100)
+                        ? `${opportunity.notes.slice(0, isMobile ? 60 : 100)}...` 
+                        : opportunity.notes
+                      }
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </CardContent>
