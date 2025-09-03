@@ -281,46 +281,60 @@ html {
   }
 }
 
-/* Custom scrollbar styles for horizontal scrolling - Force visible */
+/* Enhanced scrollbar styles for medical pipeline board */
 .kanban-scroll-container {
   scrollbar-width: auto;
-  scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
-  /* Force scrollbar to always show */
+  scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
+  /* Force horizontal scrollbar to always show */
   overflow-x: scroll !important;
+  overflow-y: hidden !important;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  /* Ensure scrollbar appears even with minimal overflow */
+  min-width: calc(100% + 1px);
 }
 
 .kanban-scroll-container::-webkit-scrollbar {
-  height: 16px;
+  height: 18px;
   /* Force scrollbar to be visible */
   -webkit-appearance: none;
   display: block !important;
+  background: hsl(var(--muted));
 }
 
 .kanban-scroll-container::-webkit-scrollbar-track {
   background: hsl(var(--muted));
-  border-radius: 8px;
-  margin: 8px;
+  border-radius: 9px;
+  margin: 0 4px;
   /* Ensure track is always visible */
   display: block !important;
+  border: 1px solid hsl(var(--border));
 }
 
 .kanban-scroll-container::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary));
-  border-radius: 8px;
-  border: 3px solid hsl(var(--muted));
-  min-width: 40px;
+  background: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--medical-teal)));
+  border-radius: 9px;
+  border: 2px solid hsl(var(--background));
+  min-width: 60px;
   /* Ensure thumb is always visible */
   display: block !important;
+  box-shadow: 0 2px 4px hsl(var(--border) / 0.3);
 }
 
 .kanban-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.8);
+  background: linear-gradient(135deg, hsl(var(--medical-blue) / 0.8), hsl(var(--medical-teal) / 0.8));
+  box-shadow: 0 2px 6px hsl(var(--border) / 0.5);
 }
 
 .kanban-scroll-container::-webkit-scrollbar-thumb:active {
-  background: hsl(var(--primary) / 0.6);
+  background: linear-gradient(135deg, hsl(var(--medical-blue) / 0.6), hsl(var(--medical-teal) / 0.6));
+  box-shadow: 0 1px 2px hsl(var(--border) / 0.4);
+}
+
+/* Firefox scrollbar styling */
+.kanban-scroll-container {
+  scrollbar-width: auto;
+  scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
 }
 
 /* Responsive column widths for better viewport utilization */
