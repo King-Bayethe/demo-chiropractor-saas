@@ -228,12 +228,6 @@ export function CalendarHeader({
                 New Appointment
               </Button>
             </div>
-
-            {/* Filters and Today's Overview */}
-            <div className="grid grid-cols-1 gap-4 mt-4">
-              <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
-              <TodaysOverview todaysStats={todaysStats} />
-            </div>
           </>
         ) : isTablet ? (
           // Tablet Layout - Optimized for touch
@@ -356,12 +350,6 @@ export function CalendarHeader({
                   </Button>
                 </div>
               </div>
-            </div>
-
-            {/* Filters and Today's Overview for Tablet */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
-              <TodaysOverview todaysStats={todaysStats} />
             </div>
           </>
         ) : (
@@ -486,12 +474,6 @@ export function CalendarHeader({
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
-
-            {/* Filters and Today's Overview for Desktop */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
-              <TodaysOverview todaysStats={todaysStats} />
             </div>
           </>
         )}

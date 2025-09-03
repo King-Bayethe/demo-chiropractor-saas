@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 import { CalendarHeader } from "./CalendarHeader";
+import { CalendarFilters } from "./CalendarFilters";
+import { TodaysOverview } from "./TodaysOverview";
 import { useIsMobile, useIsTablet, useDeviceType } from "@/hooks/use-breakpoints";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +74,15 @@ export function CalendarLayout({
         {/* Calendar Content */}
         <div className="flex-1 overflow-hidden">
           {children}
+        </div>
+        
+        {/* Filters and Today's Overview */}
+        <div className={cn(
+          "border-t border-border bg-background p-4",
+          isMobile ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 lg:grid-cols-2 gap-6"
+        )}>
+          <CalendarFilters filters={filters} onFiltersChange={onFiltersChange} />
+          <TodaysOverview todaysStats={todaysStats} />
         </div>
       </div>
     </div>
