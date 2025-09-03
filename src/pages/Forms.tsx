@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
+import { LeadIntakeForm } from "@/components/LeadIntakeForm";
 
 
 import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
@@ -25,7 +26,8 @@ import {
   Download,
   Filter,
   FileDown,
-  Package
+  Package,
+  Plus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,6 +51,8 @@ export default function Forms() {
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isMobile = useIsMobile();
 
@@ -100,6 +104,25 @@ export default function Forms() {
       console.error('Error updating status:', error);
       toast.error("Failed to update status");
     }
+  };
+
+  const handleAddNewLead = () => setIsAddLeadOpen(true);
+  
+  const handleSubmitLead = async (formData: any) => {
+    setIsSubmitting(true);
+    try {
+      toast.success("Lead added successfully!");
+      setIsAddLeadOpen(false);
+    } catch (error) {
+      console.error('Failed to add lead:', error);
+      toast.error("Failed to add lead. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelAddLead = () => {
+    setIsAddLeadOpen(false);
   };
 
   const filteredSubmissions = submissions.filter(submission => {
@@ -197,6 +220,10 @@ export default function Forms() {
               >
                 <Package className="w-4 h-4 mr-2" />
                 Export All CSV
+              </Button>
+              <Button onClick={handleAddNewLead}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Lead
               </Button>
             </div>
           </div>
@@ -469,9 +496,17 @@ export default function Forms() {
               )}
             </CardContent>
           </Card>
-
-
         </div>
+
+        {/* Add New Lead Modal */}
+        <Dialog open={isAddLeadOpen} onOpenChange={setIsAddLeadOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <LeadIntakeForm
+              onSubmit={handleSubmitLead}
+              onCancel={handleCancelAddLead}
+            />
+          </DialogContent>
+        </Dialog>
       </Layout>
     </AuthGuard>
   );
