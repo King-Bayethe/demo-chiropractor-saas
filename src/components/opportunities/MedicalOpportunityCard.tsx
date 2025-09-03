@@ -479,7 +479,7 @@ export function MedicalOpportunityCard({
             </div>
 
             {/* Assignment & Management */}
-            {(opportunity.assigned_provider_name || opportunity.priority || opportunity.notes) && (
+            {(opportunity.assigned_provider_name || opportunity.notes) && (
               <div>
                 <h5 className="text-xs font-medium text-foreground mb-1.5">Assignment & Notes</h5>
                 <div className="space-y-1.5">
@@ -488,19 +488,6 @@ export function MedicalOpportunityCard({
                       <User className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
                       <span className="text-muted-foreground">Assigned:</span>
                       <span>{opportunity.assigned_provider_name}</span>
-                    </div>
-                  )}
-                  {opportunity.priority && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-muted-foreground">Priority:</span>
-                      <Badge variant="outline" className={cn(
-                        "text-xs",
-                        opportunity.priority === 'high' && "border-red-200 text-red-700",
-                        opportunity.priority === 'medium' && "border-yellow-200 text-yellow-700",
-                        opportunity.priority === 'low' && "border-green-200 text-green-700"
-                      )}>
-                        {opportunity.priority}
-                      </Badge>
                     </div>
                   )}
                   {opportunity.notes && (
