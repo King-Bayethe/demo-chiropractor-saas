@@ -138,7 +138,7 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
     <TooltipProvider>
       <div className={cn(
         "h-full bg-black text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : "w-52"
       )}>
         {/* Header */}
         <div className="p-4 border-b border-white/10 bg-white">
