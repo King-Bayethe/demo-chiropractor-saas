@@ -16,78 +16,63 @@ import { useNavigate } from "react-router-dom";
 import { mapSupabasePatientToListItem, getPatientType, getCaseTypeVariant, getCaseTypeDisplayName } from "@/utils/patientMapping";
 import { createPatientFromCashForm } from "@/utils/createCashPatient";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Phone, 
-  Mail, 
-  Calendar,
-  FileText,
-  MessageSquare,
-  User,
-  Clock,
-  Activity,
-  MoreVertical,
-  Trash2
-} from "lucide-react";
+import { Search, Filter, Plus, Phone, Mail, Calendar, FileText, MessageSquare, User, Clock, Activity, MoreVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 export default function Patients() {
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  
   const [currentPage, setCurrentPage] = useState(1);
   const [patientsPerPage, setPatientsPerPage] = useState(20);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const { toast } = useToast();
-  const { patients, loading, error, fetchPatients, syncWithGHL, createPatient, updatePatient, deletePatient } = usePatients();
+  const {
+    toast
+  } = useToast();
+  const {
+    patients,
+    loading,
+    error,
+    fetchPatients,
+    syncWithGHL,
+    createPatient,
+    updatePatient,
+    deletePatient
+  } = usePatients();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
   useEffect(() => {
     filterPatients();
   }, [patients, searchTerm, selectedType, selectedStatus]);
-
   useEffect(() => {
     if (error) {
       toast({
         title: "Error",
         description: "Failed to load patient data.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   }, [error, toast]);
-
   const filterPatients = () => {
     let filtered = [...patients];
-
     if (searchTerm) {
       filtered = filtered.filter((patient: Patient) => {
         const name = `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase();
         const email = (patient.email || '').toLowerCase();
         const phone = (patient.phone || patient.cell_phone || patient.home_phone || '').toLowerCase();
         const searchLower = searchTerm.toLowerCase();
-        
-        return name.includes(searchLower) || 
-               email.includes(searchLower) || 
-               phone.includes(searchLower);
+        return name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower);
       });
     }
-
     if (selectedType !== "all") {
       filtered = filtered.filter((patient: Patient) => {
         const patientType = getPatientType(patient);
         return patientType === selectedType;
       });
     }
-
     if (selectedStatus !== "all") {
       if (selectedStatus === "inactive") {
         filtered = filtered.filter((patient: Patient) => !patient.is_active);
@@ -95,28 +80,24 @@ export default function Patients() {
         filtered = filtered.filter((patient: Patient) => patient.is_active !== false);
       }
     }
-
     setFilteredPatients(filtered);
     setCurrentPage(1);
   };
-
   const handlePatientSelect = (patient: Patient) => navigate(`/patients/${patient.id}`);
-  const handleMessagePatient = (patient: Patient) => toast({ 
-    title: "Message Feature", 
-    description: `Opening conversation with ${patient.first_name || 'Unknown Patient'}` 
+  const handleMessagePatient = (patient: Patient) => toast({
+    title: "Message Feature",
+    description: `Opening conversation with ${patient.first_name || 'Unknown Patient'}`
   });
   const handleBookAppointment = (patient: Patient) => {
     // Navigate to calendar with patient pre-selected
     navigate(`/calendar?patientId=${patient.id}`);
   };
-
   const getLastAppointment = (patient: Patient) => {
     if (patient.updated_at) {
       const date = new Date(patient.updated_at);
       const now = new Date();
       const diffTime = Math.abs(now.getTime() - date.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
       if (diffDays === 1) return 'Yesterday';
       if (diffDays < 7) return `${diffDays} days ago`;
       if (diffDays < 30) return `${Math.ceil(diffDays / 7)} week${diffDays > 13 ? 's' : ''} ago`;
@@ -124,31 +105,39 @@ export default function Patients() {
     }
     return 'No recent appointments';
   };
-  
   const getTotalVisits = (patient: Patient) => {
     // TODO: Implement actual visit count from appointments/soap_notes
     return Math.floor(Math.random() * 20) + 1;
   };
   const handleAddPatient = () => setIsAddPatientOpen(true);
-  
   const handleCreateCashPatient = async () => {
     setIsSubmitting(true);
     try {
       const result = await createPatientFromCashForm();
       if (result.success) {
-        toast({ title: "Success", description: "Cash patient created successfully!" });
+        toast({
+          title: "Success",
+          description: "Cash patient created successfully!"
+        });
         fetchPatients(); // Refresh the patient list
       } else {
-        toast({ title: "Error", description: "Failed to create patient from cash form.", variant: "destructive" });
+        toast({
+          title: "Error",
+          description: "Failed to create patient from cash form.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to create cash patient:', error);
-      toast({ title: "Error", description: "Failed to create patient. Please try again.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to create patient. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
   const handleSubmitPatient = async (formData: any) => {
     setIsSubmitting(true);
     try {
@@ -160,34 +149,36 @@ export default function Patients() {
         preferred_language: formData.language || undefined,
         case_type: formData.caseType || undefined,
         attorney_name: formData.referredBy || undefined,
-        insurance_provider: formData.insuranceName || undefined,
+        insurance_provider: formData.insuranceName || undefined
       };
-      
       await createPatient(patientData);
-      
-      toast({ title: "Success", description: "Patient added successfully!" });
+      toast({
+        title: "Success",
+        description: "Patient added successfully!"
+      });
       setIsAddPatientOpen(false);
     } catch (error) {
       console.error('Failed to add patient:', error);
-      toast({ title: "Error", description: "Failed to add patient. Please try again.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to add patient. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleCancelAddPatient = () => {
     setIsAddPatientOpen(false);
   };
-
   const handleDeletePatient = async () => {
     if (!deletePatientId) return;
-    
     setIsDeleting(true);
     try {
       await deletePatient(deletePatientId);
       toast({
         title: "Success",
-        description: "Patient deleted successfully!",
+        description: "Patient deleted successfully!"
       });
       setDeletePatientId(null);
     } catch (error) {
@@ -195,51 +186,32 @@ export default function Patients() {
       toast({
         title: "Error",
         description: "Failed to delete patient. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsDeleting(false);
     }
   };
-
   const indexOfLastPatient = currentPage * patientsPerPage;
   const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
   const currentPatients = filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient);
   const totalPages = Math.ceil(filteredPatients.length / patientsPerPage);
-
-  return (
-    <AuthGuard>
+  return <AuthGuard>
       <Layout>
         <div className="h-full flex flex-col">
           {/* Header Section */}
-          <div className={cn("flex-shrink-0 space-y-6 bg-background border-b border-border/50",
-            isMobile ? "p-4" : "p-6"
-          )}>
-            <div className={cn("flex justify-between",
-              isMobile ? "flex-col space-y-4" : "items-center"
-            )}>
+          <div className={cn("flex-shrink-0 space-y-6 bg-background border-b border-border/50", isMobile ? "p-4" : "p-6")}>
+            <div className={cn("flex justify-between", isMobile ? "flex-col space-y-4" : "items-center")}>
               <div>
-                <h1 className={cn("font-bold text-foreground",
-                  isMobile ? "text-xl" : "text-3xl"
-                )}>Patients</h1>
-                <p className={cn("text-muted-foreground",
-                  isMobile ? "text-sm" : ""
-                )}>Manage patient records and treatment history</p>
+                <h1 className={cn("font-bold text-foreground", isMobile ? "text-xl" : "text-3xl")}>Patients</h1>
+                <p className={cn("text-muted-foreground", isMobile ? "text-sm" : "")}>Manage patient records and treatment history</p>
               </div>
-              <div className={cn("flex space-x-2",
-                isMobile ? "flex-col space-y-2 space-x-0" : "items-center"
-              )}>
-                {!isMobile && (
-                  <Button variant="outline" size="sm">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Export Records
-                  </Button>
-                )}
-                <Button 
-                  size={isMobile ? "default" : "sm"} 
-                  onClick={handleAddPatient}
-                  className={cn(isMobile ? "w-full" : "")}
-                >
+              <div className={cn("flex space-x-2", isMobile ? "flex-col space-y-2 space-x-0" : "items-center")}>
+                {!isMobile}
+                <Button variant="secondary" size={isMobile ? "default" : "sm"} onClick={handleCreateCashPatient} disabled={isSubmitting} className={cn(isMobile ? "w-full" : "")}>
+                  {isSubmitting ? "Creating..." : isMobile ? "Cash Patient" : "Create Cash Patient"}
+                </Button>
+                <Button size={isMobile ? "default" : "sm"} onClick={handleAddPatient} className={cn(isMobile ? "w-full" : "")}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Patient
                 </Button>
@@ -249,22 +221,13 @@ export default function Patients() {
             {/* Search and Filters */}
             <Card className="border border-border/50 shadow-sm">
               <CardContent className={cn(isMobile ? "p-3" : "p-4")}>
-                <div className={cn("space-y-4",
-                  isMobile ? "" : "lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4"
-                )}>
+                <div className={cn("space-y-4", isMobile ? "" : "lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4")}>
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input 
-                      placeholder={isMobile ? "Search patients..." : "Search patients by name, phone, email..."} 
-                      className="pl-10"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <Input placeholder={isMobile ? "Search patients..." : "Search patients by name, phone, email..."} className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                   </div>
                   
-                  <div className={cn("flex space-x-2",
-                    isMobile ? "grid grid-cols-2 gap-2 space-x-0" : "items-center"
-                  )}>
+                  <div className={cn("flex space-x-2", isMobile ? "grid grid-cols-2 gap-2 space-x-0" : "items-center")}>
                     <Select value={selectedType} onValueChange={setSelectedType}>
                       <SelectTrigger className={cn(isMobile ? "text-sm" : "w-40")}>
                         <SelectValue placeholder="All Types" />
@@ -292,22 +255,18 @@ export default function Patients() {
                     </Select>
                   </div>
 
-                  <div className={cn("flex space-x-2",
-                    isMobile ? "flex-wrap gap-1" : "items-center"
-                  )}>
+                  <div className={cn("flex space-x-2", isMobile ? "flex-wrap gap-1" : "items-center")}>
                     <Badge variant="secondary" className={cn(isMobile ? "text-xs" : "")}>
                       Total: {patients.length}
                     </Badge>
-                    {!isMobile && (
-                      <>
+                    {!isMobile && <>
                         <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
                           PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP').length}
                         </Badge>
                         <Badge variant="outline" className="bg-case-insurance/10 text-case-insurance">
                           Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Insurance').length}
                         </Badge>
-                      </>
-                    )}
+                      </>}
                   </div>
                 </div>
               </CardContent>
@@ -315,9 +274,7 @@ export default function Patients() {
           </div>
 
           {/* Content Area */}
-          <div className={cn("flex-1 min-h-0 overflow-auto",
-            isMobile ? "px-4 py-4" : "px-6 py-6"
-          )}>
+          <div className={cn("flex-1 min-h-0 overflow-auto", isMobile ? "px-4 py-4" : "px-6 py-6")}>
             <Card className="border border-border/50 shadow-sm">
               <CardHeader className={cn(isMobile ? "p-4" : "")}>
                 <CardTitle className={cn(isMobile ? "text-lg" : "")}>
@@ -325,23 +282,17 @@ export default function Patients() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                {isMobile ? (
-                  // Mobile Card View
-                  <div className="space-y-3 p-4">
-                    {loading ? (
-                      <div className="text-center py-8 text-muted-foreground">Loading patients...</div>
-                    ) : currentPatients.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground text-sm">
+                {isMobile ?
+              // Mobile Card View
+              <div className="space-y-3 p-4">
+                    {loading ? <div className="text-center py-8 text-muted-foreground">Loading patients...</div> : currentPatients.length === 0 ? <div className="text-center py-8 text-muted-foreground text-sm">
                         {searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}
-                      </div>
-                    ) : (
-                      currentPatients.map((patient: Patient) => {
-                        const patientType = getPatientType(patient);
-                        const caseTypeDisplay = getCaseTypeDisplayName(patientType);
-                        const caseTypeVariant = getCaseTypeVariant(patientType);
-                        const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
-                        return (
-                          <Card key={patient.id} className="hover:shadow-md transition-shadow">
+                      </div> : currentPatients.map((patient: Patient) => {
+                  const patientType = getPatientType(patient);
+                  const caseTypeDisplay = getCaseTypeDisplayName(patientType);
+                  const caseTypeVariant = getCaseTypeVariant(patientType);
+                  const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
+                  return <Card key={patient.id} className="hover:shadow-md transition-shadow">
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center space-x-3 flex-1">
@@ -363,18 +314,14 @@ export default function Patients() {
                               </div>
                               
                               <div className="space-y-2 text-sm">
-                                {displayPhone && (
-                                  <div className="flex items-center space-x-2">
+                                {displayPhone && <div className="flex items-center space-x-2">
                                     <Phone className="w-3 h-3 text-muted-foreground" />
                                     <span className="text-xs">{displayPhone}</span>
-                                  </div>
-                                )}
-                                {patient.email && (
-                                  <div className="flex items-center space-x-2">
+                                  </div>}
+                                {patient.email && <div className="flex items-center space-x-2">
                                     <Mail className="w-3 h-3 text-muted-foreground" />
                                     <span className="text-xs text-medical-blue truncate">{patient.email}</span>
-                                  </div>
-                                )}
+                                  </div>}
                                 <div className="flex items-center space-x-2">
                                   <Clock className="w-3 h-3 text-muted-foreground" />
                                   <span className="text-xs">{getLastAppointment(patient)}</span>
@@ -395,24 +342,16 @@ export default function Patients() {
                                  <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)} className="flex-1 text-xs px-2 py-1">
                                    <User className="w-3 h-3 mr-1" />View
                                  </Button>
-                                 <Button 
-                                   variant="ghost" 
-                                   size="sm" 
-                                   onClick={() => setDeletePatientId(patient.id)} 
-                                   className="text-xs px-2 py-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                 >
+                                 <Button variant="ghost" size="sm" onClick={() => setDeletePatientId(patient.id)} className="text-xs px-2 py-1 text-destructive hover:text-destructive hover:bg-destructive/10">
                                    <Trash2 className="w-3 h-3" />
                                  </Button>
                                </div>
                             </CardContent>
-                          </Card>
-                        );
-                      })
-                    )}
-                  </div>
-                ) : (
-                  // Desktop Table View
-                  <div className="overflow-x-auto">
+                          </Card>;
+                })}
+                  </div> :
+              // Desktop Table View
+              <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="border-b border-border/50 bg-muted/30">
                         <tr>
@@ -425,18 +364,12 @@ export default function Patients() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/50">
-                        {loading ? (
-                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr>
-                        ) : currentPatients.length === 0 ? (
-                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr>
-                         ) : (
-                          currentPatients.map((patient: Patient) => {
-                            const patientType = getPatientType(patient);
-                            const caseTypeDisplay = getCaseTypeDisplayName(patientType);
-                            const caseTypeVariant = getCaseTypeVariant(patientType);
-                            const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
-                            return (
-                              <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
+                        {loading ? <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr> : currentPatients.length === 0 ? <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr> : currentPatients.map((patient: Patient) => {
+                      const patientType = getPatientType(patient);
+                      const caseTypeDisplay = getCaseTypeDisplayName(patientType);
+                      const caseTypeVariant = getCaseTypeVariant(patientType);
+                      const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
+                      return <tr key={patient.id} className="hover:bg-muted/20 transition-colors">
                                 <td className="p-4">
                                   <div className="flex items-center space-x-3">
                                     <Avatar className="h-10 w-10">
@@ -454,18 +387,14 @@ export default function Patients() {
                                 </td>
                                 <td className="p-4">
                                   <div className="space-y-1">
-                                    {displayPhone && (
-                                      <div className="flex items-center space-x-2">
+                                    {displayPhone && <div className="flex items-center space-x-2">
                                         <Phone className="w-4 h-4 text-muted-foreground" />
                                         <span className="text-sm">{displayPhone}</span>
-                                      </div>
-                                    )}
-                                    {patient.email && (
-                                      <div className="flex items-center space-x-2">
+                                      </div>}
+                                    {patient.email && <div className="flex items-center space-x-2">
                                         <Mail className="w-4 h-4 text-muted-foreground" />
                                         <span className="text-sm text-medical-blue">{patient.email}</span>
-                                      </div>
-                                    )}
+                                      </div>}
                                   </div>
                                 </td>
                                 <td className="p-4">
@@ -490,51 +419,29 @@ export default function Patients() {
                                    <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)}><MessageSquare className="w-4 h-4 mr-1" />Message</Button>
                                    <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
                                    <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
-                                   <Button 
-                                     variant="ghost" 
-                                     size="sm" 
-                                     onClick={() => setDeletePatientId(patient.id)}
-                                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                   >
+                                   <Button variant="ghost" size="sm" onClick={() => setDeletePatientId(patient.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                                      <Trash2 className="w-4 h-4" />
                                    </Button>
                                  </div>
                                  </td>
-                              </tr>
-                            );
-                          })
-                        )}
+                              </tr>;
+                    })}
                       </tbody>
                     </table>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
           </div>
 
           {/* Fixed Footer */}
-          <div className={cn("flex-shrink-0 bg-background border-t border-border/50",
-            isMobile ? "flex flex-col space-y-2 p-3" : "flex items-center justify-between p-4"
-          )}>
-            <div className={cn("text-muted-foreground",
-              isMobile ? "text-xs text-center" : "text-sm"
-            )}>
-              {filteredPatients.length > 0 ? 
-                `Showing ${indexOfFirstPatient + 1} to ${Math.min(indexOfLastPatient, filteredPatients.length)} of ${filteredPatients.length} patients` : 
-                'No patients'
-              }
+          <div className={cn("flex-shrink-0 bg-background border-t border-border/50", isMobile ? "flex flex-col space-y-2 p-3" : "flex items-center justify-between p-4")}>
+            <div className={cn("text-muted-foreground", isMobile ? "text-xs text-center" : "text-sm")}>
+              {filteredPatients.length > 0 ? `Showing ${indexOfFirstPatient + 1} to ${Math.min(indexOfLastPatient, filteredPatients.length)} of ${filteredPatients.length} patients` : 'No patients'}
             </div>
-            {filteredPatients.length > 0 && (
-              <div className={cn("flex space-x-4",
-                isMobile ? "items-center justify-center" : "items-center"
-              )}>
-                <div className={cn("flex space-x-2",
-                  isMobile ? "items-center" : "items-center"
-                )}>
-                  <span className={cn("text-muted-foreground",
-                    isMobile ? "text-xs" : "text-sm"
-                  )}>Rows per page:</span>
-                  <Select value={patientsPerPage.toString()} onValueChange={(value) => setPatientsPerPage(Number(value))}>
+            {filteredPatients.length > 0 && <div className={cn("flex space-x-4", isMobile ? "items-center justify-center" : "items-center")}>
+                <div className={cn("flex space-x-2", isMobile ? "items-center" : "items-center")}>
+                  <span className={cn("text-muted-foreground", isMobile ? "text-xs" : "text-sm")}>Rows per page:</span>
+                  <Select value={patientsPerPage.toString()} onValueChange={value => setPatientsPerPage(Number(value))}>
                     <SelectTrigger className={cn(isMobile ? "w-16 h-8 text-xs" : "w-20")}>
                       <SelectValue />
                     </SelectTrigger>
@@ -546,47 +453,25 @@ export default function Patients() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className={cn("flex space-x-2",
-                  isMobile ? "" : "items-center"
-                )}>
-                  <Button
-                    variant="outline"
-                    size={isMobile ? "sm" : "default"}
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className={cn(isMobile ? "px-2 py-1 text-xs" : "")}
-                  >
+                <div className={cn("flex space-x-2", isMobile ? "" : "items-center")}>
+                  <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className={cn(isMobile ? "px-2 py-1 text-xs" : "")}>
                     Previous
                   </Button>
-                  <span className={cn("text-muted-foreground flex items-center",
-                    isMobile ? "text-xs px-2" : "text-sm px-4"
-                  )}>
+                  <span className={cn("text-muted-foreground flex items-center", isMobile ? "text-xs px-2" : "text-sm px-4")}>
                     Page {currentPage} of {totalPages}
                   </span>
-                  <Button
-                    variant="outline"
-                    size={isMobile ? "sm" : "default"}
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className={cn(isMobile ? "px-2 py-1 text-xs" : "")}
-                  >
+                  <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className={cn(isMobile ? "px-2 py-1 text-xs" : "")}>
                     Next
                   </Button>
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
 
         {/* Add Patient Dialog */}
         <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
-          <DialogContent className={cn("max-w-4xl max-h-[90vh] overflow-y-auto",
-            isMobile ? "w-[95vw] p-0" : ""
-          )}>
-            <LeadIntakeForm 
-              onSubmit={handleSubmitPatient} 
-              onCancel={handleCancelAddPatient} 
-            />
+          <DialogContent className={cn("max-w-4xl max-h-[90vh] overflow-y-auto", isMobile ? "w-[95vw] p-0" : "")}>
+            <LeadIntakeForm onSubmit={handleSubmitPatient} onCancel={handleCancelAddPatient} />
           </DialogContent>
         </Dialog>
 
@@ -601,17 +486,12 @@ export default function Patients() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDeletePatient}
-                disabled={isDeleting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
+              <AlertDialogAction onClick={handleDeletePatient} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 {isDeleting ? "Deleting..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </Layout>
-    </AuthGuard>
-  );
+    </AuthGuard>;
 }
