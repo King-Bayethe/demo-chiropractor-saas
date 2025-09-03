@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PipelineDragProvider } from '@/components/pipeline/PipelineDragProvider';
 import { MedicalOpportunityCard } from './MedicalOpportunityCard';
+import { CompactOpportunityCard } from './CompactOpportunityCard';
 import { Opportunity, MEDICAL_PIPELINE_STAGES } from '@/hooks/useOpportunities';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -66,6 +67,7 @@ interface KanbanPipelineBoardProps {
   stages: any[];
   onMoveOpportunity: (opportunityId: string, targetStageId: string) => void;
   className?: string;
+  compact?: boolean;
 }
 
 interface StageColumnProps {
@@ -135,7 +137,7 @@ function StageColumn({ stage, opportunities, onMoveOpportunity }: StageColumnPro
           <SortableContext items={opportunities.map(o => o.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2 pr-3 pb-2">
               {opportunities.map(opportunity => (
-                <MedicalOpportunityCard
+                <CompactOpportunityCard
                   key={opportunity.id}
                   opportunity={opportunity}
                   onMoveToPrevious={handleMoveToPrevious}
@@ -160,7 +162,8 @@ export function KanbanPipelineBoard({
   opportunities,
   stages,
   onMoveOpportunity,
-  className
+  className,
+  compact = false
 }: KanbanPipelineBoardProps) {
   const isMobile = useIsMobile();
   const columnConfig = useResponsiveColumns();

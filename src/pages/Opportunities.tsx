@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from '@/components/Layout';
 import { AuthGuard } from '@/components/AuthGuard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { TabsPipelineBoard } from "@/components/opportunities/TabsPipelineBoard";
+import { KanbanPipelineBoard } from "@/components/opportunities/KanbanPipelineBoard";
+import { PipelineViewToggle, PipelineViewType } from "@/components/opportunities/PipelineViewToggle";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
 import { useIsMobile } from "@/hooks/use-breakpoints";
 import { useAdaptiveLayout } from "@/hooks/useViewportResize";
@@ -13,6 +15,7 @@ import { cn } from "@/lib/utils";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [pipelineView, setPipelineView] = useState<PipelineViewType>('tabs');
   const { opportunities, loading, updateOpportunityStage } = useOpportunities();
   const isMobile = useIsMobile();
   const layout = useAdaptiveLayout();
@@ -47,6 +50,20 @@ export default function Opportunities() {
 
   const handleMoveOpportunity = (opportunityId: string, targetStageId: string) => {
     updateOpportunityStage(opportunityId, targetStageId);
+  };
+
+  // Load view preference from localStorage
+  useEffect(() => {
+    const savedView = localStorage.getItem('pipeline-view') as PipelineViewType;
+    if (savedView && (savedView === 'tabs' || savedView === 'kanban')) {
+      setPipelineView(savedView);
+    }
+  }, []);
+
+  // Save view preference to localStorage
+  const handleViewChange = (view: PipelineViewType) => {
+    setPipelineView(view);
+    localStorage.setItem('pipeline-view', view);
   };
 
   if (loading) {
@@ -87,17 +104,23 @@ export default function Opportunities() {
                 Track patients through your medical pipeline
               </p>
             </div>
-            <Button 
-              onClick={() => setShowAddModal(true)} 
-              className={cn(
-                "flex items-center gap-2",
-                layout.shouldUseCompactLayout ? "h-8 text-xs" : "w-full sm:w-auto"
-              )}
-              size={layout.shouldUseCompactLayout ? "sm" : "default"}
-            >
-              <Plus className={cn(layout.shouldUseCompactLayout ? "h-3 w-3" : "h-4 w-4")} />
-              Add Opportunity
-            </Button>
+            <div className="flex items-center gap-2">
+              <PipelineViewToggle 
+                view={pipelineView}
+                onViewChange={handleViewChange}
+              />
+              <Button 
+                onClick={() => setShowAddModal(true)} 
+                className={cn(
+                  "flex items-center gap-2",
+                  layout.shouldUseCompactLayout ? "h-8 text-xs" : "w-full sm:w-auto"
+                )}
+                size={layout.shouldUseCompactLayout ? "sm" : "default"}
+              >
+                <Plus className={cn(layout.shouldUseCompactLayout ? "h-3 w-3" : "h-4 w-4")} />
+                Add Opportunity
+              </Button>
+            </div>
           </div>
 
           {/* Pipeline Stats */}
@@ -293,11 +316,20 @@ export default function Opportunities() {
                 height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
               }}
             >
-              <TabsPipelineBoard
-                opportunities={opportunities}
-                stages={stages}
-                onMoveOpportunity={handleMoveOpportunity}
-              />
+              {pipelineView === 'tabs' ? (
+                <TabsPipelineBoard
+                  opportunities={opportunities}
+                  stages={stages}
+                  onMoveOpportunity={handleMoveOpportunity}
+                />
+              ) : (
+                <KanbanPipelineBoard
+                  opportunities={opportunities}
+                  stages={stages}
+                  onMoveOpportunity={handleMoveOpportunity}
+                  compact={layout.shouldUseCompactLayout}
+                />
+              )}
             </CardContent>
           </Card>
 
