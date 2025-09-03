@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
+import { LanguageDropdown } from "@/components/LanguageDropdown";
 
 interface LayoutProps {
   children: ReactNode;
@@ -136,6 +137,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4">
+            <LanguageDropdown />
             <ThemeToggle />
             <NotificationBell />
             
