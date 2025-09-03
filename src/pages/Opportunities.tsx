@@ -298,8 +298,9 @@ export default function Opportunities() {
           </Card>
 
           {/* Pipeline Board */}
-          <Card className="p-0">
+          <Card className="p-0 min-h-0 flex flex-col">
             <CardHeader className={cn(
+              "flex-shrink-0",
               layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
             )}>
               <CardTitle className={cn(
@@ -310,27 +311,32 @@ export default function Opportunities() {
             </CardHeader>
             <CardContent 
               className={cn(
-                "overflow-x-auto overflow-y-hidden",
+                "flex-1 min-h-0 relative",
                 layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
               )}
-              style={{ 
-                height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
-              }}
             >
-              {pipelineView === 'tabs' ? (
-                <TabsPipelineBoard
-                  opportunities={opportunities}
-                  stages={stages}
-                  onMoveOpportunity={handleMoveOpportunity}
-                />
-              ) : (
-                <KanbanPipelineBoard
-                  opportunities={opportunities}
-                  stages={stages}
-                  onMoveOpportunity={handleMoveOpportunity}
-                  compact={layout.shouldUseCompactLayout}
-                />
-              )}
+              <div 
+                className="w-full h-full overflow-auto"
+                style={{ 
+                  minHeight: layout.shouldUseCompactLayout ? '300px' : '400px',
+                  maxHeight: '80vh'
+                }}
+              >
+                {pipelineView === 'tabs' ? (
+                  <TabsPipelineBoard
+                    opportunities={opportunities}
+                    stages={stages}
+                    onMoveOpportunity={handleMoveOpportunity}
+                  />
+                ) : (
+                  <KanbanPipelineBoard
+                    opportunities={opportunities}
+                    stages={stages}
+                    onMoveOpportunity={handleMoveOpportunity}
+                    compact={layout.shouldUseCompactLayout}
+                  />
+                )}
+              </div>
             </CardContent>
           </Card>
 

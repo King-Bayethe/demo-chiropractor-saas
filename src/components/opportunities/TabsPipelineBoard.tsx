@@ -148,34 +148,52 @@ export function TabsPipelineBoard({
 
         {/* Tabs Pipeline */}
         <Tabs value={activeStage} onValueChange={setActiveStage} className="w-full">
-          <TabsList className="w-full justify-start">
-            {stages.map((stage) => {
-              const stageOpps = groupedOpportunities[stage.id] || [];
-              const stageValue = stageOpps.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
-              
-              return (
-                <TabsTrigger
-                  key={stage.id}
-                  value={stage.id}
-                  className="flex items-center gap-2 min-w-fit"
-                >
-                  <div
-                    className="rounded-full w-3 h-3"
-                    style={{ backgroundColor: stage.color }}
-                  />
-                  <span className="truncate">{stage.title}</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {stageOpps.length}
-                  </Badge>
-                  {!layout.shouldUseCompactLayout && (
-                    <span className="text-xs text-muted-foreground ml-1">
-                      ${Math.round(stageValue / 1000)}k
+          <div className="w-full overflow-x-auto">
+            <TabsList className="w-full justify-start min-w-max">
+              {stages.map((stage) => {
+                const stageOpps = groupedOpportunities[stage.id] || [];
+                const stageValue = stageOpps.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
+                
+                return (
+                  <TabsTrigger
+                    key={stage.id}
+                    value={stage.id}
+                    className={cn(
+                      "flex items-center gap-2 min-w-fit whitespace-nowrap",
+                      layout.shouldUseCompactLayout ? "text-xs px-2" : "px-3"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "rounded-full",
+                        layout.shouldUseCompactLayout ? "w-2 h-2" : "w-3 h-3"
+                      )}
+                      style={{ backgroundColor: stage.color }}
+                    />
+                    <span className={cn(
+                      "truncate max-w-24",
+                      layout.shouldUseCompactLayout ? "text-xs" : "text-sm"
+                    )}>
+                      {layout.shouldUseCompactLayout 
+                        ? stage.title.split(' ')[0] 
+                        : stage.title
+                      }
                     </span>
-                  )}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+                    <Badge variant="secondary" className={cn(
+                      layout.shouldUseCompactLayout ? "text-xs px-1" : "text-xs"
+                    )}>
+                      {stageOpps.length}
+                    </Badge>
+                    {!layout.shouldUseCompactLayout && stageValue > 0 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ${Math.round(stageValue / 1000)}k
+                      </span>
+                    )}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
 
           {stages.map((stage) => {
             const stageOpps = groupedOpportunities[stage.id] || [];
@@ -238,9 +256,14 @@ export function TabsPipelineBoard({
                           </div>
                         </div>
                       ) : (
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div className={cn(
+                          "grid gap-4",
+                          layout.shouldUseCompactLayout 
+                            ? "grid-cols-1" 
+                            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        )}>
                           {stageOpps.map((opportunity) => (
-                            <div key={opportunity.id} className="space-y-3">
+                            <div key={opportunity.id} className="space-y-2">
                               <MedicalOpportunityCard
                                 opportunity={opportunity}
                                 onMoveToPrevious={currentStageIndex > 0 ? (id) => handleMoveToPrevious(id, stage.id) : undefined}
@@ -249,16 +272,25 @@ export function TabsPipelineBoard({
                               />
                               
                               {/* Quick Move Buttons */}
-                              <div className="flex gap-2">
+                              <div className={cn(
+                                "flex gap-2",
+                                layout.shouldUseCompactLayout ? "flex-col" : "flex-row"
+                              )}>
                                 {currentStageIndex > 0 && (
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleMoveToPrevious(opportunity.id, stage.id)}
-                                    className="flex-1 text-xs"
+                                    className={cn(
+                                      "text-xs",
+                                      layout.shouldUseCompactLayout ? "w-full" : "flex-1"
+                                    )}
                                   >
                                     <ChevronLeft className="w-3 h-3 mr-1" />
-                                    {stages[currentStageIndex - 1]?.title}
+                                    {layout.shouldUseCompactLayout 
+                                      ? "Previous" 
+                                      : stages[currentStageIndex - 1]?.title
+                                    }
                                   </Button>
                                 )}
                                 {currentStageIndex < stages.length - 1 && (
@@ -266,9 +298,15 @@ export function TabsPipelineBoard({
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleMoveToNext(opportunity.id, stage.id)}
-                                    className="flex-1 text-xs"
+                                    className={cn(
+                                      "text-xs",
+                                      layout.shouldUseCompactLayout ? "w-full" : "flex-1"
+                                    )}
                                   >
-                                    {stages[currentStageIndex + 1]?.title}
+                                    {layout.shouldUseCompactLayout 
+                                      ? "Next" 
+                                      : stages[currentStageIndex + 1]?.title
+                                    }
                                     <ChevronRight className="w-3 h-3 ml-1" />
                                   </Button>
                                 )}

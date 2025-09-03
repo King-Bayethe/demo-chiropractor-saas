@@ -28,8 +28,16 @@ const useResponsiveColumns = () => {
   const getColumnConfig = () => {
     const { width } = screenSize;
     
-    if (width < 768) {
-      // Mobile: Very compact columns
+    if (width < 640) {
+      // Small mobile: Extra compact
+      return {
+        width: 'w-56 min-w-56 max-w-56',
+        widthPx: 224,
+        gap: 'gap-2',
+        containerPadding: 'px-2'
+      };
+    } else if (width < 768) {
+      // Mobile: Compact columns
       return {
         width: 'w-60 min-w-60 max-w-60',
         widthPx: 240,
@@ -37,28 +45,36 @@ const useResponsiveColumns = () => {
         containerPadding: 'px-2'
       };
     } else if (width < 1024) {
-      // Tablet: Compact columns
+      // Tablet: Medium columns
       return {
         width: 'w-64 min-w-64 max-w-64',
         widthPx: 256,
         gap: 'gap-3',
         containerPadding: 'px-3'
       };
-    } else if (width < 1440) {
-      // Small desktop: Medium columns to fit 3-4 columns
+    } else if (width < 1280) {
+      // Small desktop: Balanced columns
       return {
         width: 'w-72 min-w-72 max-w-72',
         widthPx: 288,
         gap: 'gap-3',
         containerPadding: 'px-4'
       };
-    } else {
-      // Large desktop: Full size columns
+    } else if (width < 1920) {
+      // Large desktop: Comfortable columns
       return {
         width: 'w-80 min-w-80 max-w-80',
         widthPx: 320,
         gap: 'gap-4',
         containerPadding: 'px-4'
+      };
+    } else {
+      // Ultra-wide: Maximum columns
+      return {
+        width: 'w-96 min-w-96 max-w-96',
+        widthPx: 384,
+        gap: 'gap-4',
+        containerPadding: 'px-6'
       };
     }
   };
@@ -190,32 +206,40 @@ export function KanbanPipelineBoard({
         stages={stages}
         onMoveOpportunity={onMoveOpportunity}
       >
-        <div className="relative h-full">
-          {/* Simplified scroll container */}
+        <div className="relative w-full h-full overflow-hidden">
+          {/* Horizontally scrollable container */}
           <div 
             className={cn(
-              "flex h-full min-h-[400px] kanban-scroll-container",
+              "flex h-full overflow-x-auto overflow-y-hidden",
               columnConfig.gap,
-              columnConfig.containerPadding
+              columnConfig.containerPadding,
+              "pb-4" // Add padding for better scrollbar appearance
             )}
             style={{
-              width: `${stages.length * (columnConfig.widthPx + 16) + 100}px`, // Guaranteed overflow
-              minWidth: '100%'
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'hsl(var(--muted-foreground)) transparent'
             }}
           >
-            {stages.map(stage => (
-              <StageColumn
-                key={stage.id}
-                stage={stage}
-                opportunities={opportunitiesByStage[stage.id] || []}
-                onMoveOpportunity={onMoveOpportunity}
-              />
-            ))}
+            <div 
+              className="flex gap-inherit"
+              style={{
+                minWidth: `${stages.length * (columnConfig.widthPx + 16)}px`
+              }}
+            >
+              {stages.map(stage => (
+                <StageColumn
+                  key={stage.id}
+                  stage={stage}
+                  opportunities={opportunitiesByStage[stage.id] || []}
+                  onMoveOpportunity={onMoveOpportunity}
+                />
+              ))}
+            </div>
           </div>
           
-          {/* Scroll indicators for visual feedback */}
-          <div className="pointer-events-none absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-background via-background/80 to-transparent opacity-30 z-10" />
-          <div className="pointer-events-none absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-background via-background/80 to-transparent opacity-30 z-10" />
+          {/* Scroll indicators */}
+          <div className="pointer-events-none absolute top-0 left-0 w-4 h-full bg-gradient-to-r from-background to-transparent opacity-50 z-10" />
+          <div className="pointer-events-none absolute top-0 right-0 w-4 h-full bg-gradient-to-l from-background to-transparent opacity-50 z-10" />
         </div>
       </PipelineDragProvider>
     </div>

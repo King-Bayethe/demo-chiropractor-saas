@@ -283,88 +283,120 @@ html {
 
 /* Enhanced scrollbar styles for medical pipeline board */
 .kanban-scroll-container {
-  scrollbar-width: auto;
+  scrollbar-width: thin;
   scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
-  /* Force both horizontal and vertical scrollbars to show when needed */
-  overflow-x: scroll !important;
-  overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  /* Ensure scrollbar appears even with minimal overflow */
-  min-width: calc(100% + 1px);
-  min-height: calc(100% + 1px);
 }
 
-.kanban-scroll-container::-webkit-scrollbar {
-  height: 18px;
-  width: 18px;
-  /* Force scrollbar to be visible */
-  -webkit-appearance: none;
-  display: block !important;
+/* Custom scrollbars for all elements */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
   background: hsl(var(--muted));
+  border-radius: 4px;
 }
 
-.kanban-scroll-container::-webkit-scrollbar:horizontal {
-  height: 18px;
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
 }
 
-.kanban-scroll-container::-webkit-scrollbar:vertical {
-  width: 18px;
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
 }
 
-.kanban-scroll-container::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 9px;
-  margin: 0 4px;
-  /* Ensure track is always visible */
-  display: block !important;
-  border: 1px solid hsl(var(--border));
-}
-
-.kanban-scroll-container::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--medical-teal)));
-  border-radius: 9px;
-  border: 2px solid hsl(var(--background));
-  min-width: 60px;
-  /* Ensure thumb is always visible */
-  display: block !important;
-  box-shadow: 0 2px 4px hsl(var(--border) / 0.3);
-}
-
-.kanban-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, hsl(var(--medical-blue) / 0.8), hsl(var(--medical-teal) / 0.8));
-  box-shadow: 0 2px 6px hsl(var(--border) / 0.5);
-}
-
-.kanban-scroll-container::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, hsl(var(--medical-blue) / 0.6), hsl(var(--medical-teal) / 0.6));
-  box-shadow: 0 1px 2px hsl(var(--border) / 0.4);
-}
-
-/* Firefox scrollbar styling */
-.kanban-scroll-container {
-  scrollbar-width: auto;
-  scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
-}
-
-/* Responsive column widths for better viewport utilization */
-@media (max-width: 767px) {
-  .kanban-scroll-container {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+/* Enhanced scrollbar styling for mobile and touch devices */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) hsl(var(--muted));
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
-  .kanban-scroll-container {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+/* Better mobile scroll indicators */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border) / 0.6);
+    border-radius: 2px;
   }
 }
 
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .kanban-scroll-container {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+/* Viewport-based responsive breakpoints */
+@media (max-width: 480px) {
+  .opportunities-page {
+    padding: 0.5rem;
   }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .opportunities-page {
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .opportunities-page {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .opportunities-page {
+    padding: 1.5rem;
+  }
+}
+
+/* Enhanced touch scrolling for mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  .kanban-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  
+  /* Hide scrollbars on touch devices but keep functionality */
+  .kanban-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Improved focus indicators for accessibility */
+.opportunities-focus:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Better text scaling for different screen sizes */
+@media (max-width: 480px) {
+  .responsive-text-xs { font-size: 0.75rem; }
+  .responsive-text-sm { font-size: 0.8125rem; }
+  .responsive-text-base { font-size: 0.875rem; }
+  .responsive-text-lg { font-size: 1rem; }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .responsive-text-xs { font-size: 0.8125rem; }
+  .responsive-text-sm { font-size: 0.875rem; }
+  .responsive-text-base { font-size: 1rem; }
+  .responsive-text-lg { font-size: 1.125rem; }
+}
+
+@media (min-width: 1920px) {
+  .responsive-text-xs { font-size: 0.875rem; }
+  .responsive-text-sm { font-size: 1rem; }
+  .responsive-text-base { font-size: 1.125rem; }
+  .responsive-text-lg { font-size: 1.25rem; }
 }
