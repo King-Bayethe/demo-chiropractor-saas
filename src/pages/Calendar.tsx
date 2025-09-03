@@ -309,7 +309,7 @@ export default function Calendar() {
               appointment={editingAppointment ? {
                 id: editingAppointment.id,
                 title: editingAppointment.title,
-                contact_id: editingAppointment.patientId,
+                contact_id: editingAppointment.patientId || '',
                 start_time: editingAppointment.startTime.toISOString(),
                 end_time: editingAppointment.endTime.toISOString(),
                 status: editingAppointment.status,
