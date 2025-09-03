@@ -265,161 +265,43 @@ html {
   min-height: calc(var(--vh, 1vh) * 100);
 }
 
-/* Enhanced responsive utilities */
-@media (max-width: 639px) {
+/* Better mobile spacing */
+@media (max-width: 768px) {
   .mobile-optimized {
-    padding: 0.5rem;
+    padding: 0.75rem;
   }
   
   .mobile-spacing > * + * {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
   }
   
   .mobile-text {
     font-size: 0.875rem;
     line-height: 1.25rem;
   }
-  
-  /* Mobile-first touch targets */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Mobile scrolling improvements */
-  .mobile-scroll {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
 }
 
-/* Tablet optimizations */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .tablet-optimized {
-    padding: 0.75rem;
-  }
-  
-  .tablet-spacing > * + * {
-    margin-top: 0.75rem;
-  }
-  
-  /* Tablet landscape vs portrait */
-  @media (orientation: landscape) {
-    .tablet-landscape {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  
-  @media (orientation: portrait) {
-    .tablet-portrait {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-}
-
-/* Desktop optimizations */
-@media (min-width: 1024px) {
-  .desktop-optimized {
-    padding: 1rem;
-  }
-  
-  .desktop-spacing > * + * {
-    margin-top: 1rem;
-  }
-  
-  /* Enhanced focus indicators for keyboard navigation */
-  .desktop-focus:focus-visible {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 2px;
-  }
-}
-
-/* Enhanced pipeline scroll container with responsive behavior */
-.pipeline-scroll-container {
-  position: relative;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
-  
-  /* Force width to be wider than viewport */
-  min-width: max-content;
-  
-  /* Responsive scrollbar behavior */
+/* Enhanced scrollbar styles for medical pipeline board */
+.kanban-scroll-container {
   scrollbar-width: auto;
   scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
+  /* Force both horizontal and vertical scrollbars to show when needed */
+  overflow-x: scroll !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  /* Ensure scrollbar appears even with minimal overflow */
+  min-width: calc(100% + 1px);
+  min-height: calc(100% + 1px);
 }
 
-/* Mobile pipeline scrolling */
-@media (max-width: 639px) {
-  .pipeline-scroll-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    
-    /* Hide scrollbars on mobile for cleaner look */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .pipeline-scroll-container::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Snap points for mobile swiping */
-  .pipeline-column {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-  }
-}
-
-/* Tablet and desktop pipeline scrolling */
-@media (min-width: 640px) {
-  .pipeline-scroll-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-    
-    /* Show enhanced scrollbars */
-    scrollbar-width: auto;
-    
-    /* Force wider content */
-    min-width: calc(100vw + 400px);
-  }
-}
-
-/* Legacy kanban container support */
-.kanban-scroll-container {
-  @apply pipeline-scroll-container;
-}
-
-/* Responsive scrollbar styling */
-.pipeline-scroll-container::-webkit-scrollbar {
-  height: 16px;
-  width: 16px;
-  background: hsl(var(--muted));
-}
-
-@media (min-width: 640px) {
-  .pipeline-scroll-container::-webkit-scrollbar {
-    height: 18px;
-    width: 18px;
-    -webkit-appearance: none;
-    display: block !important;
-  }
-}
-
-.pipeline-scroll-container::-webkit-scrollbar:horizontal {
-  height: 16px;
-}
-
-.pipeline-scroll-container::-webkit-scrollbar:vertical {
-  width: 16px;
-}
-
-/* Legacy support */
 .kanban-scroll-container::-webkit-scrollbar {
-  @apply pipeline-scroll-container;
+  height: 18px;
+  width: 18px;
+  /* Force scrollbar to be visible */
+  -webkit-appearance: none;
+  display: block !important;
+  background: hsl(var(--muted));
 }
 
 .kanban-scroll-container::-webkit-scrollbar:horizontal {
@@ -430,29 +312,13 @@ html {
   width: 18px;
 }
 
-/* Enhanced scrollbar track styling */
-.pipeline-scroll-container::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 8px;
-  margin: 0 2px;
-  border: 1px solid hsl(var(--border));
-}
-
 .kanban-scroll-container::-webkit-scrollbar-track {
   background: hsl(var(--muted));
   border-radius: 9px;
   margin: 0 4px;
+  /* Ensure track is always visible */
   display: block !important;
   border: 1px solid hsl(var(--border));
-}
-
-/* Enhanced scrollbar thumb styling */
-.pipeline-scroll-container::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--medical-teal)));
-  border-radius: 8px;
-  border: 1px solid hsl(var(--background));
-  min-width: 40px;
-  box-shadow: 0 1px 3px hsl(var(--border) / 0.2);
 }
 
 .kanban-scroll-container::-webkit-scrollbar-thumb {
@@ -460,82 +326,45 @@ html {
   border-radius: 9px;
   border: 2px solid hsl(var(--background));
   min-width: 60px;
+  /* Ensure thumb is always visible */
   display: block !important;
   box-shadow: 0 2px 4px hsl(var(--border) / 0.3);
 }
 
-/* Scrollbar hover and active states */
-.pipeline-scroll-container::-webkit-scrollbar-thumb:hover,
 .kanban-scroll-container::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, hsl(var(--medical-blue) / 0.8), hsl(var(--medical-teal) / 0.8));
   box-shadow: 0 2px 6px hsl(var(--border) / 0.5);
 }
 
-.pipeline-scroll-container::-webkit-scrollbar-thumb:active,
 .kanban-scroll-container::-webkit-scrollbar-thumb:active {
   background: linear-gradient(135deg, hsl(var(--medical-blue) / 0.6), hsl(var(--medical-teal) / 0.6));
   box-shadow: 0 1px 2px hsl(var(--border) / 0.4);
 }
 
-/* Enhanced responsive pipeline utilities */
-.pipeline-touch-optimized {
-  touch-action: pan-x pan-y;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+/* Firefox scrollbar styling */
+.kanban-scroll-container {
+  scrollbar-width: auto;
+  scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
 }
 
-.pipeline-momentum-scroll {
-  scroll-behavior: smooth;
-  scroll-snap-type: both mandatory;
-}
-
-/* Mobile-first responsive pipeline spacing */
-@media (max-width: 639px) {
-  .pipeline-mobile {
-    padding: 0.5rem;
-    gap: 0.5rem;
-  }
-  
-  .pipeline-column-mobile {
-    min-width: 280px;
-    max-width: 280px;
-    scroll-snap-align: start;
+/* Responsive column widths for better viewport utilization */
+@media (max-width: 767px) {
+  .kanban-scroll-container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
 }
 
-/* Tablet responsive pipeline spacing */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .pipeline-tablet {
-    padding: 0.75rem;
-    gap: 0.75rem;
-  }
-  
-  .pipeline-column-tablet {
-    min-width: 300px;
-    max-width: 300px;
+@media (min-width: 768px) and (max-width: 1023px) {
+  .kanban-scroll-container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 }
 
-/* Desktop responsive pipeline spacing */
-@media (min-width: 1024px) {
-  .pipeline-desktop {
-    padding: 1rem;
-    gap: 1rem;
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .kanban-scroll-container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
-  
-  .pipeline-column-desktop {
-    min-width: 320px;
-    max-width: 320px;
-  }
-}
-
-/* Performance optimizations */
-.pipeline-virtual {
-  contain: layout style paint;
-  will-change: transform;
-}
-
-.pipeline-lazy {
-  content-visibility: auto;
-  contain-intrinsic-size: 300px;
 }

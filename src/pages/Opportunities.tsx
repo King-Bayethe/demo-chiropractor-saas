@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Plus, DollarSign, Users, TrendingUp, Target } from "lucide-react";
 import { AddOpportunityModal } from "@/components/pipeline/AddOpportunityModal";
 import { TabsPipelineBoard } from "@/components/opportunities/TabsPipelineBoard";
-import { OptimizedKanbanBoard } from "@/components/opportunities/OptimizedKanbanBoard";
+import { KanbanPipelineBoard } from "@/components/opportunities/KanbanPipelineBoard";
 import { PipelineViewToggle, PipelineViewType } from "@/components/opportunities/PipelineViewToggle";
 import { useOpportunities, MEDICAL_PIPELINE_STAGES } from "@/hooks/useOpportunities";
-import { useUnifiedResponsive } from "@/hooks/useUnifiedResponsive";
+import { useIsMobile } from "@/hooks/use-breakpoints";
+import { useAdaptiveLayout } from "@/hooks/useViewportResize";
 import { cn } from "@/lib/utils";
 
 export default function Opportunities() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [pipelineView, setPipelineView] = useState<PipelineViewType>('tabs');
   const { opportunities, loading, updateOpportunityStage } = useOpportunities();
-  const responsive = useUnifiedResponsive();
+  const isMobile = useIsMobile();
+  const layout = useAdaptiveLayout();
 
   // Process stages
   const stages = MEDICAL_PIPELINE_STAGES.map(stage => ({
@@ -79,22 +81,25 @@ export default function Opportunities() {
   return (
     <AuthGuard>
       <Layout>
-        <div className="h-full overflow-y-auto overflow-x-visible space-y-3 px-4 py-3">
+        <div className={cn(
+          "h-full overflow-auto",
+          layout.shouldReduceSpacing ? "space-y-2 p-2" : "space-y-3 p-3 sm:p-4"
+        )}>
           {/* Header */}
           <div className={cn(
             "flex justify-between gap-2",
-            responsive.shouldUseCompactLayout ? "flex-col" : "flex-col sm:flex-row sm:items-center"
+            layout.shouldUseCompactLayout ? "flex-col" : "flex-col sm:flex-row sm:items-center"
           )}>
             <div>
               <h1 className={cn(
                 "font-bold tracking-tight",
-                responsive.config.typography.headingSize
+                layout.shouldUseCompactLayout ? "text-lg" : "text-xl sm:text-2xl"
               )}>
                 Medical Pipeline
               </h1>
               <p className={cn(
                 "text-muted-foreground",
-                responsive.config.typography.textSize
+                layout.shouldUseCompactLayout ? "text-xs" : "text-sm sm:text-base"
               )}>
                 Track patients through your medical pipeline
               </p>
@@ -107,12 +112,12 @@ export default function Opportunities() {
               <Button 
                 onClick={() => setShowAddModal(true)} 
                 className={cn(
-                  "flex items-center gap-2 touch-target",
-                  responsive.shouldUseCompactLayout ? "h-8 text-xs" : "w-full sm:w-auto"
+                  "flex items-center gap-2",
+                  layout.shouldUseCompactLayout ? "h-8 text-xs" : "w-full sm:w-auto"
                 )}
-                size={responsive.shouldUseCompactLayout ? "sm" : "default"}
+                size={layout.shouldUseCompactLayout ? "sm" : "default"}
               >
-                <Plus className={cn(responsive.shouldUseCompactLayout ? "h-3 w-3" : "h-4 w-4")} />
+                <Plus className={cn(layout.shouldUseCompactLayout ? "h-3 w-3" : "h-4 w-4")} />
                 Add Opportunity
               </Button>
             </div>
@@ -120,41 +125,45 @@ export default function Opportunities() {
 
           {/* Pipeline Stats */}
           <div className={cn(
-            "grid",
-            responsive.config.spacing.gap,
-            `grid-cols-${responsive.config.columns.stats}`
+            "grid gap-2",
+            layout.shouldUseCompactLayout ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-4",
+            layout.shouldReduceSpacing ? "gap-1.5" : "gap-2 sm:gap-3"
           )}>
-            <Card className={responsive.config.spacing.cardPadding}>
+            <Card className={cn(layout.shouldUseCompactLayout ? "p-2" : "p-3")}>
               <CardHeader className={cn(
                 "flex flex-row items-center justify-between space-y-0",
-                responsive.shouldUseCompactLayout ? "pb-0.5" : "pb-1"
+                layout.shouldUseCompactLayout ? "pb-0.5" : "pb-1"
               )}>
                 <CardTitle className={cn(
-                  "font-medium text-xs"
+                  "font-medium",
+                  layout.shouldUseCompactLayout ? "text-xs" : "text-xs"
                 )}>
                   Total Pipeline
                 </CardTitle>
                 <DollarSign className={cn(
                   "text-muted-foreground",
-                  responsive.shouldUseCompactLayout ? "h-2.5 w-2.5" : "h-3 w-3"
+                  layout.shouldUseCompactLayout ? "h-2.5 w-2.5" : "h-3 w-3"
                 )} />
               </CardHeader>
               <CardContent className="p-0">
                 <div className={cn(
                   "font-bold",
-                  responsive.shouldUseCompactLayout ? "text-sm" : "text-lg"
+                  layout.shouldUseCompactLayout ? "text-sm" : "text-lg"
                 )}>
                   ${stats.totalValue.toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className={cn(
+                  "text-muted-foreground",
+                  layout.shouldUseCompactLayout ? "text-xs" : "text-xs"
+                )}>
                   {stats.totalOpportunities} opportunities
                 </p>
               </CardContent>
             </Card>
             
-            {/* Show only essential stats when not showing full stats */}
-            {!responsive.config.behavior.showFullStats ? (
-              <Card className={responsive.config.spacing.cardPadding}>
+            {/* Show only most important stats in compact mode */}
+            {layout.shouldUseCompactLayout ? (
+              <Card className="p-2">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0.5">
                   <CardTitle className="text-xs font-medium">Conversion</CardTitle>
                   <TrendingUp className="h-2.5 w-2.5 text-muted-foreground" />
@@ -170,7 +179,7 @@ export default function Opportunities() {
               </Card>
             ) : (
               <>
-                <Card className={responsive.config.spacing.cardPadding}>
+                <Card className="p-3">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                     <CardTitle className="text-xs font-medium">Avg Deal Size</CardTitle>
                     <Target className="h-3 w-3 text-muted-foreground" />
@@ -183,7 +192,7 @@ export default function Opportunities() {
                   </CardContent>
                 </Card>
                 
-                <Card className={responsive.config.spacing.cardPadding}>
+                <Card className="p-3">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                     <CardTitle className="text-xs font-medium">Active Contacts</CardTitle>
                     <Users className="h-3 w-3 text-muted-foreground" />
@@ -196,7 +205,7 @@ export default function Opportunities() {
                   </CardContent>
                 </Card>
                 
-                <Card className={responsive.config.spacing.cardPadding}>
+                <Card className="p-3">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                     <CardTitle className="text-xs font-medium">Conversion Rate</CardTitle>
                     <TrendingUp className="h-3 w-3 text-muted-foreground" />
@@ -218,22 +227,24 @@ export default function Opportunities() {
 
           {/* Stage Summary */}
           <Card>
-            <CardHeader className={responsive.config.spacing.cardPadding}>
+            <CardHeader className={cn(
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+            )}>
               <CardTitle className={cn(
-                responsive.config.typography.textSize,
-                "font-semibold"
+                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
               )}>
                 Stage Summary
               </CardTitle>
             </CardHeader>
             <CardContent className={cn(
               "pt-0",
-              responsive.config.spacing.cardPadding
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
             )}>
               <div className={cn(
-                "grid",
-                responsive.config.spacing.gap,
-                `grid-cols-${Math.min(responsive.config.columns.pipeline, 6)}`
+                "grid gap-2",
+                layout.shouldUseCompactLayout 
+                  ? "grid-cols-3 gap-1.5" 
+                  : "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3"
               )}>
                 {stageStats.map((stage) => {
                   const getStageColorClass = (color: string) => {
@@ -252,11 +263,11 @@ export default function Opportunities() {
                   return (
                     <div key={stage.id} className={cn(
                       "text-center",
-                      responsive.shouldUseCompactLayout ? "space-y-0.5" : "space-y-1"
+                      layout.shouldUseCompactLayout ? "space-y-0.5" : "space-y-1"
                     )}>
                       <div className={cn(
-                        "rounded-full mx-auto flex items-center justify-center text-white font-bold touch-target",
-                        responsive.shouldUseCompactLayout 
+                        "rounded-full mx-auto flex items-center justify-center text-white font-bold",
+                        layout.shouldUseCompactLayout 
                           ? "w-6 h-6 text-xs" 
                           : "w-8 h-8 sm:w-10 sm:h-10 text-xs sm:text-sm",
                         getStageColorClass(stage.color)
@@ -264,13 +275,16 @@ export default function Opportunities() {
                         {stage.count}
                       </div>
                       <div>
-                        <p className="font-medium leading-tight text-xs">
-                          {responsive.shouldUseCompactLayout 
+                        <p className={cn(
+                          "font-medium leading-tight",
+                          layout.shouldUseCompactLayout ? "text-xs" : "text-xs"
+                        )}>
+                          {layout.shouldUseCompactLayout 
                             ? stage.name.split(' ')[0] // Show only first word in compact mode
                             : stage.name
                           }
                         </p>
-                        {responsive.config.behavior.showFullStats && (
+                        {!layout.shouldUseCompactLayout && (
                           <p className="text-xs text-muted-foreground">
                             ${stage.value.toLocaleString()}
                           </p>
@@ -285,39 +299,36 @@ export default function Opportunities() {
 
           {/* Pipeline Board */}
           <Card className="p-0">
-            <CardHeader className={responsive.config.spacing.cardPadding}>
+            <CardHeader className={cn(
+              layout.shouldUseCompactLayout ? "p-2" : "p-3 sm:p-4"
+            )}>
               <CardTitle className={cn(
-                responsive.config.typography.textSize,
-                "font-semibold"
+                layout.shouldUseCompactLayout ? "text-sm" : "text-sm sm:text-base"
               )}>
                 Medical Pipeline Board
               </CardTitle>
             </CardHeader>
             <CardContent 
               className={cn(
-                "pipeline-scroll-container pipeline-touch-optimized overflow-x-auto",
-                responsive.utils.getClasses({
-                  mobile: "p-1 pipeline-mobile",
-                  tablet: "p-2 pipeline-tablet", 
-                  desktop: "p-3 pipeline-desktop"
-                })
+                "overflow-x-auto overflow-y-hidden",
+                layout.shouldUseCompactLayout ? "p-1" : isMobile ? "p-2" : "p-3"
               )}
               style={{ 
-                height: `clamp(300px, ${responsive.utils.sizing.pipelineHeight}px, 80vh)`,
-                minWidth: 'max-content'
+                height: `clamp(300px, ${layout.cardHeight}px, 80vh)`
               }}
             >
-              {(responsive.config.behavior.useTabsView || pipelineView === 'tabs') ? (
+              {pipelineView === 'tabs' ? (
                 <TabsPipelineBoard
                   opportunities={opportunities}
                   stages={stages}
                   onMoveOpportunity={handleMoveOpportunity}
                 />
               ) : (
-                <OptimizedKanbanBoard
+                <KanbanPipelineBoard
                   opportunities={opportunities}
                   stages={stages}
                   onMoveOpportunity={handleMoveOpportunity}
+                  compact={layout.shouldUseCompactLayout}
                 />
               )}
             </CardContent>
