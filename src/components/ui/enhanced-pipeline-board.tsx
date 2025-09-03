@@ -102,12 +102,12 @@ export function EnhancedPipelineBoard({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full bg-background"
+      className="relative w-full flex flex-col bg-background"
       role="region"
       aria-label="Pipeline Board"
     >
       {/* Enhanced Header */}
-      <Card className="mb-4">
+      <Card className="mb-4 flex-shrink-0">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle className={responsive.config.typography.headingSize}>
@@ -204,11 +204,13 @@ export function EnhancedPipelineBoard({
       </Card>
 
       {/* Pipeline Board Content */}
-      <Card className="flex-1 min-h-0">
-        <CardContent className="p-4 h-full overflow-hidden">
-          {renderBoard()}
-        </CardContent>
-      </Card>
+      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
+        <Card className="h-full min-h-[600px]">
+          <CardContent className="p-4 h-full">
+            {renderBoard()}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

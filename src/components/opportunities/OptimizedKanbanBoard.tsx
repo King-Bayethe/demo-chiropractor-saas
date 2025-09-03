@@ -161,7 +161,7 @@ export function OptimizedKanbanBoard({
   }, [stages.length, responsive]);
 
   return (
-    <div className={cn("w-full h-full", className)}>
+    <div className={cn("w-full h-full overflow-x-auto overflow-y-hidden", className)}>
       <PipelineDragProvider
         opportunities={opportunities}
         stages={stages}
@@ -171,9 +171,8 @@ export function OptimizedKanbanBoard({
           {/* Enhanced scroll container */}
           <div 
             className={cn(
-              "flex h-full min-h-[400px] pipeline-scroll-container pipeline-touch-optimized",
+              "flex h-full min-h-[500px] gap-4 p-2",
               containerClasses,
-              responsive.config.spacing.gap,
               {
                 "pipeline-momentum-scroll": responsive.pipeline.touch.snapBehavior
               }
@@ -193,10 +192,6 @@ export function OptimizedKanbanBoard({
               />
             ))}
           </div>
-          
-          {/* Visual scroll indicators */}
-          <div className="pointer-events-none absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-background via-background/80 to-transparent opacity-30 z-10" />
-          <div className="pointer-events-none absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-background via-background/80 to-transparent opacity-30 z-10" />
         </div>
       </PipelineDragProvider>
     </div>
