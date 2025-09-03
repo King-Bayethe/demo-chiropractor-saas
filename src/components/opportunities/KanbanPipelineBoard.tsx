@@ -187,8 +187,8 @@ export function KanbanPipelineBoard({
         onMoveOpportunity={onMoveOpportunity}
       >
         <div className="relative h-full">
-          {/* Horizontal scroll container with custom scrollbar */}
-          <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-2 scroll-smooth">
+          {/* Horizontal scroll container with visible scrollbar */}
+          <div className="kanban-scroll-container h-full overflow-x-auto overflow-y-hidden pb-4 scroll-smooth">
             <div className={cn(
               "flex h-full min-h-[400px]",
               columnConfig.gap,
@@ -205,9 +205,9 @@ export function KanbanPipelineBoard({
             </div>
           </div>
           
-          {/* Scroll indicators */}
-          <div className="pointer-events-none absolute top-0 left-0 w-8 h-full bg-gradient-to-r from-background to-transparent opacity-50 z-10" />
-          <div className="pointer-events-none absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background to-transparent opacity-50 z-10" />
+          {/* Scroll indicators for visual feedback */}
+          <div className="pointer-events-none absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-background via-background/80 to-transparent opacity-30 z-10" />
+          <div className="pointer-events-none absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-background via-background/80 to-transparent opacity-30 z-10" />
         </div>
       </PipelineDragProvider>
     </div>
