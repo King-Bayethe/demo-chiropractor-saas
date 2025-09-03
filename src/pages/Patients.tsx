@@ -29,7 +29,8 @@ import {
   Clock,
   Activity,
   MoreVertical,
-  Trash2
+  Trash2,
+  Languages
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -373,9 +374,15 @@ export default function Patients() {
                                   <Clock className="w-3 h-3 text-muted-foreground" />
                                   <span className="text-xs">{getLastAppointment(patient)}</span>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <Activity className="w-3 h-3 text-success" />
-                                  <span className="text-xs font-medium">{getTotalVisits(patient)} visits</span>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <Activity className="w-3 h-3 text-success" />
+                                    <span className="text-xs font-medium">{getTotalVisits(patient)} visits</span>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <Languages className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-xs">{patient.preferred_language || 'English'}</span>
+                                  </div>
                                 </div>
                               </div>
                               
@@ -385,9 +392,6 @@ export default function Patients() {
                                  </Button>
                                  <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)} className="flex-1 text-xs px-2 py-1">
                                    <Calendar className="w-3 h-3 mr-1" />Book
-                                 </Button>
-                                 <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)} className="flex-1 text-xs px-2 py-1">
-                                   <User className="w-3 h-3 mr-1" />View
                                  </Button>
                                  <Button 
                                    variant="ghost" 
@@ -415,14 +419,15 @@ export default function Patients() {
                           <th className="text-left p-4 font-medium text-sm">Type</th>
                           <th className="text-left p-4 font-medium text-sm">Last Appointment</th>
                           <th className="text-left p-4 font-medium text-sm">Total Visits</th>
+                          <th className="text-left p-4 font-medium text-sm">Language</th>
                           <th className="text-left p-4 font-medium text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/50">
                         {loading ? (
-                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr>
+                          <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">Loading patients...</td></tr>
                         ) : currentPatients.length === 0 ? (
-                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr>
+                          <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">{searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}</td></tr>
                          ) : (
                           currentPatients.map((patient: Patient) => {
                             const patientType = getPatientType(patient);
@@ -479,11 +484,16 @@ export default function Patients() {
                                   <span className="font-medium text-sm">{getTotalVisits(patient)}</span>
                                 </div>
                               </td>
+                              <td className="p-4">
+                                <div className="flex items-center space-x-2">
+                                  <Languages className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-sm">{patient.preferred_language || 'English'}</span>
+                                </div>
+                              </td>
                                <td className="p-4">
                                  <div className="flex items-center space-x-1">
                                    <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)}><MessageSquare className="w-4 h-4 mr-1" />Message</Button>
                                    <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)}><Calendar className="w-4 h-4 mr-1" />Book</Button>
-                                   <Button variant="ghost" size="sm" onClick={() => handlePatientSelect(patient)}><User className="w-4 h-4 mr-1" />View</Button>
                                    <Button 
                                      variant="ghost" 
                                      size="sm" 
