@@ -236,15 +236,6 @@ export default function Patients() {
                   </Button>
                 )}
                 <Button 
-                  variant="secondary" 
-                  size={isMobile ? "default" : "sm"}
-                  onClick={handleCreateCashPatient}
-                  disabled={isSubmitting}
-                  className={cn(isMobile ? "w-full" : "")}
-                >
-                  {isSubmitting ? "Creating..." : isMobile ? "Cash Patient" : "Create Cash Patient"}
-                </Button>
-                <Button 
                   size={isMobile ? "default" : "sm"} 
                   onClick={handleAddPatient}
                   className={cn(isMobile ? "w-full" : "")}
