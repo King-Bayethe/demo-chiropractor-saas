@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { MockFormTestPanel } from "@/components/forms/MockFormTestPanel";
 
 interface FormSubmission {
   id: string;
@@ -517,6 +518,11 @@ export default function Forms() {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Mock Form Test Panel */}
+        <div className="mb-6">
+          <MockFormTestPanel />
         </div>
 
         {/* Add New Lead Modal */}

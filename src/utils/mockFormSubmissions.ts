@@ -1,9 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock PIP Form Data
+// Mock PIP Form Data - Generate unique test data to avoid duplicates
+const timestamp = Date.now();
 const mockPIPFormData = {
   // General Information
-  lastName: "Rodriguez",
+  lastName: `Rodriguez-${timestamp}`,
   firstName: "Maria",
   address: "123 Medical Center Blvd",
   city: "Miami",
@@ -12,7 +13,7 @@ const mockPIPFormData = {
   homePhone: "305-555-0123",
   workPhone: "305-555-0456",
   cellPhone: "305-555-0789",
-  email: "maria.rodriguez@email.com",
+  email: `maria.rodriguez.${timestamp}@email.com`,
   licenseNumber: "R123456789",
   licenseState: "FL",
   dob: "1985-03-15",
@@ -162,9 +163,9 @@ const mockPIPFormData = {
   age: "39"
 };
 
-// Mock Cash Form Data
+// Mock Cash Form Data - Generate unique test data
 const mockCashFormData = {
-  lastName: "Johnson",
+  lastName: `Johnson-${timestamp}`,
   firstName: "Michael",
   address: "456 Oak Street",
   city: "Orlando",
@@ -173,7 +174,7 @@ const mockCashFormData = {
   homePhone: "407-555-1234",
   workPhone: "407-555-5678",
   cellPhone: "407-555-9012",
-  email: "michael.johnson@email.com",
+  email: `michael.johnson.${timestamp}@email.com`,
   driversLicense: "J987654321",
   driversLicenseState: "FL",
   emergencyContact: "Sarah Johnson",
@@ -229,9 +230,9 @@ const mockCashFormData = {
   date: "2024-12-20"
 };
 
-// Mock LOP Form Data
+// Mock LOP Form Data - Generate unique test data
 const mockLOPFormData = {
-  lastName: "Williams",
+  lastName: `Williams-${timestamp}`,
   firstName: "Jennifer",
   address: "789 Pine Avenue",
   city: "Tampa",
@@ -240,7 +241,7 @@ const mockLOPFormData = {
   homePhone: "813-555-2468",
   workPhone: "813-555-1357",
   cellPhone: "813-555-9753",
-  email: "jennifer.williams@email.com",
+  email: `jennifer.williams.${timestamp}@email.com`,
   driversLicense: "W456789123",
   driversLicenseState: "FL",
   emergencyContact: "Robert Williams",
@@ -300,10 +301,10 @@ const mockLOPFormData = {
   date: "2024-12-20"
 };
 
-// Mock New Form Data (similar to PIP but with different patient)
+// Mock New Form Data - Generate unique test data
 const mockNewFormData = {
   // General Information
-  lastName: "Davis",
+  lastName: `Davis-${timestamp}`,
   firstName: "Robert",
   address: "555 Maple Drive",
   city: "Jacksonville",
@@ -312,7 +313,7 @@ const mockNewFormData = {
   homePhone: "904-555-7890",
   workPhone: "904-555-2345",
   cellPhone: "904-555-6789",
-  email: "robert.davis@email.com",
+  email: `robert.davis.${timestamp}@email.com`,
   licenseNumber: "D456123789",
   licenseState: "FL",
   dob: "1982-07-08",

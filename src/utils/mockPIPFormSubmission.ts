@@ -4,9 +4,8 @@
 import { runMockFormTests } from './testMockForms';
 
 console.log('⚠️  This file is deprecated. Using new comprehensive mock form system...');
-console.log('📝 To test all forms: import { runMockFormTests } from "./testMockForms"');
+console.log('📝 To test all forms manually: import { runMockFormTests } from "./testMockForms"');
+console.log('📝 To run tests: call runMockFormTests() manually in the console');
 
-// Auto-run the comprehensive tests
-runMockFormTests().then(results => {
-  console.log('🎉 Comprehensive mock form testing completed!', results);
-});
+// Export the test function for manual execution
+export { runMockFormTests };
