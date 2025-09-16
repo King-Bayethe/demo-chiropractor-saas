@@ -7,11 +7,15 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AIProvider } from "@/contexts/AIContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationHandler } from "@/components/NotificationHandler";
+import { AuthGuard } from "@/components/AuthGuard";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Contacts from "./pages/Contacts";
 import Conversations from "./pages/Conversations";
+import DemoConversations from "./pages/DemoConversations";
 import TeamChat from "./pages/TeamChat";
 import Forms from "./pages/Forms";
 import Documents from "./pages/Documents";
@@ -45,49 +49,58 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <ThemeProvider defaultTheme="light" storageKey="healthcare-portfolio-theme">
-        <NotificationProvider>
-          <AIProvider>
-            <LanguageProvider>
-              <TooltipProvider>
-                <NotificationHandler />
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                    <Route path="/patients" element={<Patients />} />
-                    <Route path="/patients/:patientId" element={<PatientProfile />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/soap-notes" element={<SOAPNotes />} />
-                    <Route path="/soap-notes/new" element={<NewSOAPNote />} />
-                    <Route path="/soap-notes/view/:id" element={<ViewSOAPNote />} />
-                    <Route path="/soap-notes/edit/:id" element={<EditSOAPNote />} />
+        <AuthProvider>
+          <NotificationProvider>
+            <AIProvider>
+              <LanguageProvider>
+                <TooltipProvider>
+                  <NotificationHandler />
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    {/* Public Landing Page */}
+                    <Route path="/landing" element={<Landing />} />
                     
-                    <Route path="/invoices" element={<Invoices />} />
-                    <Route path="/conversations" element={<Conversations />} />
-                    <Route path="/team-chat" element={<TeamChat />} />
-                    <Route path="/contacts" element={<Contacts />} />
-                    <Route path="/opportunities" element={<Opportunities />} />
-                    <Route path="/forms" element={<Forms />} />
-                    <Route path="/documents" element={<Documents />} />
-                    <Route path="/emails" element={<Emails />} />
-                    <Route path="/estimates" element={<Estimates />} />
-                    <Route path="/payment-orders" element={<PaymentOrders />} />
-                    <Route path="/transactions" element={<Transactions />} />
-                    <Route path="/media-library" element={<MediaLibrary />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/settings" element={<Settings />} />
+                    {/* Public Forms */}
                     <Route path="/public/pip-form" element={<PublicPIPForm />} />
                     <Route path="/public/lop-form" element={<PublicLOPForm />} />
                     <Route path="/public/cash-form" element={<PublicCashForm />} />
                     <Route path="/public/new-form" element={<PublicNewForm />} />
                     
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    {/* Protected Routes */}
+                    <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+                    <Route path="/patients" element={<AuthGuard><Patients /></AuthGuard>} />
+                    <Route path="/patients/:patientId" element={<AuthGuard><PatientProfile /></AuthGuard>} />
+                    <Route path="/calendar" element={<AuthGuard><Calendar /></AuthGuard>} />
+                    <Route path="/soap-notes" element={<AuthGuard><SOAPNotes /></AuthGuard>} />
+                    <Route path="/soap-notes/new" element={<AuthGuard><NewSOAPNote /></AuthGuard>} />
+                    <Route path="/soap-notes/view/:id" element={<AuthGuard><ViewSOAPNote /></AuthGuard>} />
+                    <Route path="/soap-notes/edit/:id" element={<AuthGuard><EditSOAPNote /></AuthGuard>} />
+                    
+                    <Route path="/invoices" element={<AuthGuard><Invoices /></AuthGuard>} />
+                    <Route path="/conversations" element={<AuthGuard><Conversations /></AuthGuard>} />
+                    <Route path="/demo-conversations" element={<AuthGuard><DemoConversations /></AuthGuard>} />
+                    <Route path="/team-chat" element={<AuthGuard><TeamChat /></AuthGuard>} />
+                    <Route path="/contacts" element={<AuthGuard><Contacts /></AuthGuard>} />
+                    <Route path="/opportunities" element={<AuthGuard><Opportunities /></AuthGuard>} />
+                    <Route path="/forms" element={<AuthGuard><Forms /></AuthGuard>} />
+                    <Route path="/documents" element={<AuthGuard><Documents /></AuthGuard>} />
+                    <Route path="/emails" element={<AuthGuard><Emails /></AuthGuard>} />
+                    <Route path="/estimates" element={<AuthGuard><Estimates /></AuthGuard>} />
+                    <Route path="/payment-orders" element={<AuthGuard><PaymentOrders /></AuthGuard>} />
+                    <Route path="/transactions" element={<AuthGuard><Transactions /></AuthGuard>} />
+                    <Route path="/media-library" element={<AuthGuard><MediaLibrary /></AuthGuard>} />
+                    <Route path="/tasks" element={<AuthGuard><Tasks /></AuthGuard>} />
+                    <Route path="/settings" element={<AuthGuard><Settings /></AuthGuard>} />
+                    
+                    {/* Catch-all route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </TooltipProvider>
               </LanguageProvider>
             </AIProvider>
           </NotificationProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </QueryClientProvider>
