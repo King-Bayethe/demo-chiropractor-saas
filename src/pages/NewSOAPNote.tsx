@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { SOAPWizard } from "@/components/soap/SOAPWizard";
 import { PatientSelector } from "@/components/PatientSelector";
 import { EnhancedPatientContextHeader } from "@/components/soap/EnhancedPatientContextHeader";
@@ -129,8 +129,7 @@ export default function NewSOAPNote() {
   // Show loading state
   if (isLoadingPatient) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="min-h-screen flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -138,15 +137,13 @@ export default function NewSOAPNote() {
             </div>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   // Show wizard if patient is selected
   if (showWizard && selectedPatient) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className={cn("max-w-6xl mx-auto",
             isMobile ? "px-4 py-4" : "px-6 py-8"
           )}>
@@ -158,14 +155,12 @@ export default function NewSOAPNote() {
             />
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   // Show patient selection
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
           <div className={cn("max-w-4xl mx-auto",
             isMobile ? "px-4 py-6" : "px-6 py-8"
@@ -337,6 +332,5 @@ export default function NewSOAPNote() {
           </div>
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

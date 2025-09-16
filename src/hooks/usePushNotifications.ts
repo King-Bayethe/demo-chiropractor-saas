@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 import { toast } from '@/hooks/use-toast';
 
 interface PushSubscription {
@@ -12,7 +13,7 @@ interface PushSubscription {
 }
 
 export const usePushNotifications = () => {
-  const { user } = useAuth();
+  const user = mockUser;
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>('default');

@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Bell, MessageSquare, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNotificationHelpers } from '@/hooks/useNotificationHelpers';
-import { useAuth } from '@/contexts/AuthContext';
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { toast } from '@/hooks/use-toast';
 
 export const NotificationTestPanel = () => {
-  const { user } = useAuth();
+  const user = mockUser;
   const { 
     notifyNewMessage, 
     notifyMention, 

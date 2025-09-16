@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123" };
+const mockProfile = { id: "demo-profile-123", first_name: "Demo", last_name: "User", email: "demo@healthcare.com", role: "doctor" };
 import { useNotificationHelpers } from "@/hooks/useNotificationHelpers";
 import { ChatLayout } from "./chat/ChatLayout";
 import { NewChatDialog } from "./chat/NewChatDialog";
 
 export const TeamChatSection = () => {
   const { toast } = useToast();
-  const { user: currentUser, profile: currentProfile } = useAuth();
+  const currentUser = mockUser;
+  const currentProfile = mockProfile;
   const { notifyNewMessage, notifyNewChat } = useNotificationHelpers();
   const [chats, setChats] = useState<any[]>([]);
   const [selectedChat, setSelectedChat] = useState<any>(null);

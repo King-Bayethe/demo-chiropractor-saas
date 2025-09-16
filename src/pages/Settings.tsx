@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { MyProfileSection } from "@/components/MyProfileSection";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
@@ -121,8 +121,7 @@ export default function Settings() {
   };
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="h-full overflow-hidden">
           <div className={cn("h-full", isMobile ? "p-0" : "p-6")}>
             <SettingsLayout 
@@ -134,6 +133,5 @@ export default function Settings() {
           </div>
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

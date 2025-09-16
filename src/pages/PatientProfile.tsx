@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -1029,8 +1029,7 @@ export default function PatientProfile() {
 
   if (loading) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -1038,14 +1037,12 @@ export default function PatientProfile() {
             </div>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   if (!patient) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
             <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
             <h1 className="text-2xl font-bold mb-2">Patient Not Found</h1>
@@ -1058,13 +1055,11 @@ export default function PatientProfile() {
             </Button>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="min-h-screen bg-background">
           {/* Header with Back Navigation */}
           <div className={`border-b bg-gradient-to-r ${getCaseTypeGradient(caseType)} backdrop-blur-sm border-border/50`}>
@@ -1687,6 +1682,5 @@ export default function PatientProfile() {
           getSOAPNote={getSOAPNote}
         />
       </Layout>
-    </AuthGuard>
   );
 }

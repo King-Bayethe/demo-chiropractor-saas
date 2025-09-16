@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 import { format } from "date-fns";
 import { Plus, Edit, Trash2, Search, FileText, AlertCircle, Users, Briefcase } from "lucide-react";
 
@@ -48,7 +49,7 @@ export function PatientNotes({ patientId }: PatientNotesProps) {
   const [category, setCategory] = useState("General");
   
   const { toast } = useToast();
-  const { user } = useAuth();
+  const user = mockUser;
 
   useEffect(() => {
     if (patientId) {

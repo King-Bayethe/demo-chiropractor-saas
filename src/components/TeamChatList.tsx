@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123" };
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -43,7 +44,7 @@ export const TeamChatList: React.FC<TeamChatListProps> = ({
   setSelectedChat, 
   selectedChatId 
 }) => {
-  const { user } = useAuth();
+  const user = mockUser;
   const [chats, setChats] = useState<TeamChat[]>([]);
   const [loading, setLoading] = useState(true);
 

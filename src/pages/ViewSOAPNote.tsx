@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { SOAPViewer } from "@/components/soap/SOAPViewer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -117,8 +117,7 @@ export default function ViewSOAPNote() {
 
   if (loading) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="min-h-screen flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -126,14 +125,12 @@ export default function ViewSOAPNote() {
             </div>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   if (!soapNote) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="min-h-screen flex items-center justify-center">
             <Card className="max-w-md">
               <CardContent className="p-8 text-center">
@@ -148,13 +145,11 @@ export default function ViewSOAPNote() {
             </Card>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
           <div className="container max-w-6xl mx-auto px-6 py-8">
             {/* Header */}
@@ -230,6 +225,5 @@ export default function ViewSOAPNote() {
           </div>
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

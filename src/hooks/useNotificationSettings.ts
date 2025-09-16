@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 import { toast } from '@/hooks/use-toast';
 
 export interface NotificationPreferences {
@@ -44,7 +45,7 @@ const defaultPreferences: NotificationPreferences = {
 };
 
 export const useNotificationSettings = () => {
-  const { user } = useAuth();
+  const user = mockUser;
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { useUsers } from "@/hooks/useUsers";
 import { formatDistanceToNow } from "date-fns";
@@ -47,7 +48,7 @@ export function PatientNotesFixed({ patientId }: PatientNotesFixedProps) {
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const user = mockUser;
   const { fetchUsers, getUser, getUserInitials, getUserName, getUserColor } = useUsers();
 
   // Auto-save for new note

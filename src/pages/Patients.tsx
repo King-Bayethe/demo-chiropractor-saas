@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,8 +209,7 @@ export default function Patients() {
   const totalPages = Math.ceil(filteredPatients.length / patientsPerPage);
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="h-full flex flex-col">
           {/* Header Section */}
           <div className={cn("flex-shrink-0 space-y-6 bg-background border-b border-border/50",
@@ -616,6 +615,5 @@ export default function Patients() {
           </AlertDialogContent>
         </AlertDialog>
       </Layout>
-    </AuthGuard>
   );
 }

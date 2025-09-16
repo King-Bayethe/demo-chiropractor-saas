@@ -10,7 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 import { format } from "date-fns";
 import { 
   Upload, FileText, Image, FileArchive, FileVideo, FileAudio, 
@@ -78,7 +79,7 @@ export function PatientFiles({ patientId }: PatientFilesProps) {
   const [dragActive, setDragActive] = useState(false);
   
   const { toast } = useToast();
-  const { user } = useAuth();
+  const user = mockUser;
 
   useEffect(() => {
     if (patientId) {

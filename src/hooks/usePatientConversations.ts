@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 
 export interface PatientConversation {
   id: string;
@@ -47,7 +48,7 @@ export function usePatientConversations() {
   const [messages, setMessages] = useState<PatientMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const user = mockUser;
 
   // Fetch conversations with patient data (only for assigned patients)
   const fetchConversations = async () => {

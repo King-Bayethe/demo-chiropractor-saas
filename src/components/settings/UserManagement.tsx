@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+// Mock user data for portfolio demo
+const mockProfile = { role: "overlord", user_id: "demo-user-123" };
+const mockStartImpersonation = (userId: string, userRole: string) => {};
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,7 +52,8 @@ import { toast } from 'sonner';
 
 export const UserManagement = () => {
   // All hooks must be called at the top level, unconditionally
-  const { profile, startImpersonation } = useAuth();
+  const profile = mockProfile;
+  const startImpersonation = mockStartImpersonation;
   const { users, loading, createUser, updateUser, deleteUser, refreshUsers } = useUserManagement();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
@@ -136,8 +139,9 @@ export const UserManagement = () => {
   };
 
   const handleImpersonate = async (userId: string) => {
-    const success = await startImpersonation(userId, 'User management');
-    if (success) {
+    startImpersonation(userId, 'User management');
+    // Mock implementation for portfolio
+    if (true) {
       toast.success('Impersonation started');
     } else {
       toast.error('Failed to start impersonation');

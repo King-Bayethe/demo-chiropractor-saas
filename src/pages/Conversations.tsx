@@ -26,7 +26,7 @@ import {
 
 // --- UI Components ---
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -608,8 +608,7 @@ export default function Conversations() {
   );
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="h-full flex flex-col">
           {/* Mobile Header */}
           {isMobile && (
@@ -1211,6 +1210,5 @@ export default function Conversations() {
           )}
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

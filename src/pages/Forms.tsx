@@ -32,7 +32,12 @@ const Forms = () => {
           </TabsList>
 
           <TabsContent value="submissions" className="space-y-4">
-            <FormSubmissionDetails />
+            <FormSubmissionDetails 
+              formData={{}} 
+              formType="demo" 
+              submissionDate={new Date().toISOString()} 
+              submissionId="demo-123" 
+            />
           </TabsContent>
 
           <TabsContent value="public-forms" className="space-y-4">

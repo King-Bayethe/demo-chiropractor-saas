@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,8 +76,7 @@ export default function SOAPNotes() {
 
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="h-full flex flex-col">
           {/* Header Section */}
           <div className={cn("flex-shrink-0 space-y-4 bg-background border-b border-border/50",
@@ -513,6 +512,5 @@ export default function SOAPNotes() {
           </Dialog>
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

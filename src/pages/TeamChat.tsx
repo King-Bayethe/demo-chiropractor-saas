@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { TeamChatSection } from "@/components/TeamChatSection";
 import { 
   Users
@@ -7,8 +7,7 @@ import {
 
 export default function TeamChat() {
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -22,6 +21,5 @@ export default function TeamChat() {
           <TeamChatSection />
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

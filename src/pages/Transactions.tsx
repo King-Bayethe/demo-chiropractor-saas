@@ -1,13 +1,12 @@
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Download } from "lucide-react";
 
 const Transactions = () => {
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -36,7 +35,6 @@ const Transactions = () => {
           </Card>
         </div>
       </Layout>
-    </AuthGuard>
   );
 };
 

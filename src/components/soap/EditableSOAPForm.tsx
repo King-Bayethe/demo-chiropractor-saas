@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+// AuthGuard removed for public portfolio
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useSOAPNotes } from "@/hooks/useSOAPNotes";
@@ -120,8 +120,7 @@ export default function EditableSOAPForm() {
 
   if (isLoading) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -129,14 +128,12 @@ export default function EditableSOAPForm() {
             </div>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   if (!soapNote) {
     return (
-      <AuthGuard>
-        <Layout>
+      <Layout>
           <div className="p-6">
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-4">SOAP Note Not Found</h1>
@@ -146,13 +143,11 @@ export default function EditableSOAPForm() {
             </div>
           </div>
         </Layout>
-      </AuthGuard>
     );
   }
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
           {/* Header */}
           <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
@@ -187,6 +182,5 @@ export default function EditableSOAPForm() {
           />
         </div>
       </Layout>
-    </AuthGuard>
   );
 }

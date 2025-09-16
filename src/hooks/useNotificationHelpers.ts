@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+// Mock user data for portfolio demo
+const mockUser = { id: "demo-user-123", email: "demo@healthcare.com" };
 
 export const useNotificationHelpers = () => {
   const { createNotification } = useNotifications();
-  const { user } = useAuth();
+  const user = mockUser;
 
   const notifyNewMessage = useCallback(async (
     recipientId: string,
