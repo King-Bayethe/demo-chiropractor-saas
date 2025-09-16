@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,39 +143,37 @@ export default function Invoices() {
   };
 
   return (
-    <AuthGuard>
-      <Layout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-                  <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700">
-                    Coming Soon
-                  </Badge>
-                </div>
-                <p className="text-muted-foreground">
-                  Manage patient billing and payment tracking
-                </p>
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700">
+                  Coming Soon
+                </Badge>
               </div>
+              <p className="text-muted-foreground">
+                Manage patient billing and payment tracking
+              </p>
             </div>
           </div>
-
-          <Card>
-            <CardContent>
-              <div className="text-center py-16">
-                <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  Invoice management and billing features are currently in development. 
-                  Check back soon for updates.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
-      </Layout>
-    </AuthGuard>
+
+        <Card>
+          <CardContent>
+            <div className="text-center py-16">
+              <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+              <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Invoice management and billing features are currently in development. 
+                Check back soon for updates.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
   );
 }

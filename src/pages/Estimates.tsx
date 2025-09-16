@@ -1,13 +1,11 @@
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Plus } from "lucide-react";
 
 const Estimates = () => {
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -36,8 +34,7 @@ const Estimates = () => {
           </Card>
         </div>
       </Layout>
-    </AuthGuard>
-  );
+    );
 };
 
 export default Estimates;
