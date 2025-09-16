@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
@@ -49,42 +48,41 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const pendingQueue = useRef<PendingNotification[]>([]);
   const isProcessingQueue = useRef(false);
 
+  // Mock user ID for portfolio demo
+  const mockUserId = 'demo-user-id';
+
   const fetchNotifications = useCallback(async () => {
-    if (!user?.id) return;
-
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setNotifications((data || []) as Notification[]);
+      // For portfolio demo, use mock notifications
+      const mockNotifications: Notification[] = [
+        {
+          id: '1',
+          user_id: mockUserId,
+          title: 'Demo Notification',
+          message: 'This is a demo notification for the portfolio.',
+          type: 'info',
+          read: false,
+          priority: 'normal',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      setNotifications(mockNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, []);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', id);
-
-      if (error) throw error;
-
       setNotifications(prev =>
         prev.map(notification =>
           notification.id === id
@@ -103,17 +101,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [toast]);
 
   const markAllAsRead = useCallback(async () => {
-    if (!user?.id) return;
-
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false);
-
-      if (error) throw error;
-
       setNotifications(prev =>
         prev.map(notification => ({ ...notification, read: true }))
       );
@@ -125,150 +113,30 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         variant: "destructive"
       });
     }
-  }, [user?.id, toast]);
-
-  // Validate authentication state before creating notifications
-  const validateAuth = useCallback(async (): Promise<boolean> => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      return !!session?.user?.id;
-    } catch (error) {
-      console.error('Auth validation failed:', error);
-      return false;
-    }
-  }, []);
-
-  // Process pending notifications queue
-  const processQueue = useCallback(async () => {
-    if (isProcessingQueue.current || pendingQueue.current.length === 0) {
-      return;
-    }
-
-    isProcessingQueue.current = true;
-    const queue = [...pendingQueue.current];
-    pendingQueue.current = [];
-
-    for (const item of queue) {
-      try {
-        const isAuth = await validateAuth();
-        if (!isAuth) {
-          // Requeue if still not authenticated but within retry limits
-          if (item.attempts < 3 && Date.now() - item.timestamp < 30000) {
-            item.attempts++;
-            pendingQueue.current.push(item);
-          } else {
-            item.reject(new Error('Authentication timeout'));
-          }
-          continue;
-        }
-
-        const result = await createNotificationDirect(item.notification);
-        item.resolve(result);
-      } catch (error) {
-        if (item.attempts < 3) {
-          item.attempts++;
-          pendingQueue.current.push(item);
-        } else {
-          item.reject(error);
-        }
-      }
-    }
-
-    isProcessingQueue.current = false;
-
-    // Process any remaining items after a delay
-    if (pendingQueue.current.length > 0) {
-      setTimeout(processQueue, 1000);
-    }
-  }, []);
-
-  // Direct notification creation without queue
-  const createNotificationDirect = useCallback(async (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>): Promise<Notification | null> => {
-    try {
-      // Validate authentication state first
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.user?.id) {
-        throw new Error('User not authenticated or session invalid');
-      }
-
-      console.log('Creating notification - Auth state:', {
-        sessionUserId: session.user.id,
-        targetUserId: notification.user_id,
-        type: notification.type,
-        title: notification.title
-      });
-
-      // Create notification with explicit created_by matching session user
-      const insertData = {
-        user_id: notification.user_id,
-        title: notification.title,
-        message: notification.message,
-        type: notification.type,
-        entity_type: notification.entity_type,
-        entity_id: notification.entity_id,
-        priority: notification.priority || 'normal',
-        created_by: session.user.id // This must match auth.uid() for RLS policy
-      };
-
-      console.log('Inserting notification data:', insertData);
-
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert(insertData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database error creating notification:', {
-          error,
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          sessionUserId: session.user.id,
-          insertData
-        });
-        throw error;
-      }
-      
-      console.log('Notification created successfully:', data);
-      return data as Notification;
-    } catch (error) {
-      console.error('Error in createNotificationDirect:', error);
-      throw error;
-    }
-  }, []);
+  }, [toast]);
 
   const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'read' | 'created_at' | 'updated_at'>): Promise<Notification | null> => {
     try {
-      // First attempt direct creation
-      const isAuth = await validateAuth();
+      const newNotification: Notification = {
+        ...notification,
+        id: Math.random().toString(36).substr(2, 9),
+        read: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
       
-      if (isAuth) {
-        return await createNotificationDirect(notification);
-      }
-
-      // If not authenticated, queue the notification
-      console.warn('Auth not ready, queueing notification:', notification.title);
+      setNotifications(prev => [newNotification, ...prev]);
       
-      return new Promise((resolve, reject) => {
-        pendingQueue.current.push({
-          notification,
-          resolve,
-          reject,
-          attempts: 0,
-          timestamp: Date.now()
-        });
-
-        // Start processing queue
-        setTimeout(processQueue, 100);
+      toast({
+        title: newNotification.title,
+        description: newNotification.message,
+        variant: newNotification.type === 'error' ? 'destructive' : 'default'
       });
-
+      
+      return newNotification;
     } catch (error) {
       console.error('Error creating notification:', error);
       
-      // Show user-friendly error message
       toast({
         title: "Notification Error",
         description: "Failed to create notification. Please check your connection.",
@@ -277,17 +145,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       return null;
     }
-  }, [validateAuth, createNotificationDirect, processQueue, toast]);
+  }, [toast]);
 
   const deleteNotification = useCallback(async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
       setNotifications(prev => prev.filter(notification => notification.id !== id));
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -306,56 +167,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
-
-  // Set up real-time subscription
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel('notifications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newNotification = payload.new as Notification;
-            setNotifications(prev => [newNotification, ...prev]);
-            
-            // Show toast for new notifications
-            if (newNotification.created_by !== user.id) {
-              toast({
-                title: newNotification.title,
-                description: newNotification.message,
-                variant: newNotification.type === 'error' ? 'destructive' : 'default'
-              });
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedNotification = payload.new as Notification;
-            setNotifications(prev =>
-              prev.map(notification =>
-                notification.id === updatedNotification.id
-                  ? updatedNotification
-                  : notification
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setNotifications(prev =>
-              prev.filter(notification => notification.id !== payload.old.id)
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, toast]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

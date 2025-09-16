@@ -1,5 +1,4 @@
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -7,10 +6,8 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <AuthGuard>
-      <Layout>
-        {children}
-      </Layout>
-    </AuthGuard>
+    <Layout>
+      {children}
+    </Layout>
   );
 }

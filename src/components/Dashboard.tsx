@@ -64,19 +64,17 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center space-x-3 sm:space-x-4">
-          <img 
-            src="/lovable-uploads/de6e5dc8-8913-4a4f-ab62-e776625182b4.png" 
-            alt="Dr. Silverman Chiropractic and Rehabilitation" 
-            className="h-8 sm:h-12 w-auto object-contain"
-          />
+          <div className="h-8 sm:h-12 w-8 sm:w-12 bg-medical-blue rounded-lg flex items-center justify-center">
+            <Activity className="h-4 sm:h-6 w-4 sm:w-6 text-white" />
+          </div>
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Welcome back, Dr. Silverman's team</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Healthcare Portfolio Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Demo Healthcare Management System</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue text-xs sm:text-sm">
-            Live Data
+            Portfolio Demo
           </Badge>
           <Button 
             variant="outline" 
@@ -159,7 +157,7 @@ export function Dashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 mb-1">
                   <p className="text-xs sm:text-sm text-muted-foreground">Revenue (YTD)</p>
                   <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs w-fit">
-                    Coming Soon
+                    Demo Data
                   </Badge>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
@@ -208,7 +206,7 @@ export function Dashboard() {
                     <span className="font-medium text-xs sm:text-sm">{stage.stage}</span>
                     {stage.stage === "Billing Pending" && (
                       <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs w-fit mt-1 sm:mt-0">
-                        Coming Soon
+                        Demo Feature
                       </Badge>
                     )}
                   </div>
@@ -231,7 +229,7 @@ export function Dashboard() {
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-base sm:text-lg">PIP Case Pipeline</span>
-              <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue text-xs w-fit">PIP Focus</Badge>
+              <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue text-xs w-fit">Demo Focus</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
@@ -261,7 +259,7 @@ export function Dashboard() {
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
               <Award className="w-4 h-4 sm:w-5 sm:h-5 text-medical-blue" />
-              <span>Top Referring Attorneys</span>
+              <span>Top Referring Partners</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">

@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CRMSidebar } from "./CRMSidebar";
 import { ThemeToggle } from "./ThemeToggle";
-import { Bell, Search, User, LogOut, Settings as SettingsIcon, UserCircle, Menu } from "lucide-react";
+import { Bell, Search, User, Settings as SettingsIcon, UserCircle, Menu } from "lucide-react";
 import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { LanguageDropdown } from "@/components/LanguageDropdown";
 
 interface LayoutProps {
@@ -29,7 +26,6 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
-  const { profile } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
   const isMobile = useIsMobile();
@@ -37,25 +33,13 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      
-      navigate('/auth');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    }
+  // Mock user data for portfolio demo
+  const mockProfile = {
+    first_name: "Portfolio",
+    last_name: "Demo",
+    email: "demo@healthcare-portfolio.com",
+    role: "admin",
+    avatar_url: null
   };
 
   const handleProfileClick = () => {
@@ -63,31 +47,15 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const getDisplayName = () => {
-    if (!profile) return "Loading...";
-    if (profile.first_name || profile.last_name) {
-      return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-    }
-    return profile.email;
+    return "Portfolio Demo User";
   };
 
   const getInitials = () => {
-    if (!profile) return "U";
-    if (profile.first_name && profile.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
-    }
-    if (profile.first_name) {
-      return profile.first_name[0].toUpperCase();
-    }
-    return profile.email[0].toUpperCase();
+    return "PD";
   };
 
   const getRoleDisplay = () => {
-    if (!profile) return "Staff Member";
-    return profile.role === 'overlord' ? 'Overlord' :
-           profile.role === 'admin' ? 'Administrator' : 
-           profile.role === 'doctor' ? 'Doctor' : 
-           profile.role === 'nurse' ? 'Nurse' : 
-           'Staff Member';
+    return "Demo Administrator";
   };
 
   // Responsive layout with mobile support
@@ -137,6 +105,9 @@ export function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+              Portfolio Demo
+            </Badge>
             <LanguageDropdown />
             <ThemeToggle />
             <NotificationBell />
@@ -151,7 +122,7 @@ export function Layout({ children }: LayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="rounded-full h-10 w-10 p-0 hover:bg-muted">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={profile?.avatar_url} alt={getDisplayName()} />
+                      <AvatarImage src={mockProfile?.avatar_url} alt={getDisplayName()} />
                       <AvatarFallback className="bg-medical-blue text-white">
                         {getInitials()}
                       </AvatarFallback>
@@ -173,22 +144,11 @@ export function Layout({ children }: LayoutProps) {
                     <SettingsIcon className="mr-2 h-4 w-4" />
                     <span>{t('settings')}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer hover:bg-muted text-red-600"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t('logout')}</span>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </header>
-        
-        {/* Impersonation Banner */}
-        <ImpersonationBanner />
         
         {/* Main Content */}
         <main className="flex-1 min-h-0 overflow-auto">

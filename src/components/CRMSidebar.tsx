@@ -6,44 +6,24 @@ import {
   ClipboardList,
   FolderOpen,
   Settings,
-  Mail,
   Menu,
   X,
   Calendar,
-  FileText,
-  CreditCard,
-  ArrowUpDown,
-  Image,
-  CheckSquare,
-  LogOut,
   BarChart3,
   Phone,
   UserPlus,
   TrendingUp,
   FormInput,
   CalendarDays,
-  CheckCircle,
-  Receipt,
-  FileSpreadsheet,
-  Wallet,
-  RefreshCw,
   Files,
-  ImageIcon,
   Cog,
-  Send,
-  UserCheck,
   Stethoscope,
   FileEdit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-// Using direct path to uploaded logo
 
 const navigationGroups = [
   {
@@ -97,8 +77,6 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const currentPath = location.pathname;
 
   // Check if mobile on mount and resize
@@ -129,11 +107,6 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
     onCollapseChange?.(newCollapsed);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
   return (
     <TooltipProvider>
       <div className={cn(
@@ -145,18 +118,21 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
           <div className="flex items-center justify-between w-full">
             <div className="flex-1 flex justify-center">
               {!collapsed && (
-                <img 
-                  src="/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png" 
-                  alt="Dr. Silverman Chiropractic and Rehabilitation"
-                  className="h-32 object-contain"
-                />
+                <div className="h-32 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-medical-blue mb-2">Healthcare</div>
+                    <div className="text-lg text-medical-teal">Portfolio System</div>
+                    <div className="text-xs text-muted-foreground mt-1">Demo Version</div>
+                  </div>
+                </div>
               )}
               {collapsed && (
-                <img 
-                  src="/lovable-uploads/9e0aa9c7-2269-40d3-b093-f00769ff07c2.png" 
-                  alt="Dr. Silverman Logo"
-                  className="w-20 h-20 object-contain"
-                />
+                <div className="w-20 h-20 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-medical-blue">H</div>
+                    <div className="text-sm text-medical-teal">P</div>
+                  </div>
+                </div>
               )}
             </div>
             <Tooltip>

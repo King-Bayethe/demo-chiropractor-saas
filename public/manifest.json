@@ -1,7 +1,7 @@
 {
-  "name": "Dr. Silverman Chiropractic CRM",
-  "short_name": "Dr. Silverman CRM",
-  "description": "Patient & Case Management Portal for Dr. Silverman Chiropractic & Rehabilitation Center",
+  "name": "Healthcare Portfolio System",
+  "short_name": "Healthcare Portfolio",
+  "description": "Demo Healthcare Practice Management System - Portfolio Project",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

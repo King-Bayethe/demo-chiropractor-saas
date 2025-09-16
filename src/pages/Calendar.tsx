@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { AuthGuard } from "@/components/AuthGuard";
+
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -225,8 +225,7 @@ export default function Calendar() {
   };
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <CalendarLayout
           view={view}
           onViewChange={setView}
@@ -327,6 +326,5 @@ export default function Calendar() {
             />
         </Dialog>
       </Layout>
-    </AuthGuard>
-  );
+    );
 }

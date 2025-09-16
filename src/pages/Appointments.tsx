@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, startOfWeek, endOfWeek } from 'date-fns';
-import { AuthGuard } from '@/components/AuthGuard';
+
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -245,8 +245,7 @@ export default function Appointments() {
   };
 
   return (
-    <AuthGuard>
-      <Layout>
+    <Layout>
         <div className="space-y-6">
           <div className={cn(
             "flex items-center justify-between",
@@ -406,6 +405,5 @@ export default function Appointments() {
           )}
         </div>
       </Layout>
-    </AuthGuard>
-  );
+    );
 }

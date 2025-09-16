@@ -5,13 +5,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AIProvider } from "@/contexts/AIContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationHandler } from "@/components/NotificationHandler";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
 import Contacts from "./pages/Contacts";
 import Conversations from "./pages/Conversations";
 import TeamChat from "./pages/TeamChat";
@@ -46,18 +44,16 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <ThemeProvider defaultTheme="light" storageKey="crm-ui-theme">
-        <AuthProvider>
-          <NotificationProvider>
-            <AIProvider>
-              <LanguageProvider>
-                <TooltipProvider>
-                  <NotificationHandler />
-                  <Toaster />
-                  <Sonner />
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
+      <ThemeProvider defaultTheme="light" storageKey="healthcare-portfolio-theme">
+        <NotificationProvider>
+          <AIProvider>
+            <LanguageProvider>
+              <TooltipProvider>
+                <NotificationHandler />
+                <Toaster />
+                <Sonner />
+                <Routes>
+                  <Route path="/" element={<Index />} />
                     <Route path="/patients" element={<Patients />} />
                     <Route path="/patients/:patientId" element={<PatientProfile />} />
                     <Route path="/calendar" element={<Calendar />} />
@@ -92,7 +88,6 @@ const App = () => (
               </LanguageProvider>
             </AIProvider>
           </NotificationProvider>
-        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </QueryClientProvider>
