@@ -40,9 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInAsDemo = async () => {
+  const signInAsDemo = async (): Promise<void> => {
     try {
-      // First try to sign in
       const { data, error } = await supabase.auth.signInWithPassword({
         email: DEMO_USER_EMAIL,
         password: DEMO_USER_PASSWORD,
@@ -50,32 +49,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Demo sign in error:', error);
-        
-        // If user doesn't exist or email not confirmed, try to create/recreate
-        if (error.message.includes('Invalid login credentials') || 
-            error.message.includes('Email not confirmed') ||
-            error.message.includes('User not found')) {
-          
-          console.log('Creating demo user...');
-          await createDemoUser();
-          
-          // Wait a bit and try again
-          setTimeout(async () => {
-            const { error: retryError } = await supabase.auth.signInWithPassword({
-              email: DEMO_USER_EMAIL,
-              password: DEMO_USER_PASSWORD,
-            });
-            if (retryError) {
-              console.error('Retry demo sign in error:', retryError);
-              // For demo purposes, we'll continue even if login fails
-              // The user can still see the demo data
-            }
-          }, 2000);
-        }
+        throw error;
       }
+      
+      console.log('Demo user signed in successfully');
     } catch (error) {
       console.error('Error signing in as demo user:', error);
-      // Don't throw error for demo - allow partial functionality
+      throw error;
     }
   };
 

@@ -3,13 +3,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Activity, Users, Calendar, FileText, MessageSquare, Shield, Code, Database, Smartphone } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { signInAsDemo } = useAuth();
 
   const handleEnterDemo = async () => {
-    navigate('/dashboard');
+    try {
+      await signInAsDemo();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to sign in as demo:', error);
+      // Still navigate to dashboard as the demo data will be available
+      navigate('/dashboard');
+    }
   };
 
   const features = [
