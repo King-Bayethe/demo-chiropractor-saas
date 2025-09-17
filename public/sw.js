@@ -1,9 +1,10 @@
-const CACHE_NAME = 'dr-silverman-crm-v1';
+const CACHE_NAME = 'healthcare-portfolio-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/robots.txt'
 ];
 
 // Install service worker and cache resources
