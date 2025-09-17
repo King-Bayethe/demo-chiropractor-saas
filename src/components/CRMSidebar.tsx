@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
+import { useIsDemoUser } from "@/hooks/useDemoData";
 
 const navigationGroups = [
   {
@@ -79,6 +80,7 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname;
+  const isDemoUser = useIsDemoUser();
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -165,7 +167,13 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
                   </h3>
                 )}
                 <div className="space-y-1">
-                  {group.items.map((item) => {
+                  {group.items.filter((item) => {
+                    // Hide conversations page for demo users
+                    if (isDemoUser && item.url === "/conversations") {
+                      return false;
+                    }
+                    return true;
+                  }).map((item) => {
                     const active = isActive(item.url);
                     const IconComponent = collapsed ? item.collapsedIcon : item.icon;
                     const navItem = (
