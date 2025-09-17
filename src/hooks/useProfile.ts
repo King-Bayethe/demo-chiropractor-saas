@@ -17,6 +17,19 @@ export interface UserProfile {
   email_signature?: string;
 }
 
+// Demo profile data for when auth fails
+const DEMO_PROFILE: UserProfile = {
+  id: 'demo-profile-id',
+  user_id: 'demo-user-id',
+  email: 'demo@healthcare-portfolio.com',
+  first_name: 'Demo',
+  last_name: 'User',
+  role: 'demo',
+  is_active: true,
+  language_preference: 'en',
+  dark_mode: false
+};
+
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +38,23 @@ export const useProfile = () => {
   const fetchProfile = async () => {
     try {
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
+      
+      if (!user.user) {
+        // Check if we should provide demo profile
+        const currentUrl = window.location.href;
+        
+        // If user is trying to access the app and no auth, provide demo profile
+        if (currentUrl.includes('dashboard') || currentUrl.includes('patients') || 
+            localStorage.getItem('demo-mode') === 'true') {
+          console.log('Providing demo profile for unauthenticated access');
+          setProfile(DEMO_PROFILE);
+          localStorage.setItem('demo-mode', 'true');
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('profiles')
@@ -39,17 +68,32 @@ export const useProfile = () => {
           await createProfile(user.user);
           return;
         }
+        
+        // If user email is demo, provide demo profile as fallback
+        if (user.user.email === 'demo@healthcare-portfolio.com') {
+          setProfile(DEMO_PROFILE);
+          setLoading(false);
+          return;
+        }
+        
         throw error;
       }
 
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load profile",
-        variant: "destructive",
-      });
+      
+      // Fallback to demo profile if available
+      const { data: user } = await supabase.auth.getUser();
+      if (user.user?.email === 'demo@healthcare-portfolio.com') {
+        setProfile(DEMO_PROFILE);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load profile",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -60,9 +104,9 @@ export const useProfile = () => {
       const newProfile = {
         user_id: user.id,
         email: user.email,
-        first_name: user.user_metadata?.first_name || '',
-        last_name: user.user_metadata?.last_name || '',
-        role: 'staff',
+        first_name: user.user_metadata?.first_name || user.user_metadata?.role === 'demo' ? 'Demo' : '',
+        last_name: user.user_metadata?.last_name || user.user_metadata?.role === 'demo' ? 'User' : '',
+        role: user.user_metadata?.role || (user.email === 'demo@healthcare-portfolio.com' ? 'demo' : 'staff'),
         is_active: true,
         language_preference: 'en',
         dark_mode: false
