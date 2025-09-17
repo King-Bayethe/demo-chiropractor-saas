@@ -30,7 +30,7 @@ const navigationGroups = [
   {
     title: "Home",
     items: [
-      { title: "Dashboard", url: "/dashboard", icon: Activity, collapsedIcon: BarChart3 },
+      { title: "Dashboard", url: "/", icon: Activity, collapsedIcon: BarChart3 },
     ]
   },
   {
@@ -97,8 +97,8 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
   }, []);
 
   const isActive = (path: string) => {
-    if (path === "/dashboard") {
-      return currentPath === "/" || currentPath === "/dashboard";
+    if (path === "/") {
+      return currentPath === "/";
     }
     return currentPath.startsWith(path);
   };
