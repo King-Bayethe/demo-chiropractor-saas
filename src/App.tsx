@@ -13,6 +13,7 @@ import { NotificationHandler } from "@/components/NotificationHandler";
 import { AuthGuard } from "@/components/AuthGuard";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
 import Conversations from "./pages/Conversations";
 import DemoConversations from "./pages/DemoConversations";
@@ -69,7 +70,7 @@ const App = () => (
                     
                     {/* Protected Routes - Show Landing for Root */}
                     <Route path="/" element={<Landing />} />
-                    <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
+                    <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
                     <Route path="/patients" element={<AuthGuard><Patients /></AuthGuard>} />
                     <Route path="/patients/:patientId" element={<AuthGuard><PatientProfile /></AuthGuard>} />
                     <Route path="/calendar" element={<AuthGuard><Calendar /></AuthGuard>} />
