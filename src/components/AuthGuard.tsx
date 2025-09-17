@@ -1,19 +1,22 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-  const { user, loading, signInAsDemo } = useAuth();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Auto-sign in as demo user if not authenticated
+    // Redirect to auth page if not authenticated
     if (!loading && !user) {
-      signInAsDemo();
+      navigate('/auth');
     }
-  }, [loading, user, signInAsDemo]);
+  }, [loading, user, navigate]);
 
   if (loading) {
     return (
@@ -31,7 +34,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Authenticating demo user...</p>
+          <p className="text-muted-foreground">Redirecting to login...</p>
         </div>
       </div>
     );

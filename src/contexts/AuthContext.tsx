@@ -8,6 +8,8 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   signInAsDemo: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signUp: (email: string, password: string) => Promise<{ error?: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -85,6 +87,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error };
+      }
+      
+      console.log('User signed in successfully');
+      return { error: null };
+    } catch (error) {
+      console.error('Error signing in:', error);
+      return { error };
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+      
+      if (error) {
+        console.error('Sign up error:', error);
+        return { error };
+      }
+      
+      console.log('User signed up successfully');
+      return { error: null };
+    } catch (error) {
+      console.error('Error signing up:', error);
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -97,7 +144,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     loading,
     signOut,
-    signInAsDemo
+    signInAsDemo,
+    signIn,
+    signUp
   };
 
   return (

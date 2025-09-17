@@ -10,15 +10,8 @@ const Landing = () => {
   const navigate = useNavigate();
   const { signInAsDemo } = useAuth();
 
-  const handleEnterDemo = async () => {
-    try {
-      await signInAsDemo();
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Failed to sign in as demo:', error);
-      // Still navigate to dashboard as the demo data will be available
-      navigate('/dashboard');
-    }
+  const handleEnterDemo = () => {
+    navigate('/auth');
   };
 
   const features = [
@@ -100,7 +93,7 @@ const Landing = () => {
           </Button>
           
           <p className="text-sm text-muted-foreground mt-4">
-            No registration required • All data is demo/fictional
+            Demo credentials provided • All data is fictional
           </p>
         </div>
 

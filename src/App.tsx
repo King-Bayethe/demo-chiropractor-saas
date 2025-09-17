@@ -12,6 +12,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationHandler } from "@/components/NotificationHandler";
 import { AuthGuard } from "@/components/AuthGuard";
 import Landing from "./pages/Landing";
+import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
@@ -59,8 +60,10 @@ const App = () => (
                   <Toaster />
                   <Sonner />
                   <Routes>
-                    {/* Public Landing Page */}
+                    {/* Public Routes */}
+                    <Route path="/" element={<Landing />} />
                     <Route path="/landing" element={<Landing />} />
+                    <Route path="/auth" element={<Auth />} />
                     
                     {/* Public Forms */}
                     <Route path="/public/pip-form" element={<PublicPIPForm />} />
@@ -68,8 +71,7 @@ const App = () => (
                     <Route path="/public/cash-form" element={<PublicCashForm />} />
                     <Route path="/public/new-form" element={<PublicNewForm />} />
                     
-                    {/* Protected Routes - Show Landing for Root */}
-                    <Route path="/" element={<Landing />} />
+                    {/* Protected Routes */}
                     <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
                     <Route path="/patients" element={<AuthGuard><Patients /></AuthGuard>} />
                     <Route path="/patients/:patientId" element={<AuthGuard><PatientProfile /></AuthGuard>} />
