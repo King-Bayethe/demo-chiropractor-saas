@@ -1,6 +1,8 @@
-const CACHE_NAME = 'healthcare-portfolio-v2';
+const CACHE_NAME = 'healthcare-portfolio-v3';
 const urlsToCache = [
   '/',
+  '/src/main.tsx',
+  '/src/index.css',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
