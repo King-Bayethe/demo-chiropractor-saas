@@ -36,7 +36,6 @@ const navigationGroups = [
   {
     title: "Communication", 
     items: [
-      { title: "Conversations", url: "/conversations", icon: MessageSquare, collapsedIcon: Phone },
       { title: "Demo Chat", url: "/demo-conversations", icon: MessageSquare, collapsedIcon: MessageSquare },
       { title: "Team Chat", url: "/team-chat", icon: Users, collapsedIcon: Users },
     ]
@@ -167,13 +166,7 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
                   </h3>
                 )}
                 <div className="space-y-1">
-                  {group.items.filter((item) => {
-                    // Hide conversations page for demo users
-                    if (isDemoUser && item.url === "/conversations") {
-                      return false;
-                    }
-                    return true;
-                  }).map((item) => {
+                  {group.items.map((item) => {
                     const active = isActive(item.url);
                     const IconComponent = collapsed ? item.collapsedIcon : item.icon;
                     const navItem = (
