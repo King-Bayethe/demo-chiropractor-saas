@@ -30,7 +30,7 @@ const navigationGroups = [
   {
     title: "Home",
     items: [
-      { title: "Dashboard", url: "/", icon: Activity, collapsedIcon: BarChart3 },
+      { title: "Dashboard", url: "/dashboard", icon: Activity, collapsedIcon: BarChart3 },
     ]
   },
   {
