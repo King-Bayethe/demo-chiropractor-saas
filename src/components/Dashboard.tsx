@@ -20,6 +20,11 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useDemoData } from "@/hooks/useDemoData";
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const { isDemoUser, mockDashboardStats, mockAppointments, mockOpportunities } = useDemoData();
 
 const mockData = {
   salesPipeline: [
@@ -56,8 +61,13 @@ const mockData = {
   ]
 };
 
-export function Dashboard() {
-  const navigate = useNavigate();
+const stats = mockDashboardStats || mockData.stats;
+  const recentAppointments = mockAppointments.slice(0, 3).map(apt => ({
+    name: apt.patient_name,
+    time: new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    type: apt.appointment_type,
+    phone: apt.patient_phone
+  })) || mockData.recentAppointments;
 
   return (
     <div className="h-full bg-background p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-auto">
