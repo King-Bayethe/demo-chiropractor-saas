@@ -46,16 +46,16 @@ const Landing = () => {
   ];
 
   const techStack = [
-    { name: "React", color: "bg-blue-100 text-blue-800" },
-    { name: "TypeScript", color: "bg-blue-100 text-blue-800" },
-    { name: "Tailwind CSS", color: "bg-cyan-100 text-cyan-800" },
-    { name: "Supabase", color: "bg-green-100 text-green-800" },
-    { name: "PostgreSQL", color: "bg-indigo-100 text-indigo-800" },
-    { name: "Row Level Security", color: "bg-purple-100 text-purple-800" }
+    { name: "React", color: "bg-medical-blue/10 text-medical-blue" },
+    { name: "TypeScript", color: "bg-medical-blue/10 text-medical-blue" },
+    { name: "Tailwind CSS", color: "bg-medical-teal/10 text-medical-teal" },
+    { name: "Supabase", color: "bg-medical-green/10 text-medical-green" },
+    { name: "PostgreSQL", color: "bg-primary/10 text-primary" },
+    { name: "Row Level Security", color: "bg-secondary/80 text-secondary-foreground" }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue-light via-background to-medical-teal/5">
+    <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
