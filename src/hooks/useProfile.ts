@@ -20,7 +20,7 @@ export interface UserProfile {
 // Demo profile data for when auth fails
 const DEMO_PROFILE: UserProfile = {
   id: 'demo-profile-id',
-  user_id: 'a682aee2-1235-4ed0-b2fb-aa86ec79343b',
+  user_id: 'a682ae22-1235-4ed0-b2fb-aa86ec79343b',
   email: 'demo@testing.com',
   first_name: 'Dr. Sarah',
   last_name: 'Martinez',
