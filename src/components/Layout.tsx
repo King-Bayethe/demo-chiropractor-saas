@@ -37,11 +37,11 @@ export function Layout({ children }: LayoutProps) {
 
   // Mock user data for portfolio demo
   const mockProfile = {
-    first_name: "Portfolio",
-    last_name: "Demo",
-    email: "demo@healthcare-portfolio.com",
-    role: "admin",
-    avatar_url: null
+    first_name: "Dr. Sarah",
+    last_name: "Martinez",
+    email: "demo@testing.com",
+    role: "demo",
+    avatar_url: "/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png"
   };
 
   const handleProfileClick = () => {
@@ -49,15 +49,15 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const getDisplayName = () => {
-    return isDemoUser ? "Demo User" : "Portfolio Demo User";
+    return isDemoUser ? "Dr. Sarah Martinez" : "Portfolio Demo User";
   };
 
   const getInitials = () => {
-    return isDemoUser ? "DU" : "PD";
+    return isDemoUser ? "SM" : "PD";
   };
 
   const getRoleDisplay = () => {
-    return isDemoUser ? "Demo User" : "Demo Administrator";
+    return isDemoUser ? "Healthcare Professional" : "Demo Administrator";
   };
 
   // Responsive layout with mobile support
