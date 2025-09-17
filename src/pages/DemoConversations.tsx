@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, Phone, Voicemail, Send, Search, Filter } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MessageSquare, Phone, Voicemail, Send, Search, Filter, Info, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -31,6 +33,7 @@ interface Conversation {
 }
 
 const DemoConversations = () => {
+  const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -179,7 +182,34 @@ const DemoConversations = () => {
 
   return (
     <Layout>
-      <div className="h-[calc(100vh-4rem)] flex">
+      {/* Demo Header */}
+      <div className="bg-medical-blue/5 border-b border-medical-blue/20 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/landing')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Landing
+            </Button>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Demo Conversations</h1>
+              <p className="text-sm text-muted-foreground">Interactive patient messaging demonstration</p>
+            </div>
+          </div>
+          <Alert className="max-w-md">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              This is a demo environment. All conversations and messages are fictional.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+      
+      <div className="h-[calc(100vh-8rem)] flex">
         {/* Conversations List */}
         <div className="w-1/3 border-r border-border flex flex-col">
           <div className="p-4 border-b border-border">

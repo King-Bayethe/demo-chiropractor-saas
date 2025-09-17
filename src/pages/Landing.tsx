@@ -55,8 +55,8 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5 overflow-y-auto">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">{/* Add max-width for better readability */}
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-6">
@@ -155,6 +155,57 @@ const Landing = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Additional Demo Features Section */}
+        <Card className="mt-12 mb-8">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Demo Features</CardTitle>
+            <CardDescription className="text-center">
+              Explore the interactive features of this healthcare management system
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="text-center p-6 border rounded-lg">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-medical-blue" />
+                <h3 className="text-lg font-semibold mb-2">Live Conversations</h3>
+                <p className="text-muted-foreground mb-4">
+                  Experience real-time patient messaging with SMS integration
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/demo-conversations')}
+                  className="w-full"
+                >
+                  Try Demo Conversations
+                </Button>
+              </div>
+              <div className="text-center p-6 border rounded-lg">
+                <Activity className="h-12 w-12 mx-auto mb-4 text-medical-teal" />
+                <h3 className="text-lg font-semibold mb-2">Full Dashboard</h3>
+                <p className="text-muted-foreground mb-4">
+                  Access the complete CRM with patient management and scheduling
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full"
+                >
+                  Enter Full System
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-16 pb-8">
+          <p className="text-sm text-muted-foreground">
+            Built with React, TypeScript, Supabase, and Tailwind CSS • 
+            <span className="mx-2">•</span>
+            Portfolio Demo Application
+          </p>
         </div>
       </div>
     </div>

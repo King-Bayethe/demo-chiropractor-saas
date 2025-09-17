@@ -36,6 +36,7 @@ const navigationGroups = [
     title: "Communication", 
     items: [
       { title: "Conversations", url: "/conversations", icon: MessageSquare, collapsedIcon: Phone },
+      { title: "Demo Chat", url: "/demo-conversations", icon: MessageSquare, collapsedIcon: MessageSquare },
       { title: "Team Chat", url: "/team-chat", icon: Users, collapsedIcon: Users },
     ]
   },
