@@ -20,14 +20,17 @@ export interface UserProfile {
 // Demo profile data for when auth fails
 const DEMO_PROFILE: UserProfile = {
   id: 'demo-profile-id',
-  user_id: 'demo-user-id',
-  email: 'demo@healthcare-portfolio.com',
-  first_name: 'Demo',
-  last_name: 'User',
+  user_id: 'a682aee2-1235-4ed0-b2fb-aa86ec79343b',
+  email: 'demo@testing.com',
+  first_name: 'Dr. Sarah',
+  last_name: 'Martinez',
+  avatar_url: '/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png',
   role: 'demo',
   is_active: true,
+  phone: '+1 (555) 123-4567',
   language_preference: 'en',
-  dark_mode: false
+  dark_mode: false,
+  email_signature: 'Dr. Sarah Martinez, MD\nChiropractor & Pain Management Specialist\nHealthcare Demo Clinic\nPhone: (555) 123-4567 | Email: demo@testing.com'
 };
 
 export const useProfile = () => {
@@ -70,7 +73,7 @@ export const useProfile = () => {
         }
         
         // If user email is demo, provide demo profile as fallback
-        if (user.user.email === 'demo@healthcare-portfolio.com') {
+        if (user.user.email === 'demo@testing.com') {
           setProfile(DEMO_PROFILE);
           setLoading(false);
           return;
@@ -85,7 +88,7 @@ export const useProfile = () => {
       
       // Fallback to demo profile if available
       const { data: user } = await supabase.auth.getUser();
-      if (user.user?.email === 'demo@healthcare-portfolio.com') {
+      if (user.user?.email === 'demo@testing.com') {
         setProfile(DEMO_PROFILE);
       } else {
         toast({
@@ -106,7 +109,7 @@ export const useProfile = () => {
         email: user.email,
         first_name: user.user_metadata?.first_name || user.user_metadata?.role === 'demo' ? 'Demo' : '',
         last_name: user.user_metadata?.last_name || user.user_metadata?.role === 'demo' ? 'User' : '',
-        role: user.user_metadata?.role || (user.email === 'demo@healthcare-portfolio.com' ? 'demo' : 'staff'),
+        role: user.user_metadata?.role || (user.email === 'demo@testing.com' ? 'demo' : 'staff'),
         is_active: true,
         language_preference: 'en',
         dark_mode: false

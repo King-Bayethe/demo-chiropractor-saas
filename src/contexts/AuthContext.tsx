@@ -12,7 +12,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_USER_EMAIL = 'demo@healthcare-portfolio.com';
+const DEMO_USER_EMAIL = 'demo@testing.com';
 const DEMO_USER_PASSWORD = 'DemoPortfolio2024!';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
