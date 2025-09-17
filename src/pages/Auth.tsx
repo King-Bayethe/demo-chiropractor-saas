@@ -142,25 +142,6 @@ const Auth = () => {
           </p>
         </div>
 
-        {/* Demo Quick Access */}
-        <Card className="border-medical-blue/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-center">Quick Demo Access</CardTitle>
-            <CardDescription className="text-center">
-              Access the demo instantly with one click
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={handleDemoLogin}
-              disabled={loading}
-              className="w-full bg-medical-blue hover:bg-medical-blue-dark text-white"
-              size="lg"
-            >
-              {loading ? "Accessing Demo..." : "Enter Demo System"}
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Login/Register Tabs */}
         <Card>
