@@ -2,11 +2,15 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Activity, Users, Calendar, FileText, MessageSquare, Shield, Code, Database, Smartphone } from 'lucide-react';
 
 const Landing = () => {
-  const { signInAsDemo } = useAuth();
+  const navigate = useNavigate();
+
+  const handleEnterDemo = async () => {
+    navigate('/dashboard');
+  };
 
   const features = [
     {
@@ -79,7 +83,7 @@ const Landing = () => {
           </div>
           
           <Button 
-            onClick={signInAsDemo} 
+            onClick={handleEnterDemo} 
             size="lg" 
             className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-3 text-lg"
           >

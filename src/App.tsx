@@ -67,8 +67,9 @@ const App = () => (
                     <Route path="/public/cash-form" element={<PublicCashForm />} />
                     <Route path="/public/new-form" element={<PublicNewForm />} />
                     
-                    {/* Protected Routes */}
-                    <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+                    {/* Protected Routes - Show Landing for Root */}
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
                     <Route path="/patients" element={<AuthGuard><Patients /></AuthGuard>} />
                     <Route path="/patients/:patientId" element={<AuthGuard><PatientProfile /></AuthGuard>} />
                     <Route path="/calendar" element={<AuthGuard><Calendar /></AuthGuard>} />
