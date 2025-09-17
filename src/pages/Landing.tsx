@@ -83,18 +83,6 @@ const Landing = () => {
               Responsive Design
             </Badge>
           </div>
-          
-          <Button 
-            onClick={handleEnterDemo} 
-            size="lg" 
-            className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-3 text-lg"
-          >
-            Enter Demo System
-          </Button>
-          
-          <p className="text-sm text-muted-foreground mt-4">
-            Demo credentials provided • All data is fictional
-          </p>
         </div>
 
         {/* Features Grid */}
