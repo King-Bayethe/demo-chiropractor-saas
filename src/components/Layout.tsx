@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { LanguageDropdown } from "@/components/LanguageDropdown";
+import { useIsDemoUser } from "@/hooks/useDemoData";
 
 interface LayoutProps {
   children: ReactNode;
@@ -32,6 +33,7 @@ export function Layout({ children }: LayoutProps) {
   const deviceType = useDeviceType();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isDemoUser = useIsDemoUser();
 
   // Mock user data for portfolio demo
   const mockProfile = {
@@ -47,15 +49,15 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const getDisplayName = () => {
-    return "Portfolio Demo User";
+    return isDemoUser ? "Demo User" : "Portfolio Demo User";
   };
 
   const getInitials = () => {
-    return "PD";
+    return isDemoUser ? "DU" : "PD";
   };
 
   const getRoleDisplay = () => {
-    return "Demo Administrator";
+    return isDemoUser ? "Demo User" : "Demo Administrator";
   };
 
   // Responsive layout with mobile support
@@ -105,8 +107,12 @@ export function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-              Portfolio Demo
+            <Badge variant="secondary" className={`text-xs ${
+              isDemoUser 
+                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" 
+                : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+            }`}>
+              {isDemoUser ? "DEMO MODE" : "Portfolio Demo"}
             </Badge>
             <LanguageDropdown />
             <ThemeToggle />

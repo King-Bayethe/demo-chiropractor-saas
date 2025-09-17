@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useDemoData } from './useDemoData';
 
 export interface Appointment {
   id: string;
@@ -44,12 +45,35 @@ export const useAppointments = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isDemoUser, mockAppointments } = useDemoData();
 
   const fetchAppointments = async () => {
     setLoading(true);
     setError(null);
     
     try {
+      // If demo user, return mock data
+      if (isDemoUser) {
+        const transformedMockAppointments: Appointment[] = mockAppointments.map((apt: any) => ({
+          id: apt.id,
+          ghl_appointment_id: apt.ghl_appointment_id,
+          title: apt.title,
+          contact_id: apt.patient_id || '',
+          contact_name: apt.patient_name || 'Unknown Patient',
+          start_time: apt.start_time,
+          end_time: apt.end_time,
+          status: apt.status,
+          type: apt.appointment_type || 'consultation',
+          notes: apt.notes,
+          location: apt.location,
+          created_at: apt.created_at,
+          updated_at: apt.updated_at,
+        }));
+        setAppointments(transformedMockAppointments);
+        setLoading(false);
+        return;
+      }
+
       console.log('Fetching appointments from Supabase...');
       
       // Fetch appointments first

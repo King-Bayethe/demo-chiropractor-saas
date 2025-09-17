@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useDemoData } from './useDemoData';
 
 export interface Patient {
   id: string;
@@ -69,12 +70,20 @@ export const usePatients = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isDemoUser, mockPatients } = useDemoData();
 
   const fetchPatients = async () => {
     setLoading(true);
     setError(null);
     
     try {
+      // If demo user, return mock data
+      if (isDemoUser) {
+        setPatients(mockPatients);
+        setLoading(false);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('patients')
         .select('*')
