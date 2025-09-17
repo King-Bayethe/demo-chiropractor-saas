@@ -359,3 +359,5 @@ const stats = mockDashboardStats || mockData.stats;
     </div>
   );
 }
+
+export { Dashboard };

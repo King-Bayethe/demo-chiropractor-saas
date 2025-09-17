@@ -49,18 +49,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Demo sign in error:', error);
-        // If demo user doesn't exist, create it
-        if (error.message.includes('Invalid login credentials')) {
+        // If demo user doesn't exist or email not confirmed, create/recreate it
+        if (error.message.includes('Invalid login credentials') || 
+            error.message.includes('Email not confirmed')) {
           await createDemoUser();
+          // Try signing in again after creating user
+          setTimeout(async () => {
+            const { error: retryError } = await supabase.auth.signInWithPassword({
+              email: DEMO_USER_EMAIL,
+              password: DEMO_USER_PASSWORD,
+            });
+            if (retryError) {
+              console.error('Retry demo sign in error:', retryError);
+            }
+          }, 1000);
         }
+        throw error;
       }
     } catch (error) {
       console.error('Error signing in as demo user:', error);
+      throw error;
     }
   };
 
   const createDemoUser = async () => {
     try {
+      // First try to delete existing demo user if any
+      await supabase.auth.signInWithPassword({
+        email: DEMO_USER_EMAIL,
+        password: DEMO_USER_PASSWORD,
+      });
+      
+      // If we get here, user exists but may need email confirmation bypass
+      // Let's try a different approach - create with auto-confirm if possible
       const { error } = await supabase.auth.signUp({
         email: DEMO_USER_EMAIL,
         password: DEMO_USER_PASSWORD,
@@ -74,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) {
+      if (error && !error.message.includes('User already registered')) {
         console.error('Error creating demo user:', error);
       }
     } catch (error) {
