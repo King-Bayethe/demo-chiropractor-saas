@@ -85,22 +85,23 @@ const About = () => {
               Healthcare Technology Leaders
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6">
-              Transforming Healthcare 
-              <span className="bg-gradient-to-r from-medical-blue to-medical-teal bg-clip-text text-transparent"> Practice Management</span>
+              Multi-Tenant Healthcare 
+              <span className="bg-gradient-to-r from-medical-blue to-medical-teal bg-clip-text text-transparent"> SaaS Platform</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              We empower healthcare professionals with comprehensive practice management solutions 
-              that streamline workflows, enhance patient care, and optimize revenue generation.
+              Enterprise-grade healthcare management platform demonstrating scalable SaaS architecture, 
+              HIPAA compliance, and comprehensive practice management capabilities. Portfolio project 
+              showcasing modern development practices for healthcare technology.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/features">
                 <Button size="lg" className="bg-gradient-to-r from-medical-blue to-medical-teal text-white">
-                  Explore Features
+                  Explore Platform
                 </Button>
               </Link>
               <Link to="/contact">
                 <Button size="lg" variant="outline">
-                  Get In Touch
+                  Developer Portfolio
                 </Button>
               </Link>
             </div>
@@ -112,11 +113,12 @@ const About = () => {
       <section className="py-16 bg-medical-blue/5">
         <ResponsiveContainer size="full">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-8">Our Mission</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-8">Platform Mission</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              To bridge the gap between exceptional patient care and efficient practice management by providing 
-              healthcare professionals with innovative, secure, and user-friendly technology solutions that 
-              enhance workflow efficiency, improve patient outcomes, and drive sustainable practice growth.
+              To demonstrate enterprise-level healthcare SaaS development through a comprehensive platform 
+              featuring multi-tenancy, HIPAA compliance, automated workflows, and scalable architecture. 
+              This portfolio project showcases the complexity and sophistication required for modern 
+              healthcare technology solutions while emphasizing security, performance, and user experience.
             </p>
           </div>
         </ResponsiveContainer>
@@ -128,22 +130,23 @@ const About = () => {
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-6">Our Story</h2>
+                <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-6">Development Story</h2>
                 <div className="space-y-4 text-muted-foreground">
                   <p>
-                    Born from the real challenges faced by healthcare professionals, Dr. Silverman CRM was 
-                    developed by understanding the unique needs of medical practices, particularly those 
-                    specializing in injury-related care and complex insurance workflows.
+                    HealthFlow SaaS represents a comprehensive healthcare technology portfolio project, 
+                    demonstrating expertise in building scalable, multi-tenant SaaS platforms with 
+                    enterprise-grade security and HIPAA compliance.
                   </p>
                   <p>
-                    Our platform emerged from the need to unify patient management, clinical documentation, 
-                    appointment scheduling, and communication into one seamless experience that doesn't 
-                    compromise on security or compliance.
+                    The platform showcases modern development practices including React with TypeScript, 
+                    Supabase for backend services, real-time communications, automated workflows, and 
+                    comprehensive audit logging. Every component has been designed with scalability, 
+                    security, and user experience as primary considerations.
                   </p>
                   <p>
-                    Today, we serve healthcare professionals who demand excellence in both patient care 
-                    and practice efficiency, providing specialized solutions for PIP cases, Workers 
-                    Compensation claims, and comprehensive medical practice management.
+                    From multi-tenant architecture and subscription management to advanced analytics 
+                    and API development, this project demonstrates full-stack capabilities and deep 
+                    understanding of healthcare workflow requirements and regulatory compliance.
                   </p>
                 </div>
               </div>

@@ -36,6 +36,7 @@ import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
 import About from "./pages/About";
 import Features from "./pages/Features";
+import Pricing from "./pages/Pricing";
 import ContactUs from "./pages/ContactUs";
 
 import NewSOAPNote from "./pages/NewSOAPNote";
@@ -64,11 +65,12 @@ const App = () => (
                   <Sonner />
                   <Routes>
                     {/* Public Routes */}
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/features" element={<Features />} />
-                    <Route path="/contact" element={<ContactUs />} />
-                    <Route path="/landing" element={<Landing />} />
+                     <Route path="/" element={<Landing />} />
+                     <Route path="/about" element={<About />} />
+                     <Route path="/features" element={<Features />} />
+                     <Route path="/pricing" element={<Pricing />} />
+                     <Route path="/contact" element={<ContactUs />} />
+                     <Route path="/landing" element={<Landing />} />
                     <Route path="/auth" element={<Auth />} />
                     
                     {/* Public Forms */}

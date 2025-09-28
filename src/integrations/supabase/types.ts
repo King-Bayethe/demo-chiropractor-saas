@@ -144,6 +144,7 @@ export type Database = {
           is_recurring: boolean | null
           location: string | null
           notes: string | null
+          organization_id: string | null
           patient_email: string | null
           patient_id: string | null
           patient_name: string | null
@@ -173,6 +174,7 @@ export type Database = {
           is_recurring?: boolean | null
           location?: string | null
           notes?: string | null
+          organization_id?: string | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
@@ -202,6 +204,7 @@ export type Database = {
           is_recurring?: boolean | null
           location?: string | null
           notes?: string | null
+          organization_id?: string | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
@@ -217,7 +220,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "appointments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -379,6 +390,7 @@ export type Database = {
           file_type: string
           id: string
           name: string
+          organization_id: string | null
           patient_id: string | null
           patient_name: string | null
           referral_source: string | null
@@ -396,6 +408,7 @@ export type Database = {
           file_type: string
           id?: string
           name: string
+          organization_id?: string | null
           patient_id?: string | null
           patient_name?: string | null
           referral_source?: string | null
@@ -413,6 +426,7 @@ export type Database = {
           file_type?: string
           id?: string
           name?: string
+          organization_id?: string | null
           patient_id?: string | null
           patient_name?: string | null
           referral_source?: string | null
@@ -422,6 +436,13 @@ export type Database = {
           uploaded_by?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_patient_id_fkey"
             columns: ["patient_id"]
@@ -753,6 +774,7 @@ export type Database = {
           name: string
           next_follow_up_date: string | null
           notes: string | null
+          organization_id: string | null
           patient_email: string | null
           patient_id: string | null
           patient_name: string | null
@@ -786,6 +808,7 @@ export type Database = {
           name: string
           next_follow_up_date?: string | null
           notes?: string | null
+          organization_id?: string | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
@@ -819,6 +842,7 @@ export type Database = {
           name?: string
           next_follow_up_date?: string | null
           notes?: string | null
+          organization_id?: string | null
           patient_email?: string | null
           patient_id?: string | null
           patient_name?: string | null
@@ -841,6 +865,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "opportunities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "opportunities_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -848,6 +879,107 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organization_members: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: string | null
+          branding: Json | null
+          city: string | null
+          created_at: string
+          email: string | null
+          features: Json
+          id: string
+          max_patients: number
+          max_users: number
+          name: string
+          phone: string | null
+          slug: string
+          state: string | null
+          subscription_plan: string
+          subscription_status: string
+          trial_ends_at: string | null
+          updated_at: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          branding?: Json | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          features?: Json
+          id?: string
+          max_patients?: number
+          max_users?: number
+          name: string
+          phone?: string | null
+          slug: string
+          state?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          branding?: Json | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          features?: Json
+          id?: string
+          max_patients?: number
+          max_users?: number
+          name?: string
+          phone?: string | null
+          slug?: string
+          state?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
       }
       patient_conversations: {
         Row: {
@@ -1172,6 +1304,7 @@ export type Database = {
           marital_status: string | null
           medicaid_medicare_id: string | null
           medical_systems_review: Json | null
+          organization_id: string | null
           other_medical_history: string | null
           pain_description: Json | null
           pain_frequency: string | null
@@ -1264,6 +1397,7 @@ export type Database = {
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
+          organization_id?: string | null
           other_medical_history?: string | null
           pain_description?: Json | null
           pain_frequency?: string | null
@@ -1356,6 +1490,7 @@ export type Database = {
           marital_status?: string | null
           medicaid_medicare_id?: string | null
           medical_systems_review?: Json | null
+          organization_id?: string | null
           other_medical_history?: string | null
           pain_description?: Json | null
           pain_frequency?: string | null
@@ -1387,7 +1522,15 @@ export type Database = {
           work_phone?: string | null
           zip_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "patients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1576,6 +1719,7 @@ export type Database = {
           last_modified_by: string
           objective: string | null
           objective_data: Json
+          organization_id: string | null
           patient_id: string
           plan: string | null
           plan_data: Json
@@ -1599,6 +1743,7 @@ export type Database = {
           last_modified_by: string
           objective?: string | null
           objective_data?: Json
+          organization_id?: string | null
           patient_id: string
           plan?: string | null
           plan_data?: Json
@@ -1622,6 +1767,7 @@ export type Database = {
           last_modified_by?: string
           objective?: string | null
           objective_data?: Json
+          organization_id?: string | null
           patient_id?: string
           plan?: string | null
           plan_data?: Json
@@ -1634,10 +1780,67 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "soap_notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "soap_notes_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          organization_id: string
+          plan_name: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          organization_id: string
+          plan_name: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          organization_id?: string
+          plan_name?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1982,6 +2185,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_current_user_organization: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2031,6 +2238,10 @@ export type Database = {
       }
       unassign_patient_from_provider: {
         Args: { patient_id_param: string; provider_id_param: string }
+        Returns: boolean
+      }
+      user_belongs_to_organization: {
+        Args: { org_id: string }
         Returns: boolean
       }
       validate_form_submission: {
