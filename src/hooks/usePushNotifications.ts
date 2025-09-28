@@ -305,7 +305,7 @@ export const usePushNotifications = () => {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         registration.showNotification('Test Notification', {
-          body: 'This is a test push notification from Dr. Silverman CRM',
+          body: 'This is a test push notification from HealthFlow SaaS',
           icon: '/icon-192.png',
           tag: 'test',
           requireInteraction: false

@@ -169,7 +169,7 @@ const Features = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Core Platform Features</h2>
               <p className="text-lg text-muted-foreground">
-                Discover the powerful features that make Dr. Silverman CRM the complete healthcare management solution
+                Discover the powerful features that make HealthFlow SaaS the complete healthcare management solution
               </p>
             </div>
             <div className="grid lg:grid-cols-2 gap-8">

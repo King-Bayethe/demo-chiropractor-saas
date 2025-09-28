@@ -257,7 +257,7 @@ const PublicPIPForm = () => {
 
   return (
     <PublicFormLayout
-      title="Silverman Chiropractic & Rehabilitation Center"
+      title="HealthFlow SaaS"
       subtitle="PIP Intake Form / Formulario de Admisión PIP"
     >
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -1108,10 +1108,10 @@ const PublicPIPForm = () => {
                 <h3 className="font-semibold text-lg mb-2">Patient Authorization <span className="font-medium">(Autorización del Paciente)</span></h3>
                 <div className="bg-muted/30 border-l-4 border-primary p-4 text-xs max-h-36 overflow-y-auto rounded-r-lg">
                   <p>
-                    I authorize Silverman Chiropractic & Rehabilitation Center to provide treatment as deemed necessary... I understand that I am financially responsible for all charges...
+                    I authorize HealthFlow SaaS to provide treatment as deemed necessary... I understand that I am financially responsible for all charges...
                   </p>
                   <p className="mt-2 italic">
-                    Autorizo al Silverman Chiropractic & Rehabilitation Center a proporcionar el tratamiento que considere necesario... Entiendo que soy financieramente responsable de todos los cargos...
+                    Autorizo al HealthFlow SaaS a proporcionar el tratamiento que considere necesario... Entiendo que soy financieramente responsable de todos los cargos...
                   </p>
                 </div>
               </div>
