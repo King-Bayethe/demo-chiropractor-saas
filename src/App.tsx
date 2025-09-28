@@ -34,6 +34,9 @@ import PatientProfile from "./pages/PatientProfile";
 import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
+import About from "./pages/About";
+import Features from "./pages/Features";
+import ContactUs from "./pages/ContactUs";
 
 import NewSOAPNote from "./pages/NewSOAPNote";
 import ViewSOAPNote from "./pages/ViewSOAPNote";
@@ -62,6 +65,9 @@ const App = () => (
                   <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<Landing />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/contact" element={<ContactUs />} />
                     <Route path="/landing" element={<Landing />} />
                     <Route path="/auth" element={<Auth />} />
                     

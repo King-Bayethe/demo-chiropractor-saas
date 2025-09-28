@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { WebsiteLayout } from '@/components/website/WebsiteLayout';
+import { ResponsiveContainer } from '@/components/ui/responsive-container';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Activity, Users, Calendar, FileText, MessageSquare, Shield, Code, Database, Smartphone } from 'lucide-react';
@@ -49,10 +51,11 @@ const Landing = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">{/* Add max-width for better readability */}
-        {/* Header */}
-        <div className="text-center mb-12">
+    <WebsiteLayout>
+      <section className="py-16 lg:py-24">
+        <ResponsiveContainer size="full">
+          {/* Header */}
+          <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Activity className="h-8 w-8 text-medical-blue" />
             <h1 className="text-4xl font-bold text-foreground">Healthcare Management System</h1>
@@ -87,10 +90,10 @@ const Landing = () => {
           <p className="text-sm text-muted-foreground mt-4">
             Demo credentials provided • All data is fictional
           </p>
-        </div>
+          </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {features.map((feature, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow border-border/50">
               <CardHeader>
@@ -108,11 +111,11 @@ const Landing = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
 
 
-        {/* Developer Info */}
-        <div className="text-center">
+          {/* Developer Info */}
+          <div className="text-center">
           <Card className="inline-block">
             <CardContent className="pt-6">
               <p className="text-muted-foreground mb-4">
@@ -131,10 +134,10 @@ const Landing = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+          </div>
 
-        {/* Additional Demo Features Section */}
-        <Card className="mt-12 mb-8">
+          {/* Additional Demo Features Section */}
+          <Card className="mt-12 mb-8">
           <CardHeader>
             <CardTitle className="text-2xl text-center">Demo Features</CardTitle>
             <CardDescription className="text-center">
@@ -173,18 +176,19 @@ const Landing = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+          </Card>
 
-        {/* Footer */}
-        <div className="text-center mt-16 pb-8">
-          <p className="text-sm text-muted-foreground">
-            Built with React, TypeScript, Supabase, and Tailwind CSS • 
-            <span className="mx-2">•</span>
-            Portfolio Demo Application
-          </p>
-        </div>
-      </div>
-    </div>
+          {/* Footer */}
+          <div className="text-center mt-16 pb-8">
+            <p className="text-sm text-muted-foreground">
+              Built with React, TypeScript, Supabase, and Tailwind CSS • 
+              <span className="mx-2">•</span>
+              Portfolio Demo Application
+            </p>
+          </div>
+        </ResponsiveContainer>
+      </section>
+    </WebsiteLayout>
   );
 };
 
