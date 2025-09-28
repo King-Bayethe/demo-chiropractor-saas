@@ -58,11 +58,11 @@ const Landing = () => {
           <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Activity className="h-8 w-8 text-medical-blue" />
-            <h1 className="text-4xl font-bold text-foreground">Healthcare Management System</h1>
+            <h1 className="text-4xl font-bold text-foreground">HealthFlow SaaS Platform</h1>
           </div>
           <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
-            A comprehensive healthcare practice management system built with modern web technologies.
-            This is a portfolio demonstration showcasing real-world medical workflow capabilities.
+            Multi-tenant healthcare practice management platform with HIPAA compliance, advanced analytics, 
+            and comprehensive workflow automation. Portfolio demonstration of enterprise SaaS development.
           </p>
           <div className="flex items-center justify-center gap-2 mb-8">
             <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue border-medical-blue/20">
