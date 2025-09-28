@@ -1,11 +1,21 @@
 import React from 'react';
 import { WebsiteLayout } from '@/components/website/WebsiteLayout';
 import { ResponsiveContainer } from '@/components/ui/responsive-container';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Check, Zap, Building, Crown, Users, FileText, Calendar, MessageSquare, BarChart3, Shield } from 'lucide-react';
+import { 
+  Check, 
+  Star, 
+  Users, 
+  Database, 
+  Shield, 
+  Zap,
+  Building,
+  Crown,
+  Heart
+} from 'lucide-react';
 
 const Pricing = () => {
   const plans = [
@@ -14,108 +24,99 @@ const Pricing = () => {
       price: '$49',
       period: '/month',
       description: 'Perfect for small practices getting started',
-      badge: null,
-      icon: Zap,
       features: [
         'Up to 100 patients',
-        '5 team members',
         'Basic SOAP notes',
         'Appointment scheduling',
         'Patient communications',
-        'Basic reporting',
         'Email support',
-        '14-day free trial'
+        '5 team members',
+        'Mobile app access',
+        'Basic analytics'
       ],
-      limits: {
-        patients: '100',
-        users: '5',
-        storage: '10GB'
-      }
+      limitations: [
+        'Limited integrations',
+        'Standard templates only'
+      ],
+      icon: Heart,
+      badge: null,
+      buttonText: 'Start Free Trial',
+      buttonVariant: 'outline' as const
     },
     {
       name: 'Professional',
-      price: '$149',
+      price: '$129',
       period: '/month',
-      description: 'Comprehensive solution for growing practices',
-      badge: 'Most Popular',
-      icon: Building,
+      description: 'Advanced features for growing practices',
       features: [
         'Up to 1,000 patients',
-        '25 team members',
-        'Advanced SOAP notes with templates',
-        'Smart scheduling with AI',
+        'Advanced SOAP notes with AI',
+        'Smart scheduling & reminders',
         'Multi-channel communications',
-        'Advanced analytics & reporting',
-        'API access',
         'Priority support',
-        'Custom integrations',
-        'Automated workflows'
+        '25 team members',
+        'Advanced analytics',
+        'Custom templates',
+        'API access',
+        'GoHighLevel integration',
+        'Automated workflows',
+        'Custom forms'
       ],
-      limits: {
-        patients: '1,000',
-        users: '25',
-        storage: '100GB'
-      }
+      limitations: [],
+      icon: Zap,
+      badge: 'Most Popular',
+      buttonText: 'Start Free Trial',
+      buttonVariant: 'default' as const
     },
     {
       name: 'Enterprise',
       price: '$399',
       period: '/month',
-      description: 'Full-featured platform for large organizations',
-      badge: 'Enterprise',
-      icon: Crown,
+      description: 'Full-scale solution for large organizations',
       features: [
         'Unlimited patients',
+        'Enterprise SOAP notes',
+        'Advanced scheduling suite',
+        'Omnichannel communications',
+        'Dedicated support',
         'Unlimited team members',
-        'White-label customization',
-        'Advanced security & compliance',
-        'Custom workflows & automation',
-        'Multi-location support',
-        'Dedicated account manager',
-        '24/7 phone support',
-        'Custom integrations',
-        'Advanced audit trails',
-        'Single Sign-On (SSO)',
-        'Custom reporting'
+        'Advanced analytics & BI',
+        'White-label branding',
+        'Full API access',
+        'All integrations',
+        'Custom development',
+        'SSO & advanced security',
+        'Compliance reporting',
+        'Multi-location support'
       ],
-      limits: {
-        patients: 'Unlimited',
-        users: 'Unlimited',
-        storage: '1TB+'
-      }
+      limitations: [],
+      icon: Crown,
+      badge: 'Enterprise',
+      buttonText: 'Contact Sales',
+      buttonVariant: 'outline' as const
     }
   ];
 
   const features = [
     {
-      icon: Users,
+      icon: Database,
       title: 'Multi-Tenant Architecture',
-      description: 'Secure tenant isolation with organization-level data separation'
+      description: 'Secure data isolation with organization-level access controls'
     },
     {
       icon: Shield,
-      title: 'HIPAA Compliance',
-      description: 'End-to-end encryption, audit trails, and regulatory compliance'
+      title: 'HIPAA Compliant',
+      description: 'Enterprise-grade security with comprehensive audit trails'
     },
     {
-      icon: FileText,
-      title: 'Clinical Documentation',
-      description: 'Advanced SOAP notes, templates, and clinical decision support'
+      icon: Users,
+      title: 'Team Collaboration',
+      description: 'Role-based permissions and real-time team communication'
     },
     {
-      icon: Calendar,
-      title: 'Smart Scheduling',
-      description: 'AI-powered scheduling with automated reminders and optimization'
-    },
-    {
-      icon: MessageSquare,
-      title: 'Unified Communications',
-      description: 'Patient messaging, SMS integration, and team collaboration'
-    },
-    {
-      icon: BarChart3,
-      title: 'Advanced Analytics',
-      description: 'Real-time dashboards, custom reports, and business intelligence'
+      icon: Building,
+      title: 'Multi-Location Support',
+      description: 'Manage multiple practice locations from a single platform'
     }
   ];
 
@@ -126,91 +127,94 @@ const Pricing = () => {
         <ResponsiveContainer size="full">
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-medical-blue/10 text-medical-blue border-medical-blue/20">
-              SaaS Pricing Tiers
+              SaaS Pricing
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6">
-              Healthcare SaaS 
-              <span className="bg-gradient-to-r from-medical-blue to-medical-teal bg-clip-text text-transparent"> Pricing</span>
+              Choose Your
+              <span className="bg-gradient-to-r from-medical-blue to-medical-teal bg-clip-text text-transparent"> Plan</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Scalable pricing tiers designed for healthcare organizations of all sizes. 
-              Portfolio demonstration of SaaS monetization strategies and feature gating.
+              Scalable healthcare management solutions designed to grow with your practice. 
+              Start with a 14-day free trial on any plan.
             </p>
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
             {plans.map((plan, index) => (
-              <Card key={index} className={`relative ${plan.badge === 'Most Popular' ? 'border-medical-blue scale-105 shadow-xl' : 'hover:shadow-lg'} transition-all`}>
+              <Card 
+                key={plan.name} 
+                className={`relative hover:shadow-xl transition-all duration-300 ${
+                  plan.badge === 'Most Popular' 
+                    ? 'border-medical-blue shadow-lg scale-105' 
+                    : 'hover:scale-105'
+                }`}
+              >
                 {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className={`px-3 py-1 ${plan.badge === 'Most Popular' ? 'bg-medical-blue text-white' : 'bg-medical-teal text-white'}`}>
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge 
+                      className={`${
+                        plan.badge === 'Most Popular' 
+                          ? 'bg-medical-blue text-white' 
+                          : 'bg-medical-teal text-white'
+                      }`}
+                    >
+                      <Star className="h-3 w-3 mr-1" />
                       {plan.badge}
                     </Badge>
                   </div>
                 )}
+                
                 <CardHeader className="text-center pb-4">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-3 bg-medical-blue/10 rounded-lg">
-                      <plan.icon className="h-8 w-8 text-medical-blue" />
-                    </div>
+                  <div className="mx-auto mb-4 p-3 bg-medical-blue/10 rounded-full w-fit">
+                    <plan.icon className="h-8 w-8 text-medical-blue" />
                   </div>
-                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                  <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-medical-blue">{plan.price}</span>
-                    <span className="text-muted-foreground ml-1">{plan.period}</span>
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                    <span className="text-muted-foreground">{plan.period}</span>
                   </div>
-                  <p className="text-muted-foreground">{plan.description}</p>
+                  <CardDescription className="text-base">
+                    {plan.description}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 mb-6">
-                    {plan.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-center space-x-3">
-                        <Check className="h-4 w-4 text-medical-green" />
-                        <span className="text-sm">{feature}</span>
+
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-medical-green mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
-                  
-                  <div className="bg-muted/30 rounded-lg p-4 mb-6">
-                    <h4 className="font-semibold mb-2">Plan Limits</h4>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>Patients: {plan.limits.patients}</div>
-                      <div>Users: {plan.limits.users}</div>
-                      <div>Storage: {plan.limits.storage}</div>
-                    </div>
-                  </div>
 
-                  <Link to="/auth">
-                    <Button 
-                      className={`w-full ${plan.badge === 'Most Popular' ? 'bg-medical-blue hover:bg-medical-blue-dark' : 'bg-gradient-to-r from-medical-blue to-medical-teal hover:opacity-90'} text-white`}
-                      size="lg"
-                    >
-                      Start {plan.name} Plan
-                    </Button>
-                  </Link>
+                  <div className="pt-6">
+                    <Link to="/auth">
+                      <Button 
+                        className={`w-full ${
+                          plan.buttonVariant === 'default' 
+                            ? 'bg-gradient-to-r from-medical-blue to-medical-teal text-white' 
+                            : ''
+                        }`}
+                        variant={plan.buttonVariant}
+                        size="lg"
+                      >
+                        {plan.buttonText}
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Features Section */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Platform Features</h2>
-            <p className="text-lg text-muted-foreground">
-              Comprehensive healthcare management capabilities across all plans
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {/* Enterprise Features */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-3 bg-medical-blue/10 rounded-lg">
-                      <feature.icon className="h-8 w-8 text-medical-blue" />
-                    </div>
-                  </div>
+                  <feature.icon className="h-10 w-10 text-medical-blue mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </CardContent>
@@ -218,29 +222,64 @@ const Pricing = () => {
             ))}
           </div>
 
-          {/* Portfolio Note */}
-          <Card className="bg-gradient-to-r from-medical-blue/10 to-medical-teal/10 border-medical-blue/20">
-            <CardContent className="p-8 text-center">
-              <h3 className="text-2xl font-bold text-foreground mb-4">Portfolio Demonstration</h3>
-              <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                This pricing structure demonstrates SaaS monetization strategies, feature gating, 
-                and subscription management. The platform includes Stripe integration for billing, 
-                usage tracking, and tenant-based feature access controls.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/auth">
-                  <Button size="lg" className="bg-gradient-to-r from-medical-blue to-medical-teal text-white">
-                    Explore Demo Platform
-                  </Button>
-                </Link>
-                <Link to="/contact">
-                  <Button size="lg" variant="outline">
-                    View Technical Details
-                  </Button>
-                </Link>
+          {/* FAQ Section */}
+          <Card className="bg-muted/30">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Frequently Asked Questions</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Is this HIPAA compliant?</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Yes, HealthFlow SaaS is built with HIPAA compliance at its core, featuring 
+                    end-to-end encryption, audit trails, and access controls.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Can I upgrade or downgrade plans?</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Absolutely! You can change your plan at any time. Changes take effect 
+                    at the next billing cycle.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">What integrations are available?</h3>
+                  <p className="text-muted-foreground text-sm">
+                    We integrate with major EHR systems, billing platforms, and communication 
+                    tools. Custom integrations available for Enterprise plans.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Is there a setup fee?</h3>
+                  <p className="text-muted-foreground text-sm">
+                    No setup fees for Starter and Professional plans. Enterprise plans include 
+                    white-glove onboarding and setup assistance.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* CTA Section */}
+          <div className="text-center mt-16">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Ready to Transform Your Practice?
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Start your 14-day free trial today. No credit card required.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/auth">
+                <Button size="lg" className="bg-gradient-to-r from-medical-blue to-medical-teal text-white">
+                  Start Free Trial
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button size="lg" variant="outline">
+                  Schedule Demo
+                </Button>
+              </Link>
+            </div>
+          </div>
         </ResponsiveContainer>
       </section>
     </WebsiteLayout>
