@@ -49,7 +49,7 @@ const Landing = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5 overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5">
       <div className="container mx-auto px-4 py-8 max-w-7xl">{/* Add max-width for better readability */}
         {/* Header */}
         <div className="text-center mb-12">
