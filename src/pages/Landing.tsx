@@ -47,14 +47,6 @@ const Landing = () => {
     }
   ];
 
-  const techStack = [
-    { name: "React", color: "bg-medical-blue/10 text-medical-blue" },
-    { name: "TypeScript", color: "bg-medical-blue/10 text-medical-blue" },
-    { name: "Tailwind CSS", color: "bg-medical-teal/10 text-medical-teal" },
-    { name: "Supabase", color: "bg-medical-green/10 text-medical-green" },
-    { name: "PostgreSQL", color: "bg-primary/10 text-primary" },
-    { name: "Row Level Security", color: "bg-secondary/80 text-secondary-foreground" }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-medical-blue/20 via-background to-medical-teal/5 overflow-y-auto">
@@ -118,24 +110,6 @@ const Landing = () => {
           ))}
         </div>
 
-        {/* Technology Stack */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Technology Stack</CardTitle>
-            <CardDescription className="text-center">
-              Built with modern, production-ready technologies
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap justify-center gap-3">
-              {techStack.map((tech, index) => (
-                <Badge key={index} variant="secondary" className={tech.color}>
-                  {tech.name}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Developer Info */}
         <div className="text-center">
