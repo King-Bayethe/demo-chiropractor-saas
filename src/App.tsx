@@ -36,8 +36,8 @@ import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
 import About from "./pages/About";
 import Features from "./pages/Features";
-import Pricing from "./pages/Pricing";
 import ContactUs from "./pages/ContactUs";
+import Pricing from "./pages/Pricing";
 
 import NewSOAPNote from "./pages/NewSOAPNote";
 import ViewSOAPNote from "./pages/ViewSOAPNote";
