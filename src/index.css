@@ -40,6 +40,7 @@ All colors MUST be HSL.
     --medical-blue-dark: 210 100% 35%;
     --medical-teal: 180 65% 50%;
     --medical-green: 145 85% 47%;
+    --medical-green-light: 145 85% 96%;
     --medical-orange: 25 95% 53%;
     --medical-red: 0 84% 60%;
 
@@ -126,6 +127,7 @@ All colors MUST be HSL.
     --medical-blue-dark: 210 100% 40%;
     --medical-teal: 180 65% 60%;
     --medical-green: 145 85% 55%;
+    --medical-green-light: 145 85% 25%;
     --medical-orange: 25 95% 63%;
     --medical-red: 0 84% 70%;
 
