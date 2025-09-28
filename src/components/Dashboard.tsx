@@ -16,15 +16,35 @@ import {
   ArrowUpRight,
   Award,
   Bell,
-  Settings
+  Settings,
+  Play
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useDemoData } from "@/hooks/useDemoData";
+import { DemoTour } from "@/components/demo/DemoTour";
+import { DemoBanner } from "@/components/demo/DemoBanner";
+import { useState, useEffect } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { isDemoUser, mockDashboardStats, mockAppointments, mockOpportunities } = useDemoData();
+  const [showTour, setShowTour] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+
+  useEffect(() => {
+    // Show tour automatically for first-time visitors
+    const hasSeenTour = localStorage.getItem('demo-tour-completed');
+    if (!hasSeenTour && isDemoUser) {
+      const timer = setTimeout(() => setShowTour(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isDemoUser]);
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    localStorage.setItem('demo-tour-completed', 'true');
+  };
 
 const mockData = {
   salesPipeline: [
@@ -70,9 +90,25 @@ const stats = mockDashboardStats || mockData.stats;
   })) || mockData.recentAppointments;
 
   return (
-    <div className="h-full bg-background p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-auto">
+    <>
+      {/* Demo Banner */}
+      {showBanner && isDemoUser && (
+        <DemoBanner 
+          variant="top" 
+          onDismiss={() => setShowBanner(false)}
+          showSourceCode={true}
+          showPortfolioLink={true}
+        />
+      )}
+
+      {/* Demo Tour */}
+      {showTour && (
+        <DemoTour onClose={handleTourComplete} autoStart={true} />
+      )}
+
+      <div className="h-full bg-background p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="dashboard-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="h-8 sm:h-12 w-8 sm:w-12 bg-medical-blue rounded-lg flex items-center justify-center">
             <Activity className="h-4 sm:h-6 w-4 sm:w-6 text-white" />
@@ -86,6 +122,18 @@ const stats = mockDashboardStats || mockData.stats;
           <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue text-xs sm:text-sm">
             Portfolio Demo
           </Badge>
+          {!localStorage.getItem('demo-tour-completed') && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="text-xs sm:text-sm bg-medical-blue hover:bg-medical-blue-dark"
+              onClick={() => setShowTour(true)}
+            >
+              <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Start Demo Tour</span>
+              <span className="sm:hidden">Tour</span>
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm" 
@@ -105,7 +153,7 @@ const stats = mockDashboardStats || mockData.stats;
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
+      <div className="metrics-grid grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
         <Card className="border border-border/50 shadow-sm">
           <CardContent className="p-2 sm:p-3">
             <div className="flex items-center justify-between">
@@ -357,6 +405,7 @@ const stats = mockDashboardStats || mockData.stats;
         </Card>
       </div>
     </div>
+    </>
   );
 }
 

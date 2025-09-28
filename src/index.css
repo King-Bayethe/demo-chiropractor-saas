@@ -372,6 +372,24 @@ html {
   }
 }
 
+/* Demo tour highlight effect */
+.tour-highlight {
+  position: relative;
+  z-index: 41;
+  animation: tour-pulse 2s ease-in-out;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px hsl(var(--medical-blue) / 0.3), 0 0 20px hsl(var(--medical-blue) / 0.2);
+}
+
+@keyframes tour-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px hsl(var(--medical-blue) / 0.3), 0 0 20px hsl(var(--medical-blue) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(var(--medical-blue) / 0.4), 0 0 30px hsl(var(--medical-blue) / 0.3);
+  }
+}
+
 /* Improved focus indicators for accessibility */
 .opportunities-focus:focus-visible {
   outline: 2px solid hsl(var(--primary));

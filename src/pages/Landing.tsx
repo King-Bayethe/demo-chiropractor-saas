@@ -6,7 +6,8 @@ import { WebsiteLayout } from '@/components/website/WebsiteLayout';
 import { ResponsiveContainer } from '@/components/ui/responsive-container';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Activity, Users, Calendar, FileText, MessageSquare, Shield, Code, Database, Smartphone } from 'lucide-react';
+import { FeatureShowcase } from '@/components/demo/FeatureShowcase';
+import { Activity, Users, Calendar, FileText, MessageSquare, Shield, Code, Database, Smartphone, Github, ExternalLink, Play, Target, Zap } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -79,13 +80,25 @@ const Landing = () => {
             </Badge>
           </div>
           
-          <Button 
-            onClick={handleEnterDemo} 
-            size="lg" 
-            className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-3 text-lg"
-          >
-            Enter Demo System
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={handleEnterDemo} 
+              size="lg" 
+              className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-3 text-lg"
+            >
+              <Play className="h-5 w-5 mr-2" />
+              Try Live Demo
+            </Button>
+            <Button 
+              variant="outline"
+              size="lg" 
+              className="px-8 py-3 text-lg border-medical-blue text-medical-blue hover:bg-medical-blue/10"
+              onClick={() => document.getElementById('feature-showcase')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <Target className="h-5 w-5 mr-2" />
+              Explore Features
+            </Button>
+          </div>
           
           <p className="text-sm text-muted-foreground mt-4">
             Demo credentials provided • All data is fictional
@@ -114,27 +127,81 @@ const Landing = () => {
           </div>
 
 
-          {/* Developer Info */}
-          <div className="text-center">
-          <Card className="inline-block">
-            <CardContent className="pt-6">
-              <p className="text-muted-foreground mb-4">
-                Developed as a portfolio demonstration of full-stack healthcare application development
-              </p>
-              <div className="flex justify-center gap-4">
-                <Button variant="outline" size="sm">
-                  View Source Code
-                </Button>
-                <Button variant="outline" size="sm">
-                  LinkedIn Profile
-                </Button>
-                <Button variant="outline" size="sm">
-                  Contact Developer
-                </Button>
+          {/* Enhanced Feature Showcase */}
+          <div id="feature-showcase">
+            <FeatureShowcase />
+          </div>
+
+          {/* Technical Highlights */}
+          <Card className="bg-gradient-to-br from-medical-blue/5 via-background to-medical-teal/5">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <Code className="h-6 w-6 text-medical-blue" />
+                Technical Implementation
+              </CardTitle>
+              <CardDescription>
+                Built with modern web technologies and best practices for enterprise-grade healthcare applications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center space-y-3">
+                  <div className="mx-auto w-12 h-12 bg-medical-blue/10 rounded-full flex items-center justify-center">
+                    <Database className="h-6 w-6 text-medical-blue" />
+                  </div>
+                  <h3 className="font-semibold">Backend Architecture</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Supabase with PostgreSQL, Row Level Security, real-time subscriptions, and Edge Functions for serverless logic
+                  </p>
+                </div>
+                <div className="text-center space-y-3">
+                  <div className="mx-auto w-12 h-12 bg-medical-teal/10 rounded-full flex items-center justify-center">
+                    <Code className="h-6 w-6 text-medical-teal" />
+                  </div>
+                  <h3 className="font-semibold">Frontend Excellence</h3>
+                  <p className="text-sm text-muted-foreground">
+                    React 18 + TypeScript + Vite for optimal performance, with Tailwind CSS and shadcn/ui for premium design
+                  </p>
+                </div>
+                <div className="text-center space-y-3">
+                  <div className="mx-auto w-12 h-12 bg-medical-green/10 rounded-full flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-medical-green" />
+                  </div>
+                  <h3 className="font-semibold">Security & Compliance</h3>
+                  <p className="text-sm text-muted-foreground">
+                    HIPAA-compliant architecture with encryption, audit trails, and comprehensive access controls
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-          </div>
+
+          {/* Portfolio Links */}
+          <Card className="bg-muted/30">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-xl font-semibold">Developer Portfolio Showcase</h3>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  This healthcare management platform demonstrates expertise in full-stack development, 
+                  healthcare compliance, and enterprise-grade application architecture.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Github className="h-4 w-4" />
+                    View Source Code
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4" />
+                    Developer Portfolio
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    LinkedIn Profile
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Additional Demo Features Section */}
           <Card className="mt-12 mb-8">
