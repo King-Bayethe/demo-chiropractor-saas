@@ -19,20 +19,25 @@ const PIPELINE_STAGES = [
 ];
 
 const SOURCES = [
-  "Attorney Referral",
+  "Physician Referral",
+  "Patient Referral",
+  "Online Marketing",
+  "Insurance Network",
   "Website",
   "Social Media",
   "Walk-in",
   "Phone Call",
   "Email",
+  "Community Outreach",
   "Other",
 ];
 
 const TEAM_MEMBERS = [
   "Dr. Silverman",
+  "Dr. Johnson",
   "Nurse Smith",
+  "Care Coordinator Brown",
   "Admin Johnson",
-  "Coordinator Brown",
 ];
 
 export function AddOpportunityForm({ onSubmit }: AddOpportunityFormProps) {
@@ -137,7 +142,7 @@ export function AddOpportunityForm({ onSubmit }: AddOpportunityFormProps) {
           <Input
             id="tags"
             {...register("tags")}
-            placeholder="Personal Injury, High Priority"
+            placeholder="Chronic Care, High Priority, New Patient"
           />
         </div>
 

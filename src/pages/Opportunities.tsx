@@ -59,9 +59,9 @@ export default function Opportunities() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Sales Pipeline</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Patient Opportunities</h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Manage opportunities through your sales process
+              Track patient journey from initial contact to completed care
             </p>
           </div>
         </div>
@@ -76,33 +76,33 @@ export default function Opportunities() {
             <CardContent>
               <div className="text-2xl font-bold">${stats.totalValue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                {stats.totalOpportunities} opportunities
+                {stats.totalOpportunities} patient opportunities
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Deal Size</CardTitle>
+              <CardTitle className="text-sm font-medium">Avg Patient Value</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${Math.round(stats.averageDealSize).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                Per opportunity
+                Lifetime value estimate
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Contacts</CardTitle>
+              <CardTitle className="text-sm font-medium">Active Prospects</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeContacts}</div>
               <p className="text-xs text-muted-foreground">
-                Unique prospects
+                Potential patients
               </p>
             </CardContent>
           </Card>
@@ -119,7 +119,7 @@ export default function Opportunities() {
                   : 0}%
               </div>
               <p className="text-xs text-muted-foreground">
-                To payment collected
+                To completed care
               </p>
             </CardContent>
           </Card>
@@ -127,7 +127,7 @@ export default function Opportunities() {
 
         {/* Kanban Pipeline Board */}
         <div className="bg-gray-50 min-h-[600px] p-6 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Sales Pipeline Board</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Patient Journey Pipeline</h2>
           
           <div className="flex gap-6 overflow-x-auto pb-4">
             {stages.map((stage, stageIndex) => {

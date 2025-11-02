@@ -47,19 +47,19 @@ const Dashboard = () => {
   };
 
 const mockData = {
-  salesPipeline: [
-    { stage: "Lead Captured", count: 45, percentage: 100 },
-    { stage: "Consult Scheduled", count: 32, percentage: 71 },
-    { stage: "Patient Seen", count: 24, percentage: 53 },
-    { stage: "Billing Pending", count: 18, percentage: 40 },
-    { stage: "Payment Collected", count: 15, percentage: 33 }
+  patientJourneyPipeline: [
+    { stage: "New Lead", count: 45, percentage: 100 },
+    { stage: "Qualified Prospect", count: 35, percentage: 78 },
+    { stage: "Appointment Scheduled", count: 28, percentage: 62 },
+    { stage: "Initial Consultation", count: 24, percentage: 53 },
+    { stage: "Active Treatment", count: 18, percentage: 40 }
   ],
-  pipPipeline: [
-    { stage: "Lead Captured", count: 28, percentage: 100 },
-    { stage: "Intake Completed", count: 22, percentage: 79 },
-    { stage: "Treatment Ongoing", count: 18, percentage: 65 },
-    { stage: "Final Report", count: 12, percentage: 43 },
-    { stage: "Payment Received", count: 10, percentage: 36 }
+  revenueCyclePipeline: [
+    { stage: "Service Inquiry", count: 32, percentage: 100 },
+    { stage: "Insurance Verified", count: 28, percentage: 88 },
+    { stage: "Service Scheduled", count: 24, percentage: 75 },
+    { stage: "Service Provided", count: 20, percentage: 63 },
+    { stage: "Payment Collected", count: 16, percentage: 50 }
   ],
   stats: {
     conversionRate: 33,
@@ -68,16 +68,16 @@ const mockData = {
     revenueCollected: 142350,
     activePatients: 156
   },
-  attorneys: [
-    { name: "Johnson & Associates", leads: 12, revenue: 38400 },
-    { name: "Miller Law Firm", leads: 8, revenue: 24800 },
-    { name: "Davis Legal Group", leads: 6, revenue: 19200 },
-    { name: "Wilson & Partners", leads: 4, revenue: 12800 }
+  referralSources: [
+    { name: "Physician Referrals", leads: 18, revenue: 54200 },
+    { name: "Online Marketing", leads: 14, revenue: 38800 },
+    { name: "Patient Referrals", leads: 10, revenue: 28400 },
+    { name: "Insurance Network", leads: 8, revenue: 22600 }
   ],
   recentAppointments: [
-    { name: "Maria Rodriguez", time: "9:00 AM", type: "PIP Initial", phone: "(786) 555-0123" },
-    { name: "James Wilson", time: "10:30 AM", type: "Follow-up", phone: "(305) 555-0456" },
-    { name: "Sarah Johnson", time: "2:00 PM", type: "New Patient", phone: "(954) 555-0789" }
+    { name: "Maria Rodriguez", time: "9:00 AM", type: "Initial Consultation", phone: "(786) 555-0123" },
+    { name: "James Wilson", time: "10:30 AM", type: "Follow-up Visit", phone: "(305) 555-0456" },
+    { name: "Sarah Johnson", time: "2:00 PM", type: "Annual Physical", phone: "(954) 555-0789" }
   ]
 };
 
@@ -248,25 +248,20 @@ const stats = mockDashboardStats || mockData.stats;
 
       {/* Pipeline and Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        {/* Sales Pipeline */}
+        {/* Patient Journey Pipeline */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <span className="text-base sm:text-lg">Sales Process Pipeline</span>
-              <Badge variant="outline" className="text-xs w-fit">Monthly View</Badge>
+              <span className="text-base sm:text-lg">Patient Journey Pipeline</span>
+              <Badge variant="outline" className="text-xs w-fit">Acquisition Flow</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
-            {mockData.salesPipeline.map((stage, index) => (
+            {mockData.patientJourneyPipeline.map((stage, index) => (
               <div key={stage.stage} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                     <span className="font-medium text-xs sm:text-sm">{stage.stage}</span>
-                    {stage.stage === "Billing Pending" && (
-                      <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 text-xs w-fit mt-1 sm:mt-0">
-                        Demo Feature
-                      </Badge>
-                    )}
                   </div>
                   <span className="text-muted-foreground text-xs sm:text-sm">{stage.count} patients</span>
                 </div>
@@ -275,27 +270,27 @@ const stats = mockDashboardStats || mockData.stats;
                   className="h-2" 
                 />
                 <div className="text-xs text-muted-foreground text-right">
-                  {stage.percentage}% completion
+                  {stage.percentage}% conversion
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        {/* PIP Pipeline */}
+        {/* Revenue Cycle Pipeline */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <span className="text-base sm:text-lg">PIP Case Pipeline</span>
-              <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue text-xs w-fit">Demo Focus</Badge>
+              <span className="text-base sm:text-lg">Revenue Cycle Pipeline</span>
+              <Badge variant="outline" className="bg-medical-blue/10 text-medical-blue text-xs w-fit">Financial Flow</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
-            {mockData.pipPipeline.map((stage, index) => (
+            {mockData.revenueCyclePipeline.map((stage, index) => (
               <div key={stage.stage} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-xs sm:text-sm">{stage.stage}</span>
-                  <span className="text-muted-foreground text-xs sm:text-sm">{stage.count} cases</span>
+                  <span className="text-muted-foreground text-xs sm:text-sm">{stage.count} opportunities</span>
                 </div>
                 <Progress 
                   value={stage.percentage} 
@@ -312,24 +307,24 @@ const stats = mockDashboardStats || mockData.stats;
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-        {/* Attorney Referral Leaderboard */}
+        {/* Top Referral Sources */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
               <Award className="w-4 h-4 sm:w-5 sm:h-5 text-medical-blue" />
-              <span>Top Referring Partners</span>
+              <span>Top Referral Sources</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">
-            {mockData.attorneys.map((attorney, index) => (
-              <div key={attorney.name} className="flex items-center justify-between p-2 sm:p-3 bg-muted/30 rounded-lg">
+            {mockData.referralSources.map((source, index) => (
+              <div key={source.name} className="flex items-center justify-between p-2 sm:p-3 bg-muted/30 rounded-lg">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-xs sm:text-sm truncate">{attorney.name}</p>
-                  <p className="text-xs text-muted-foreground">{attorney.leads} leads this month</p>
+                  <p className="font-medium text-xs sm:text-sm truncate">{source.name}</p>
+                  <p className="text-xs text-muted-foreground">{source.leads} new patients</p>
                 </div>
                 <div className="text-right ml-2">
                   <p className="font-semibold text-success text-xs sm:text-sm">
-                    ${attorney.revenue.toLocaleString()}
+                    ${source.revenue.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">revenue</p>
                 </div>
@@ -381,19 +376,19 @@ const stats = mockDashboardStats || mockData.stats;
           <CardContent className="space-y-2 sm:space-y-3">
             <Button variant="outline" className="w-full justify-start" size="sm">
               <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              <span className="text-xs sm:text-sm">Lead Intake Form</span>
+              <span className="text-xs sm:text-sm">New Patient Registration</span>
             </Button>
             <Button variant="outline" className="w-full justify-start" size="sm">
               <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              <span className="text-xs sm:text-sm">New Patient Intake</span>
+              <span className="text-xs sm:text-sm">Medical History Update</span>
             </Button>
             <Button variant="outline" className="w-full justify-start" size="sm">
               <Activity className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              <span className="text-xs sm:text-sm">PIP Patient Intake</span>
+              <span className="text-xs sm:text-sm">Insurance Verification</span>
             </Button>
             <Button variant="outline" className="w-full justify-start" size="sm">
               <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              <span className="text-xs sm:text-sm">Pain Assessment</span>
+              <span className="text-xs sm:text-sm">Patient Feedback Survey</span>
             </Button>
             <div className="pt-2 border-t border-border/50">
               <Button variant="default" className="w-full" size="sm">

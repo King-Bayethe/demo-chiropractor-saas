@@ -265,12 +265,12 @@ export default function Patients() {
                       </SelectTrigger>
                       <SelectContent className="bg-background border shadow-lg z-50">
                         <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="PIP">PIP Patients</SelectItem>
-                        <SelectItem value="Insurance">Insurance Patients</SelectItem>
-                        <SelectItem value="Slip and Fall">Slip & Fall</SelectItem>
+                        <SelectItem value="Private Insurance">Private Insurance</SelectItem>
+                        <SelectItem value="Medicare">Medicare/Medicaid</SelectItem>
+                        <SelectItem value="Self-Pay">Self-Pay (Cash)</SelectItem>
+                        <SelectItem value="Payment Plan">Payment Plan</SelectItem>
                         <SelectItem value="Workers Compensation">Workers Comp</SelectItem>
-                        <SelectItem value="Cash Plan">Cash Plan</SelectItem>
-                        <SelectItem value="Attorney Only">Attorney Only</SelectItem>
+                        <SelectItem value="PIP">Auto Insurance (PIP)</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -294,11 +294,11 @@ export default function Patients() {
                     </Badge>
                     {!isMobile && (
                       <>
-                        <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
-                          PIP: {filteredPatients.filter((p: any) => getPatientType(p) === 'PIP').length}
-                        </Badge>
                         <Badge variant="outline" className="bg-case-insurance/10 text-case-insurance">
-                          Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Insurance').length}
+                          Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Private Insurance' || getPatientType(p) === 'Insurance').length}
+                        </Badge>
+                        <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
+                          Self-Pay: {filteredPatients.filter((p: any) => getPatientType(p) === 'Self-Pay' || getPatientType(p) === 'Cash Plan').length}
                         </Badge>
                       </>
                     )}
