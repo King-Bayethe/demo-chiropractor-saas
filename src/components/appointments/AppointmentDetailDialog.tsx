@@ -54,7 +54,7 @@ export function AppointmentDetailDialog({
     switch (type) {
       case "Treatment": return "bg-medical-teal/10 text-medical-teal";
       case "Consultation": return "bg-primary/10 text-primary";
-      case "Physical Therapy": return "bg-yellow-500/10 text-yellow-700";
+      case "Physical Therapy": return "bg-warning/10 text-warning";
       default: return "bg-muted text-muted-foreground";
     }
   };

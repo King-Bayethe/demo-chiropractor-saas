@@ -75,8 +75,8 @@ export function PatientStatsCards({
                   <p className={cn(
                     "text-muted-foreground",
                     isMobile ? "text-xs" : "text-sm",
-                    stat.trend === 'up' && "text-green-600 dark:text-green-400",
-                    stat.trend === 'down' && "text-red-600 dark:text-red-400"
+                    stat.trend === 'up' && "text-success",
+                    stat.trend === 'down' && "text-destructive"
                   )}>
                     {stat.description}
                   </p>

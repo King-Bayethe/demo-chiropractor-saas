@@ -19,48 +19,48 @@ interface AppointmentCardProps {
 const getStatusColor = (status: Appointment['status']) => {
   switch (status) {
     case 'scheduled':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-info/10 text-info border-info/20';
     case 'confirmed':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-success/10 text-success border-success/20';
     case 'cancelled':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'completed':
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-muted text-muted-foreground border-border';
     case 'no_show':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
+      return 'bg-warning/10 text-warning border-warning/20';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-muted text-muted-foreground border-border';
   }
 };
 
 const getTypeColor = (type: Appointment['type']) => {
   switch (type) {
     case 'initial_consultation':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
+      return 'bg-primary/10 text-primary border-primary/20';
     case 'follow_up_visit':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      return 'bg-warning/10 text-warning border-warning/20';
     case 'annual_physical':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-info/10 text-info border-info/20';
     case 'wellness_exam':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-success/10 text-success border-success/20';
     case 'diagnostic_procedure':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'therapy_session':
-      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      return 'bg-primary/10 text-primary border-primary/20';
     case 'lab_work':
-      return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+      return 'bg-info/10 text-info border-info/20';
     case 'telemedicine':
-      return 'bg-teal-100 text-teal-800 border-teal-200';
+      return 'bg-success/10 text-success border-success/20';
     case 'urgent_care':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
+      return 'bg-warning/10 text-warning border-warning/20';
     case 'specialist_consultation':
-      return 'bg-violet-100 text-violet-800 border-violet-200';
+      return 'bg-primary/10 text-primary border-primary/20';
     case 'vaccination':
-      return 'bg-pink-100 text-pink-800 border-pink-200';
+      return 'bg-success/10 text-success border-success/20';
     case 'preventive_care':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      return 'bg-success/10 text-success border-success/20';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-muted text-muted-foreground border-border';
   }
 };
 
@@ -125,7 +125,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onDelete(appointment.id)}
-                className="text-red-600"
+                className="text-destructive"
               >
                 Delete Appointment
               </DropdownMenuItem>

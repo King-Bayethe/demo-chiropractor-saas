@@ -82,10 +82,10 @@ export function PatientFilters({
               <Users className="mr-2 h-4 w-4" />
               Total: {totalCount}
             </Badge>
-            <Badge className="px-3 py-1.5 text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-0">
+            <Badge className="px-3 py-1.5 text-sm font-semibold bg-info/10 text-info border-0">
               Insurance: {insuranceCount}
             </Badge>
-            <Badge className="px-3 py-1.5 text-sm font-semibold bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 border-0">
+            <Badge className="px-3 py-1.5 text-sm font-semibold bg-success/10 text-success border-0">
               Self-Pay: {selfPayCount}
             </Badge>
           </div>
