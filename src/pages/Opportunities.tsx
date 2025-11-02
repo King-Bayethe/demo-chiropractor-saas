@@ -416,8 +416,8 @@ export default function Opportunities() {
             </Card>
           </div>
         ) : (
-          <div className="px-6 pb-6">
-            <div className="relative">
+          <div className="px-6 pb-6 max-w-full overflow-hidden">
+            <div className="relative max-w-full">
               {/* Navigation Arrows */}
               {canScrollLeft && (
                 <Button
@@ -445,7 +445,7 @@ export default function Opportunities() {
               <div 
                 ref={scrollRef}
                 className={cn(
-                  "overflow-x-auto pb-4 pipeline-scroll-container",
+                  "w-full overflow-x-auto pb-4 pipeline-scroll-container",
                   isDragging ? "cursor-grabbing select-none" : "cursor-grab"
                 )}
                 onMouseDown={(e) => scrollRef.current && e.preventDefault()}
