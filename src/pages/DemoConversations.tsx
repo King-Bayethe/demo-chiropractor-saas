@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MessageSquare, Phone, Voicemail, Send, Search, Filter, Info, ArrowLeft } from 'lucide-react';
+import { ChatEmptyState } from '@/components/ui/chat-empty-state';
+import { TypingIndicator } from '@/components/ui/typing-indicator';
+import { MessageSquare, Phone, Voicemail, Send, Search, Filter, Info, ArrowLeft, Calendar, FileText, Stethoscope, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -47,7 +48,7 @@ const DemoConversations = () => {
       lastMessage: 'Thank you for the appointment reminder!',
       lastMessageTime: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
       unreadCount: 0,
-      caseType: 'PIP',
+      caseType: 'Primary Care',
       status: 'active',
       messages: [
         {
@@ -75,7 +76,7 @@ const DemoConversations = () => {
       lastMessage: 'Is it possible to reschedule my appointment?',
       lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
       unreadCount: 2,
-      caseType: 'Insurance',
+      caseType: 'Specialist',
       status: 'pending',
       messages: [
         {
@@ -111,7 +112,7 @@ const DemoConversations = () => {
       lastMessage: 'Missed call - please call back',
       lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
       unreadCount: 1,
-      caseType: 'Cash Plan',
+      caseType: 'Wellness',
       status: 'active',
       messages: [
         {
@@ -164,12 +165,14 @@ const DemoConversations = () => {
 
   const getCaseTypeColor = (caseType: string) => {
     switch (caseType) {
-      case 'PIP':
-        return 'bg-case-pip/10 text-case-pip border-case-pip/20';
-      case 'Insurance':
-        return 'bg-case-insurance/10 text-case-insurance border-case-insurance/20';
-      case 'Cash Plan':
-        return 'bg-case-cash-plan/10 text-case-cash-plan border-case-cash-plan/20';
+      case 'Primary Care':
+        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+      case 'Specialist':
+        return 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20';
+      case 'Urgent Care':
+        return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
+      case 'Wellness':
+        return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -183,8 +186,8 @@ const DemoConversations = () => {
   return (
     <Layout>
       {/* Demo Header */}
-      <div className="bg-medical-blue/5 border-b border-medical-blue/20 p-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 border-b border-primary/20 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
@@ -193,30 +196,28 @@ const DemoConversations = () => {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Landing
+              Back
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">Demo Conversations</h1>
-              <p className="text-sm text-muted-foreground">Interactive patient messaging demonstration</p>
+              <h1 className="text-xl font-semibold text-foreground">Patient Communication Hub</h1>
+              <p className="text-sm text-muted-foreground">HIPAA-compliant messaging with SMS & voice integration</p>
             </div>
           </div>
-          <Alert className="max-w-md">
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              This is a demo environment. All conversations and messages are fictional.
-            </AlertDescription>
-          </Alert>
+          <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary w-fit">
+            <Sparkles className="h-3 w-3 mr-1" />
+            Portfolio Preview
+          </Badge>
         </div>
       </div>
       
-      <div className="h-[calc(100vh-8rem)] flex">
+      <div className="h-[calc(100vh-9rem)] flex">
         {/* Conversations List */}
-        <div className="w-1/3 border-r border-border flex flex-col">
+        <div className="w-full md:w-1/3 border-r border-border flex flex-col bg-card">
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Patient Conversations</h2>
-              <Badge className="bg-medical-blue/10 text-medical-blue border-medical-blue/20">
-                Demo Mode
+              <h2 className="text-lg font-semibold text-foreground">Conversations</h2>
+              <Badge variant="secondary" className="text-xs">
+                {filteredConversations.length}
               </Badge>
             </div>
             <div className="flex gap-2">
@@ -239,37 +240,41 @@ const DemoConversations = () => {
             {filteredConversations.map((conversation) => (
               <div
                 key={conversation.id}
-                className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                  selectedConversation?.id === conversation.id ? 'bg-muted' : ''
-                }`}
+                className={cn(
+                  "p-3 mx-2 my-1 rounded-lg cursor-pointer transition-all duration-200 group",
+                  "hover:bg-muted/50 hover:shadow-sm hover:translate-x-1",
+                  selectedConversation?.id === conversation.id
+                    ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-l-4 border-primary shadow-sm'
+                    : 'border-l-4 border-transparent'
+                )}
                 onClick={() => setSelectedConversation(conversation)}
               >
                 <div className="flex items-start gap-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-medical-blue text-white">
-                      {conversation.patientName.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
+                        {conversation.patientName.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    {conversation.unreadCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-background">
+                        <span className="text-[10px] font-bold text-white">{conversation.unreadCount}</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-foreground truncate">
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="font-semibold text-foreground truncate">
                         {conversation.patientName}
                       </h3>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
                         {formatLastMessageTime(conversation.lastMessageTime)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="secondary" className={getCaseTypeColor(conversation.caseType)}>
-                        {conversation.caseType}
-                      </Badge>
-                      {conversation.unreadCount > 0 && (
-                        <Badge className="bg-medical-red text-white">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <Badge variant="secondary" className={cn("text-xs mb-1.5", getCaseTypeColor(conversation.caseType))}>
+                      {conversation.caseType}
+                    </Badge>
+                    <p className="text-sm text-muted-foreground truncate leading-relaxed">
                       {conversation.lastMessage}
                     </p>
                   </div>
@@ -280,23 +285,30 @@ const DemoConversations = () => {
         </div>
 
         {/* Message View */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-muted/20 via-background to-muted/10">
           {selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-border">
+              <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{selectedConversation.patientName}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedConversation.patientPhone}</p>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-10 h-10 border-2 border-primary/20">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
+                        {selectedConversation.patientName.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{selectedConversation.patientName}</h3>
+                      <p className="text-xs text-muted-foreground">{selectedConversation.patientPhone}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className={getCaseTypeColor(selectedConversation.caseType)}>
                       {selectedConversation.caseType}
                     </Badge>
-                    <Button variant="outline" size="sm">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Phone className="h-4 w-4" />
+                      <span className="hidden sm:inline">Call</span>
                     </Button>
                   </div>
                 </div>
@@ -304,64 +316,148 @@ const DemoConversations = () => {
 
               {/* Messages */}
               <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  {selectedConversation.messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender === 'staff' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`max-w-[70%] p-3 rounded-lg ${
-                        message.sender === 'staff'
-                          ? 'bg-medical-blue text-white'
-                          : 'bg-muted text-foreground'
-                      }`}>
-                        <div className="flex items-center gap-2 mb-1">
-                          {getMessageIcon(message.type)}
-                          <span className="text-xs opacity-75">
-                            {formatTime(message.timestamp)}
-                          </span>
-                        </div>
-                        <p className="text-sm">{message.content}</p>
-                        {message.sender === 'staff' && (
-                          <div className="text-xs opacity-75 mt-1">
-                            {message.status === 'read' ? '✓✓' : '✓'}
+                <div className="space-y-6 max-w-4xl mx-auto">
+                  {selectedConversation.messages.map((message, index) => {
+                    const isStaff = message.sender === 'staff';
+                    const initials = isStaff ? 'MS' : selectedConversation.patientName.split(' ').map(n => n[0]).join('');
+                    
+                    return (
+                      <div
+                        key={message.id}
+                        className={cn(
+                          "flex gap-3 animate-fade-in",
+                          isStaff ? 'justify-end' : 'justify-start'
+                        )}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        {!isStaff && (
+                          <Avatar className="w-8 h-8 mt-auto flex-shrink-0">
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        
+                        <div className={cn("max-w-[85%] md:max-w-[70%]", isStaff && "text-right")}>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            {!isStaff && (
+                              <>
+                                <span className="text-xs font-medium text-foreground">
+                                  {selectedConversation.patientName}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatTime(message.timestamp)}
+                                </span>
+                              </>
+                            )}
+                            {isStaff && (
+                              <>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatTime(message.timestamp)}
+                                </span>
+                                <span className="text-xs font-medium text-foreground">
+                                  Medical Staff
+                                </span>
+                              </>
+                            )}
                           </div>
+                          
+                          <div className={cn(
+                            "px-4 py-3 rounded-2xl shadow-sm relative overflow-wrap-anywhere",
+                            isStaff
+                              ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm'
+                              : 'bg-card border border-border rounded-bl-sm'
+                          )}>
+                            <div className="flex items-center gap-2 mb-1">
+                              {getMessageIcon(message.type)}
+                              <span className={cn(
+                                "text-xs",
+                                isStaff ? "text-primary-foreground/70" : "text-muted-foreground"
+                              )}>
+                                {message.type === 'sms' ? 'SMS' : message.type === 'call' ? 'Phone Call' : 'Voicemail'}
+                              </span>
+                            </div>
+                            <p className="text-sm leading-relaxed">{message.content}</p>
+                            {isStaff && message.status && (
+                              <div className={cn(
+                                "text-xs mt-2 flex items-center justify-end gap-1",
+                                message.status === 'read' ? 'text-blue-200' : 'text-primary-foreground/70'
+                              )}>
+                                {message.status === 'read' ? '✓✓ Read' : '✓ Delivered'}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {isStaff && (
+                          <Avatar className="w-8 h-8 mt-auto flex-shrink-0">
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
+                              MS
+                            </AvatarFallback>
+                          </Avatar>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                  
+                  <TypingIndicator userName="Patient" userInitials="PT" className="opacity-0" />
                 </div>
               </ScrollArea>
 
-              {/* Message Input */}
-              <div className="p-4 border-t border-border">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Type your message..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleSendMessage} disabled={!messageInput.trim()}>
-                    <Send className="h-4 w-4" />
+              {/* Quick Actions Bar */}
+              <div className="px-4 py-2 border-t border-border/50 bg-card/30 backdrop-blur-sm">
+                <div className="flex gap-2 max-w-4xl mx-auto overflow-x-auto pb-1">
+                  <Button variant="outline" size="sm" className="gap-2 flex-shrink-0">
+                    <FileText className="h-3 w-3" />
+                    Send Form
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2 flex-shrink-0">
+                    <Calendar className="h-3 w-3" />
+                    Schedule
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2 flex-shrink-0">
+                    <Stethoscope className="h-3 w-3" />
+                    View Records
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2 flex-shrink-0">
+                    <Phone className="h-3 w-3" />
+                    Call Patient
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Demo Mode: Messages are simulated and won't be actually sent
-                </p>
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 border-t border-border bg-card">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Type your message..."
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      className="flex-1 rounded-full border-2 focus:border-primary/50 transition-colors"
+                    />
+                    <Button 
+                      onClick={handleSendMessage} 
+                      disabled={!messageInput.trim()}
+                      className="rounded-full px-6"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Send
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Portfolio demo: Messages are simulated for demonstration purposes
+                  </p>
+                </div>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Select a conversation</h3>
-                <p className="text-muted-foreground">
-                  Choose a patient conversation from the list to view messages
-                </p>
-              </div>
-            </div>
+            <ChatEmptyState 
+              type="no-selection"
+              title="Patient Communication Hub"
+              description="Select a patient conversation to view message history, send SMS, or initiate calls. This demo showcases HIPAA-compliant messaging workflow."
+            />
           )}
         </div>
       </div>

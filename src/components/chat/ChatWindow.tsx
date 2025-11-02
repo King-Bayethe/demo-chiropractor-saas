@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ChatEmptyState } from '@/components/ui/chat-empty-state';
+import { TypingIndicator } from '@/components/ui/typing-indicator';
 import { 
   Send,
   Paperclip,
@@ -130,38 +132,39 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   if (!chat) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-muted/10">
-        <div className="text-center">
-          <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h3 className="text-lg font-medium text-foreground mb-2">Welcome to Team Chat</h3>
-          <p className="text-muted-foreground max-w-md">
-            Select a conversation from the sidebar to start messaging with your team members, 
-            or create a new chat to begin collaborating.
-          </p>
-        </div>
-      </div>
+      <ChatEmptyState 
+        type="no-selection"
+        title="Welcome to Team Chat"
+        description="Select a conversation from the sidebar to start messaging with your team members, or create a new chat to begin collaborating."
+      />
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-muted/5">
+    <div className="flex-1 flex flex-col bg-gradient-to-br from-muted/10 via-background to-muted/5">
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-2 md:p-4">
         <div className="space-y-4 max-w-4xl mx-auto">
           {groupedMessages.length === 0 ? (
-            <div className="text-center py-8">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+            <div className="flex items-center justify-center h-full py-16">
+              <ChatEmptyState type="no-messages" />
             </div>
           ) : (
             groupedMessages.map((group, groupIndex) => {
               const isOwn = group.sender.id === currentUserId;
               
               return (
-                <div key={groupIndex} className={cn("flex gap-2 md:gap-3", isOwn ? "justify-end" : "justify-start")}>
+                <div 
+                  key={groupIndex} 
+                  className={cn(
+                    "flex gap-2 md:gap-3 animate-fade-in",
+                    isOwn ? "justify-end" : "justify-start"
+                  )}
+                  style={{ animationDelay: `${groupIndex * 50}ms` }}
+                >
                   {!isOwn && (
-                    <Avatar className="w-6 h-6 md:w-8 md:h-8 mt-auto flex-shrink-0">
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    <Avatar className="w-6 h-6 md:w-8 md:h-8 mt-auto flex-shrink-0 shadow-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs font-medium">
                         {getSenderAvatar(group.sender)}
                       </AvatarFallback>
                     </Avatar>
@@ -184,10 +187,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                         <div
                           key={message.id}
                           className={cn(
-                            "px-3 py-2 md:px-4 rounded-2xl text-sm break-words overflow-wrap-anywhere min-w-0",
+                            "px-3 py-2 md:px-4 rounded-2xl text-sm break-words overflow-wrap-anywhere min-w-0 shadow-sm transition-all hover:shadow-md",
                             isOwn
-                              ? "bg-primary text-primary-foreground rounded-br-md"
-                              : "bg-card border border-border rounded-bl-md"
+                              ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm"
+                              : "bg-card border border-border rounded-bl-sm hover:border-primary/30"
                           )}
                         >
                           {message.content}
@@ -203,8 +206,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                   
                   {isOwn && (
-                    <Avatar className="w-6 h-6 md:w-8 md:h-8 mt-auto flex-shrink-0">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                    <Avatar className="w-6 h-6 md:w-8 md:h-8 mt-auto flex-shrink-0 shadow-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground text-xs font-medium">
                         {getSenderAvatar(group.sender)}
                       </AvatarFallback>
                     </Avatar>
@@ -214,16 +217,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             })
           )}
           
-          {isTyping && (
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-              </div>
-              <span className="text-sm">Someone is typing...</span>
-            </div>
-          )}
+          {isTyping && <TypingIndicator userName="Team Member" userInitials="TM" />}
           
           <div ref={messagesEndRef} />
         </div>

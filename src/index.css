@@ -199,7 +199,7 @@ All colors MUST be HSL.
 
   /* Animation utilities */
   .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.4s ease-out;
   }
 
   .animate-scale-in {
@@ -244,6 +244,29 @@ All colors MUST be HSL.
     to {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+
+  /* Message slide animations */
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 

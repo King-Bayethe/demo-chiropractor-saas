@@ -222,11 +222,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 </div>
 
                 <div className="flex-1 min-w-0 ml-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm truncate text-foreground">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-sm truncate text-foreground flex-1">
                       {getChatDisplayName(chat)}
                     </h3>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1 flex-shrink-0">
                       {chat.unreadCount && chat.unreadCount > 0 && (
                         <Badge 
                           variant="secondary" 
@@ -262,16 +262,18 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-muted-foreground truncate">
+                  <div className="flex items-center justify-between mt-1.5 gap-2">
+                    <p className="text-xs text-muted-foreground truncate flex-1">
                       {chat.type === 'group' 
-                        ? `${chat.participants?.length || 0} members`
-                        : 'Direct message'
+                        ? `Group · ${chat.participants?.length || 0} members`
+                        : 'Direct Message'
                       }
                     </p>
-                    <span className="text-xs text-muted-foreground">
-                      {getLastMessageTime(chat)}
-                    </span>
+                    {chat.last_message_at && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {getLastMessageTime(chat)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
