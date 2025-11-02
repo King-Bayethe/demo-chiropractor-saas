@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LeadIntakeForm } from "@/components/LeadIntakeForm";
+import { SimplePatientForm } from "@/components/SimplePatientForm";
+import { ShimmerSkeleton } from "@/components/ui/shimmer-skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +19,6 @@ import { createPatientFromCashForm } from "@/utils/createCashPatient";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Search, 
-  Filter, 
   Plus, 
   Phone, 
   Mail, 
@@ -30,8 +30,17 @@ import {
   Activity,
   MoreVertical,
   Trash2,
-  Languages
+  Languages,
+  Users,
+  Upload
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export default function Patients() {
@@ -156,12 +165,13 @@ export default function Patients() {
       const patientData = {
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
-        email: formData.email.trim() || undefined,
+        email: formData.email?.trim() || undefined,
         phone: formData.phone.trim(),
-        preferred_language: formData.language || undefined,
-        case_type: formData.caseType || undefined,
-        attorney_name: formData.referredBy || undefined,
-        insurance_provider: formData.insuranceName || undefined,
+        date_of_birth: formData.dateOfBirth || undefined,
+        preferred_language: formData.language || 'en',
+        case_type: formData.paymentMethod || undefined,
+        attorney_name: formData.referralSource || undefined,
+        notes: formData.notes?.trim() || undefined,
       };
       
       await createPatient(patientData);
@@ -241,26 +251,26 @@ export default function Patients() {
             </div>
 
             {/* Search and Filters */}
-            <Card className="border border-border/50 shadow-sm">
+            <Card className="border border-border/50 shadow-sm bg-gradient-to-br from-background to-muted/20">
               <CardContent className={cn(isMobile ? "p-3" : "p-4")}>
-                <div className={cn("space-y-4",
-                  isMobile ? "" : "lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4"
-                )}>
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <div className="space-y-4">
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <Search className="text-muted-foreground w-5 h-5" />
+                    </div>
                     <Input 
-                      placeholder={isMobile ? "Search patients..." : "Search patients by name, phone, email..."} 
-                      className="pl-10"
+                      placeholder={isMobile ? "Search patients..." : "Search by name, phone, or email..."} 
+                      className="pl-11 h-12 text-base bg-background border-2 focus:border-primary"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   
-                  <div className={cn("flex space-x-2",
-                    isMobile ? "grid grid-cols-2 gap-2 space-x-0" : "items-center"
+                  <div className={cn("flex gap-2",
+                    isMobile ? "flex-col" : "flex-wrap"
                   )}>
                     <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger className={cn(isMobile ? "text-sm" : "w-40")}>
+                      <SelectTrigger className={cn(isMobile ? "text-sm" : "w-44")}>
                         <SelectValue placeholder="All Types" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border shadow-lg z-50">
@@ -286,22 +296,19 @@ export default function Patients() {
                     </Select>
                   </div>
 
-                  <div className={cn("flex space-x-2",
-                    isMobile ? "flex-wrap gap-1" : "items-center"
+                  <div className={cn("flex flex-wrap gap-2 pt-2 border-t",
+                    isMobile ? "justify-center" : ""
                   )}>
-                    <Badge variant="secondary" className={cn(isMobile ? "text-xs" : "")}>
+                    <Badge variant="secondary" className="px-3 py-1.5 text-sm font-semibold">
+                      <Users className="mr-2 h-4 w-4" />
                       Total: {patients.length}
                     </Badge>
-                    {!isMobile && (
-                      <>
-                        <Badge variant="outline" className="bg-case-insurance/10 text-case-insurance">
-                          Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Private Insurance' || getPatientType(p) === 'Insurance').length}
-                        </Badge>
-                        <Badge variant="outline" className="bg-case-pip/10 text-case-pip">
-                          Self-Pay: {filteredPatients.filter((p: any) => getPatientType(p) === 'Self-Pay' || getPatientType(p) === 'Cash Plan').length}
-                        </Badge>
-                      </>
-                    )}
+                    <Badge className="px-3 py-1.5 text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-0">
+                      Insurance: {filteredPatients.filter((p: any) => getPatientType(p) === 'Private Insurance' || getPatientType(p) === 'Insurance').length}
+                    </Badge>
+                    <Badge className="px-3 py-1.5 text-sm font-semibold bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 border-0">
+                      Self-Pay: {filteredPatients.filter((p: any) => getPatientType(p) === 'Self-Pay' || getPatientType(p) === 'Cash Plan').length}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -323,10 +330,40 @@ export default function Patients() {
                   // Mobile Card View
                   <div className="space-y-3 p-4">
                     {loading ? (
-                      <div className="text-center py-8 text-muted-foreground">Loading patients...</div>
+                      <ShimmerSkeleton count={5} />
                     ) : currentPatients.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground text-sm">
-                        {searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No patients match your filters" : "No patients found"}
+                      <div className="flex flex-col items-center justify-center py-16 px-4">
+                        <div className="relative mb-6">
+                          <div className="h-32 w-32 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <Users className="h-16 w-16 text-primary" />
+                          </div>
+                          <div className="absolute -bottom-2 -right-2 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+                            <Plus className="h-6 w-6 text-primary-foreground" />
+                          </div>
+                        </div>
+                        
+                        <h3 className="text-2xl font-semibold mb-2">
+                          {searchTerm || selectedType !== "all" || selectedStatus !== "all" ? "No Matches Found" : "No Patients Yet"}
+                        </h3>
+                        <p className="text-muted-foreground text-center max-w-md mb-6">
+                          {searchTerm || selectedType !== "all" || selectedStatus !== "all" 
+                            ? "Try adjusting your filters to find what you're looking for."
+                            : "Start building your patient database by adding your first patient record. You can always add more details later."
+                          }
+                        </p>
+                        
+                        {!searchTerm && selectedType === "all" && selectedStatus === "all" && (
+                          <div className="flex gap-3">
+                            <Button onClick={handleAddPatient}>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Add Your First Patient
+                            </Button>
+                            <Button variant="outline">
+                              <Upload className="mr-2 h-4 w-4" />
+                              Import Patients
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       currentPatients.map((patient: Patient) => {
@@ -335,72 +372,103 @@ export default function Patients() {
                         const caseTypeVariant = getCaseTypeVariant(patientType);
                         const displayPhone = patient.phone || patient.cell_phone || patient.home_phone || patient.work_phone;
                         return (
-                          <Card key={patient.id} className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center space-x-3 flex-1">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue font-medium text-sm">
+                          <Card 
+                            key={patient.id} 
+                            className="group hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-pointer animate-fade-in"
+                            onClick={() => handlePatientSelect(patient)}
+                          >
+                            <CardContent className="p-5">
+                              <div className="flex items-start gap-4 mb-4">
+                                <div className="relative">
+                                  <Avatar className="h-14 w-14 ring-2 ring-offset-2 ring-transparent group-hover:ring-primary/30 transition-all">
+                                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-lg">
                                       {`${patient.first_name?.[0]?.toUpperCase() || ''}${patient.last_name?.[0]?.toUpperCase() || ''}` || 'P'}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm cursor-pointer hover:text-medical-blue truncate" onClick={() => handlePatientSelect(patient)}>
-                                      {[patient.first_name, patient.last_name].filter(Boolean).join(' ') || "Unknown Patient"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">ID: {patient.id.slice(-8)}</p>
-                                  </div>
                                 </div>
-                                <Badge className={cn("text-xs", caseTypeVariant)}>
-                                  {caseTypeDisplay}
-                                </Badge>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                    {[patient.first_name, patient.last_name].filter(Boolean).join(' ') || "Unknown Patient"}
+                                  </h3>
+                                  <p className="text-xs text-muted-foreground font-mono">
+                                    ID: {patient.id.slice(-8)}
+                                  </p>
+                                  <Badge className={cn("mt-2 text-xs font-medium border-0 shadow-sm", caseTypeVariant)}>
+                                    {caseTypeDisplay}
+                                  </Badge>
+                                </div>
+                                
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePatientSelect(patient); }}>
+                                      <User className="mr-2 h-4 w-4" />
+                                      View Profile
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMessagePatient(patient); }}>
+                                      <MessageSquare className="mr-2 h-4 w-4" />
+                                      Send Message
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleBookAppointment(patient); }}>
+                                      <Calendar className="mr-2 h-4 w-4" />
+                                      Schedule Appointment
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                      className="text-destructive"
+                                      onClick={(e) => { e.stopPropagation(); setDeletePatientId(patient.id); }}
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete Patient
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                               
-                              <div className="space-y-2 text-sm">
+                              <div className="space-y-2.5 mb-4 border-t pt-3">
                                 {displayPhone && (
-                                  <div className="flex items-center space-x-2">
-                                    <Phone className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-xs">{displayPhone}</span>
+                                  <div className="flex items-center gap-2.5 text-sm">
+                                    <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950 flex items-center justify-center">
+                                      <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <span className="text-foreground">{displayPhone}</span>
                                   </div>
                                 )}
                                 {patient.email && (
-                                  <div className="flex items-center space-x-2">
-                                    <Mail className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-xs text-medical-blue truncate">{patient.email}</span>
+                                  <div className="flex items-center gap-2.5 text-sm">
+                                    <div className="h-8 w-8 rounded-lg bg-purple-50 dark:bg-purple-950 flex items-center justify-center">
+                                      <Mail className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                    </div>
+                                    <span className="text-primary truncate">{patient.email}</span>
                                   </div>
                                 )}
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="w-3 h-3 text-muted-foreground" />
-                                  <span className="text-xs">{getLastAppointment(patient)}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <Activity className="w-3 h-3 text-success" />
-                                    <span className="text-xs font-medium">{getTotalVisits(patient)} visits</span>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-3 pt-3 border-t">
+                                <div className="text-center">
+                                  <div className="text-xs text-muted-foreground mb-1">Last Visit</div>
+                                  <div className="text-sm font-semibold text-foreground">
+                                    {getLastAppointment(patient)}
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    <Languages className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-xs">{patient.preferred_language || 'English'}</span>
+                                </div>
+                                <div className="text-center border-x">
+                                  <div className="text-xs text-muted-foreground mb-1">Total Visits</div>
+                                  <div className="text-sm font-semibold text-success">
+                                    {getTotalVisits(patient)}
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-xs text-muted-foreground mb-1">Language</div>
+                                  <div className="text-sm font-semibold text-foreground">
+                                    {patient.preferred_language || 'EN'}
                                   </div>
                                 </div>
                               </div>
-                              
-                               <div className="flex space-x-1 mt-3 pt-3 border-t">
-                                 <Button variant="ghost" size="sm" onClick={() => handleMessagePatient(patient)} className="flex-1 text-xs px-2 py-1">
-                                   <MessageSquare className="w-3 h-3 mr-1" />Message
-                                 </Button>
-                                 <Button variant="ghost" size="sm" onClick={() => handleBookAppointment(patient)} className="flex-1 text-xs px-2 py-1">
-                                   <Calendar className="w-3 h-3 mr-1" />Book
-                                 </Button>
-                                 <Button 
-                                   variant="ghost" 
-                                   size="sm" 
-                                   onClick={() => setDeletePatientId(patient.id)} 
-                                   className="text-xs px-2 py-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                 >
-                                   <Trash2 className="w-3 h-3" />
-                                 </Button>
-                               </div>
                             </CardContent>
                           </Card>
                         );
@@ -583,12 +651,24 @@ export default function Patients() {
 
         {/* Add Patient Dialog */}
         <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
-          <DialogContent className={cn("max-w-4xl max-h-[90vh] overflow-y-auto",
-            isMobile ? "w-[95vw] p-0" : ""
+          <DialogContent className={cn("max-w-2xl max-h-[90vh] overflow-y-auto",
+            isMobile ? "w-[95vw] p-4" : ""
           )}>
-            <LeadIntakeForm 
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <Plus className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold">Add New Patient</h2>
+                <p className="text-sm text-muted-foreground">
+                  Create a new patient record. Additional details can be added later.
+                </p>
+              </div>
+            </div>
+            <SimplePatientForm 
               onSubmit={handleSubmitPatient} 
-              onCancel={handleCancelAddPatient} 
+              onCancel={handleCancelAddPatient}
+              isSubmitting={isSubmitting}
             />
           </DialogContent>
         </Dialog>
