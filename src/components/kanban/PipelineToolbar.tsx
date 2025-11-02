@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,11 +9,17 @@ import {
 } from "@/components/ui/select";
 import { Filter, Plus, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AddOpportunityDialog } from "./AddOpportunityDialog";
 
 interface Pipeline {
   id: string;
   name: string;
   is_default?: boolean;
+}
+
+interface Stage {
+  id: string;
+  name: string;
 }
 
 interface PipelineToolbarProps {
@@ -21,6 +28,8 @@ interface PipelineToolbarProps {
   onPipelineChange: (pipelineId: string) => void;
   showFilters: boolean;
   onToggleFilters: () => void;
+  stages: Stage[];
+  onOpportunityCreated?: () => void;
 }
 
 export function PipelineToolbar({
@@ -29,8 +38,11 @@ export function PipelineToolbar({
   onPipelineChange,
   showFilters,
   onToggleFilters,
+  stages,
+  onOpportunityCreated,
 }: PipelineToolbarProps) {
   const navigate = useNavigate();
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -67,11 +79,25 @@ export function PipelineToolbar({
           <Settings className="h-4 w-4 mr-2" />
           Manage Pipelines
         </Button>
-        <Button size="sm">
+        <Button 
+          size="sm"
+          onClick={() => setShowAddDialog(true)}
+          disabled={!selectedPipeline || stages.length === 0}
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Opportunity
         </Button>
       </div>
+
+      {selectedPipeline && stages.length > 0 && (
+        <AddOpportunityDialog
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          pipelineId={selectedPipeline}
+          stages={stages}
+          onSuccess={onOpportunityCreated}
+        />
+      )}
     </div>
   );
 }

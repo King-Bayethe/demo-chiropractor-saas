@@ -134,6 +134,11 @@ export default function PipelineBoard() {
               onPipelineChange={setSelectedPipeline}
               showFilters={showFilters}
               onToggleFilters={() => setShowFilters(!showFilters)}
+              stages={stages}
+              onOpportunityCreated={() => {
+                // Trigger a refresh of opportunities
+                window.location.reload();
+              }}
             />
 
             {/* Filters */}
