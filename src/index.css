@@ -384,7 +384,7 @@ html {
   scroll-behavior: smooth;
   scroll-snap-type: x proximity;
   max-width: 100%;
-  contain: paint;
+  position: relative;
 }
 
 .pipeline-scroll-container::-webkit-scrollbar {

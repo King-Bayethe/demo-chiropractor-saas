@@ -416,7 +416,7 @@ export default function Opportunities() {
             </Card>
           </div>
         ) : (
-          <div className="px-6 pb-6 max-w-full overflow-hidden">
+          <div className="px-6 pb-6 max-w-full">
             <div className="relative max-w-full">
               {/* Navigation Arrows */}
               {canScrollLeft && (
@@ -448,31 +448,8 @@ export default function Opportunities() {
                   "w-full overflow-x-auto pb-4 pipeline-scroll-container",
                   isDragging ? "cursor-grabbing select-none" : "cursor-grab"
                 )}
-                onMouseDown={(e) => scrollRef.current && e.preventDefault()}
               >
-                <div className="flex gap-4 min-w-max"
-                  onMouseDown={(e) => {
-                    if (scrollRef.current) {
-                      const startX = e.pageX - scrollRef.current.offsetLeft;
-                      const scrollLeft = scrollRef.current.scrollLeft;
-                      
-                      const handleMouseMove = (moveEvent: MouseEvent) => {
-                        if (!scrollRef.current) return;
-                        const x = moveEvent.pageX - scrollRef.current.offsetLeft;
-                        const walk = (x - startX) * 2;
-                        scrollRef.current.scrollLeft = scrollLeft - walk;
-                      };
-                      
-                      const handleMouseUp = () => {
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                      };
-                      
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', handleMouseUp);
-                    }
-                  }}
-                >
+                <div className="flex gap-4 min-w-max">
                   {stages.map((stage, stageIndex) => {
                     const stageOpportunities = opportunities.filter(
                       opp => opp.pipeline_stage === stage.id

@@ -23,6 +23,13 @@ export function useHorizontalScroll(): UseHorizontalScrollReturn {
     if (!scrollRef.current) return;
     
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    console.log('📊 Scroll State:', { 
+      scrollLeft, 
+      scrollWidth, 
+      clientWidth, 
+      canScroll: scrollWidth > clientWidth 
+    });
+    
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     setScrollPosition(scrollLeft);
