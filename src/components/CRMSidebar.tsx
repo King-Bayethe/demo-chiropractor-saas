@@ -18,7 +18,14 @@ import {
   Files,
   Cog,
   Stethoscope,
-  FileEdit
+  FileEdit,
+  CheckSquare,
+  Receipt,
+  FileText,
+  CreditCard,
+  DollarSign,
+  Mail,
+  Image
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +45,7 @@ const navigationGroups = [
     items: [
       { title: "Demo Chat", url: "/demo-conversations", icon: MessageSquare, collapsedIcon: MessageSquare },
       { title: "Team Chat", url: "/team-chat", icon: Users, collapsedIcon: Users },
+      { title: "Emails", url: "/emails", icon: Mail, collapsedIcon: Mail },
     ]
   },
   {
@@ -53,12 +61,23 @@ const navigationGroups = [
     title: "Scheduling & Tasks",
     items: [
       { title: "Calendar", url: "/calendar", icon: Calendar, collapsedIcon: CalendarDays },
+      { title: "Tasks", url: "/tasks", icon: CheckSquare, collapsedIcon: CheckSquare },
+    ]
+  },
+  {
+    title: "Financial",
+    items: [
+      { title: "Invoices", url: "/invoices", icon: Receipt, collapsedIcon: Receipt },
+      { title: "Estimates", url: "/estimates", icon: FileText, collapsedIcon: FileText },
+      { title: "Payment Orders", url: "/payment-orders", icon: CreditCard, collapsedIcon: CreditCard },
+      { title: "Transactions", url: "/transactions", icon: DollarSign, collapsedIcon: DollarSign },
     ]
   },
   {
     title: "Files & Media",
     items: [
       { title: "Documents", url: "/documents", icon: FolderOpen, collapsedIcon: Files },
+      { title: "Media Library", url: "/media-library", icon: Image, collapsedIcon: Image },
     ]
   },
   {
