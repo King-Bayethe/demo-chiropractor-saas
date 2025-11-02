@@ -227,7 +227,7 @@ export const usePushNotifications = () => {
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey
+        applicationServerKey: applicationServerKey as BufferSource
       });
       
       console.log('📱 Browser subscription created');

@@ -80,7 +80,7 @@ export function usePatientConversations() {
           .from('patient_conversations')
           .select(`
             *,
-            patient:patients!inner (
+            patient:patients!patient_id!inner (
               id,
               first_name,
               last_name,
@@ -106,7 +106,7 @@ export function usePatientConversations() {
           .from('patient_conversations')
           .select(`
             *,
-            patient:patients!inner (
+            patient:patients!patient_id!inner (
               id,
               first_name,
               last_name,
@@ -176,7 +176,7 @@ export function usePatientConversations() {
           id,
           patient_id,
           ghl_conversation_id,
-          patients!inner (
+          patient:patients!patient_id!inner (
             id,
             ghl_contact_id,
             first_name,
@@ -211,8 +211,8 @@ export function usePatientConversations() {
       setMessages(prev => [...prev, localMessage as PatientMessage]);
 
       // Send to GHL in background if patient has GHL contact ID
-      if (conversation.patients.ghl_contact_id) {
-        syncMessageToGHL(localMessage.id, conversation.patients.ghl_contact_id, content)
+      if (conversation.patient.ghl_contact_id) {
+        syncMessageToGHL(localMessage.id, conversation.patient.ghl_contact_id, content)
           .catch(err => console.error('GHL sync failed:', err));
       } else {
         // Mark as skipped if no GHL contact
@@ -346,7 +346,7 @@ export function usePatientConversations() {
         })
         .select(`
           *,
-          patient:patients (
+          patient:patients!patient_id (
             id,
             first_name,
             last_name,

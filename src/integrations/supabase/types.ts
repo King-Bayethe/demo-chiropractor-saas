@@ -47,6 +47,13 @@ export type Database = {
             referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_appointment_notes_appointment"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
         ]
       }
       appointment_notifications: {
@@ -91,6 +98,20 @@ export type Database = {
             referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_appointment_notifications_appointment"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_appointment_notifications_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       appointment_reminders: {
@@ -127,7 +148,22 @@ export type Database = {
           sent_at?: string | null
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_appointment_reminders_appointment"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_appointment_reminders_creator"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       appointments: {
         Row: {
@@ -228,17 +264,35 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_appointments_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_appointments_provider"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       audit_logs: {
         Row: {
           action: string
           created_at: string | null
+          details: Json | null
+          event_category: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_data: Json | null
           old_data: Json | null
+          patient_id: string | null
           record_id: string | null
+          report_id: string | null
           table_name: string
           user_agent: string | null
           user_id: string
@@ -246,11 +300,15 @@ export type Database = {
         Insert: {
           action: string
           created_at?: string | null
+          details?: Json | null
+          event_category?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
+          patient_id?: string | null
           record_id?: string | null
+          report_id?: string | null
           table_name: string
           user_agent?: string | null
           user_id: string
@@ -258,16 +316,85 @@ export type Database = {
         Update: {
           action?: string
           created_at?: string | null
+          details?: Json | null
+          event_category?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
+          patient_id?: string | null
           record_id?: string | null
+          report_id?: string | null
           table_name?: string
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "lab_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biomarkers: {
+        Row: {
+          code: string
+          collected_at: string
+          created_at: string | null
+          flag_status: string
+          id: string
+          name: string
+          reference_range_high: number | null
+          reference_range_low: number | null
+          report_id: string
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          code: string
+          collected_at: string
+          created_at?: string | null
+          flag_status?: string
+          id?: string
+          name: string
+          reference_range_high?: number | null
+          reference_range_low?: number | null
+          report_id: string
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          code?: string
+          collected_at?: string
+          created_at?: string | null
+          flag_status?: string
+          id?: string
+          name?: string
+          reference_range_high?: number | null
+          reference_range_low?: number | null
+          report_id?: string
+          unit?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biomarkers_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "lab_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blocked_time_slots: {
         Row: {
@@ -312,7 +439,60 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_blocked_slots_creator"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_blocked_slots_provider"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      category_scores: {
+        Row: {
+          category: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          report_id: string
+          score: number
+          status: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          report_id: string
+          score: number
+          status: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          report_id?: string
+          score?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_scores_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "lab_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_templates: {
         Row: {
@@ -459,7 +639,7 @@ export type Database = {
           event_type: string
           form_submission_id: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
           user_id: string | null
         }
@@ -469,7 +649,7 @@ export type Database = {
           event_type: string
           form_submission_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string | null
         }
@@ -479,7 +659,7 @@ export type Database = {
           event_type?: string
           form_submission_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string | null
         }
@@ -533,7 +713,7 @@ export type Database = {
           form_type: string
           honeypot_field: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_verified: boolean | null
           patient_email: string | null
           patient_id: string | null
@@ -553,7 +733,7 @@ export type Database = {
           form_type: string
           honeypot_field?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_verified?: boolean | null
           patient_email?: string | null
           patient_id?: string | null
@@ -573,7 +753,7 @@ export type Database = {
           form_type?: string
           honeypot_field?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_verified?: boolean | null
           patient_email?: string | null
           patient_id?: string | null
@@ -603,7 +783,7 @@ export type Database = {
           ended_at: string | null
           id: string
           impersonated_user_id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           overlord_id: string
           reason: string | null
@@ -616,7 +796,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           impersonated_user_id: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           overlord_id: string
           reason?: string | null
@@ -629,7 +809,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           impersonated_user_id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           overlord_id?: string
           reason?: string | null
@@ -665,6 +845,88 @@ export type Database = {
           is_active?: boolean
         }
         Relationships: []
+      }
+      lab_insights: {
+        Row: {
+          created_at: string | null
+          generated_by: string | null
+          id: string
+          insights_data: Json
+          model_used: string
+          report_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          insights_data: Json
+          model_used: string
+          report_id: string
+        }
+        Update: {
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          insights_data?: Json
+          model_used?: string
+          report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_insights_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "lab_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_reports: {
+        Row: {
+          collected_at: string
+          created_at: string | null
+          file_path: string | null
+          id: string
+          is_urgent: boolean | null
+          patient_id: string
+          source: string | null
+          status: string
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          collected_at: string
+          created_at?: string | null
+          file_path?: string | null
+          id?: string
+          is_urgent?: boolean | null
+          patient_id: string
+          source?: string | null
+          status?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          collected_at?: string
+          created_at?: string | null
+          file_path?: string | null
+          id?: string
+          is_urgent?: boolean | null
+          patient_id?: string
+          source?: string | null
+          status?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_reports_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_subscriptions: {
         Row: {
@@ -1023,6 +1285,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_patient_conversations_creator"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_patient_conversations_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "patient_conversations_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -1069,6 +1345,20 @@ export type Database = {
           uploaded_by?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_patient_files_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_patient_files_uploader"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "patient_files_patient_id_fkey"
             columns: ["patient_id"]
@@ -1135,6 +1425,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_patient_messages_conversation"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "patient_conversations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "patient_messages_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
@@ -1175,6 +1472,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_patient_notes_creator"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_patient_notes_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "patient_notes_patient_id_fkey"
             columns: ["patient_id"]
@@ -1219,6 +1530,27 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_patient_providers_assigner"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_patient_providers_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_patient_providers_provider"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "patient_providers_assigned_by_fkey"
             columns: ["assigned_by"]
@@ -2108,6 +2440,39 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -2176,7 +2541,7 @@ export type Database = {
         }[]
       }
       get_colleague_basic_info: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           first_name: string
           is_active: boolean
@@ -2185,14 +2550,8 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_current_user_organization: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_organization: { Args: never; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
       get_soap_notes_with_patient_info: {
         Args: { limit_count?: number; offset_count?: number }
         Returns: {
@@ -2214,6 +2573,17 @@ export type Database = {
           vital_signs: Json
         }[]
       }
+      get_user_primary_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_chat_admin: {
         Args: { chat_id_to_check: string; user_id_to_check: string }
         Returns: boolean
@@ -2222,10 +2592,7 @@ export type Database = {
         Args: { chat_id_param: string; user_id_param: string }
         Returns: boolean
       }
-      is_overlord: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_overlord: { Args: never; Returns: boolean }
       log_patient_access: {
         Args: {
           action_param: string
@@ -2254,6 +2621,14 @@ export type Database = {
       }
     }
     Enums: {
+      app_role:
+        | "staff"
+        | "admin"
+        | "doctor"
+        | "nurse"
+        | "provider"
+        | "overlord"
+        | "demo"
       chat_type: "direct" | "group"
       message_type: "text" | "image" | "file" | "system"
     }
@@ -2383,6 +2758,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "staff",
+        "admin",
+        "doctor",
+        "nurse",
+        "provider",
+        "overlord",
+        "demo",
+      ],
       chat_type: ["direct", "group"],
       message_type: ["text", "image", "file", "system"],
     },
