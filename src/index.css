@@ -376,12 +376,47 @@ html {
   }
 }
 
-/* Enhanced scrollbar styles for medical pipeline board */
-.kanban-scroll-container {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--medical-blue)) hsl(var(--muted));
+/* Enhanced scrollbar styles for pipeline board */
+.pipeline-scroll-container {
+  scrollbar-width: auto;
+  scrollbar-color: hsl(var(--primary) / 0.6) hsl(var(--muted) / 0.5);
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+}
+
+.pipeline-scroll-container::-webkit-scrollbar {
+  height: 12px;
+}
+
+.pipeline-scroll-container::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 6px;
+  margin: 0 8px;
+}
+
+.pipeline-scroll-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.6);
+  border-radius: 6px;
+  border: 2px solid hsl(var(--muted) / 0.5);
+  transition: background 0.2s;
+}
+
+.pipeline-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8);
+}
+
+.pipeline-scroll-container::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary));
+}
+
+/* Grab cursor utilities */
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grabbing {
+  cursor: grabbing;
 }
 
 /* Custom scrollbars for all elements */

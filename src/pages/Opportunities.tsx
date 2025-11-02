@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { DollarSign, Users, TrendingUp, Target, Settings, Plus, Filter, X, Search, ChevronsLeft, Lightbulb } from "lucide-react";
+import { DollarSign, Users, TrendingUp, Target, Settings, Plus, Filter, X, Search, ChevronsLeft, Lightbulb, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { PipelineSelector } from "@/components/opportunities/PipelineSelector";
 import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
 import { usePipelines } from "@/hooks/usePipelines";
 import { cn } from "@/lib/utils";
+import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 
 export default function Opportunities() {
   const navigate = useNavigate();
@@ -42,6 +43,16 @@ export default function Opportunities() {
   
   const { stats, stageStats } = usePipelineStats(selectedPipelineId);
   const { updateOpportunityStage } = usePipelineMutations(selectedPipelineId);
+  
+  // Horizontal scroll handling
+  const {
+    scrollRef,
+    isDragging,
+    canScrollLeft,
+    canScrollRight,
+    scrollLeft: handleScrollLeft,
+    scrollRight: handleScrollRight,
+  } = useHorizontalScroll();
 
   // Apply filters
   const opportunities = useMemo(() => {
@@ -407,9 +418,61 @@ export default function Opportunities() {
         ) : (
           <div className="px-6 pb-6">
             <div className="relative">
-              {/* Horizontal scroll container with gradient fade indicators */}
-              <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-                <div className="flex gap-4 min-w-max">
+              {/* Navigation Arrows */}
+              {canScrollLeft && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-xl bg-background/95 backdrop-blur-sm hover:bg-background border-2"
+                  onClick={handleScrollLeft}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              )}
+              
+              {canScrollRight && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-xl bg-background/95 backdrop-blur-sm hover:bg-background border-2"
+                  onClick={handleScrollRight}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              )}
+              
+              {/* Horizontal scroll container with enhanced scrollbar */}
+              <div 
+                ref={scrollRef}
+                className={cn(
+                  "overflow-x-auto pb-4 pipeline-scroll-container",
+                  isDragging ? "cursor-grabbing select-none" : "cursor-grab"
+                )}
+                onMouseDown={(e) => scrollRef.current && e.preventDefault()}
+              >
+                <div className="flex gap-4 min-w-max"
+                  onMouseDown={(e) => {
+                    if (scrollRef.current) {
+                      const startX = e.pageX - scrollRef.current.offsetLeft;
+                      const scrollLeft = scrollRef.current.scrollLeft;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        if (!scrollRef.current) return;
+                        const x = moveEvent.pageX - scrollRef.current.offsetLeft;
+                        const walk = (x - startX) * 2;
+                        scrollRef.current.scrollLeft = scrollLeft - walk;
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }
+                  }}
+                >
                   {stages.map((stage, stageIndex) => {
                     const stageOpportunities = opportunities.filter(
                       opp => opp.pipeline_stage === stage.id
@@ -522,9 +585,13 @@ export default function Opportunities() {
                 </div>
               </div>
               
-              {/* Scroll Fade Indicators */}
-              <div className="pointer-events-none absolute top-0 left-0 w-8 h-full bg-gradient-to-r from-background to-transparent" />
-              <div className="pointer-events-none absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background to-transparent" />
+              {/* Enhanced Scroll Fade Indicators */}
+              {canScrollLeft && (
+                <div className="pointer-events-none absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-background via-background/80 to-transparent z-[5]" />
+              )}
+              {canScrollRight && (
+                <div className="pointer-events-none absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-background via-background/80 to-transparent z-[5]" />
+              )}
             </div>
           </div>
         )}
