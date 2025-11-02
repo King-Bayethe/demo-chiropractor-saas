@@ -44,7 +44,7 @@ export function KanbanBoard({
   } = useKanbanScroll();
 
   return (
-    <div className="relative">
+    <div className="relative overflow-visible">
       <ScrollControls
         canScrollLeft={canScrollLeft}
         canScrollRight={canScrollRight}
@@ -55,15 +55,17 @@ export function KanbanBoard({
       <div
         ref={scrollRef}
         className={cn(
-          "overflow-x-auto overflow-y-visible pb-4",
+          "overflow-x-auto overflow-y-visible pb-4 -mx-6",
           "scrollbar-thin scrollbar-thumb-primary/40 scrollbar-track-muted/20"
         )}
         style={{
           scrollbarWidth: 'thin',
           scrollBehavior: 'smooth',
+          width: 'calc(100vw - 256px - 48px)',
+          maxWidth: '100%',
         }}
       >
-        <div className="flex gap-4 min-w-max px-1 py-1">
+        <div className="flex gap-4 min-w-max px-7 py-1">
           {stages.map((stage) => {
             const stageOpportunities = opportunities.filter(
               opp => opp.pipeline_stage_id === stage.id

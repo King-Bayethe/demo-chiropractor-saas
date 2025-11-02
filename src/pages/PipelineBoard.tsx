@@ -99,7 +99,7 @@ export default function PipelineBoard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 p-6 overflow-visible">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Pipeline Board</h1>
