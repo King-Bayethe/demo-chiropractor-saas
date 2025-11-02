@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { CalendarStatsCards } from "./CalendarStatsCards";
 import { CalendarHeader } from "./CalendarHeader";
 import { CalendarFilters } from "./CalendarFilters";
 import { TodaysOverview } from "./TodaysOverview";

@@ -224,22 +224,78 @@ export default function Calendar() {
     cancelled: todaysAppointments.filter(apt => apt.status === 'cancelled').length
   };
 
+  // Calculate this week's appointments
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+  
+  const thisWeekAppointments = displayAppointments.filter(apt => 
+    apt.startTime >= weekStart && apt.startTime < weekEnd
+  );
+
   return (
     <Layout>
-        <CalendarLayout
-          view={view}
-          onViewChange={setView}
-          currentDate={currentDate}
-          onDateChange={setCurrentDate}
-          onCreateAppointment={() => setIsSmartSchedulingOpen(true)}
-          filters={filters}
-          onFiltersChange={setFilters}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onRemindersClick={handleRemindersClick}
-          onSettingsClick={handleSettingsClick}
-          todaysStats={todaysStats}
-        >
+      <div className="h-full flex flex-col">
+        {/* Hero Header with Stats */}
+        <div className={cn(
+          "flex-shrink-0 space-y-6 bg-gradient-to-br from-muted/30 via-background to-muted/20",
+          isMobile ? "p-4" : "p-6"
+        )}>
+          <div className={cn("flex justify-between", isMobile ? "flex-col space-y-4" : "items-center")}>
+            <div>
+              <h1 className={cn("font-bold text-foreground", isMobile ? "text-2xl" : "text-3xl md:text-4xl")}>
+                Appointment Calendar
+              </h1>
+              <p className={cn("text-muted-foreground mt-2", isMobile ? "text-sm" : "text-lg")}>
+                Schedule and manage patient appointments
+              </p>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-card to-muted/20 border-border/50 shadow-sm p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted-foreground">Today</p>
+              <p className="text-2xl font-bold">{todaysStats.total}</p>
+              <p className="text-sm text-muted-foreground">{todaysStats.completed} completed</p>
+            </div>
+            <div className="bg-gradient-to-br from-card to-muted/20 border-border/50 shadow-sm p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted-foreground">This Week</p>
+              <p className="text-2xl font-bold">{thisWeekAppointments.length}</p>
+              <p className="text-sm text-muted-foreground">Scheduled</p>
+            </div>
+            <div className="bg-gradient-to-br from-card to-muted/20 border-border/50 shadow-sm p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted-foreground">Completion Rate</p>
+              <p className="text-2xl font-bold">
+                {todaysStats.total > 0 ? Math.round((todaysStats.completed / todaysStats.total) * 100) : 0}%
+              </p>
+              <p className="text-sm text-muted-foreground">Today</p>
+            </div>
+            <div className="bg-gradient-to-br from-card to-muted/20 border-border/50 shadow-sm p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted-foreground">Avg Duration</p>
+              <p className="text-2xl font-bold">35 min</p>
+              <p className="text-sm text-muted-foreground">Per appointment</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Calendar Content */}
+        <div className="flex-1 min-h-0">
+          <CalendarLayout
+            view={view}
+            onViewChange={setView}
+            currentDate={currentDate}
+            onDateChange={setCurrentDate}
+            onCreateAppointment={() => setIsSmartSchedulingOpen(true)}
+            filters={filters}
+            onFiltersChange={setFilters}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onRemindersClick={handleRemindersClick}
+            onSettingsClick={handleSettingsClick}
+            todaysStats={todaysStats}
+          >
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-4">
@@ -271,9 +327,11 @@ export default function Calendar() {
               />
             </div>
           )}
-        </CalendarLayout>
+          </CalendarLayout>
+        </div>
+      </div>
 
-        {/* Smart Scheduling Panel */}
+      {/* Smart Scheduling Panel */}
         <SmartSchedulingPanel
           isOpen={isSmartSchedulingOpen}
           onClose={() => setIsSmartSchedulingOpen(false)}
@@ -325,6 +383,6 @@ export default function Calendar() {
               loading={loading}
             />
         </Dialog>
-      </Layout>
-    );
+    </Layout>
+  );
 }
