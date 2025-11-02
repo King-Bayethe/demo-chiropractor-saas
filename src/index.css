@@ -35,6 +35,9 @@ All colors MUST be HSL.
     --warning: 45 100% 60%;
     --warning-foreground: 0 0% 100%;
 
+    --info: 200 95% 55%;
+    --info-foreground: 0 0% 100%;
+
     --medical-blue: 210 100% 50%;
     --medical-blue-light: 210 100% 96%;
     --medical-blue-dark: 210 100% 35%;
@@ -121,6 +124,9 @@ All colors MUST be HSL.
 
     --warning: 45 100% 70%;
     --warning-foreground: 0 0% 100%;
+
+    --info: 200 95% 65%;
+    --info-foreground: 0 0% 100%;
 
     --medical-blue: 210 100% 60%;
     --medical-blue-light: 210 100% 25%;

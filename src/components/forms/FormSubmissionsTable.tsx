@@ -26,10 +26,10 @@ export const FormSubmissionsTable = ({ submissions }: FormSubmissionsTableProps)
 
   const getFormTypeBadge = (type: string) => {
     const types: Record<string, { label: string; color: string }> = {
-      pip: { label: "PIP Form", color: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
-      lop: { label: "LOP Form", color: "bg-green-500/10 text-green-700 border-green-500/20" },
-      cash: { label: "Cash Form", color: "bg-purple-500/10 text-purple-700 border-purple-500/20" },
-      new: { label: "New Patient", color: "bg-orange-500/10 text-orange-700 border-orange-500/20" }
+      pip: { label: "PIP Form", color: "bg-info/10 text-info border-info/20" },
+      lop: { label: "LOP Form", color: "bg-success/10 text-success border-success/20" },
+      cash: { label: "Cash Form", color: "bg-primary/10 text-primary border-primary/20" },
+      new: { label: "New Patient", color: "bg-warning/10 text-warning border-warning/20" }
     };
     const config = types[type] || { label: type, color: "bg-muted text-muted-foreground" };
     return <Badge variant="outline" className={config.color}>{config.label}</Badge>;
@@ -37,9 +37,9 @@ export const FormSubmissionsTable = ({ submissions }: FormSubmissionsTableProps)
 
   const getStatusBadge = (status: string) => {
     const statuses: Record<string, { icon: any; color: string }> = {
-      pending: { icon: Clock, color: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20" },
-      reviewed: { icon: Eye, color: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
-      completed: { icon: CheckCircle, color: "bg-green-500/10 text-green-700 border-green-500/20" }
+      pending: { icon: Clock, color: "bg-warning/10 text-warning border-warning/20" },
+      reviewed: { icon: Eye, color: "bg-info/10 text-info border-info/20" },
+      completed: { icon: CheckCircle, color: "bg-success/10 text-success border-success/20" }
     };
     const config = statuses[status] || { icon: AlertCircle, color: "bg-muted text-muted-foreground" };
     const Icon = config.icon;

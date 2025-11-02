@@ -32,23 +32,23 @@ export const FormStatsCards = () => {
       title: "Pending Review",
       value: stats?.pendingCount || 0,
       icon: AlertCircle,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-500/10"
+      color: "text-warning",
+      bgColor: "bg-warning/10"
     },
     {
       title: "Avg Completion",
       value: `${stats?.avgCompletionTime || 0} min`,
       icon: Clock,
-      color: "text-blue-600",
-      bgColor: "bg-blue-500/10"
+      color: "text-info",
+      bgColor: "bg-info/10"
     },
     {
       title: "This Month",
       value: stats?.thisMonthCount || 0,
       suffix: stats?.monthlyGrowth ? `${stats.monthlyGrowth > 0 ? '+' : ''}${stats.monthlyGrowth}%` : '',
       icon: TrendingUp,
-      color: stats?.monthlyGrowth && stats.monthlyGrowth > 0 ? "text-green-600" : "text-muted-foreground",
-      bgColor: "bg-green-500/10"
+      color: stats?.monthlyGrowth && stats.monthlyGrowth > 0 ? "text-success" : "text-muted-foreground",
+      bgColor: "bg-success/10"
     }
   ];
 

@@ -23,22 +23,22 @@ export const DocumentStatsCards = ({ stats }: DocumentStatsCardsProps) => {
       title: "Pending Review",
       value: stats.pendingReview,
       icon: Clock,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-500/10",
+      color: "text-warning",
+      bgColor: "bg-warning/10",
     },
     {
       title: "This Month",
       value: stats.thisMonth,
       icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-500/10",
+      color: "text-success",
+      bgColor: "bg-success/10",
     },
     {
       title: "File Types",
       value: stats.fileTypes,
       icon: Archive,
-      color: "text-blue-600",
-      bgColor: "bg-blue-500/10",
+      color: "text-info",
+      bgColor: "bg-info/10",
     },
   ];
 
