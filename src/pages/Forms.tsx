@@ -1,145 +1,116 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout } from "@/components/Layout";
-import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
+import { FormStatsCards } from "@/components/forms/FormStatsCards";
+import { FormFilters } from "@/components/forms/FormFilters";
+import { FormSubmissionsTable } from "@/components/forms/FormSubmissionsTable";
+import { FormTypeCard } from "@/components/forms/FormTypeCard";
+import { FormAnalytics } from "@/components/forms/FormAnalytics";
 import { MockFormTestPanel } from "@/components/forms/MockFormTestPanel";
-import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Plus, ExternalLink, FileText, Users, Activity, Target, Shield } from "lucide-react";
+import { useFormSubmissions, FormFilters as FormFiltersType } from "@/hooks/useFormSubmissions";
+import { ClipboardList, Shield, FileText, Users, Target } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Forms = () => {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("submissions");
+  const [filters, setFilters] = useState<FormFiltersType>({});
+  const { data: submissions, isLoading } = useFormSubmissions(filters);
 
   return (
     <Layout>
-      <div className="container mx-auto p-3 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-hidden">
-        <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center justify-between">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl md:text-3xl font-bold text-foreground break-words">Form Submissions</h1>
-            <p className="text-sm md:text-base text-muted-foreground">View and manage patient form submissions</p>
+      <div className="container mx-auto p-3 md:p-6 space-y-6 max-w-full overflow-hidden">
+        {/* Hero Header */}
+        <div className="relative rounded-xl bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-8 border border-border/50">
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-3 rounded-lg">
+                <ClipboardList className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                  Form Management Center
+                </h1>
+                <p className="text-base md:text-lg text-muted-foreground mt-1">
+                  Track, review, and manage patient form submissions
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Stats Cards */}
+        <FormStatsCards />
+
+        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
             <TabsTrigger value="public-forms">Public Forms</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="testing" className="bg-yellow-500/10 text-yellow-700">Testing</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="testing" className="bg-yellow-500/10 text-yellow-700">
+              Testing
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="submissions" className="space-y-4">
-            <FormSubmissionDetails 
-              formData={{}} 
-              formType="demo" 
-              submissionDate={new Date().toISOString()} 
-              submissionId="demo-123" 
-            />
+          {/* Submissions Tab */}
+          <TabsContent value="submissions" className="space-y-6">
+            <FormFilters filters={filters} onFiltersChange={setFilters} />
+            
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : (
+              <FormSubmissionsTable submissions={submissions || []} />
+            )}
           </TabsContent>
 
-          <TabsContent value="public-forms" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5" />
-                  Public Patient Forms
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="border border-medical-blue/20">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-medical-blue">Insurance Verification Form</h3>
-                          <p className="text-sm text-muted-foreground">Insurance details and coverage verification</p>
-                        </div>
-                        <Shield className="h-8 w-8 text-medical-blue" />
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => window.open('/public/pip-form', '_blank')}>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Form
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border border-medical-teal/20">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-medical-teal">Financial Agreement Form</h3>
-                          <p className="text-sm text-muted-foreground">Payment plans and financial arrangements</p>
-                        </div>
-                        <FileText className="h-8 w-8 text-medical-teal" />
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => window.open('/public/lop-form', '_blank')}>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Form
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border border-green-500/20">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-green-700">Self-Pay Registration</h3>
-                          <p className="text-sm text-muted-foreground">Cash pay patient registration form</p>
-                        </div>
-                        <Users className="h-8 w-8 text-green-700" />
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => window.open('/public/cash-form', '_blank')}>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Form
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border border-purple-500/20">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-purple-700">New Patient Intake</h3>
-                          <p className="text-sm text-muted-foreground">Comprehensive new patient registration</p>
-                        </div>
-                        <Target className="h-8 w-8 text-purple-700" />
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => window.open('/public/new-form', '_blank')}>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Form
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Public Forms Tab */}
+          <TabsContent value="public-forms" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <FormTypeCard
+                title="PIP Form"
+                description="Insurance details and coverage verification"
+                url="/public/pip-form"
+                icon={Shield}
+                color="text-blue-700"
+                borderColor="border-blue-500/20"
+              />
+              <FormTypeCard
+                title="LOP Form"
+                description="Payment plans and financial arrangements"
+                url="/public/lop-form"
+                icon={FileText}
+                color="text-green-700"
+                borderColor="border-green-500/20"
+              />
+              <FormTypeCard
+                title="Cash Form"
+                description="Cash pay patient registration form"
+                url="/public/cash-form"
+                icon={Users}
+                color="text-purple-700"
+                borderColor="border-purple-500/20"
+              />
+              <FormTypeCard
+                title="New Patient"
+                description="Comprehensive new patient registration"
+                url="/public/new-form"
+                icon={Target}
+                color="text-orange-700"
+                borderColor="border-orange-500/20"
+              />
+            </div>
           </TabsContent>
 
-          <TabsContent value="templates" className="space-y-4">
-            <Card>
-              <CardContent>
-                <div className="text-center py-16">
-                  <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-2xl font-semibold mb-2">Form Templates</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Custom form templates and builder coming soon.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <FormAnalytics />
           </TabsContent>
 
+          {/* Testing Tab */}
           <TabsContent value="testing" className="space-y-4">
             <MockFormTestPanel />
           </TabsContent>
