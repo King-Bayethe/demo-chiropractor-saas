@@ -25,7 +25,7 @@ const appointmentSchema = z.object({
   end_date: z.date({ required_error: 'End date is required' }),
   end_time: z.string().min(1, 'End time is required'),
   status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'no_show']),
-  type: z.enum(['consultation', 'treatment', 'follow_up', 'procedure']),
+  type: z.enum(['initial_consultation', 'follow_up_visit', 'annual_physical', 'wellness_exam', 'diagnostic_procedure', 'therapy_session', 'lab_work', 'telemedicine', 'urgent_care', 'specialist_consultation', 'vaccination', 'preventive_care']),
   notes: z.string().optional(),
   location: z.string().optional(),
   provider_id: z.string().optional(),
@@ -64,7 +64,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       end_date: appointment?.end_time ? new Date(appointment.end_time) : new Date(),
       end_time: appointment?.end_time ? format(parseISO(appointment.end_time), 'HH:mm') : '10:00',
       status: appointment?.status || 'scheduled',
-      type: appointment?.type || 'consultation',
+      type: appointment?.type || 'initial_consultation',
       notes: appointment?.notes || '',
       location: appointment?.location || '',
       provider_id: '',
@@ -82,7 +82,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         end_date: appointment.end_time ? new Date(appointment.end_time) : new Date(),
         end_time: appointment.end_time ? format(parseISO(appointment.end_time), 'HH:mm') : '10:00',
         status: appointment.status || 'scheduled',
-        type: appointment.type || 'consultation',
+        type: appointment.type || 'initial_consultation',
         notes: appointment.notes || '',
         location: appointment.location || '',
         provider_id: '',
@@ -415,10 +415,18 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="consultation">Consultation</SelectItem>
-                      <SelectItem value="treatment">Treatment</SelectItem>
-                      <SelectItem value="follow_up">Follow Up</SelectItem>
-                      <SelectItem value="procedure">Procedure</SelectItem>
+                      <SelectItem value="initial_consultation">Initial Consultation</SelectItem>
+                      <SelectItem value="follow_up_visit">Follow-up Visit</SelectItem>
+                      <SelectItem value="annual_physical">Annual Physical</SelectItem>
+                      <SelectItem value="wellness_exam">Wellness Exam</SelectItem>
+                      <SelectItem value="diagnostic_procedure">Diagnostic Procedure</SelectItem>
+                      <SelectItem value="therapy_session">Therapy Session</SelectItem>
+                      <SelectItem value="lab_work">Lab Work</SelectItem>
+                      <SelectItem value="telemedicine">Telemedicine</SelectItem>
+                      <SelectItem value="urgent_care">Urgent Care</SelectItem>
+                      <SelectItem value="specialist_consultation">Specialist Consultation</SelectItem>
+                      <SelectItem value="vaccination">Vaccination</SelectItem>
+                      <SelectItem value="preventive_care">Preventive Care</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

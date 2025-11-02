@@ -35,14 +35,30 @@ const getStatusColor = (status: Appointment['status']) => {
 
 const getTypeColor = (type: Appointment['type']) => {
   switch (type) {
-    case 'consultation':
+    case 'initial_consultation':
       return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'treatment':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'follow_up':
+    case 'follow_up_visit':
       return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'procedure':
+    case 'annual_physical':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'wellness_exam':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'diagnostic_procedure':
       return 'bg-red-100 text-red-800 border-red-200';
+    case 'therapy_session':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    case 'lab_work':
+      return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+    case 'telemedicine':
+      return 'bg-teal-100 text-teal-800 border-teal-200';
+    case 'urgent_care':
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    case 'specialist_consultation':
+      return 'bg-violet-100 text-violet-800 border-violet-200';
+    case 'vaccination':
+      return 'bg-pink-100 text-pink-800 border-pink-200';
+    case 'preventive_care':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }

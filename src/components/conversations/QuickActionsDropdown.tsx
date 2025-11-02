@@ -25,21 +25,27 @@ interface QuickActionsDropdownProps {
 
 const formOptions = [
   {
-    id: 'pip',
-    name: 'PIP Form',
-    description: 'Personal Injury Protection Intake Form',
+    id: 'new-patient',
+    name: 'New Patient Intake',
+    description: 'General new patient registration form',
+    url: '/public-new-form'
+  },
+  {
+    id: 'insurance',
+    name: 'Insurance Verification',
+    description: 'Insurance information and verification form',
     url: '/public-pip-form'
   },
   {
-    id: 'lop',
-    name: 'LOP Form', 
-    description: 'Letter of Protection Intake Form',
+    id: 'financial',
+    name: 'Financial Agreement',
+    description: 'Payment plan and financial agreement form', 
     url: '/public-lop-form'
   },
   {
     id: 'cash',
-    name: 'Cash Form',
-    description: 'Cash Payment Intake Form', 
+    name: 'Self-Pay Registration',
+    description: 'Self-pay patient registration form', 
     url: '/public-cash-form'
   }
 ];

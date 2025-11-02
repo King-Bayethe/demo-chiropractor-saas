@@ -7,7 +7,7 @@ import { Layout } from "@/components/Layout";
 import { FormSubmissionDetails } from "@/components/forms/FormSubmissionDetails";
 import { MockFormTestPanel } from "@/components/forms/MockFormTestPanel";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Plus, ExternalLink, FileText, Users, Activity, Target } from "lucide-react";
+import { ClipboardList, Plus, ExternalLink, FileText, Users, Activity, Target, Shield } from "lucide-react";
 
 const Forms = () => {
   const { toast } = useToast();
@@ -54,10 +54,10 @@ const Forms = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-medical-blue">PIP Patient Intake</h3>
-                          <p className="text-sm text-muted-foreground">Personal Injury Protection form</p>
+                          <h3 className="font-semibold text-medical-blue">Insurance Verification Form</h3>
+                          <p className="text-sm text-muted-foreground">Insurance details and coverage verification</p>
                         </div>
-                        <Activity className="h-8 w-8 text-medical-blue" />
+                        <Shield className="h-8 w-8 text-medical-blue" />
                       </div>
                       <div className="mt-4 flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => window.open('/public/pip-form', '_blank')}>
@@ -72,8 +72,8 @@ const Forms = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-medical-teal">LOP Form</h3>
-                          <p className="text-sm text-muted-foreground">Letter of Protection</p>
+                          <h3 className="font-semibold text-medical-teal">Financial Agreement Form</h3>
+                          <p className="text-sm text-muted-foreground">Payment plans and financial arrangements</p>
                         </div>
                         <FileText className="h-8 w-8 text-medical-teal" />
                       </div>
@@ -90,8 +90,8 @@ const Forms = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-green-700">Cash Patient Form</h3>
-                          <p className="text-sm text-muted-foreground">Self-pay patient intake</p>
+                          <h3 className="font-semibold text-green-700">Self-Pay Registration</h3>
+                          <p className="text-sm text-muted-foreground">Cash pay patient registration form</p>
                         </div>
                         <Users className="h-8 w-8 text-green-700" />
                       </div>
@@ -108,8 +108,8 @@ const Forms = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-purple-700">New Patient Form</h3>
-                          <p className="text-sm text-muted-foreground">General new patient intake</p>
+                          <h3 className="font-semibold text-purple-700">New Patient Intake</h3>
+                          <p className="text-sm text-muted-foreground">Comprehensive new patient registration</p>
                         </div>
                         <Target className="h-8 w-8 text-purple-700" />
                       </div>

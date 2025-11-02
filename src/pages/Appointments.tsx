@@ -320,10 +320,18 @@ export default function Appointments() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="consultation">Consultation</SelectItem>
-                      <SelectItem value="treatment">Treatment</SelectItem>
-                      <SelectItem value="follow_up">Follow Up</SelectItem>
-                      <SelectItem value="procedure">Procedure</SelectItem>
+                      <SelectItem value="initial_consultation">Initial Consultation</SelectItem>
+                      <SelectItem value="follow_up_visit">Follow-up Visit</SelectItem>
+                      <SelectItem value="annual_physical">Annual Physical</SelectItem>
+                      <SelectItem value="wellness_exam">Wellness Exam</SelectItem>
+                      <SelectItem value="diagnostic_procedure">Diagnostic Procedure</SelectItem>
+                      <SelectItem value="therapy_session">Therapy Session</SelectItem>
+                      <SelectItem value="lab_work">Lab Work</SelectItem>
+                      <SelectItem value="telemedicine">Telemedicine</SelectItem>
+                      <SelectItem value="urgent_care">Urgent Care</SelectItem>
+                      <SelectItem value="specialist_consultation">Specialist Consultation</SelectItem>
+                      <SelectItem value="vaccination">Vaccination</SelectItem>
+                      <SelectItem value="preventive_care">Preventive Care</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -18,9 +18,6 @@ const formSchema = z.object({
   case_type: z.string().optional(),
   estimated_value: z.number().optional(),
   insurance_coverage_amount: z.number().optional(),
-  attorney_referred: z.boolean(),
-  attorney_name: z.string().optional(),
-  attorney_contact: z.string().optional(),
   pipeline_stage: z.string(),
   expected_close_date: z.string().optional(),
   source: z.string().optional(),
@@ -30,24 +27,28 @@ const formSchema = z.object({
 });
 
 const CASE_TYPES = [
-  'PIP',
-  'Insurance',
-  'Slip and Fall',
+  'Private Insurance',
+  'Medicare',
+  'Medicaid',
+  'Self-Pay',
+  'Payment Plan',
   'Workers Compensation',
-  'Cash Plan',
-  'Attorney Only'
+  'Auto Insurance'
 ];
 
 const SOURCES = [
   'Online Form',
   'Phone Call',
   'Walk-in',
-  'Referral',
-  'Attorney',
+  'Physician Referral',
+  'Patient Referral',
   'Insurance Company',
+  'Online Marketing',
   'Google Ads',
   'Social Media',
-  'Website'
+  'Website',
+  'Community Outreach',
+  'Healthcare Network'
 ];
 
 interface AddMedicalOpportunityFormProps {
@@ -66,9 +67,6 @@ export function AddMedicalOpportunityForm({ onSubmit, onCancel }: AddMedicalOppo
       case_type: '',
       estimated_value: undefined,
       insurance_coverage_amount: undefined,
-      attorney_referred: false,
-      attorney_name: '',
-      attorney_contact: '',
       pipeline_stage: 'lead',
       expected_close_date: '',
       source: '',
@@ -77,8 +75,6 @@ export function AddMedicalOpportunityForm({ onSubmit, onCancel }: AddMedicalOppo
       notes: '',
     },
   });
-
-  const attorneyReferred = form.watch('attorney_referred');
 
   const handleFormSubmit = (values: z.infer<typeof formSchema>) => {
     // Convert empty date strings to null to avoid database errors
@@ -91,8 +87,6 @@ export function AddMedicalOpportunityForm({ onSubmit, onCancel }: AddMedicalOppo
       name: values.name && values.name.trim() !== '' ? values.name : null,
       description: values.description && values.description.trim() !== '' ? values.description : null,
       case_type: values.case_type && values.case_type.trim() !== '' ? values.case_type : null,
-      attorney_name: values.attorney_name && values.attorney_name.trim() !== '' ? values.attorney_name : null,
-      attorney_contact: values.attorney_contact && values.attorney_contact.trim() !== '' ? values.attorney_contact : null,
       source: values.source && values.source.trim() !== '' ? values.source : null,
       referral_source: values.referral_source && values.referral_source.trim() !== '' ? values.referral_source : null,
       assigned_provider_name: values.assigned_provider_name && values.assigned_provider_name.trim() !== '' ? values.assigned_provider_name : null,
@@ -272,59 +266,6 @@ export function AddMedicalOpportunityForm({ onSubmit, onCancel }: AddMedicalOppo
             )}
           />
         </div>
-
-        <FormField
-          control={form.control}
-          name="attorney_referred"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Attorney Referred</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Is this patient referred by an attorney?
-                </div>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        {attorneyReferred && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="attorney_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Attorney Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter attorney name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="attorney_contact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Attorney Contact</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Phone or email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField

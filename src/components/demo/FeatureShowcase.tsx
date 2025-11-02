@@ -45,8 +45,8 @@ const features = [
         technical: 'JSONB storage, Complex queries, Audit trails'
       },
       {
-        title: 'Insurance Management',
-        description: 'Auto insurance, health insurance, and PIP case management',
+        title: 'Multi-Payer Support',
+        description: 'Private insurance, Medicare, Medicaid, and self-pay patient management',
         icon: <Shield className="h-4 w-4" />,
         demo: '/patients',
         technical: 'Multi-table relationships, Validation triggers, Data normalization'

@@ -4,7 +4,7 @@ import { Layout } from "@/components/Layout";
 
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useAppointments } from "@/hooks/useAppointments";
+import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { supabase } from "@/integrations/supabase/client";
 import { AppointmentForm } from "@/components/appointments/AppointmentForm";
 import { AppointmentDetailDialog } from "@/components/appointments/AppointmentDetailDialog";
@@ -309,7 +309,7 @@ export default function Calendar() {
                 start_time: editingAppointment.startTime.toISOString(),
                 end_time: editingAppointment.endTime.toISOString(),
                 status: editingAppointment.status,
-                type: editingAppointment.type as 'consultation' | 'treatment' | 'follow_up' | 'procedure',
+                type: editingAppointment.type as Appointment['type'],
                 notes: editingAppointment.notes || '',
                 location: editingAppointment.location || '',
                 contact_name: editingAppointment.patientName,

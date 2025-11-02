@@ -198,17 +198,6 @@ export function FormSubmissionDetails({
 
     sections.push(renderSection("Insurance Information", insuranceData));
 
-    // Legal Information
-    const legalData = {
-      attorneyName: formData.attorneyName,
-      attorneyPhone: formData.attorneyPhone,
-      attorneyContact: formData.attorneyContact,
-      attorneyReferred: formData.attorneyReferred,
-      caseType: formData.caseType
-    };
-
-    sections.push(renderSection("Legal Information", legalData));
-
     // Lead Information (for lead intake forms)
     if (formType === 'lead_intake') {
       const leadData = {

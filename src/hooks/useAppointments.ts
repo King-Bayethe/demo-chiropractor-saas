@@ -12,7 +12,7 @@ export interface Appointment {
   start_time: string;
   end_time: string;
   status: 'scheduled' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
-  type: 'consultation' | 'treatment' | 'follow_up' | 'procedure';
+  type: 'initial_consultation' | 'follow_up_visit' | 'annual_physical' | 'wellness_exam' | 'diagnostic_procedure' | 'therapy_session' | 'lab_work' | 'telemedicine' | 'urgent_care' | 'specialist_consultation' | 'vaccination' | 'preventive_care';
   notes?: string;
   location?: string;
   created_at: string;
@@ -63,7 +63,7 @@ export const useAppointments = () => {
           start_time: apt.start_time,
           end_time: apt.end_time,
           status: apt.status,
-          type: apt.appointment_type || 'consultation',
+          type: apt.appointment_type || 'initial_consultation',
           notes: apt.notes,
           location: apt.location,
           created_at: apt.created_at,
@@ -98,7 +98,7 @@ export const useAppointments = () => {
         start_time: apt.start_time,
         end_time: apt.end_time,
         status: apt.status,
-        type: apt.appointment_type || 'consultation',
+        type: apt.appointment_type || 'initial_consultation',
         notes: apt.notes,
         location: apt.location,
         created_at: apt.created_at,
@@ -168,7 +168,7 @@ export const useAppointments = () => {
           start_time: appointmentData.start_time,
           end_time: appointmentData.end_time,
           status: appointmentData.status || 'scheduled',
-          appointment_type: appointmentData.type || 'consultation',
+          appointment_type: appointmentData.type || 'initial_consultation',
           notes: appointmentData.notes?.trim() || '',
           location: appointmentData.location?.trim() || '',
           confirmation_status: 'pending'

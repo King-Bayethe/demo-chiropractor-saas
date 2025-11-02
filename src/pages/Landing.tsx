@@ -40,8 +40,8 @@ const Landing = () => {
     },
     {
       icon: <Activity className="h-6 w-6" />,
-      title: "Medical Pipeline",
-      description: "Track patient journey from lead to treatment completion"
+      title: "Patient Journey Tracking",
+      description: "Comprehensive pipeline from lead capture to care completion with automated workflows"
     },
     {
       icon: <Shield className="h-6 w-6" />,
