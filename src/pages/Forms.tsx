@@ -6,7 +6,6 @@ import { FormFilters } from "@/components/forms/FormFilters";
 import { FormSubmissionsTable } from "@/components/forms/FormSubmissionsTable";
 import { FormTypeCard } from "@/components/forms/FormTypeCard";
 import { FormAnalytics } from "@/components/forms/FormAnalytics";
-import { MockFormTestPanel } from "@/components/forms/MockFormTestPanel";
 import { useFormSubmissions, FormFilters as FormFiltersType } from "@/hooks/useFormSubmissions";
 import { ClipboardList, Shield, FileText, Users, Target } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,13 +42,10 @@ const Forms = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
             <TabsTrigger value="public-forms">Public Forms</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="testing" className="bg-yellow-500/10 text-yellow-700">
-              Testing
-            </TabsTrigger>
           </TabsList>
 
           {/* Submissions Tab */}
@@ -108,11 +104,6 @@ const Forms = () => {
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <FormAnalytics />
-          </TabsContent>
-
-          {/* Testing Tab */}
-          <TabsContent value="testing" className="space-y-4">
-            <MockFormTestPanel />
           </TabsContent>
         </Tabs>
       </div>
