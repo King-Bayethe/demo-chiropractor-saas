@@ -85,14 +85,14 @@ export function Layout({ children }: LayoutProps) {
         isMobile ? 'ml-0' : ''
       }`}>
         {/* Top Header */}
-        <header className="h-16 border-b border-border/50 bg-card px-4 sm:px-6 flex items-center justify-between shadow-sm flex-shrink-0">
-          <div className="flex items-center space-x-2 sm:space-x-4">
+        <header className="h-18 border-b border-border/50 bg-card/95 backdrop-blur-sm px-4 sm:px-6 flex items-center justify-between shadow-sm flex-shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             {isMobile && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setMobileMenuOpen(true)}
-                className="sm:hidden"
+                className="sm:hidden hover:bg-muted/80"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -100,20 +100,27 @@ export function Layout({ children }: LayoutProps) {
             <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
-                placeholder="Search patients, cases, or contacts..." 
-                className="pl-10 w-60 lg:w-80 bg-background border-border/50"
+                placeholder="Search patients, appointments, notes..." 
+                className="pl-10 pr-16 h-10 w-64 lg:w-96 rounded-lg bg-muted/50 border-muted-foreground/20 
+                           focus:bg-background focus:border-medical-blue transition-all duration-200"
               />
+              <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 
+                            px-2 py-1 text-xs bg-background/80 rounded border border-border text-muted-foreground
+                            hidden lg:inline-block">
+                ⌘K
+              </kbd>
             </div>
           </div>
           
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <Badge variant="secondary" className={`text-xs ${
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Badge variant="secondary" className={`text-xs font-medium ${
               isDemoUser 
-                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" 
-                : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                ? "bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300" 
+                : "bg-green-500/10 text-green-700 dark:bg-green-500/20 dark:text-green-300"
             }`}>
               {isDemoUser ? "DEMO MODE" : "Portfolio Demo"}
             </Badge>
+            <div className="h-6 w-px bg-border hidden sm:block"></div>
             <LanguageDropdown />
             <ThemeToggle />
             <NotificationBell />

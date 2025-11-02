@@ -112,56 +112,69 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
   return (
     <TooltipProvider>
       <div className={cn(
-        "h-full bg-black text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl",
-        collapsed ? "w-16" : "w-50"
+        "h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-white transition-all duration-300 ease-out flex flex-col border-r border-white/10",
+        collapsed ? "w-16" : "w-64"
       )}>
-        {/* Header */}
-        <div className="p-4 border-b border-white/10 bg-white">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex-1 flex justify-center">
-              {!collapsed && (
-                <div className="h-32 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-medical-blue mb-2">Healthcare</div>
-                    <div className="text-lg text-medical-teal">Portfolio System</div>
-                    <div className="text-xs text-muted-foreground mt-1">Demo Version</div>
-                  </div>
-                </div>
-              )}
-              {collapsed && (
-                <div className="w-20 h-20 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-medical-blue">H</div>
-                    <div className="text-sm text-medical-teal">P</div>
-                  </div>
-                </div>
-              )}
+        {/* Header with Logo */}
+        <div className="h-20 p-4 border-b border-white/10 flex items-center justify-between">
+          {!collapsed ? (
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-medical-blue to-medical-teal flex items-center justify-center shadow-lg animate-pulse-slow">
+                <Stethoscope className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <div className="text-lg font-bold text-white leading-tight">HealthFlow</div>
+                <div className="text-xs text-slate-400">Portfolio CRM</div>
+              </div>
             </div>
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-medical-blue to-medical-teal flex items-center justify-center mx-auto shadow-lg animate-pulse-slow">
+              <Stethoscope className="w-6 h-6 text-white" />
+            </div>
+          )}
+          {!collapsed && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={toggleSidebar}
-                  className="h-8 w-8 text-black/80 hover:text-black hover:bg-black/10 transition-colors flex-shrink-0"
+                  className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-200 flex-shrink-0"
                 >
-                  {collapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                  <Menu className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              <TooltipContent side="right">
+                Collapse sidebar
               </TooltipContent>
             </Tooltip>
-          </div>
+          )}
+          {collapsed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className="absolute top-4 -right-3 h-6 w-6 rounded-full bg-slate-800 border border-white/10 text-slate-400 hover:text-white hover:bg-slate-700 transition-all duration-200 shadow-lg z-10"
+                >
+                  <Menu className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                Expand sidebar
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 overflow-y-auto">
+        <nav className="flex-1 px-3 py-6 overflow-y-auto scrollbar-hide">
           <div className="space-y-6">
             {navigationGroups.map((group, groupIndex) => (
               <div key={group.title}>
                 {!collapsed && (
-                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-3">
+                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
                     {group.title}
                   </h3>
                 )}
@@ -175,16 +188,18 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
                         to={item.url}
                         onClick={() => isMobile && onMobileClose?.()}
                         className={cn(
-                          "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                          "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative",
                           active
-                            ? "bg-white/15 text-white shadow-lg border-r-4 border-[#4DA8FF]"
-                            : "text-white/80 hover:text-white hover:bg-white/10"
+                            ? "bg-gradient-to-r from-medical-blue/20 to-medical-teal/20 text-white shadow-lg before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-medical-blue before:to-medical-teal before:rounded-l-lg"
+                            : "text-slate-300 hover:text-white hover:bg-white/10 hover:translate-x-1 hover:scale-[1.02]"
                         )}
                       >
                         <IconComponent className={cn(
-                          "h-4 w-4 transition-colors",
+                          "h-5 w-5 transition-all duration-200",
                           collapsed ? "mx-auto" : "mr-3",
-                          active ? "text-white" : "text-white/70 group-hover:text-white"
+                          active 
+                            ? "text-medical-blue drop-shadow-[0_0_8px_rgba(77,168,255,0.5)]" 
+                            : "text-slate-400 group-hover:text-medical-teal group-hover:scale-110"
                         )} />
                         {!collapsed && (
                           <span className="truncate">{item.title}</span>
@@ -197,7 +212,7 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
                         <TooltipTrigger asChild>
                           {navItem}
                         </TooltipTrigger>
-                        <TooltipContent side="right">
+                        <TooltipContent side="right" className="bg-slate-800 border-slate-700">
                           {item.title}
                         </TooltipContent>
                       </Tooltip>
@@ -206,7 +221,7 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
                 </div>
                 {/* Add separator between groups except for the last one */}
                 {!collapsed && groupIndex < navigationGroups.length - 1 && (
-                  <div className="border-t border-white/10 mt-4"></div>
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4"></div>
                 )}
               </div>
             ))}
