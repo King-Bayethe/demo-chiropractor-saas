@@ -25,7 +25,9 @@ export interface Opportunity {
   attorney_contact?: string;
   
   // Pipeline tracking
-  pipeline_stage: string;
+  pipeline_id?: string;
+  pipeline_stage_id?: string;
+  pipeline_stage: string; // Legacy field for backward compatibility
   expected_close_date?: string;
   consultation_scheduled_at?: string;
   treatment_start_date?: string;

@@ -1,14 +1,35 @@
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, TrendingUp, Target } from "lucide-react";
+import { DollarSign, Users, TrendingUp, Target, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { KanbanOpportunityCard } from "@/components/pipeline/KanbanOpportunityCard";
+import { PipelineSelector } from "@/components/opportunities/PipelineSelector";
 import { usePipelineStages, usePipelineOpportunities, usePipelineStats, usePipelineMutations } from "@/hooks/usePipeline";
+import { usePipelines } from "@/hooks/usePipelines";
 
 export default function Opportunities() {
-  const { data: stages = [], isLoading: stagesLoading } = usePipelineStages();
-  const { data: opportunities = [], isLoading: opportunitiesLoading } = usePipelineOpportunities();
-  const { stats, stageStats } = usePipelineStats();
-  const { updateOpportunityStage } = usePipelineMutations();
+  const navigate = useNavigate();
+  const { pipelines } = usePipelines();
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+
+  // Set default pipeline once loaded
+  useEffect(() => {
+    if (!selectedPipelineId && pipelines.length > 0) {
+      const defaultPipeline = pipelines.find(p => p.is_default) || pipelines[0];
+      setSelectedPipelineId(defaultPipeline.id);
+    }
+  }, [pipelines, selectedPipelineId]);
+
+  const { data: stages = [], isLoading: stagesLoading } = usePipelineStages(selectedPipelineId);
+  const { data: allOpportunities = [], isLoading: opportunitiesLoading } = usePipelineOpportunities();
+  
+  // Filter opportunities by selected pipeline
+  const opportunities = allOpportunities.filter(opp => opp.pipeline_id === selectedPipelineId);
+  
+  const { stats, stageStats } = usePipelineStats(selectedPipelineId);
+  const { updateOpportunityStage } = usePipelineMutations(selectedPipelineId);
 
   const getStageColor = (color: string) => {
     const colorMap: Record<string, string> = {
@@ -43,7 +64,7 @@ export default function Opportunities() {
     updateOpportunityStage.mutate({ id: opportunityId, stageId: targetStage.id });
   };
 
-  if (stagesLoading || opportunitiesLoading) {
+  if (stagesLoading || opportunitiesLoading || !selectedPipelineId) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
@@ -56,7 +77,28 @@ export default function Opportunities() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
+        {/* Header with Pipeline Selector */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Patient Pipeline</h1>
+            <p className="text-muted-foreground mt-1">
+              Track patient journey through your care process
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <PipelineSelector
+              selectedPipelineId={selectedPipelineId}
+              onSelectPipeline={setSelectedPipelineId}
+            />
+            <Button
+              variant="outline"
+              onClick={() => navigate('/pipeline-management')}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Pipelines
+            </Button>
+          </div>
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Patient Opportunities</h1>

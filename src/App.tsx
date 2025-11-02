@@ -34,6 +34,7 @@ import PatientProfile from "./pages/PatientProfile";
 import Calendar from "./pages/Calendar";
 import SOAPNotes from "./pages/SOAPNotes";
 import Opportunities from "./pages/Opportunities";
+import PipelineManagement from "./pages/PipelineManagement";
 import About from "./pages/About";
 import Features from "./pages/Features";
 import ContactUs from "./pages/ContactUs";
@@ -95,6 +96,7 @@ const App = () => (
                     <Route path="/team-chat" element={<AuthGuard><TeamChat /></AuthGuard>} />
                     <Route path="/contacts" element={<AuthGuard><Contacts /></AuthGuard>} />
                     <Route path="/opportunities" element={<AuthGuard><Opportunities /></AuthGuard>} />
+                    <Route path="/pipeline-management" element={<AuthGuard><PipelineManagement /></AuthGuard>} />
                     <Route path="/forms" element={<AuthGuard><Forms /></AuthGuard>} />
                     <Route path="/documents" element={<AuthGuard><Documents /></AuthGuard>} />
                     <Route path="/emails" element={<AuthGuard><Emails /></AuthGuard>} />

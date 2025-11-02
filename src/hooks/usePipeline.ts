@@ -1,15 +1,23 @@
 import { useMemo } from 'react';
-import { useOpportunities, MEDICAL_PIPELINE_STAGES } from './useOpportunities';
+import { useOpportunities } from './useOpportunities';
+import { usePipelineStages as useStages } from './usePipelines';
 
-export function usePipelineStages() {
-  const stages = MEDICAL_PIPELINE_STAGES.map(stage => ({
-    ...stage,
-    position: MEDICAL_PIPELINE_STAGES.findIndex(s => s.id === stage.id) + 1,
-  }));
+export function usePipelineStages(pipelineId: string | null = null) {
+  const { stages: dbStages, loading } = useStages(pipelineId);
+  
+  const stages = useMemo(() => {
+    return dbStages.map(stage => ({
+      id: stage.name.toLowerCase().replace(/\s+/g, '-'),
+      title: stage.name,
+      color: stage.color,
+      description: stage.description || '',
+      position: stage.position,
+    }));
+  }, [dbStages]);
 
   return {
     data: stages,
-    isLoading: false,
+    isLoading: loading,
   };
 }
 
@@ -22,14 +30,20 @@ export function usePipelineOpportunities() {
   };
 }
 
-export function usePipelineStats() {
+export function usePipelineStats(pipelineId: string | null = null) {
   const { opportunities } = useOpportunities();
+  const { stages } = useStages(pipelineId);
+  
+  const filteredOpportunities = useMemo(() => {
+    if (!pipelineId) return opportunities;
+    return opportunities.filter(opp => opp.pipeline_id === pipelineId);
+  }, [opportunities, pipelineId]);
   
   const stats = useMemo(() => {
-    const totalOpportunities = opportunities.length;
-    const totalValue = opportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
+    const totalOpportunities = filteredOpportunities.length;
+    const totalValue = filteredOpportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
     const averageDealSize = totalOpportunities > 0 ? totalValue / totalOpportunities : 0;
-    const activeContacts = new Set(opportunities.map(opp => opp.patient_name || 'Unknown')).size;
+    const activeContacts = new Set(filteredOpportunities.map(opp => opp.patient_name || 'Unknown')).size;
     
     return {
       totalOpportunities,
@@ -37,36 +51,37 @@ export function usePipelineStats() {
       averageDealSize,
       activeContacts,
     };
-  }, [opportunities]);
+  }, [filteredOpportunities]);
 
   const stageStats = useMemo(() => {
-    return MEDICAL_PIPELINE_STAGES.map((stage, index) => {
-      const stageOpportunities = opportunities.filter(opp => opp.pipeline_stage === stage.id);
+    return stages.map((stage, index) => {
+      const stageOpportunities = filteredOpportunities.filter(opp => opp.pipeline_stage_id === stage.id);
       const stageValue = stageOpportunities.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0);
       
       return {
         id: stage.id,
-        name: stage.title,
+        name: stage.name,
         color: stage.color.replace('bg-', '#').replace('-500', ''),
         count: stageOpportunities.length,
         value: stageValue,
         position: index + 1,
       };
     });
-  }, [opportunities]);
+  }, [filteredOpportunities, stages]);
 
   return { stats, stageStats };
 }
 
-export function usePipelineMutations() {
+export function usePipelineMutations(pipelineId: string | null = null) {
   const { updateOpportunityStage } = useOpportunities();
+  const { stages } = useStages(pipelineId);
   
   return {
     updateOpportunityStage: {
-      mutate: ({ id, stageId }: { id: string; stageId: number | string }) => {
-        const stage = MEDICAL_PIPELINE_STAGES.find(s => s.id === stageId || s.id === stageId.toString());
+      mutate: ({ id, stageId }: { id: string; stageId: string }) => {
+        const stage = stages.find(s => s.id === stageId);
         if (stage) {
-          updateOpportunityStage(id, stage.id);
+          updateOpportunityStage(id, stageId);
         }
       },
     },

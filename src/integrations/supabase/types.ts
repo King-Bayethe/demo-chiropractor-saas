@@ -1041,7 +1041,9 @@ export type Database = {
           patient_id: string | null
           patient_name: string | null
           patient_phone: string | null
+          pipeline_id: string | null
           pipeline_stage: string
+          pipeline_stage_id: string | null
           priority: string | null
           referral_source: string | null
           source: string | null
@@ -1075,7 +1077,9 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string | null
           patient_phone?: string | null
+          pipeline_id?: string | null
           pipeline_stage?: string
+          pipeline_stage_id?: string | null
           priority?: string | null
           referral_source?: string | null
           source?: string | null
@@ -1109,7 +1113,9 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string | null
           patient_phone?: string | null
+          pipeline_id?: string | null
           pipeline_stage?: string
+          pipeline_stage_id?: string | null
           priority?: string | null
           referral_source?: string | null
           source?: string | null
@@ -1138,6 +1144,20 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_pipeline_stage_id_fkey"
+            columns: ["pipeline_stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -1863,6 +1883,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pipeline_stages: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_closed_lost: boolean
+          is_closed_won: boolean
+          name: string
+          pipeline_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_closed_lost?: boolean
+          is_closed_won?: boolean
+          name: string
+          pipeline_id: string
+          position: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_closed_lost?: boolean
+          is_closed_won?: boolean
+          name?: string
+          pipeline_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_stages_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipelines: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
