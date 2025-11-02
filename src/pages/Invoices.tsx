@@ -1,179 +1,141 @@
-import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useGHLApi } from "@/hooks/useGHLApi";
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  DollarSign, 
-  Download,
-  FileText,
-  MoreHorizontal,
-  Calendar,
-  X
-} from "lucide-react";
+import { Plus } from "lucide-react";
+import { useInvoices } from "@/hooks/useInvoices";
+import { InvoiceStatsCards } from "@/components/invoices/InvoiceStatsCards";
+import { InvoiceFilters } from "@/components/invoices/InvoiceFilters";
+import { InvoicesTable } from "@/components/invoices/InvoicesTable";
+import { InvoiceViewDialog } from "@/components/invoices/InvoiceViewDialog";
+import { CreateInvoiceDialog } from "@/components/invoices/CreateInvoiceDialog";
+import { Invoice } from "@/utils/mockData/mockInvoices";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export default function Invoices() {
-  const [invoices, setInvoices] = useState([]);
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    contactId: "",
-    amount: "",
-    description: "",
-    dueDate: "",
-    status: "pending"
-  });
-  const { toast } = useToast();
-  const ghlApi = useGHLApi();
+const Invoices = () => {
+  const {
+    invoices,
+    stats,
+    filters,
+    setFilters,
+    addInvoice,
+    updateInvoice,
+    deleteInvoice,
+    markAsPaid,
+  } = useInvoices();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      // Load contacts for dropdown
-      const contactsData = await ghlApi.contacts.getAll();
-      setContacts(contactsData.contacts || []);
-      
-      // For now, create mock invoices since GHL doesn't have direct invoice API
-      // In production, you'd either store invoices in Supabase or use a different API
-      const mockInvoices = [
-        {
-          id: "INV-001",
-          contactId: contactsData.contacts?.[0]?.id,
-          contactName: `${contactsData.contacts?.[0]?.firstNameLowerCase || ''} ${contactsData.contacts?.[0]?.lastNameLowerCase || ''}`,
-          amount: 150.00,
-          description: "Chiropractic Treatment Session",
-          dateIssued: new Date().toISOString(),
-          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          status: "paid"
-        },
-        {
-          id: "INV-002", 
-          contactId: contactsData.contacts?.[1]?.id,
-          contactName: `${contactsData.contacts?.[1]?.firstNameLowerCase || ''} ${contactsData.contacts?.[1]?.lastNameLowerCase || ''}`,
-          amount: 250.00,
-          description: "Rehabilitation Package",
-          dateIssued: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          dueDate: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000).toISOString(),
-          status: "pending"
-        }
-      ];
-      setInvoices(mockInvoices);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load invoice data.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+  const handleCreateInvoice = (invoiceData: Omit<Invoice, 'id' | 'invoiceNumber'>) => {
+    addInvoice(invoiceData);
+    toast.success('Invoice created successfully');
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(null);
+    setEditingInvoice(invoice);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleUpdateInvoice = (invoiceData: Omit<Invoice, 'id' | 'invoiceNumber'>) => {
+    if (editingInvoice) {
+      updateInvoice(editingInvoice.id, invoiceData);
+      toast.success('Invoice updated successfully');
+      setEditingInvoice(null);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const selectedContact = contacts.find((c: any) => c.id === formData.contactId);
-      const newInvoice = {
-        id: `INV-${String(invoices.length + 1).padStart(3, '0')}`,
-        contactId: formData.contactId,
-        contactName: selectedContact ? `${selectedContact.firstNameLowerCase || ''} ${selectedContact.lastNameLowerCase || ''}` : '',
-        amount: parseFloat(formData.amount),
-        description: formData.description,
-        dateIssued: new Date().toISOString(),
-        dueDate: formData.dueDate,
-        status: formData.status
-      };
-
-      setInvoices(prev => [newInvoice, ...prev]);
-      setIsCreateInvoiceOpen(false);
-      
-      toast({
-        title: "Invoice Created",
-        description: `Invoice ${newInvoice.id} has been created successfully.`,
-      });
-      
-      setFormData({
-        contactId: "",
-        amount: "",
-        description: "",
-        dueDate: "",
-        status: "pending"
-      });
-    } catch (error) {
-      console.error('Failed to create invoice:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create invoice. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleDeleteInvoice = (id: string) => {
+    deleteInvoice(id);
+    toast.success('Invoice deleted successfully');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "paid": return "bg-success/10 text-success";
-      case "pending": return "bg-yellow-500/10 text-yellow-700";
-      case "overdue": return "bg-destructive/10 text-destructive";
-      default: return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  const handleMarkAsPaid = (id: string) => {
+    markAsPaid(id);
+    toast.success('Invoice marked as paid');
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Hero Header */}
+        <div className="flex-shrink-0 bg-gradient-to-br from-muted/30 via-background to-muted/20 p-4 md:p-6 space-y-2">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700">
-                  Coming Soon
-                </Badge>
-              </div>
-              <p className="text-muted-foreground">
-                Manage patient billing and payment tracking
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Invoices</h1>
+              <p className="text-lg text-muted-foreground mt-1">
+                Manage patient billing and track payments
               </p>
             </div>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="hidden md:flex">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Invoice
+            </Button>
           </div>
         </div>
 
-        <Card>
-          <CardContent>
-            <div className="text-center py-16">
-              <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Invoice management and billing features are currently in development. 
-                Check back soon for updates.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Stats Cards */}
+        <div className="flex-shrink-0 p-4 md:p-6">
+          <InvoiceStatsCards stats={stats} />
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 min-h-0 overflow-auto p-4 md:p-6 space-y-6">
+          {/* Filters */}
+          <InvoiceFilters filters={filters} onFilterChange={setFilters} />
+
+          {/* Invoices Table */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    All Invoices ({invoices.length})
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Track and manage your billing
+                  </p>
+                </div>
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="md:hidden">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Invoice
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <InvoicesTable
+                invoices={invoices}
+                onViewInvoice={setSelectedInvoice}
+                onEditInvoice={handleEditInvoice}
+                onMarkAsPaid={handleMarkAsPaid}
+                onDeleteInvoice={handleDeleteInvoice}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Dialogs */}
+        <InvoiceViewDialog
+          invoice={selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+          onEdit={handleEditInvoice}
+          onDelete={handleDeleteInvoice}
+          onMarkAsPaid={handleMarkAsPaid}
+        />
+        <CreateInvoiceDialog
+          isOpen={isCreateDialogOpen}
+          onClose={() => {
+            setIsCreateDialogOpen(false);
+            setEditingInvoice(null);
+          }}
+          onSave={editingInvoice ? handleUpdateInvoice : handleCreateInvoice}
+          invoice={editingInvoice}
+        />
       </div>
     </Layout>
   );
-}
+};
+
+export default Invoices;
