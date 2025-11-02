@@ -81,11 +81,11 @@ export const mapSupabasePatientToListItem = (patient: Patient) => {
   };
 };
 
-// Determines patient type based on case_type field, tags, or form submission
+// Generic healthcare payment/insurance type mapping
 export const getPatientType = (patient: Patient | null | undefined) => {
   // Handle null/undefined patient
   if (!patient) {
-    return 'Insurance'; // Default case type
+    return 'Private Insurance'; // Default case type
   }
   
   // Use case_type field as primary source
@@ -95,53 +95,100 @@ export const getPatientType = (patient: Patient | null | undefined) => {
   
   const tags = patient.tags || [];
   
+  // Map old types to new types for backwards compatibility
   if (tags.some((tag: string) => tag.toLowerCase().includes('pip'))) {
     return 'PIP';
   }
   
-  if (tags.some((tag: string) => tag.toLowerCase().includes('general'))) {
-    return 'Insurance';
+  if (tags.some((tag: string) => tag.toLowerCase().includes('medicare'))) {
+    return 'Medicare';
   }
   
-  // Check if they submitted a PIP form
+  if (tags.some((tag: string) => tag.toLowerCase().includes('medicaid'))) {
+    return 'Medicare';
+  }
+  
+  if (tags.some((tag: string) => tag.toLowerCase().includes('cash') || tag.toLowerCase().includes('self-pay'))) {
+    return 'Self-Pay';
+  }
+  
+  if (tags.some((tag: string) => tag.toLowerCase().includes('workers') || tag.toLowerCase().includes('comp'))) {
+    return 'Workers Compensation';
+  }
+  
+  // Check if they submitted a PIP form (legacy)
   if (patient.pip_form_submitted_at) {
     return 'PIP';
   }
   
-  return 'Insurance';
+  return 'Private Insurance';
 };
 
-// Get case type display name
+// Get case type display name - generic healthcare
 export const getCaseTypeDisplayName = (caseType: string) => {
   const caseTypeMap: Record<string, string> = {
-    'PIP': 'PIP Patient',
-    'Insurance': 'Insurance Patient',
-    'Slip and Fall': 'Slip & Fall Patient',
-    'Workers Compensation': 'Workers Comp Patient', 
-    'Cash Plan': 'Cash Plan Patient',
-    'Attorney Only': 'Attorney Only Patient'
+    // Insurance types
+    'Private Insurance': 'Private Insurance',
+    'Insurance': 'Private Insurance',
+    'Medicare': 'Medicare/Medicaid',
+    'Medicaid': 'Medicare/Medicaid',
+    'Self-Pay': 'Self-Pay (Cash)',
+    'Cash Plan': 'Self-Pay (Cash)',
+    'Payment Plan': 'Payment Plan',
+    
+    // Special types
+    'Workers Compensation': 'Workers Comp',
+    'PIP': 'Auto Insurance (PIP)',
+    'Slip and Fall': 'Injury Case',
+    'Attorney Only': 'Legal Referral',
+    
+    // Care types
+    'Acute Care': 'Acute Care',
+    'Chronic Care': 'Chronic Care',
+    'Preventive Care': 'Preventive Care',
+    'Specialty': 'Specialty Care'
   };
   
   return caseTypeMap[caseType] || caseType || 'Patient';
 };
 
-// Get case type variant for badges and styling
+// Get case type variant for badges and styling - generic healthcare
 export const getCaseTypeVariant = (caseType: string) => {
   switch (caseType) {
-    case 'PIP':
-      return 'bg-case-pip/10 text-case-pip border-case-pip/20';
+    // Insurance types - blue tones
+    case 'Private Insurance':
     case 'Insurance':
-      return 'bg-case-insurance/10 text-case-insurance border-case-insurance/20';
-    case 'Slip and Fall':
-      return 'bg-case-slip-fall/10 text-case-slip-fall border-case-slip-fall/20';
-    case 'Workers Compensation':
-      return 'bg-case-workers-comp/10 text-case-workers-comp border-case-workers-comp/20';
+      return 'bg-blue-500/10 text-blue-700 border-blue-500/20';
+    case 'Medicare':
+    case 'Medicaid':
+      return 'bg-cyan-500/10 text-cyan-700 border-cyan-500/20';
+    case 'Self-Pay':
     case 'Cash Plan':
-      return 'bg-case-cash-plan/10 text-case-cash-plan border-case-cash-plan/20';
+      return 'bg-green-500/10 text-green-700 border-green-500/20';
+    case 'Payment Plan':
+      return 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20';
+    
+    // Special case types - yellow/orange tones
+    case 'Workers Compensation':
+      return 'bg-orange-500/10 text-orange-700 border-orange-500/20';
+    case 'PIP':
+      return 'bg-amber-500/10 text-amber-700 border-amber-500/20';
+    case 'Slip and Fall':
     case 'Attorney Only':
-      return 'bg-case-attorney-only/10 text-case-attorney-only border-case-attorney-only/20';
+      return 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20';
+    
+    // Care types - purple tones
+    case 'Acute Care':
+      return 'bg-red-500/10 text-red-700 border-red-500/20';
+    case 'Chronic Care':
+      return 'bg-purple-500/10 text-purple-700 border-purple-500/20';
+    case 'Preventive Care':
+      return 'bg-teal-500/10 text-teal-700 border-teal-500/20';
+    case 'Specialty':
+      return 'bg-violet-500/10 text-violet-700 border-violet-500/20';
+    
     default:
-      return 'bg-secondary/10 text-secondary-foreground border-secondary/20';
+      return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
   }
 };
 

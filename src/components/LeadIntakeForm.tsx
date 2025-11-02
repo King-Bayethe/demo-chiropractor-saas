@@ -63,34 +63,21 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
     },
   });
 
-  const attorneys = [
-    "Adrian Reyes", "Alvin J. Rosenfarb", "Andres Berrio", "Andrew Kleid", "Anidjar & Levine", 
-    "Aric N. Williams", "Ariel Furst", "Berman & Tsombanakis", "Bernstein & Maryanoff", 
-    "Betsy Alvarez-Zane", "Brianna Wolfson", "Brian N. Greenspoon", "Canor Pato Law Firm", 
-    "Carl Palomino", "Charles Mustell", "Cornish Hernandez & Gonzalez", "Craig A. Dernis", 
-    "Daniel Izquierdo", "Daniel Sagie", "David A. Helfand", "David Farber", 
-    "De Cardenas, Freixas, Stein & Zachary", "Dell & Schaefer", "Denzle G Latty", 
-    "Dos Santos & Shirazi", "Edward J. Abramson", "Elio Vazquez", "Eltringham Law Group", 
-    "Emilio Pastor", "Engelbert H. Pacheco", "Eric Taverdi", "Evan M. Feldman", 
-    "Feingold & Posner", "Fernando Pomares", "Florida Advocates", "Frank Gonzalez", 
-    "Friedman, Rodman & Frank", "Gal Sinclair", "Gallardo Jimenez & Hart", "Gallardo Law Firm", 
-    "Gilbert Lacayo Law Firm", "Gimenez & Carrillo", "Gladys A. Cardenas", "Goldberg & Rosen", 
-    "Gonzalez & Associates", "Gross & Telisman", "Hector Garcia", "Hector Piedra", 
-    "Hess & Llarena", "Irwin Ast, P.A", "J. Erick Santana", "Jackson Lainez", 
-    "James Jean-Francois", "Jamie L. Allen", "Jany Martinez-Ward", "Jay London", 
-    "Jerome Pivnik", "Jimmy De la Espriella", "John Leon", "John Ruiz", "Jose E. Gallego", 
-    "Jose E. Perdomo", "Jose L. Lago", "Joseph Madalon", "Julio C. Acosta", "Julio Marrero", 
-    "Katiana Fleites", "Kenneth B. Schurr", "Kirshner, Groff & Diaz", "Klemick & Gampel", 
-    "Lawlor & Zigler", "Luis A. Torrens", "Marcelo Saenz", "Mark Tudino", "Morgan & Morgan", 
-    "Nathan J. Avrunin", "Nuel & Polsky", "Paul E. Suss", "Paul Schrier", "People's Law Center", 
-    "Peter De Primo", "Pinto & Pelosi", "Ralph Lopez", "Rebecca Nachlas, Esquire", 
-    "Rima C. Bardawil", "Rina Kaplan", "Robert Behar", "Robert Dixon", "Robert Rubenstein", 
-    "Robert W. Rodriguez", "Ruben Spinrad", "Schiller, Kessler & Gomez, PLC", 
-    "Scott A. Ferris", "Scott Bennett", "Scott Jay Senft", "Sharmila D. Bhagwandeen", 
-    "Shutter & Saben LLC.", "Stabinski & Funt", "Steve S. Farbman", "Steven E. Slootsky", 
-    "Stokes & Gonzalez", "Tacher & Profeta", "The Berman Group", "The Funes Law Firm", 
-    "The Soffer Firm, PLLC", "Theodore A. Swaebe", "Theodore Enfield", "Theodore Z. Deutsch", 
-    "Todd D. Rosen", "Victor Gorn"
+  const referralSources = [
+    "Primary Care Physician",
+    "Specialist Referral", 
+    "Patient Referral",
+    "Insurance Network",
+    "Online Search",
+    "Social Media",
+    "Walk-in",
+    "Emergency Department",
+    "Community Health Center",
+    "Employer Referral",
+    "Family/Friend Referral",
+    "Previous Patient",
+    "Healthcare Professional",
+    "Other"
   ].sort();
 
   const affiliateOffices = [
@@ -271,23 +258,23 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                 )}
               />
 
-              {/* Referred Lead By Attorneys */}
+              {/* Referral Source */}
               <FormField
                 control={form.control}
                 name="referredBy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Referred Lead By Attorneys</FormLabel>
+                    <FormLabel>Referral Source</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select attorney" />
+                          <SelectValue placeholder="Select referral source" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        {attorneys.map((attorney) => (
-                          <SelectItem key={attorney} value={attorney}>
-                            {attorney}
+                      <SelectContent className="bg-background border shadow-lg z-50 max-h-60 overflow-y-auto">
+                        {referralSources.map((source) => (
+                          <SelectItem key={source} value={source}>
+                            {source}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -368,12 +355,14 @@ export function LeadIntakeForm({ onSubmit, onCancel }: LeadIntakeFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PIP">PIP</SelectItem>
-                      <SelectItem value="Insurance">Insurance</SelectItem>
-                      <SelectItem value="Slip and Fall">Slip and Fall</SelectItem>
+                      <SelectItem value="Private Insurance">Private Insurance</SelectItem>
+                      <SelectItem value="Medicare">Medicare/Medicaid</SelectItem>
+                      <SelectItem value="Self-Pay">Self-Pay (Cash)</SelectItem>
+                      <SelectItem value="Payment Plan">Payment Plan</SelectItem>
                       <SelectItem value="Workers Compensation">Workers Compensation</SelectItem>
-                      <SelectItem value="Cash Plan">Cash Plan</SelectItem>
-                      <SelectItem value="Attorney Only">Attorney Only</SelectItem>
+                      <SelectItem value="PIP">Auto Insurance (PIP)</SelectItem>
+                      <SelectItem value="Acute Care">Acute Care</SelectItem>
+                      <SelectItem value="Chronic Care">Chronic Care</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
