@@ -46,6 +46,7 @@ export const usePaymentOrders = () => {
   };
 
   const isUpcomingThisWeek = (date: string): boolean => {
+    if (!date) return false;
     const nextPayment = new Date(date);
     const today = new Date();
     const weekFromNow = new Date();

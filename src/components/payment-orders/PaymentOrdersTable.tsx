@@ -70,7 +70,7 @@ export const PaymentOrdersTable = ({
     return "text-foreground";
   };
 
-  const isDueThisWeek = (date: string) => isUpcomingThisWeek(date);
+  const isDueThisWeek = (date: string) => date && isUpcomingThisWeek(date);
   const isFailed = (status: string) => status === 'failed';
 
   if (orders.length === 0) {
@@ -110,7 +110,10 @@ export const PaymentOrdersTable = ({
               <TableCell className="text-right font-semibold">{formatCurrency(order.amount)}</TableCell>
               <TableCell>{getFrequencyBadge(order.frequency)}</TableCell>
               <TableCell className={getNextPaymentClass(order.nextPaymentDate)}>
-                {format(new Date(order.nextPaymentDate), 'MMM dd, yyyy')}
+                {order.nextPaymentDate 
+                  ? format(new Date(order.nextPaymentDate), 'MMM dd, yyyy')
+                  : <span className="text-muted-foreground">N/A</span>
+                }
               </TableCell>
               <TableCell>
                 <div className="space-y-1">

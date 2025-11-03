@@ -129,30 +129,32 @@ export const PaymentOrderViewDialog = ({
           </Card>
 
           {/* Next Payment */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Next Payment
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Scheduled Date</p>
-                <p className="text-xl font-semibold text-primary">
-                  {format(new Date(order.nextPaymentDate), 'MMMM dd, yyyy')}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Amount Due</p>
-                <p className="text-2xl font-bold">{formatCurrency(order.amount)}</p>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Payment method on file</span>
-              </div>
-            </CardContent>
-          </Card>
+          {order.nextPaymentDate && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Next Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">Scheduled Date</p>
+                  <p className="text-xl font-semibold text-primary">
+                    {format(new Date(order.nextPaymentDate), 'MMMM dd, yyyy')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Amount Due</p>
+                  <p className="text-2xl font-bold">{formatCurrency(order.amount)}</p>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Payment method on file</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Payment History */}
           <Card>
