@@ -26,7 +26,7 @@ export const usePaymentOrders = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const calculateMRR = (order: PaymentOrder): number => {
-    const { amount, frequency, custom_frequency_days } = order;
+    const { amount, frequency, customFrequencyDays } = order;
     
     switch (frequency) {
       case 'weekly':
@@ -97,7 +97,7 @@ export const usePaymentOrders = () => {
 
       switch (sortBy) {
         case 'nextPayment':
-          comparison = new Date(a.next_payment_date).getTime() - new Date(b.next_payment_date).getTime();
+          comparison = new Date(a.nextPaymentDate).getTime() - new Date(b.nextPaymentDate).getTime();
           break;
         case 'amount':
           comparison = a.amount - b.amount;
