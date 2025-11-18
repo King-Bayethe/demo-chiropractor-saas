@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
-import { mockTasks, Task } from '@/utils/mockData/mockTasks';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Task } from '@/utils/mockData/mockTasks';
+import { toast } from 'sonner';
 
 export interface TaskFilters {
   search: string;
@@ -19,7 +22,35 @@ export interface TaskStats {
 }
 
 export const useTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const queryClient = useQueryClient();
+  
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('due_date', { ascending: true });
+      
+      if (error) throw error;
+      
+      return (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        assigneeId: task.assignee_id,
+        assigneeName: task.assignee_name,
+        assigneeAvatar: task.assignee_avatar,
+        status: task.status as 'todo' | 'in_progress' | 'blocked' | 'completed',
+        priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
+        dueDate: task.due_date,
+        createdAt: task.created_at,
+        completedAt: task.completed_at,
+        tags: task.tags || [],
+        subtasks: (task.subtasks as Array<{id: string; title: string; completed: boolean}>) || undefined
+      }));
+    }
+  });
   const [filters, setFilters] = useState<TaskFilters>({
     search: '',
     assignees: [],
@@ -131,39 +162,106 @@ export const useTasks = () => {
     return result;
   }, [tasks, filters, sortBy, sortOrder]);
 
-  const addTask = (task: Omit<Task, 'id' | 'createdAt'>) => {
-    const newTask: Task = {
-      ...task,
-      id: String(Date.now()),
-      createdAt: new Date().toISOString(),
-    };
-    setTasks(prev => [...prev, newTask]);
-  };
+  const addTask = useMutation({
+    mutationFn: async (task: Omit<Task, 'id' | 'createdAt'>) => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          title: task.title,
+          description: task.description,
+          assignee_id: task.assigneeId,
+          assignee_name: task.assigneeName,
+          assignee_avatar: task.assigneeAvatar,
+          status: task.status,
+          priority: task.priority,
+          due_date: task.dueDate,
+          completed_at: task.completedAt,
+          tags: task.tags,
+          subtasks: task.subtasks
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task created');
+    },
+    onError: () => {
+      toast.error('Failed to create task');
+    }
+  });
 
-  const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-  };
+  const updateTask = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
+      const { data, error} = await supabase
+        .from('tasks')
+        .update({
+          title: updates.title,
+          description: updates.description,
+          assignee_id: updates.assigneeId,
+          assignee_name: updates.assigneeName,
+          assignee_avatar: updates.assigneeAvatar,
+          status: updates.status,
+          priority: updates.priority,
+          due_date: updates.dueDate,
+          completed_at: updates.completedAt,
+          tags: updates.tags,
+          subtasks: updates.subtasks
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task updated');
+    },
+    onError: () => {
+      toast.error('Failed to update task');
+    }
+  });
 
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-  };
+  const deleteTask = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete task');
+    }
+  });
 
   const toggleTaskComplete = (id: string) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id === id) {
-        const isCompleting = t.status !== 'completed';
-        return {
-          ...t,
-          status: isCompleting ? 'completed' : 'todo',
-          completedAt: isCompleting ? new Date().toISOString() : undefined,
-        };
-      }
-      return t;
-    }));
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      const isCompleting = task.status !== 'completed';
+      updateTask.mutate({
+        id,
+        updates: {
+          status: isCompleting ? 'completed' : 'in_progress',
+          completedAt: isCompleting ? new Date().toISOString() : undefined
+        }
+      });
+    }
   };
 
   return {
     tasks: filteredTasks,
+    isLoading,
     stats,
     filters,
     setFilters,
@@ -171,9 +269,9 @@ export const useTasks = () => {
     setSortBy,
     sortOrder,
     setSortOrder,
-    addTask,
-    updateTask,
-    deleteTask,
+    addTask: addTask.mutate,
+    updateTask: (id: string, updates: Partial<Task>) => updateTask.mutate({ id, updates }),
+    deleteTask: deleteTask.mutate,
     toggleTaskComplete,
   };
 };
