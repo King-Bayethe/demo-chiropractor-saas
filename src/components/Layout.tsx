@@ -132,13 +132,11 @@ export function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="flex items-center gap-3 sm:gap-4">
-            <Badge variant="secondary" className={`text-xs font-medium ${
-              isDemoUser 
-                ? "bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300" 
-                : "bg-green-500/10 text-green-700 dark:bg-green-500/20 dark:text-green-300"
-            }`}>
-              {isDemoUser ? "DEMO MODE" : "Portfolio Demo"}
-            </Badge>
+            {isDemoUser && (
+              <Badge variant="secondary" className="text-xs font-medium bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                DEMO MODE
+              </Badge>
+            )}
             <div className="h-6 w-px bg-border hidden sm:block"></div>
             <LanguageDropdown />
             <ThemeToggle />
