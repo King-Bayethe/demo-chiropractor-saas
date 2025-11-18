@@ -7,11 +7,13 @@ import { ResponsiveContainer } from '@/components/ui/responsive-container';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeatureShowcase } from '@/components/demo/FeatureShowcase';
+import { useIsDemoUser } from '@/hooks/useDemoData';
 import { Activity, Users, Calendar, FileText, MessageSquare, Shield, Code, Database, Smartphone, Github, ExternalLink, Play, Target, Zap } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { signInAsDemo } = useAuth();
+  const { signInAsDemo, user } = useAuth();
+  const isDemoUser = useIsDemoUser();
 
   const handleEnterDemo = () => {
     navigate('/auth');
@@ -127,10 +129,12 @@ const Landing = () => {
           </div>
 
 
-          {/* Enhanced Feature Showcase */}
-          <div id="feature-showcase">
-            <FeatureShowcase />
-          </div>
+          {/* Enhanced Feature Showcase - Only show for public visitors or demo users */}
+          {(!user || isDemoUser) && (
+            <div id="feature-showcase">
+              <FeatureShowcase />
+            </div>
+          )}
 
           {/* Technical Highlights */}
           <Card className="bg-gradient-to-br from-medical-blue/5 via-background to-medical-teal/5">
@@ -203,47 +207,49 @@ const Landing = () => {
             </CardContent>
           </Card>
 
-          {/* Additional Demo Features Section */}
-          <Card className="mt-12 mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Demo Features</CardTitle>
-            <CardDescription className="text-center">
-              Explore the interactive features of this healthcare management system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="text-center p-6 border rounded-lg">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-medical-blue" />
-                <h3 className="text-lg font-semibold mb-2">Live Conversations</h3>
-                <p className="text-muted-foreground mb-4">
-                  Experience real-time patient messaging with SMS integration
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/demo-conversations')}
-                  className="w-full"
-                >
-                  Try Demo Conversations
-                </Button>
-              </div>
-              <div className="text-center p-6 border rounded-lg">
-                <Activity className="h-12 w-12 mx-auto mb-4 text-medical-teal" />
-                <h3 className="text-lg font-semibold mb-2">Full Dashboard</h3>
-                <p className="text-muted-foreground mb-4">
-                  Access the complete CRM with patient management and scheduling
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full"
-                >
-                  Enter Full System
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-          </Card>
+          {/* Additional Demo Features Section - Only show for public visitors or demo users */}
+          {(!user || isDemoUser) && (
+            <Card className="mt-12 mb-8">
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">Demo Features</CardTitle>
+                <CardDescription className="text-center">
+                  Explore the interactive features of this healthcare management system
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="text-center p-6 border rounded-lg">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-medical-blue" />
+                    <h3 className="text-lg font-semibold mb-2">Live Conversations</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Experience real-time patient messaging with SMS integration
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/demo-conversations')}
+                      className="w-full"
+                    >
+                      Try Demo Conversations
+                    </Button>
+                  </div>
+                  <div className="text-center p-6 border rounded-lg">
+                    <Activity className="h-12 w-12 mx-auto mb-4 text-medical-teal" />
+                    <h3 className="text-lg font-semibold mb-2">Full Dashboard</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Access the complete CRM with patient management and scheduling
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/dashboard')}
+                      className="w-full"
+                    >
+                      Enter Full System
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Footer */}
           <div className="text-center mt-16 pb-8">
