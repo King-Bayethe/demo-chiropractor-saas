@@ -21,6 +21,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { LanguageDropdown } from "@/components/LanguageDropdown";
 import { useIsDemoUser } from "@/hooks/useDemoData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 
 interface LayoutProps {
   children: ReactNode;
@@ -36,15 +37,19 @@ export function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isDemoUser = useIsDemoUser();
   const { signOut } = useAuth();
+  const { profile } = useProfile();
 
-  // Mock user data for portfolio demo
-  const mockProfile = {
+  // Mock user data for demo users only
+  const mockDemoProfile = {
     first_name: "Dr. Sarah",
     last_name: "Martinez",
     email: "demo@testing.com",
     role: "demo",
     avatar_url: "/lovable-uploads/d20b903a-e010-419b-ae88-29c72575f3ee.png"
   };
+
+  // Use real profile for non-demo users, mock for demo users
+  const displayProfile = isDemoUser ? mockDemoProfile : profile;
 
   const handleProfileClick = () => {
     navigate('/settings');
@@ -68,15 +73,36 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const getDisplayName = () => {
-    return isDemoUser ? "Dr. Sarah Martinez" : "Portfolio Demo User";
+    if (isDemoUser) {
+      return "Dr. Sarah Martinez";
+    }
+    const firstName = displayProfile?.first_name || "";
+    const lastName = displayProfile?.last_name || "";
+    return `${firstName} ${lastName}`.trim() || displayProfile?.email || "User";
   };
 
   const getInitials = () => {
-    return isDemoUser ? "SM" : "PD";
+    if (isDemoUser) return "SM";
+    
+    const firstName = displayProfile?.first_name || "";
+    const lastName = displayProfile?.last_name || "";
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (displayProfile?.email) {
+      return displayProfile.email[0].toUpperCase();
+    }
+    return "U";
   };
 
   const getRoleDisplay = () => {
-    return isDemoUser ? "Healthcare Professional" : "Demo Administrator";
+    if (isDemoUser) return "Healthcare Professional";
+    
+    const role = displayProfile?.role;
+    if (!role) return "User";
+    
+    // Format role for display
+    return role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ');
   };
 
   // Responsive layout with mobile support
@@ -152,7 +178,7 @@ export function Layout({ children }: LayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="rounded-full h-10 w-10 p-0 hover:bg-muted">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={mockProfile?.avatar_url} alt={getDisplayName()} />
+                      <AvatarImage src={displayProfile?.avatar_url} alt={getDisplayName()} />
                       <AvatarFallback className="bg-medical-blue text-white">
                         {getInitials()}
                       </AvatarFallback>
