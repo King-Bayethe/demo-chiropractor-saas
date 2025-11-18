@@ -137,6 +137,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       console.error('Error signing out:', error);
     }
+    // Clear demo mode on signout
+    localStorage.removeItem('demo-mode');
   };
 
   const value = {

@@ -54,9 +54,15 @@ export const useProfile = () => {
           localStorage.setItem('demo-mode', 'true');
         } else {
           setProfile(null);
+          localStorage.removeItem('demo-mode');
         }
         setLoading(false);
         return;
+      }
+
+      // Clear demo mode when a real user is logged in
+      if (user.user.email !== 'demo@testing.com') {
+        localStorage.removeItem('demo-mode');
       }
 
       const { data, error } = await supabase
@@ -75,6 +81,7 @@ export const useProfile = () => {
         // If user email is demo, provide demo profile as fallback
         if (user.user.email === 'demo@testing.com') {
           setProfile(DEMO_PROFILE);
+          localStorage.setItem('demo-mode', 'true');
           setLoading(false);
           return;
         }
@@ -90,7 +97,9 @@ export const useProfile = () => {
       const { data: user } = await supabase.auth.getUser();
       if (user.user?.email === 'demo@testing.com') {
         setProfile(DEMO_PROFILE);
+        localStorage.setItem('demo-mode', 'true');
       } else {
+        localStorage.removeItem('demo-mode');
         toast({
           title: "Error",
           description: "Failed to load profile",
@@ -104,12 +113,14 @@ export const useProfile = () => {
 
   const createProfile = async (user: any) => {
     try {
+      const isDemo = user.email === 'demo@testing.com';
+      
       const newProfile = {
         user_id: user.id,
         email: user.email,
-        first_name: user.user_metadata?.first_name || user.user_metadata?.role === 'demo' ? 'Demo' : '',
-        last_name: user.user_metadata?.last_name || user.user_metadata?.role === 'demo' ? 'User' : '',
-        role: user.user_metadata?.role || (user.email === 'demo@testing.com' ? 'demo' : 'staff'),
+        first_name: user.user_metadata?.first_name || (isDemo ? 'Demo' : ''),
+        last_name: user.user_metadata?.last_name || (isDemo ? 'User' : ''),
+        role: isDemo ? 'demo' : 'staff',
         is_active: true,
         language_preference: 'en',
         dark_mode: false
@@ -123,6 +134,11 @@ export const useProfile = () => {
 
       if (error) throw error;
       setProfile(data);
+      
+      // Clear demo mode for non-demo users
+      if (!isDemo) {
+        localStorage.removeItem('demo-mode');
+      }
     } catch (error) {
       console.error('Error creating profile:', error);
       toast({
