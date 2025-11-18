@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CRMSidebar } from "./CRMSidebar";
 import { ThemeToggle } from "./ThemeToggle";
-import { Bell, Search, User, Settings as SettingsIcon, UserCircle, Menu } from "lucide-react";
+import { Bell, Search, User, Settings as SettingsIcon, UserCircle, Menu, LogOut } from "lucide-react";
 import { useIsMobile, useDeviceType } from "@/hooks/use-breakpoints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { LanguageDropdown } from "@/components/LanguageDropdown";
 import { useIsDemoUser } from "@/hooks/useDemoData";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +35,7 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(isMobile);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isDemoUser = useIsDemoUser();
+  const { signOut } = useAuth();
 
   // Mock user data for portfolio demo
   const mockProfile = {
@@ -46,6 +48,23 @@ export function Layout({ children }: LayoutProps) {
 
   const handleProfileClick = () => {
     navigate('/settings');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      });
+    }
   };
 
   const getDisplayName = () => {
@@ -156,6 +175,14 @@ export function Layout({ children }: LayoutProps) {
                   >
                     <SettingsIcon className="mr-2 h-4 w-4" />
                     <span>{t('settings')}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-muted text-destructive"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
