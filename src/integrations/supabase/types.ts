@@ -632,6 +632,71 @@ export type Database = {
           },
         ]
       }
+      estimates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date_created: string
+          discount: number
+          estimate_number: string
+          id: string
+          notes: string | null
+          patient_id: string | null
+          patient_name: string
+          phases: Json
+          status: string
+          subtotal: number
+          total: number
+          treatment_type: string
+          updated_at: string
+          valid_until: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date_created?: string
+          discount?: number
+          estimate_number: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          patient_name: string
+          phases?: Json
+          status?: string
+          subtotal: number
+          total: number
+          treatment_type: string
+          updated_at?: string
+          valid_until: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date_created?: string
+          discount?: number
+          estimate_number?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          phases?: Json
+          status?: string
+          subtotal?: number
+          total?: number
+          treatment_type?: string
+          updated_at?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimates_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submission_audit: {
         Row: {
           created_at: string | null
@@ -818,6 +883,77 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date_issued: string
+          due_date: string
+          id: string
+          invoice_number: string
+          line_items: Json
+          notes: string | null
+          paid_date: string | null
+          patient_email: string
+          patient_id: string | null
+          patient_name: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date_issued?: string
+          due_date: string
+          id?: string
+          invoice_number: string
+          line_items?: Json
+          notes?: string | null
+          paid_date?: string | null
+          patient_email: string
+          patient_id?: string | null
+          patient_name: string
+          status?: string
+          subtotal: number
+          tax_amount?: number
+          tax_rate?: number
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date_issued?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          line_items?: Json
+          notes?: string | null
+          paid_date?: string | null
+          patient_email?: string
+          patient_id?: string | null
+          patient_name?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ip_whitelist: {
         Row: {
@@ -1884,6 +2020,83 @@ export type Database = {
           },
         ]
       }
+      payment_orders: {
+        Row: {
+          amount: number
+          auto_process: boolean
+          created_at: string
+          created_by: string | null
+          custom_frequency_days: number | null
+          description: string
+          end_date: string | null
+          frequency: string
+          id: string
+          last_payment_date: string | null
+          next_payment_date: string | null
+          patient_id: string | null
+          patient_name: string
+          payment_history: Json
+          payment_method: string
+          payments_made: number
+          start_date: string
+          status: string
+          total_payments: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          auto_process?: boolean
+          created_at?: string
+          created_by?: string | null
+          custom_frequency_days?: number | null
+          description: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          patient_id?: string | null
+          patient_name: string
+          payment_history?: Json
+          payment_method: string
+          payments_made?: number
+          start_date: string
+          status?: string
+          total_payments?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          auto_process?: boolean
+          created_at?: string
+          created_by?: string | null
+          custom_frequency_days?: number | null
+          description?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          payment_history?: Json
+          payment_method?: string
+          payments_made?: number
+          start_date?: string
+          status?: string
+          total_payments?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_stages: {
         Row: {
           color: string
@@ -2316,6 +2529,60 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          assignee_avatar: string | null
+          assignee_id: string | null
+          assignee_name: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string
+          id: string
+          priority: string
+          status: string
+          subtasks: Json | null
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_avatar?: string | null
+          assignee_id?: string | null
+          assignee_name: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date: string
+          id?: string
+          priority?: string
+          status?: string
+          subtasks?: Json | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_avatar?: string | null
+          assignee_id?: string | null
+          assignee_name?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          priority?: string
+          status?: string
+          subtasks?: Json | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_chat_participants: {
         Row: {
           archived_at: string | null
@@ -2539,6 +2806,74 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "custom_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          patient_id: string | null
+          patient_name: string
+          payment_details: Json | null
+          payment_method: string
+          processed_by: string
+          status: string
+          timestamp: string
+          transaction_number: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          patient_name: string
+          payment_details?: Json | null
+          payment_method: string
+          processed_by: string
+          status?: string
+          timestamp?: string
+          transaction_number: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          payment_details?: Json | null
+          payment_method?: string
+          processed_by?: string
+          status?: string
+          timestamp?: string
+          transaction_number?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
