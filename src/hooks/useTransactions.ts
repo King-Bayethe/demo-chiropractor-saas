@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
-import { mockTransactions, Transaction } from '@/utils/mockData/mockTransactions';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Transaction } from '@/utils/mockData/mockTransactions';
+import { toast } from 'sonner';
 
 export interface TransactionStats {
   totalIncome: number;
@@ -18,7 +21,37 @@ export interface TransactionFilters {
 }
 
 export const useTransactions = () => {
-  const [transactions] = useState<Transaction[]>(mockTransactions);
+  const queryClient = useQueryClient();
+  
+  const { data: transactions = [], isLoading } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      
+      return (data || []).map(txn => ({
+        id: txn.id,
+        transactionNumber: txn.transaction_number,
+        patientId: txn.patient_id,
+        patientName: txn.patient_name,
+        type: txn.type as 'payment' | 'refund' | 'adjustment' | 'fee',
+        description: txn.description,
+        amount: txn.amount,
+        paymentMethod: txn.payment_method as 'cash' | 'credit_card' | 'debit_card' | 'check' | 'ach' | 'insurance',
+        paymentDetails: (txn.payment_details as {cardLast4?: string; checkNumber?: string; authCode?: string}) || undefined,
+        invoiceId: txn.invoice_id,
+        date: txn.date,
+        timestamp: txn.timestamp,
+        status: txn.status as 'completed' | 'pending' | 'failed' | 'voided',
+        processedBy: txn.processed_by,
+        notes: txn.notes
+      }));
+    }
+  });
   const [filters, setFilters] = useState<TransactionFilters>({
     search: '',
     type: [],
@@ -159,8 +192,43 @@ export const useTransactions = () => {
     }, {} as Record<string, number>);
   };
 
+  const createTransaction = useMutation({
+    mutationFn: async (txn: Omit<Transaction, 'id' | 'timestamp'>) => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert({
+          transaction_number: txn.transactionNumber,
+          patient_id: txn.patientId,
+          patient_name: txn.patientName,
+          type: txn.type,
+          description: txn.description,
+          amount: txn.amount,
+          payment_method: txn.paymentMethod,
+          payment_details: txn.paymentDetails,
+          invoice_id: txn.invoiceId,
+          date: txn.date,
+          status: txn.status,
+          processed_by: txn.processedBy,
+          notes: txn.notes
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success('Transaction recorded');
+    },
+    onError: () => {
+      toast.error('Failed to record transaction');
+    }
+  });
+
   return {
     transactions: sortedTransactions,
+    isLoading,
     filters,
     setFilters,
     sortBy,
@@ -170,5 +238,6 @@ export const useTransactions = () => {
     stats,
     filterByDatePreset,
     getTransactionsByType,
+    createTransaction: createTransaction.mutate,
   };
 };

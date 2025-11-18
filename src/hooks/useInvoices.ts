@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
-import { mockInvoices, Invoice } from '@/utils/mockData/mockInvoices';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Invoice } from '@/utils/mockData/mockInvoices';
+import { toast } from 'sonner';
 
 export interface InvoiceFilters {
   search: string;
@@ -19,7 +22,37 @@ export interface InvoiceStats {
 }
 
 export const useInvoices = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const queryClient = useQueryClient();
+  
+  const { data: invoices = [], isLoading } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .order('date_issued', { ascending: false });
+      
+      if (error) throw error;
+      
+      return (data || []).map(inv => ({
+        id: inv.id,
+        invoiceNumber: inv.invoice_number,
+        patientId: inv.patient_id,
+        patientName: inv.patient_name,
+        patientEmail: inv.patient_email,
+        lineItems: (inv.line_items as Array<{id: string; description: string; quantity: number; unitPrice: number; total: number}>) || [],
+        subtotal: inv.subtotal,
+        taxRate: inv.tax_rate,
+        taxAmount: inv.tax_amount,
+        total: inv.total,
+        dateIssued: inv.date_issued,
+        dueDate: inv.due_date,
+        paidDate: inv.paid_date,
+        status: inv.status as 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled',
+        notes: inv.notes
+      }));
+    }
+  });
   const [filters, setFilters] = useState<InvoiceFilters>({
     search: '',
     status: [],
@@ -125,33 +158,105 @@ export const useInvoices = () => {
     return result;
   }, [invoices, filters, sortBy, sortOrder]);
 
-  const addInvoice = (invoice: Omit<Invoice, 'id' | 'invoiceNumber'>) => {
-    const newInvoice: Invoice = {
-      ...invoice,
-      id: String(Date.now()),
-      invoiceNumber: `INV-${String(Date.now()).slice(-6)}`,
-    };
-    setInvoices(prev => [...prev, newInvoice]);
-  };
+  const addInvoice = useMutation({
+    mutationFn: async (invoice: Omit<Invoice, 'id' | 'invoiceNumber' | 'dateIssued'>) => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .insert({
+          invoice_number: `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
+          patient_id: invoice.patientId,
+          patient_name: invoice.patientName,
+          patient_email: invoice.patientEmail,
+          line_items: invoice.lineItems,
+          subtotal: invoice.subtotal,
+          tax_rate: invoice.taxRate,
+          tax_amount: invoice.taxAmount,
+          total: invoice.total,
+          due_date: invoice.dueDate,
+          paid_date: invoice.paidDate,
+          status: invoice.status,
+          notes: invoice.notes
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Invoice created');
+    },
+    onError: () => {
+      toast.error('Failed to create invoice');
+    }
+  });
 
-  const updateInvoice = (id: string, updates: Partial<Invoice>) => {
-    setInvoices(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
-  };
+  const updateInvoice = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Invoice> }) => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .update({
+          patient_id: updates.patientId,
+          patient_name: updates.patientName,
+          patient_email: updates.patientEmail,
+          line_items: updates.lineItems,
+          subtotal: updates.subtotal,
+          tax_rate: updates.taxRate,
+          tax_amount: updates.taxAmount,
+          total: updates.total,
+          due_date: updates.dueDate,
+          paid_date: updates.paidDate,
+          status: updates.status,
+          notes: updates.notes
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Invoice updated');
+    },
+    onError: () => {
+      toast.error('Failed to update invoice');
+    }
+  });
 
-  const deleteInvoice = (id: string) => {
-    setInvoices(prev => prev.filter(i => i.id !== id));
-  };
+  const deleteInvoice = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Invoice deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete invoice');
+    }
+  });
 
   const markAsPaid = (id: string) => {
-    setInvoices(prev => prev.map(i =>
-      i.id === id
-        ? { ...i, status: 'paid', paidDate: new Date().toISOString() }
-        : i
-    ));
+    updateInvoice.mutate({ 
+      id, 
+      updates: { 
+        status: 'paid' as const, 
+        paidDate: new Date().toISOString() 
+      } 
+    });
   };
 
   return {
     invoices: filteredInvoices,
+    isLoading,
     stats,
     filters,
     setFilters,
@@ -159,9 +264,9 @@ export const useInvoices = () => {
     setSortBy,
     sortOrder,
     setSortOrder,
-    addInvoice,
-    updateInvoice,
-    deleteInvoice,
+    addInvoice: addInvoice.mutate,
+    updateInvoice: (id: string, updates: Partial<Invoice>) => updateInvoice.mutate({ id, updates }),
+    deleteInvoice: deleteInvoice.mutate,
     markAsPaid,
   };
 };

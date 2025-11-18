@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
-import { mockPaymentOrders, PaymentOrder } from '@/utils/mockData/mockPaymentOrders';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { PaymentOrder } from '@/utils/mockData/mockPaymentOrders';
+import { toast } from 'sonner';
 
 export interface PaymentOrderStats {
   activePlans: number;
@@ -16,7 +19,40 @@ export interface PaymentOrderFilters {
 }
 
 export const usePaymentOrders = () => {
-  const [paymentOrders] = useState<PaymentOrder[]>(mockPaymentOrders);
+  const queryClient = useQueryClient();
+  
+  const { data: paymentOrders = [], isLoading } = useQuery({
+    queryKey: ['payment-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payment_orders')
+        .select('*')
+        .order('next_payment_date', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Transform snake_case to camelCase
+      return (data || []).map(order => ({
+        id: order.id,
+        patientId: order.patient_id,
+        patientName: order.patient_name,
+        description: order.description,
+        amount: order.amount,
+        frequency: order.frequency as 'weekly' | 'biweekly' | 'monthly' | 'custom',
+        customFrequencyDays: order.custom_frequency_days,
+        startDate: order.start_date,
+        endDate: order.end_date,
+        totalPayments: order.total_payments,
+        paymentsMade: order.payments_made,
+        nextPaymentDate: order.next_payment_date,
+        lastPaymentDate: order.last_payment_date,
+        status: order.status as 'active' | 'paused' | 'completed' | 'cancelled' | 'failed',
+        paymentMethod: order.payment_method,
+        autoProcess: order.auto_process,
+        paymentHistory: (order.payment_history as Array<{date: string; amount: number; status: 'success' | 'failed' | 'pending'}>) || []
+      }));
+    }
+  });
   const [filters, setFilters] = useState<PaymentOrderFilters>({
     search: '',
     status: [],
