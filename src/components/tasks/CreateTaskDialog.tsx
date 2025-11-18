@@ -9,8 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Task } from "@/utils/mockData/mockTasks";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, X } from "lucide-react";
+import { CalendarIcon, Plus, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export const CreateTaskDialog = ({ isOpen, onClose, onSave, task }: CreateTaskDi
   const [dueDate, setDueDate] = useState<Date>(new Date());
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Populate form if editing
   useEffect(() => {
@@ -54,23 +56,39 @@ export const CreateTaskDialog = ({ isOpen, onClose, onSave, task }: CreateTaskDi
     }
   }, [task, isOpen]);
 
-  const handleSave = () => {
-    if (!title.trim()) return;
+  const handleSave = async () => {
+    if (!title.trim()) {
+      toast.error("Please enter a task title");
+      return;
+    }
 
-    const taskData: Omit<Task, 'id' | 'createdAt'> = {
-      title: title.trim(),
-      description: description.trim(),
-      assigneeId,
-      assigneeName,
-      status,
-      priority,
-      dueDate: dueDate.toISOString(),
-      tags,
-      completedAt: status === 'completed' ? new Date().toISOString() : undefined,
-    };
+    if (!assigneeId) {
+      toast.error("Please select an assignee");
+      return;
+    }
 
-    onSave(taskData);
-    onClose();
+    setIsSubmitting(true);
+    try {
+      const taskData: Omit<Task, 'id' | 'createdAt'> = {
+        title: title.trim(),
+        description: description.trim(),
+        assigneeId: assigneeId,
+        assigneeName: assigneeName,
+        status,
+        priority,
+        dueDate: dueDate.toISOString(),
+        tags,
+        completedAt: status === 'completed' ? new Date().toISOString() : undefined,
+      };
+
+      await onSave(taskData);
+      toast.success("Task saved successfully");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to save task");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const assigneeOptions = [
@@ -247,10 +265,11 @@ export const CreateTaskDialog = ({ isOpen, onClose, onSave, task }: CreateTaskDi
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!title.trim()}>
+            <Button onClick={handleSave} disabled={isSubmitting || !title.trim()}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {task ? 'Update Task' : 'Create Task'}
             </Button>
           </div>
