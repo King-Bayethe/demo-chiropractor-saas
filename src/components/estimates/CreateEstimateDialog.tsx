@@ -19,9 +19,12 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Estimate } from "@/utils/mockData/mockEstimates";
+import { PatientSelector } from "@/components/PatientSelector";
+import { Patient } from "@/hooks/usePatients";
+import { toast } from "sonner";
 
 interface CreateEstimateDialogProps {
   isOpen: boolean;
@@ -45,7 +48,7 @@ export function CreateEstimateDialog({
   estimate,
   onSave 
 }: CreateEstimateDialogProps) {
-  const [patientName, setPatientName] = useState(estimate?.patientName || "");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [treatmentType, setTreatmentType] = useState(estimate?.treatmentType || "");
   const [phases, setPhases] = useState<Phase[]>(
     estimate?.phases || [{
@@ -62,6 +65,7 @@ export function CreateEstimateDialog({
     estimate ? new Date(estimate.validUntil) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   );
   const [notes, setNotes] = useState(estimate?.notes || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updatePhase = (index: number, field: keyof Phase, value: string | number) => {
     const newPhases = [...phases];
@@ -103,20 +107,43 @@ export function CreateEstimateDialog({
     return calculateSubtotal() - discount;
   };
 
-  const handleSave = () => {
-    onSave({
-      patientId: 'temp',
-      patientName,
-      treatmentType,
-      phases,
-      subtotal: calculateSubtotal(),
-      discount,
-      total: calculateTotal(),
-      validUntil: validUntil.toISOString(),
-      status: 'draft',
-      notes
-    });
-    onClose();
+  const handleSave = async () => {
+    if (!selectedPatient) {
+      toast.error("Please select a patient");
+      return;
+    }
+
+    if (!treatmentType) {
+      toast.error("Please select a treatment type");
+      return;
+    }
+
+    if (phases.some(p => !p.name)) {
+      toast.error("Please fill in all phase names");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSave({
+        patientId: selectedPatient.id,
+        patientName: `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim(),
+        treatmentType: treatmentType,
+        phases,
+        subtotal: calculateSubtotal(),
+        discount,
+        total: calculateTotal(),
+        validUntil: validUntil.toISOString(),
+        status: 'draft',
+        notes
+      });
+      toast.success("Estimate created successfully");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to create estimate");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -130,15 +157,10 @@ export function CreateEstimateDialog({
 
         <div className="space-y-6">
           {/* Patient Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="patient">Patient Name</Label>
-            <Input
-              id="patient"
-              value={patientName}
-              onChange={(e) => setPatientName(e.target.value)}
-              placeholder="Enter patient name"
-            />
-          </div>
+          <PatientSelector
+            selectedPatient={selectedPatient}
+            onPatientSelect={setSelectedPatient}
+          />
 
           {/* Treatment Type */}
           <div className="space-y-2">
@@ -308,10 +330,11 @@ export function CreateEstimateDialog({
 
           {/* Action Buttons */}
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {estimate ? 'Update Estimate' : 'Create Estimate'}
             </Button>
           </div>

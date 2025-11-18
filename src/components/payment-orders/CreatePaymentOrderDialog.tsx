@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { PatientSelector } from "@/components/PatientSelector";
+import { Patient } from "@/hooks/usePatients";
+import { Loader2 } from "lucide-react";
 
 interface CreatePaymentOrderDialogProps {
   isOpen: boolean;
@@ -16,7 +19,7 @@ interface CreatePaymentOrderDialogProps {
 }
 
 export const CreatePaymentOrderDialog = ({ isOpen, onClose, onSave }: CreatePaymentOrderDialogProps) => {
-  const [patientId, setPatientId] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [frequency, setFrequency] = useState("monthly");
@@ -28,38 +31,62 @@ export const CreatePaymentOrderDialog = ({ isOpen, onClose, onSave }: CreatePaym
   const [paymentMethod, setPaymentMethod] = useState("");
   const [autoProcess, setAutoProcess] = useState(true);
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSave = () => {
-    if (!patientId || !description || !amount || !paymentMethod) {
+  const handleSave = async () => {
+    if (!selectedPatient || !description || !amount || !paymentMethod) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum < 1) {
-      toast.error("Please enter a valid amount");
+      toast.error("Please enter a valid amount greater than $1");
       return;
     }
 
-    const data = {
-      patient_id: patientId,
-      description,
-      amount: amountNum,
-      frequency,
-      custom_frequency_days: frequency === 'custom' ? parseInt(customDays) : undefined,
-      start_date: startDate,
-      end_date: endCondition === 'endDate' ? endDate : undefined,
-      total_payments: endCondition === 'numberOfPayments' ? parseInt(numberOfPayments) : undefined,
-      payment_method: paymentMethod,
-      auto_process: autoProcess,
-      notes,
-      status: 'active',
-      payments_made: 0,
-    };
+    if (frequency === 'custom' && (!customDays || parseInt(customDays) < 1)) {
+      toast.error("Please enter valid custom frequency days");
+      return;
+    }
 
-    onSave(data);
-    toast.success("Payment order created successfully");
-    onClose();
+    if (endCondition === 'endDate' && !endDate) {
+      toast.error("Please select an end date");
+      return;
+    }
+
+    if (endCondition === 'numberOfPayments' && (!numberOfPayments || parseInt(numberOfPayments) < 1)) {
+      toast.error("Please enter a valid number of payments");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const data = {
+        patient_id: selectedPatient.id,
+        patient_name: `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim(),
+        description,
+        amount: amountNum,
+        frequency,
+        custom_frequency_days: frequency === 'custom' ? parseInt(customDays) : null,
+        start_date: startDate,
+        end_date: endCondition === 'endDate' ? endDate : null,
+        total_payments: endCondition === 'numberOfPayments' ? parseInt(numberOfPayments) : null,
+        payment_method: paymentMethod,
+        auto_process: autoProcess,
+        notes,
+        status: 'active',
+        payments_made: 0,
+      };
+
+      await onSave(data);
+      toast.success("Payment order created successfully");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to create payment order");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -71,15 +98,10 @@ export const CreatePaymentOrderDialog = ({ isOpen, onClose, onSave }: CreatePaym
 
         <div className="space-y-6">
           {/* Patient Selector */}
-          <div>
-            <Label htmlFor="patient">Patient *</Label>
-            <Input
-              id="patient"
-              placeholder="Enter patient ID or name"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-            />
-          </div>
+          <PatientSelector
+            selectedPatient={selectedPatient}
+            onPatientSelect={setSelectedPatient}
+          />
 
           {/* Description */}
           <div>
@@ -235,10 +257,11 @@ export const CreatePaymentOrderDialog = ({ isOpen, onClose, onSave }: CreatePaym
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Payment Order
           </Button>
         </DialogFooter>

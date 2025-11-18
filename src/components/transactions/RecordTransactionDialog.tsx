@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { PatientSelector } from "@/components/PatientSelector";
+import { Patient } from "@/hooks/usePatients";
+import { Loader2 } from "lucide-react";
 
 interface RecordTransactionDialogProps {
   isOpen: boolean;
@@ -15,7 +18,7 @@ interface RecordTransactionDialogProps {
 }
 
 export const RecordTransactionDialog = ({ isOpen, onClose, onSave }: RecordTransactionDialogProps) => {
-  const [patientId, setPatientId] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [type, setType] = useState("payment");
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -23,38 +26,47 @@ export const RecordTransactionDialog = ({ isOpen, onClose, onSave }: RecordTrans
   const [relatedInvoice, setRelatedInvoice] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 16));
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSave = () => {
-    if (!patientId || !amount || !paymentMethod || !description) {
+  const handleSave = async () => {
+    if (!selectedPatient || !amount || !paymentMethod || !description) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     const amountNum = parseFloat(amount);
-    if (isNaN(amountNum)) {
-      toast.error("Please enter a valid amount");
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast.error("Please enter a valid amount greater than 0");
       return;
     }
 
-    // For refunds and fees, make amount negative
-    const finalAmount = (type === 'refund' || type === 'fee') ? -Math.abs(amountNum) : Math.abs(amountNum);
+    setIsSubmitting(true);
+    try {
+      // For refunds and fees, make amount negative
+      const finalAmount = (type === 'refund' || type === 'fee') ? -Math.abs(amountNum) : Math.abs(amountNum);
 
-    const data = {
-      patientId,
-      type,
-      amount: finalAmount,
-      paymentMethod,
-      description,
-      relatedInvoice: relatedInvoice || undefined,
-      date,
-      notes,
-      status: 'completed',
-      transactionNumber: `TXN-${Date.now()}`,
-    };
+      const data = {
+        patient_id: selectedPatient.id,
+        patient_name: `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim(),
+        type,
+        amount: finalAmount,
+        payment_method: paymentMethod,
+        description,
+        related_invoice_id: relatedInvoice || null,
+        transaction_date: date,
+        notes,
+        status: 'completed',
+        transaction_number: `TXN-${Date.now()}`,
+      };
 
-    onSave(data);
-    toast.success("Transaction recorded successfully");
-    onClose();
+      await onSave(data);
+      toast.success("Transaction recorded successfully");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to record transaction");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -66,15 +78,10 @@ export const RecordTransactionDialog = ({ isOpen, onClose, onSave }: RecordTrans
 
         <div className="space-y-6">
           {/* Patient Selector */}
-          <div>
-            <Label htmlFor="patient">Patient *</Label>
-            <Input
-              id="patient"
-              placeholder="Enter patient ID or name"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-            />
-          </div>
+          <PatientSelector
+            selectedPatient={selectedPatient}
+            onPatientSelect={setSelectedPatient}
+          />
 
           {/* Transaction Type */}
           <div>
@@ -183,10 +190,11 @@ export const RecordTransactionDialog = ({ isOpen, onClose, onSave }: RecordTrans
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Record Transaction
           </Button>
         </DialogFooter>

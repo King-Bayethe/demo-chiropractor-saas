@@ -9,9 +9,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Invoice } from "@/utils/mockData/mockInvoices";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, X } from "lucide-react";
+import { CalendarIcon, Plus, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/formatters";
+import { PatientSelector } from "@/components/PatientSelector";
+import { Patient } from "@/hooks/usePatients";
+import { toast } from "sonner";
 
 type InvoiceItem = {
   description: string;
@@ -27,8 +30,7 @@ interface CreateInvoiceDialogProps {
 }
 
 export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: CreateInvoiceDialogProps) => {
-  const [patientId, setPatientId] = useState('');
-  const [patientName, setPatientName] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [date, setDate] = useState<Date>(new Date());
   const [dueDate, setDueDate] = useState<Date>(() => {
     const d = new Date();
@@ -41,18 +43,10 @@ export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: Create
   const [taxRate, setTaxRate] = useState(0);
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<Invoice['status']>('draft');
-
-  const patients = [
-    { id: 'p1', name: 'John Smith' },
-    { id: 'p2', name: 'Sarah Johnson' },
-    { id: 'p3', name: 'Michael Brown' },
-    { id: 'p4', name: 'Emily Davis' },
-  ];
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (invoice) {
-      setPatientId(invoice.patientId);
-      setPatientName(invoice.patientName);
       setDate(new Date(invoice.dateIssued));
       setDueDate(new Date(invoice.dueDate));
       setItems(invoice.lineItems.map(item => ({
@@ -64,8 +58,7 @@ export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: Create
       setNotes(invoice.notes || '');
       setStatus(invoice.status);
     } else {
-      setPatientId('');
-      setPatientName('');
+      setSelectedPatient(null);
       setDate(new Date());
       const d = new Date();
       d.setDate(d.getDate() + 30);
@@ -77,13 +70,6 @@ export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: Create
     }
   }, [invoice, isOpen]);
 
-  const handlePatientChange = (id: string) => {
-    const patient = patients.find(p => p.id === id);
-    if (patient) {
-      setPatientId(id);
-      setPatientName(patient.name);
-    }
-  };
 
   const addLineItem = () => {
     setItems([...items, { description: '', quantity: 1, unitPrice: 0 }]);
@@ -113,37 +99,52 @@ export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: Create
     return calculateSubtotal() + calculateTax();
   };
 
-  const handleSave = (saveStatus: Invoice['status']) => {
-    if (!patientId || items.some(item => !item.description)) return;
+  const handleSave = async (saveStatus: Invoice['status']) => {
+    if (!selectedPatient) {
+      toast.error("Please select a patient");
+      return;
+    }
 
-    const subtotal = calculateSubtotal();
-    const tax = calculateTax();
-    const total = calculateTotal();
+    if (items.some(item => !item.description)) {
+      toast.error("Please fill in all line item descriptions");
+      return;
+    }
 
-    const invoiceData: Omit<Invoice, 'id' | 'invoiceNumber'> = {
-      patientId,
-      patientName,
-      patientEmail: `${patientName.toLowerCase().replace(' ', '.')}@email.com`,
-      dateIssued: date.toISOString(),
-      dueDate: dueDate.toISOString(),
-      lineItems: items.filter(item => item.description).map((item, index) => ({
-        id: `li${Date.now()}_${index}`,
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.quantity * item.unitPrice,
-      })),
-      subtotal,
-      taxRate: taxRate / 100,
-      taxAmount: tax,
-      total,
-      status: saveStatus,
-      notes: notes || undefined,
-      paidDate: saveStatus === 'paid' ? new Date().toISOString() : undefined,
-    };
+    setIsSubmitting(true);
+    try {
+      const subtotal = calculateSubtotal();
+      const taxAmount = calculateTax();
+      const total = calculateTotal();
 
-    onSave(invoiceData);
-    onClose();
+      await onSave({
+        patientId: selectedPatient.id,
+        patientName: `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim(),
+        patientEmail: selectedPatient.email || 'patient@example.com',
+        dateIssued: date.toISOString(),
+        dueDate: dueDate.toISOString(),
+        lineItems: items.map((item, index) => ({
+          id: `item-${index + 1}`,
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.quantity * item.unitPrice
+        })),
+        subtotal,
+        taxRate: taxRate / 100,
+        taxAmount,
+        total,
+        status: saveStatus,
+        notes,
+        paidDate: saveStatus === 'paid' ? new Date().toISOString() : undefined
+      });
+
+      toast.success(`Invoice ${saveStatus === 'sent' ? 'sent' : saveStatus} successfully`);
+      onClose();
+    } catch (error) {
+      toast.error("Failed to save invoice");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -154,23 +155,14 @@ export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: Create
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Patient and Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="patient">Patient *</Label>
-              <Select value={patientId} onValueChange={handlePatientChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select patient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Patient Selection */}
+          <PatientSelector
+            selectedPatient={selectedPatient}
+            onPatientSelect={setSelectedPatient}
+          />
+
+          {/* Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <div className="space-y-2">
               <Label>Invoice Date *</Label>
@@ -319,20 +311,22 @@ export const CreateInvoiceDialog = ({ isOpen, onClose, onSave, invoice }: Create
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button
               variant="outline"
               onClick={() => handleSave('draft')}
-              disabled={!patientId || items.some(item => !item.description)}
+              disabled={isSubmitting || !selectedPatient || items.some(item => !item.description)}
             >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save as Draft
             </Button>
             <Button
               onClick={() => handleSave('sent')}
-              disabled={!patientId || items.some(item => !item.description)}
+              disabled={isSubmitting || !selectedPatient || items.some(item => !item.description)}
             >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {invoice ? 'Update & Send' : 'Create & Send'}
             </Button>
           </div>
