@@ -43,7 +43,6 @@ const navigationGroups = [
   {
     title: "Communication", 
     items: [
-      { title: "Demo Chat", url: "/demo-conversations", icon: MessageSquare, collapsedIcon: MessageSquare },
       { title: "Team Chat", url: "/team-chat", icon: Users, collapsedIcon: Users },
       { title: "Emails", url: "/emails", icon: Mail, collapsedIcon: Mail },
     ]
@@ -143,7 +142,9 @@ export function CRMSidebar({ onCollapseChange, onMobileClose }: CRMSidebarProps 
               </div>
               <div className="flex flex-col">
                 <div className="text-lg font-bold text-white leading-tight">HealthFlow</div>
-                <div className="text-xs text-slate-400">Portfolio CRM</div>
+                {isDemoUser && (
+                  <div className="text-xs text-slate-400">Portfolio CRM</div>
+                )}
               </div>
             </div>
           ) : (

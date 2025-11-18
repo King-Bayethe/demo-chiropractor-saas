@@ -114,15 +114,21 @@ const stats = mockDashboardStats || mockData.stats;
             <Activity className="h-4 sm:h-6 w-4 sm:w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Healthcare Portfolio Dashboard</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Demo Healthcare Management System</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">
+              {isDemoUser ? "Healthcare Portfolio Dashboard" : "Healthcare Dashboard"}
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {isDemoUser ? "Demo Healthcare Management System" : "Healthcare Management System"}
+            </p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue text-xs sm:text-sm">
-            Portfolio Demo
-          </Badge>
-          {!localStorage.getItem('demo-tour-completed') && (
+          {isDemoUser && (
+            <Badge variant="secondary" className="bg-medical-blue-light text-medical-blue text-xs sm:text-sm">
+              Portfolio Demo
+            </Badge>
+          )}
+          {!localStorage.getItem('demo-tour-completed') && isDemoUser && (
             <Button 
               variant="default" 
               size="sm" 
